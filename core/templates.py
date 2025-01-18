@@ -7,7 +7,7 @@ from core.helpers import lang
 import markdown
 import os
 
-templates = Jinja2Templates(directory='templates')
+templates = Jinja2Templates(directory='templates/html')
  
 def render(request:Request, template: str,context :dict ={},theme_ :bool= True,translate:bool = True,files_translate:list=[]):
     template = f"{template}.html"
@@ -28,7 +28,7 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
     context.update(default_context)
     return templates.TemplateResponse(request=request,name=template,context=context)
 
-def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[]):
+def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False):
     file_path=os.path.join(base_path,f"{file}.md")
     if not os.path.exists(file_path):
         return HTMLResponse('<h5>404</h5><br/><p>Not found</p>')
@@ -44,7 +44,8 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     html+='<meta name="color-scheme" content="light dark">\n'
     html+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
     html+=f"<title>{title}</title>\n"
-    
+    if  picocss:
+       html+= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
     if css_files :
         for css in css_files:
             html+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
