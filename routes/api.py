@@ -16,7 +16,7 @@ class InputModel(BaseModel):
     email : EmailStr
     password: str
 
-@router.route(path='/input/{i}',methods=['POST'])
+@router.route(path='/input',methods=['POST'])
 async def login(request:Request):
     msg= translate(file_name='guest',request=request)
     msg_error=msg['Incorrect email or password']
@@ -28,11 +28,5 @@ async def login(request:Request):
     response=JSONResponse({"success":False,"email":email,"password":password,"msg":msg_error})
     return response
    
-   
-# Route Swagger UI
-router.swagger_ui()
-
-# Route OpenAPI JSON
-router.openapi_json()
 
 routes=router.get_routes()
