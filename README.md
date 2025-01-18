@@ -155,7 +155,7 @@ async def home(request : Request):
 @router.route(path='/mardown',methods=['GET'])
 async def home(request : Request):
     css=["/public/css/app.css"]
-    response =renderMarkdown(request=request,file='README',css_files=css)
+    response =renderMarkdown(request=request,file='test',css_files=css)
     return response
 
 @router.route(path='/login',methods=['GET'])
