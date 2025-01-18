@@ -1,3 +1,13 @@
-# Welcome to Lila / Bienvenido a Lila
+# Welcome to My Website
 
-This is an example of Markdown-generated content / Este es un ejemplo de contenido generado en Markdown.
+This is a simple **Markdown** example.
+
+## Features
+- Easy to write
+- Converts to HTML
+- Supports links and images
+
+### Example Code
+```python
+print("Hello, Markdown!")
+```

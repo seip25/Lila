@@ -33,33 +33,34 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     if not os.path.exists(file_path):
         return HTMLResponse('<h5>404</h5><br/><p>Not found</p>')
     
+    with open(file=file_path,mode="r",encoding="utf-8") as file:
+        mark=file.read()
+        html_markdown= markdown.markdown(mark)   
+    
     lang_=lang(request)
     
     title=TITLE_PROJECT
-    html='<!DOCTYPE html>\n'
-    html+=f"<html lang='{lang_}'>\n"
-    html+='<head>\n'
-    html+='<meta charset="UTF-8">\n'
-    html+='<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
-    html+='<meta name="color-scheme" content="light dark">\n'
-    html+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
-    html+=f"<title>{title}</title>\n"
+    head='<!DOCTYPE html>\n'
+    head+=f"<html lang='{lang_}'>\n"
+    head+='<head>\n'
+    head+='<meta charset="UTF-8">\n'
+    head+='<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+    head+='<meta name="color-scheme" content="light dark">\n'
+    head+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
+    head+=f"<title>{title}</title>\n"
     if  picocss:
-       html+= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
+       head+= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
     if css_files :
         for css in css_files:
-            html+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
+            head+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
     
     if js_files :
         for js in js_files:
-            html+=f"<script src='{js}' ></script>\n"
+            head+=f"<script src='{js}' ></script>\n"
     
-    html+='</head>\n<body>\n'
+    head+='</head>\n<body>\n'
 
-    with open(file=file_path,mode="r",encoding="utf-8") as file:
-        html+=file.read()
-    
-    html+='</body>\n</html>'
-    html= markdown.markdown(html)   
+ 
+    html=f"{head}{html_markdown}</body>\n</html>"    
     
     return HTMLResponse(content=html)
