@@ -22,5 +22,10 @@
   "Incorrect email or password": {
     "es": "Error en el email o contraseña",
     "en": "Incorrect email or password"
+  },
+  "Repeat your password":
+  {
+    "es":"Repitá su contraseña",
+    "en":"Repeat your password"
   }
 }

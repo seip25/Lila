@@ -3,7 +3,7 @@
 
 <head>
     {% include 'includes/head.html' with context %}
-    <script src="/public/js/login.js"></script>
+    <script src="/public/js/register.js"></script>
 </head>
 
 <body class="light">
@@ -13,13 +13,18 @@
             <div class="row">
                 <div class="max  flex justify-center">
                     <h5 class="text-{{theme}} uppercase  small  ">
-                        {{ translate['Login'] }}
+                        {{ translate['Register'] }}
                     </h5>
                 </div>
             </div>
 
             <div class="mt-2">
-                <form onsubmit="Login(event);">
+                <form onsubmit="Register(event);">
+                    <div class="field label border prefix mb-3">
+                        <i>account_circle</i>
+                        <input type="text" name="name" required  min="2" max="50"/>
+                        <label>{{translate['Name']}}</label>
+                    </div>
                     <div class="field label border prefix mb-3">
                         <i>email</i>
                         <input type="email" name="email" required />
@@ -32,37 +37,29 @@
                         <label>
                             {{ translate['Password'] }}
                         </label>
+                    </div>
+                    <div class="field label border prefix mb-3">
+                        <i>password</i>
+                        <input type="password" name="password_2" required id="password_2" />
+                        <label>
+                            {{ translate['Repeat your password'] }}
+                        </label>
 
                     </div>
-                    <div class="mt-2 flex justify-start">
-                        <div>
-                            <label class="switch">
-                                <input type="checkbox" checked="on" />
-                                <span></span>
-                                &nbsp;
-                                {{ translate['Remember me'] }}
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="mt-2">
+                    
+                    <div class="mt-1">
                         <button type="submit" class="responsive  ">
-
                             {{ translate['Send'] }}
                         </button>
                     </div>
 
                     <div class="responsive ">
                         <div class="mt-1 flex justify-center">
-                            <a href="/register" class="link underline">
-                                {{ translate['Register'] }}
+                            <a href="/login" class="link underline">
+                                {{ translate['Login'] }}
                             </a>
                         </div>
-                        <div class="mt-1 flex justify-center">
-                            <a href="/password" class="link underline">
-                                {{ translate['Forgot your password?'] }}
-                            </a>
-                        </div>
+                         
                     </div>
                 </form>
             </div>

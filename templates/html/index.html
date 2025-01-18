@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+
+<head>
+  {% include "includes/head.html" with context %}
+</head>
+
+<body class="light">
+  <header class="primary">
+    <nav>
+      <button class="circle transparent">
+        <i>menu</i>
+      </button>
+      <h5 class="max center-align">{{title}}</h5>
+      <div class="flex col justify-between"> 
+        <a href="/login">{{translate['Login']}}</a>
+        <a href="/register">{{translate['Register']}}</a>
+      </div>
+    </nav>
+  </header>
+  <main class="responsive mt-4">
+    <article>
+      <p>Index</p>
+    </article>
+  </main>
+</body>
+
+</html>

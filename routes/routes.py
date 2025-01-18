@@ -17,15 +17,20 @@ async def home(request : Request):
     response=render(request=request,template='index',files_translate=['guest'])
     return response
 
-@router.route(path='/mardown',methods=['GET'])
+@router.route(path='/markdown',methods=['GET'])
 async def home(request : Request):
     css=["/public/css/app.css"]
-    response =renderMarkdown(request=request,file='test',css_files=css)
+    response =renderMarkdown(request=request,file='test',css_files=css,picocss=True)
     return response
 
 @router.route(path='/login',methods=['GET'])
 async def login(request : Request):
-    response =render(request=request,template='login',files_translate=['guest'])
+    response =render(request=request,template='auth/login',files_translate=['guest'])
+    return response
+
+@router.route(path='/register',methods=['GET'])
+async def login(request : Request):
+    response =render(request=request,template='auth/register',files_translate=['guest'])
     return response
 
 #Example middleware "login_required" (session web)
