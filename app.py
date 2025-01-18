@@ -9,7 +9,7 @@ import asyncio
 all_routes = list(itertools.chain(routes,api_routes))
 
 app = App(debug=True,routes=all_routes) 
-
+ 
 async def main():
     uvicorn.run("app:app.start", host=HOST, port=PORT,reload=True)
 
