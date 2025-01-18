@@ -1,0 +1,79 @@
+/* --- Colores --- */
+:root,
+body.light {
+  --primary: #0d56d0;
+  --on-primary: #ffffff;
+  --primary-container: #dae2ff;
+  --on-primary-container: #001848;
+  --secondary: #585e71;
+  --on-secondary: #ffffff;
+  --secondary-container: #dce2f9;
+  --on-secondary-container: #151b2c;
+  --tertiary: #735471;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #fed6f9;
+  --on-tertiary-container: #2b122b;
+  --error: #ff4081;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #410002;
+  --background: #fefbff;
+  --on-background: #1b1b1f;
+  --surface: #fbf8fd;
+  --on-surface: #1b1b1f;
+  --surface-variant: #e1e2ec;
+  --on-surface-variant: #45464f;
+  --outline: #757780;
+  --outline-variant: #c5c6d0;
+  --shadow: #000000;
+  --scrim: #000000;
+  --inverse-surface: #303034;
+  --inverse-on-surface: #f2f0f4;
+  --inverse-primary: #b2c5ff;
+  --surface-dim: #dbd9dd;
+  --surface-bright: #fbf8fd;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f5f3f7;
+  --surface-container: #efedf1;
+  --surface-container-high: #e9e7ec;
+  --surface-container-highest: #e4e2e6;
+}
+
+body.dark {
+  --primary: #b2c5ff;
+  --on-primary: #002b74;
+  --primary-container: #0040a2;
+  --on-primary-container: #dae2ff;
+  --secondary: #c0c6dd;
+  --on-secondary: #2a3042;
+  --secondary-container: #404659;
+  --on-secondary-container: #dce2f9;
+  --tertiary: #e1bbdc;
+  --on-tertiary: #422741;
+  --tertiary-container: #5a3d59;
+  --on-tertiary-container: #fed6f9;
+  --error: #ff4081;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffb4ab;
+  --background: #1b1b1f;
+  --on-background: #e4e2e6;
+  --surface: #131316;
+  --on-surface: #e4e2e6;
+  --surface-variant: #45464f;
+  --on-surface-variant: #c5c6d0;
+  --outline: #8f909a;
+  --outline-variant: #45464f;
+  --shadow: #000000;
+  --scrim: #000000;
+  --inverse-surface: #e4e2e6;
+  --inverse-on-surface: #303034;
+  --inverse-primary: #0d56d0;
+  --surface-dim: #131316;
+  --surface-bright: #39393c;
+  --surface-container-lowest: #0d0e11;
+  --surface-container-low: #1b1b1f;
+  --surface-container: #1f1f23;
+  --surface-container-high: #292a2d;
+  --surface-container-highest: #343438;
+}
