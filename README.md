@@ -53,7 +53,8 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise√
 3. Create a virtual environment and activate it:
 
    ```bash
-   pyeoturce venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    python3 -m venv venv
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
    ```
 
 4. Install dependencies:
