@@ -28,7 +28,7 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 - **Validación robusta**: Uso de Pydantic para garantizar datos consistentes.
 - **Editable y configurable**: Todo está listo para usar, pero también es completamente personalizable.
 - **Multi-idioma**: Soporte integrado para aplicaciones multilingües.
-- **Compatibilidad**: Puede ser utilizado con frameworks como Next.js, Remix, entre otros.
+- **Compatibilidad**: Puede ser utilizado con frameworks como Next.js, Remix js, entre otros.
 - **Migraciones sencillas**: Configuración rápida y fácil para bases de datos.
 - **Jinja2 y sesiones HTML**: Listo para usar con plantillas dinámicas y manejo de sesiones, pero compatible con React, Angular, Vue, entre otros frameworks frontend.
 
@@ -108,8 +108,10 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 
 ### `app.py`
 
-- **Purpose / Propósito**: Configure and start the application / Configurar y arrancar la aplicación.
-- **Use / Uso**: Defines main routes and middlewares / Define las rutas y los middlewares principales.
+- **Purpose / Propósito**: Configure and start the application 
+Configurar y arrancar la aplicación.
+- **Use / Uso**: Defines main routes and middlewares
+Define las rutas y los middlewares principales.
 
 ### `core/`
 
