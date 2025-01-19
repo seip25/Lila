@@ -13,7 +13,8 @@ Lila is a minimalist Python framework based on Starlette and Pydantic. Designed 
 - **Compatibility**: Can be used with frameworks like Next.js, Remix, and others.
 - **Easy Migrations**: Quick and straightforward database configuration.
 - **Jinja2 and HTML Sessions**: Ready-to-use with dynamic templates and session handling, while remaining compatible with React, Angular, Vue, and other frontend frameworks.
-
+- **SQLAlchemy** :For the ORM or you can also use the connectors directly (mysql.connector, sqlite3, etc...)
+- **JWT** :It comes integrated with helpers to generate tokens and the middleware already has a function that validates it.
 ---
 
 # Lila (Español)
@@ -31,6 +32,9 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 - **Compatibilidad**: Puede ser utilizado con frameworks como Next.js, Remix js, entre otros.
 - **Migraciones sencillas**: Configuración rápida y fácil para bases de datos.
 - **Jinja2 y sesiones HTML**: Listo para usar con plantillas dinámicas y manejo de sesiones, pero compatible con React, Angular, Vue, entre otros frameworks frontend.
+- **SQLAlchemy** :Para la ORM o también se puede utilizar los connectores directamente(mysql.connector,sqlite3,etc...)
+- **JWT** :Viene integrado con helpers para generar token y en el middleware ya viene una función que válida el mismo.
+
 
 ---
 
@@ -116,6 +120,25 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 
 - **Global configuration / Configuración global**: Includes application settings, such as environment variable handling and general configurations / Incluye la configuración de la aplicación, como el manejo de variables de entorno y configuraciones generales.
 - **Utilities / Utilidades**: Shared functions for use in different modules / Funciones compartidas para uso en diferentes módulos.
+
+
+
+### `locales/`
+
+- **Translations / Traducciones **:
+- Default the 'Render' method loads the translations file 'translations.json'.
+To use it anywhere in the application, you can use the 'translate' helper, passing it the name of the file you want to open to get the translations, returning a dictionary./
+De forma predeterminada, el método 'Render' carga el archivo de traducciones 'translations.json'.
+Para usarlo en cualquier parte de la aplicación, puedes usar el asistente 'translate', pasándole el nombre del archivo que quieres abrir para obtener las traducciones y devolviendo un diccionario.
+
+core/helpers.py
+
+```python
+from core.helpers import translate
+translate(file_name='guest' , request: Request)
+
+```
+
 
 ### `database/`
 
@@ -498,8 +521,110 @@ Lila permite editar y generar páginas en formato Markdown (`.md`), que se convi
 - **Support / Soporte**: Compatible with template engines like Jinja2 / Compatible con motores de plantillas como Jinja2.
 
 ---
+- **JWT**
+
+-Helpers to generate and validate token / Helpers para generar y validar tokens .
+core/helpers.py
+
+-It is used in the following way /Se utiliza de la siguiente manera.
+```python
+from core.helpers import generate_token,validate_token
+token =generate_token('user','example_user')
+
+return validate_token(request=request)
+
+```
+
+```python
+import jwt
+import datetime
+
+def generate_token(name:str,value:str)->str :
+    options={}
+    options[name]=value
+    options['exp']=datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    token = jwt.encode(options,SECRET_KEY,algorithm='HS256')
+    return token
+
+def validate_token(request:Request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return JSONResponse({'message': 'Invalid token'}), 401
+    try:
+        token = token.split(" ")[1] 
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return decoded_token
+    except jwt.ExpiredSignatureError:
+        return JSONResponse({'message': 'Token has expired'}), 401
+    except jwt.InvalidTokenError:
+        return JSONResponse({'message': 'Invalid token'}), 401
 
 
+```
+
+- Middleware for validate tokens / Middleware para validar tokens
+
+```python
+def check_token(func,request=Request):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        validate_token(request=request) #jwt validate token
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+```
+- In the client there is code that can be helpful in /static/js/utils.js , both to send fetch, delete, generate and set cookies and to save the token or other application data in connection with the backend. /
+En el lado del cliente hay  código que puede ser útil en /static/js/utils.js, tanto para enviar, obtener, eliminar, generar y configurar cookies, como para guardar el token u otros datos de la aplicación en conexión con el backend.
+
+```javascript
+const resp = await Http({ url: "/token_check", method: "POST", body: form,token:'token' });
+  
+async function Http({
+  url = "/",
+  method = "GET",
+  body = false,
+  token = false,
+}) {
+  const options = {
+    method: method,
+    headers: {},
+  };
+  if (body) options["body"] = JSON.stringify(body);
+
+  if (token) options.headers["Authorization"] = `Bearer ${token}`;
+
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Error fetch");
+  }
+  const resp = await response.json();
+  return resp;
+}
+
+
+function setCookie({name='token', value, days=7, secure = false}) {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    let cookieString = `${name}=${encodeURIComponent(
+      value
+    )}; expires=${expires}; path=/; SameSite=Lax`;
+    if (secure) cookieString += "; Secure";
+    
+    document.cookie = cookieString;
+  }
+  
+  function getCookie({name}) {
+    return document.cookie.split("; ").reduce((r, v) => {
+      const parts = v.split("=");
+      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+    }, "");
+  }
+  
+  function deleteCookie({name}) {
+    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+  }
+
+```
 ---
 
 ## Contributions (Contribuciones)

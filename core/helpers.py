@@ -1,8 +1,11 @@
-from core.env import THEME_DEFAULT,LANG_DEFAULT
+from core.env import THEME_DEFAULT,LANG_DEFAULT,SECRET_KEY
 from core.session import Session 
 from core.request import Request
+from core.responses import JSONResponse
 import json
 from pathlib import Path
+import jwt
+import datetime
 
 LOCALES_PATH = Path("locales")
 
@@ -37,3 +40,23 @@ def translate(file_name: str , request: Request) -> dict:
         print(f"{file_name} - {e}")
     
     return translations
+
+def generate_token(name:str,value:str)->str :
+    options={}
+    options[name]=value
+    options['exp']=datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    token = jwt.encode(options,SECRET_KEY,algorithm='HS256')
+    return token
+
+def validate_token(request:Request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return JSONResponse({'message': 'Invalid token'}), 401
+    try:
+        token = token.split(" ")[1] 
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return decoded_token
+    except jwt.ExpiredSignatureError:
+        return JSONResponse({'message': 'Token has expired'}), 401
+    except jwt.InvalidTokenError:
+        return JSONResponse({'message': 'Invalid token'}), 401
