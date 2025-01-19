@@ -139,6 +139,33 @@ translate(file_name='guest' , request: Request)
 
 ```
 
+- example file . / archivo de ejemplo
+```json
+{
+  "Send": {
+    "es": "Enviar",
+    "en": "Send"
+  },
+  "Cancel": {
+    "es": "Cancelar",
+    "en": "Cancel"
+  },
+  "Accept":{
+    "es": "Aceptar",
+    "en": "Accept"
+  },
+  "Email":{
+    "es":"Email",
+    "en":"Email"
+  },
+  "Name":{
+    "es":"Nombre",
+    "en":"Name"
+  }
+
+}
+
+```
 
 ### `database/`
 
