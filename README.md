@@ -123,6 +123,51 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 - **Models / Modelos**: The models module defines the data models used to interact with the database. These models represent your database tables and can be used to perform CRUD (Create, Read, Update, Delete) operations. / El módulo models define los modelos de datos utilizados para interactuar con la base de datos. Estos modelos representan las tablas de la base de datos y pueden utilizarse para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar),etc.
 - **Configurable ORMs / ORMs configurables**: This framework allows you to integrate easily with popular ORMs such as SQLModel or SQLAlchemy. You can configure it to suit your needs and use either of them for managing database operations./ Este framework permite integrar fácilmente ORMs populares como SQLModel o SQLAlchemy. Puedes configurarlo para adaptarse a tus necesidades y utilizar cualquiera de ellos para gestionar las operaciones en la base de datos.
 
+### `models/`
+
+- **Models /Modelos** :These models represent the database tables and can be used to perform CRUD operations (Create, Read, Update, Delete), etc.
+
+The code provided establishes the 'users' model, along with a function to execute queries, in this case an insert, thanks to SQLAlchemy. /Estos modelos representan las tablas de la base de datos y pueden utilizarse para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar), etc.
+
+El código proporcionado establece el modelo 'users', junto con una función para ejecutar consultas, en este caso una inserción, gracias a SQLAlchemy.
+
+
+```python
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
+from sqlalchemy.orm import validates
+from core.database import Base
+from database.connections import connection
+import secrets
+import hashlib
+import bcrypt
+
+class User(Base):
+    __tablename__='users'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    name=Column( String(length=50), nullable=False)
+    email=Column( String(length=50), unique=True)
+    password=Column(String(length=150), nullable=False)
+    token=Column(String(length=150), nullable=False)
+    active=Column( Integer, nullable=False,default=1)
+    created_at=Column( TIMESTAMP)
+
+    def validate_password(stored_hash :str, password:str)->bool:
+        return bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8'))
+
+    def insert(params :dict )->bool:
+        params["token"]=hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
+        params["active"]=1
+        params["password"]=bcrypt.hashpw(params["password"].encode('utf-8'),bcrypt.gensalt())
+        placeholders =' ,'.join(f":{key}" for key in params.keys())
+        columns =','.join(f"{key}" for key in params.keys() )
+        
+        query =f"INSERT INTO users ({columns}) VALUES({placeholders})"
+        return connection.query(query,params)
+
+
+User.insert({"name":"name","email":"example@example.com","password":"password"})
+
+```
 
 - **Migrations /migraciones**
 - Example of Migration Script / Ejemplo de Script de Migración

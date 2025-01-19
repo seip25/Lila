@@ -72,7 +72,7 @@ class Database:
             
                 self.connection=connection
                 if query.strip().upper().startswith(('CREATE','INSERT','UPDATE','DELETE')):
-                    self.commit()
+                    connection.commit()
 
             if return_rows :
                 return [row for row in result]
