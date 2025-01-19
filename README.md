@@ -225,6 +225,8 @@ User.insert({"name":"name","email":"example@example.com","password":"password"})
 - The script defines a migration for the users table and a User model. The migration script creates the users table with columns such as id, name, email, etc. It also includes a migrate function that performs the migration using the configured connection. The refresh parameter can be set to True to drop and recreate the tables from scratch./
 El script define una migración para la tabla users y un modelo User. El script de migración crea la tabla users con columnas como id, name, email, etc. También incluye una función migrate que realiza la migración utilizando la conexión configurada. El parámetro refresh puede configurarse como True para eliminar y recrear las tablas desde cero.
 
+- You can use either the migrations form and take advantage of the created models to avoid repeating code or if you just want to create the table you can use the first form with 'Table' from SQLAlchemy./Puedes utilizar tanto la forma de las migraciones y aprovechar los modelos creados para no repetir código o si solo quieres crear la tabla puedes usar la primera forma con 'Table' de SQLAlchemy.
+
 
 
 migrations.py
