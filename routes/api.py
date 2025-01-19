@@ -1,70 +1,85 @@
-from core.request import Request
-from core.responses import JSONResponse
-from core.routing import Router
-from core.helpers import translate
-from core.session import Session
-from pydantic import EmailStr,BaseModel
+from core.request import Request  # English: Handles HTTP requests in the application. | Español: Maneja solicitudes HTTP en la aplicación.
+from core.responses import JSONResponse  # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
+from core.routing import Router  # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
+from core.helpers import translate  # English: Provides translation utilities for multilingual support. | Español: Proporciona utilidades de traducción para soporte multilingüe.
+from core.session import Session  # English: Manages user sessions, including cookies. | Español: Administra sesiones de usuario, incluyendo cookies.
+from pydantic import EmailStr, BaseModel  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 
-#Json Responses
-router=Router()
+# English: Initialize the router instance for managing API routes. 
+# Español: Inicializa la instancia del enrutador para manejar rutas de la API.
+router = Router()
 
-@router.route(path='/api',methods=['GET','POST'])
-async def api(request : Request):
-     return JSONResponse({'api':True})
+# English: Define an API route that supports GET and POST methods.
+# Español: Define una ruta de API que soporta los métodos GET y POST.
+@router.route(path='/api', methods=['GET', 'POST'])
+async def api(request: Request):
+    return JSONResponse({'api': True})  # English: Returns a simple JSON response for API verification. | Español: Devuelve una respuesta JSON simple para la verificación de la API.
 
-#Example Pydantic
+# English: Example data model for login using Pydantic.
+# Español: Ejemplo de modelo de datos para inicio de sesión usando Pydantic.
 class LoginModel(BaseModel):
-    email : EmailStr
-    password: str
+    email: EmailStr  # English: Ensures the email is valid. | Español: Garantiza que el email sea válido.
+    password: str  # English: A plain string for the password. | Español: Una cadena simple para la contraseña.
 
-@router.route(path='/login',methods=['POST'],model=LoginModel)
-async def login(request:Request):
-    """Login function"""  
-    msg= translate(file_name='guest',request=request)
-    msg_error=msg['Incorrect email or password']
-    body = await request.json()
+# English: Define a route for user login, using the LoginModel for input validation.
+# Español: Define una ruta para el inicio de sesión de usuario, utilizando LoginModel para la validación de entradas.
+@router.route(path='/login', methods=['POST'], model=LoginModel)
+async def login(request: Request):
+    """Login function"""
+    msg = translate(file_name='guest', request=request)  # English: Load translations for error messages. | Español: Carga traducciones para los mensajes de error.
+    msg_error = msg['Incorrect email or password']  # English: Predefined error message for invalid credentials. | Español: Mensaje de error predefinido para credenciales no válidas.
+    body = await request.json()  # English: Asynchronously parse JSON body from the request. | Español: Analiza asíncronamente el cuerpo JSON de la solicitud.
     try:
-        input=LoginModel(**body)
+        input = LoginModel(**body)  # English: Validate input data against the LoginModel. | Español: Valida los datos de entrada contra LoginModel.
     except Exception as e:
-        return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
-    email = input.email
-    password = input.password 
+        return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400)  # English: Return error if validation fails. | Español: Devuelve un error si la validación falla.
     
-    response=JSONResponse({"success":False,"email":email,"password":password,"msg":msg_error})
-   
-    if email=="example@example.com" and password=="password":
-        response=JSONResponse({"success":True,"email":email,"password":password,"msg":msg_error})
-        Session.setSession(new_val='auth',name_cookie='auth',response=response)
-      
+    email = input.email
+    password = input.password
+    response = JSONResponse({"success": False, "email": email, "password": password, "msg": msg_error})
+    
+    # English: Check if email and password match predefined values (mock login validation).
+    # Español: Verifica si el email y la contraseña coinciden con valores predefinidos (validación de inicio de sesión simulada).
+    if email == "example@example.com" and password == "password":
+        response = JSONResponse({"success": True, "email": email, "password": password, "msg": msg_error})
+        Session.setSession(new_val='auth', name_cookie='auth', response=response)  # English: Set a session cookie if login is successful. | Español: Establece una cookie de sesión si el inicio de sesión es exitoso.
+    
     return response
 
-
-
-#Example Pydantic
+# English: Example data model for user registration using Pydantic.
+# Español: Ejemplo de modelo de datos para el registro de usuarios usando Pydantic.
 class RegisterModel(BaseModel):
-    email : EmailStr
-    password: str
-    name :str
-    password_2 :str
+    email: EmailStr  # English: Validates the email format. | Español: Valida el formato del email.
+    password: str  # English: Password input for the user. | Español: Contraseña ingresada por el usuario.
+    name: str  # English: Name of the user. | Español: Nombre del usuario.
+    password_2: str  # English: Confirmation password. | Español: Confirmación de contraseña.
 
-@router.route(path='/register',methods=['POST'],model=RegisterModel)
-async def register(request:Request):
-    """Register function""" 
+# English: Define a route for user registration, using the RegisterModel for input validation.
+# Español: Define una ruta para el registro de usuario, utilizando RegisterModel para la validación de entradas.
+@router.route(path='/register', methods=['POST'], model=RegisterModel)
+async def register(request: Request):
+    """Register function"""
     body = await request.json()
     try:
-        input=RegisterModel(**body)
+        input = RegisterModel(**body)  # English: Validate input data against the RegisterModel. | Español: Valida los datos de entrada contra RegisterModel.
     except Exception as e:
-        return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
+        return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400)
     
-    name=input.name
+    name = input.name
     email = input.email
-    password = input.password 
-    password_2=input.password_2
-    response=JSONResponse({"success":True,"email":email,"password":password,"name":name,"password_2":password_2})
+    password = input.password
+    password_2 = input.password_2
+    response = JSONResponse({"success": True, "email": email, "password": password, "name": name, "password_2": password_2})  # English: Respond with validated data. | Español: Responde con los datos validados.
     return response
-      
+
+# English: Enable Swagger UI for API documentation.
+# Español: Habilita Swagger UI para la documentación de la API.
 router.swagger_ui()
 
+# English: Generate OpenAPI JSON for external tools.
+# Español: Genera JSON de OpenAPI para herramientas externas.
 router.openapi_json()
 
-routes=router.get_routes()
+# English: Retrieve all defined routes in the application.
+# Español: Obtiene todas las rutas definidas en la aplicación.
+routes = router.get_routes()
