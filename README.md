@@ -73,6 +73,25 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
    python3 app.py #Or python app.py
    ```
 
+---
+- ***Free customization***
+
+- You can use Lila with any styling framework you prefer, such as Tailwind CSS, Bootstrap, PicoCSS, or others.
+- By default in the example templates, use Beer CSS.
+
+- If you want to start clean and build from scratch:
+
+- Delete all folders except:
+
+- core
+
+- locals
+
+- Empty the templates and static folders.
+
+- Configure the framework as you wish, modifying or extending the core, which is flexible and can adapt to any development pattern.
+---
+
 ### Español
 
 1. Clona el repositorio:
@@ -108,6 +127,24 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 
 
 ---
+- ***Personalización Libre***
+
+- Puedes usar Lila con cualquier framework de estilos que prefieras, como Tailwind CSS, Bootstrap, PicoCSS, u otros. 
+- Por defecto en los templates de ejemplo, utiliza Beer CSS.
+
+- Si deseas empezar limpio y construir desde cero:
+
+- Elimina todas las carpetas excepto:
+
+- core
+
+- locales
+
+- Vacía las carpetas templates y static.
+
+- Configura el framework según lo desees, modificando o ampliando el core, que es flexible y puede adaptarse a cualquier patrón de desarrollo.
+
+---
 
 ## Project Structure (Estructura del proyecto)
 
@@ -129,7 +166,7 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 - Default the 'Render' method loads the translations file 'translations.json'.
 To use it anywhere in the application, you can use the 'translate' helper, passing it the name of the file you want to open to get the translations, returning a dictionary./
 De forma predeterminada, el método 'Render' carga el archivo de traducciones 'translations.json'.
-Para usarlo en cualquier parte de la aplicación, puedes usar el asistente 'translate', pasándole el nombre del archivo que quieres abrir para obtener las traducciones y devolviendo un diccionario.
+Para usarlo en cualquier parte de la aplicación, puedes usar el helper 'translate', pasándole el nombre del archivo que quieres abrir para obtener las traducciones y devolviendo un diccionario.
 
 core/helpers.py
 
