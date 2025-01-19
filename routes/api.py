@@ -16,12 +16,16 @@ class LoginModel(BaseModel):
     email : EmailStr
     password: str
 
-@router.route(path='/login',methods=['POST'])
+@router.route(path='/login',methods=['POST'],model=LoginModel)
 async def login(request:Request):
+    """Login function"""  
     msg= translate(file_name='guest',request=request)
     msg_error=msg['Incorrect email or password']
     body = await request.json()
-    input=LoginModel(**body)
+    try:
+        input=LoginModel(**body)
+    except Exception as e:
+        return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
     email = input.email
     password = input.password 
     response=JSONResponse({"success":False,"email":email,"password":password,"msg":msg_error})
@@ -36,16 +40,24 @@ class RegisterModel(BaseModel):
     name :str
     password_2 :str
 
-@router.route(path='/register',methods=['POST'])
-async def login(request:Request):
+@router.route(path='/register',methods=['POST'],model=RegisterModel)
+async def register(request:Request):
+    """Register function""" 
     body = await request.json()
-    input=RegisterModel(**body)
+    try:
+        input=RegisterModel(**body)
+    except Exception as e:
+        return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
+    
     name=input.name
     email = input.email
     password = input.password 
     password_2=input.password_2
-    response=JSONResponse({"success":False,"email":email,"password":password,"name":name,"password_2":password_2})
+    response=JSONResponse({"success":True,"email":email,"password":password,"name":name,"password_2":password_2})
     return response
       
+router.swagger_ui()
+
+router.openapi_json()
 
 routes=router.get_routes()

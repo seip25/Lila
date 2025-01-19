@@ -103,6 +103,42 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
    ```
 
 ---
+# API Documentation (Swagger)
+
+- **Swagger UI and OpenAPI Documentation / Interfaz Swagger y Documentación OpenAPI**
+```python
+    router.swagger_ui()
+    router.openapi_json()
+
+```
+- These two functions enable automatic generation of interactive API documentation via Swagger. You can access the documentation by navigating to /docs in your browser. /
+Estas dos funciones habilitan la generación automática de documentación interactiva de la API a través de Swagger. Puedes acceder a la documentación navegando a /docs en tu navegador.
+
+-Documentation is automatically generated after calling the 2 methods of the "Router" class, for all routes with their corresponding methods, as shown in the code.
+
+If you use a Pydantic Model, pass it as a parameter to the "route" function, as "model", as detailed below in the code. 
+/La documentación se genera automáticamente luego de llamar a los 2 métodos de la clase "Router", para todas las rutas con sus métodos correspondientes, como se muestra en el código.
+
+Si utiliza un Modelo Pydantic, páselo como parámetro a la función "ruta", como "modelo", como se detalla a continuación en el código.
+```python
+@router.route(path='/login',methods=['POST'],model=LoginModel)
+async def login(request:Request):
+    """Login function"""  
+    msg= translate(file_name='guest',request=request)
+    msg_error=msg['Incorrect email or password']
+    body = await request.json()
+    try:
+        input=LoginModel(**body)
+    except Exception as e:
+        return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
+    email = input.email
+    password = input.password 
+    response=JSONResponse({"success":False,"email":email,"password":password,"msg":msg_error})
+    return response
+
+
+```
+---
 
 ## Project Structure (Estructura del proyecto)
 
