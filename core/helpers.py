@@ -48,15 +48,6 @@ def generate_token(name:str,value:str)->str :
     token = jwt.encode(options,SECRET_KEY,algorithm='HS256')
     return token
 
-def validate_token(request:Request):
-    token = request.headers.get('Authorization')
-    if not token:
-        return JSONResponse({'message': 'Invalid token'}), 401
-    try:
-        token = token.split(" ")[1] 
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        return decoded_token
-    except jwt.ExpiredSignatureError:
-        return JSONResponse({'message': 'Token has expired'}), 401
-    except jwt.InvalidTokenError:
-        return JSONResponse({'message': 'Invalid token'}), 401
+def get_token(token:str):
+    token = token.split(" ")[1] 
+    return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
