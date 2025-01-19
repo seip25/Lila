@@ -61,7 +61,13 @@ class RegisterModel(BaseModel):
 async def register(request: Request):
     """Register function"""
     body = await request.json()
+    password = body["password"]
+    password_2 = body["password_2"]
     t = translate(file_name="translations", request=request)
+    if password != password_2:
+        msg = t["Passwords not match"]
+        response = JSONResponse({"success": False, "msg": msg})
+        return response
     try:
         input = RegisterModel(**body)  # English: Validate input data against the RegisterModel. | Español: Valida los datos de entrada contra RegisterModel.
     except Exception as e:
