@@ -1,6 +1,6 @@
 # Welcome to My Website
 
-This is a simple **Markdown** example.
+This is a simple **Markdown** example. 
 
 ## Features
 - Easy to write
@@ -8,7 +8,8 @@ This is a simple **Markdown** example.
 - Supports links and images
 
 ### Example Code
-```python
+
+```
 print("Hello, Markdown!")
 ```
 

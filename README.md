@@ -119,8 +119,92 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 ### `database/`
 
 - **Connection / Conexión**: Configures and manages MySQL or SQLite connections / Configura y gestiona las conexiones con MySQL o SQLite.
-- **Models / Modelos**: Defines data models to interact with the database / Define los modelos de datos para interactuar con la base de datos.
-- **Configurable ORMs / ORMs configurables**: Easy integration with SQLModel or SQLAlchemy / Fácil de integrar con SQLModel o SQLAlchemy.
+- **Models / Modelos**: The models module defines the data models used to interact with the database. These models represent your database tables and can be used to perform CRUD (Create, Read, Update, Delete) operations. / El módulo models define los modelos de datos utilizados para interactuar con la base de datos. Estos modelos representan las tablas de la base de datos y pueden utilizarse para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar),etc.
+- **Configurable ORMs / ORMs configurables**: This framework allows you to integrate easily with popular ORMs such as SQLModel or SQLAlchemy. You can configure it to suit your needs and use either of them for managing database operations./ Este framework permite integrar fácilmente ORMs populares como SQLModel o SQLAlchemy. Puedes configurarlo para adaptarse a tus necesidades y utilizar cualquiera de ellos para gestionar las operaciones en la base de datos.
+
+
+- **Migrations /migraciones**
+- Example of Migration Script / Ejemplo de Script de Migración
+- The script defines a migration for the users table and a User model. The migration script creates the users table with columns such as id, name, email, etc. It also includes a migrate function that performs the migration using the configured connection. The refresh parameter can be set to True to drop and recreate the tables from scratch./
+El script define una migración para la tabla users y un modelo User. El script de migración crea la tabla users con columnas como id, name, email, etc. También incluye una función migrate que realiza la migración utilizando la conexión configurada. El parámetro refresh puede configurarse como True para eliminar y recrear las tablas desde cero.
+
+
+
+migrations.py
+
+```python
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
+from database.connections import connection
+from core.database import Base
+
+
+# Example of creating migrations for 'users' table
+table_users = Table(
+    'users', connection.metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('name', String(length=50), nullable=False),
+    Column('email', String(length=50), unique=True),
+    Column('password', String(length=150), nullable=False),
+    Column('token', String(length=150), nullable=False),
+    Column('active', Integer, default=1, nullable=False),
+    Column('created_at', TIMESTAMP), 
+)
+
+# Model for 'users'
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(length=50), nullable=False)
+    email = Column(String(length=50), unique=True)
+    password = Column(String(length=150), nullable=False)
+    token = Column(String(length=150), nullable=False)
+    active = Column(Integer, default=1, nullable=False)
+    created_at = Column(TIMESTAMP)
+
+async def migrate(connection, refresh: bool = False) -> bool:
+    try:
+        if refresh:
+            connection.metadata.drop_all(connection.engine)  # Drops all tables
+        connection.prepare_migrate([table_users])  # Prepare migration for 'users' table
+        connection.migrate()  # Perform migration for tables
+        connection.migrate(use_base=True)  # Perform migration for models
+        print("Migrations completed")
+        
+        return True
+    except RuntimeError as e:
+        print(e)
+
+```
+
+app.py
+```python
+from core.app import App
+from routes.routes import routes
+from routes.api import routes as api_routes
+from core.env import PORT, HOST
+import itertools
+import uvicorn
+import asyncio
+from database.migrations import migrate
+from database.connections import connection
+
+
+all_routes = list(itertools.chain(routes, api_routes))  # Combining regular and API routes
+
+app = App(debug=True, routes=all_routes)  # Initialize app with routes
+
+async def main():
+    migrations = await migrate(connection, refresh=False)  # Execute migrations (no refresh)
+   
+    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)  # Start the server
+
+if __name__ == "__main__":
+    asyncio.run(main())  # Run the main function
+
+
+```
+- In this script, we initialize the App object with routes and set up the server to run using uvicorn. The migrate function is called asynchronously to apply any pending migrations before starting the server. The server is run with the specified HOST and PORT settings./
+En este script, inicializamos el objeto App con las rutas y configuramos el servidor para que se ejecute con uvicorn. La función migrate se llama de forma asincrónica para aplicar cualquier migración pendiente antes de iniciar el servidor. El servidor se ejecuta con los parámetros de HOST y PORT especificados.
 
 ### `middlewares/`
 

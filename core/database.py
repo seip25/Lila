@@ -1,108 +1,100 @@
-import sqlite3
-import mysql.connector
-#psycopg2
+from sqlalchemy import create_engine, MetaData,text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.declarative import declarative_base
+from typing import Optional
 
-
-class DatabaseConnection:
-    def __init__(self, config: dict):
-        self.engine = config.get("engine")  # sqlite, mysql
-        self.config = config
-        self.connection = None
-
-    def connect(self):
-        if self.engine == "sqlite":
-            db =self.config.get("database")
-            self.connection = sqlite3.connect(f"{db}.sqlite")
-        elif self.engine == "mysql":
-            self.connection = mysql.connector.connect(
-                host=self.config.get("host"),
-                user=self.config.get("user"),
-                password=self.config.get("password"),
-                database=self.config.get("database"),
-                charset='utf8'
-            )
-        # elif self.engine == "postgresql":
-        #     self.connection = psycopg2.connect(
-        #         host=self.config.get("host"),
-        #         user=self.config.get("user"),
-        #         password=self.config.get("password"),
-        #         dbname=self.config.get("database"),
-        #     )
-        else:
-            raise ValueError("Unsupported database engine")
-        return self.connection
-
-    def close(self):
-        if self.connection:
-            self.connection.close()
-
+#for models 
+Base = declarative_base()
 
 class Database:
-    connection = None
-    db_engine="sqlite"
-    
-    def __init__(cls,connection) -> None:
-        cls.set_connection(connection=connection)
+    def __init__(self,config:dict) -> None:
+        self.type = config.get('type','sqlite')
+        self.config = config
+        self.connection=None
+        self.metadata=MetaData()
+        self.tables=[]
+        self.auto_commit = self.config.get('auto_commit', False)
 
-    @classmethod
-    def name_table(cls):
-        return f"{cls.__name__.lower()}s"
 
-    @classmethod
-    def set_connection(cls, connection):
-        print(connection)
-        if isinstance(connection, mysql.connector.MySQLConnection ):
-            cls.db_engine = "mysql"
-        elif isinstance(connection,mysql.connector.connection_cext.CMySQLConnection):
-            cls.db_engine="mysql"
-        elif isinstance(connection, sqlite3.Connection):
-            cls.db_engine = "sqlite"
+    def connect(self) ->bool:
+        if self.type in ['mysql','postgresql','psgr']:
+            user=self.config.get('user','root')
+            password=self.config.get('password','')
+            host = self.config.get('host','127.0.0.1')
+            port = self.config.get('port',3306)
+            database =self.config.get('database','db')
+            type= 'postgresql' if self.type in ['postegresql','psg'] else self.type
+            connector ='mysqlconnector'
+            if self.type in ['postegresql','psg']:
+                connector='psycopg2'
+            isolation_level=self.config.get('isolation_level',None)
+
+            try:
+                self.engine=create_engine(f"{type}+{connector}://{user}:{password}@{host}:{port}/",isolation_level=isolation_level,execution_options={'autocommit': self.auto_commit})
+            except SQLAlchemyError as e:
+                print(f"Database connection error: {e}")
+                return False
+            
+            if self.type == 'mysql':
+                
+                self.query(query=f"CREATE DATABASE IF NOT EXISTS {database}")
+                self.query(query=f" USE {database}")
+                
+            self.engine=create_engine(f"{type}+{connector}://{user}:{password}@{host}:{port}/{database}",isolation_level=isolation_level,execution_options={'autocommit': self.auto_commit})
+                    
         else:
-            raise ValueError("Unsupported database connection type")
-        cls.connection = connection
-
-    @classmethod
-    def execute(cls, query, params=None):
-        try:
-            cursor = cls.connection.cursor()
-            cursor.execute(query, params or ())
-            if query.strip().upper().startswith("SELECT"):
-                return cursor
-            cls.connection.commit()
-            cursor.close()
-            return cursor
-        except RuntimeError as e:
-            print(f"{e}")
-            return False
-
-    @classmethod
-    def create_table(cls):
-        fields = []
-        for attr, options in cls.__annotations__.items():
-            field = f"{attr} {options['type']}"
-            if options.get("primary_key"):
-                field += " PRIMARY KEY"
-            if cls.db_engine == "sqlite" and options.get("autoincrement"):
-                field += " AUTOINCREMENT"
-            elif cls.db_engine == "mysql" and options.get("auto_increment") :
-                field += " AUTO_INCREMENT"
-            if options.get("not_null"):
-                field += " NOT NULL"
-            if options.get("default") is not None:
-                field += f" DEFAULT {options['default']}"
-            fields.append(field)
-        print(cls.db_engine)
-        query = f"CREATE TABLE {cls.name_table()} ({', '.join(fields)});"
-        cls.execute(query)
-
-
-    @classmethod
-    def drop_table(cls):
-        query = f"DROP TABLE IF EXISTS {cls.name_table()};"
-        cls.execute(query)
+            database=self.config.get('database','db')
+            try:
+                self.engine=create_engine(f"sqlite:///{database}.sqlite")
+            except SQLAlchemyError as e:
+                print(f"Create database, error: {e}")
+                return False
+        return True
+        
     
-    @classmethod
-    def str_engine(cls):
-        s= "?" if cls.db_engine =="sqlite" else "%s"
-        return s
-  
+    def prepare_migrate(self,tables: list)->None:
+        self.tables.extend(tables)
+    
+    def migrate(self,use_base:bool=False):
+        try:
+            if use_base:
+                Base.metadata.create_all(self.engine)
+            else:
+                self.metadata.create_all(self.engine)
+            print("success migrations")
+        except SQLAlchemyError as e:
+            print(e)
+
+    def query(self,query : str ,params :Optional[str]=None , return_rows:bool =False)->list | bool:
+        try:
+            with self.engine.connect() as connection:
+                result=connection.execute(text(query),params or ())
+            
+                self.connection=connection
+                if query.strip().upper().startswith(('CREATE','INSERT','UPDATE','DELETE')):
+                    self.commit()
+
+            if return_rows :
+                return [row for row in result]
+            return True
+        except SQLAlchemyError as e:
+            print(f"Query error:{e}")
+        return False
+    
+    def commit(self)->None:
+        if self.connection and not self.auto_commit:
+            try:
+                self.connection.commit()
+            except SQLAlchemyError as e:
+                print(f"Commit error: {e}")
+    
+    def close(self) -> None:
+        if self.connection:
+            try:
+                self.connection.close()
+                self.connection = None
+                print("Connection closed.")
+            except SQLAlchemyError as e:
+                print(f"Close connection error: {e}")
+
+          
