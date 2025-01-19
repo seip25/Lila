@@ -121,6 +121,10 @@ If you use a Pydantic Model, pass it as a parameter to the "route" function, as 
 
 Si utiliza un Modelo Pydantic, páselo como parámetro a la función "ruta", como "modelo", como se detalla a continuación en el código.
 ```python
+class LoginModel(BaseModel):
+    email : EmailStr
+    password: str
+    
 @router.route(path='/login',methods=['POST'],model=LoginModel)
 async def login(request:Request):
     """Login function"""  
