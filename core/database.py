@@ -75,7 +75,7 @@ class Database:
                     connection.commit()
 
             if return_rows :
-                return [row for row in result]
+                return result
             return True
         except SQLAlchemyError as e:
             print(f"Query error:{e}")

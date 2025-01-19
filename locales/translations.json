@@ -26,6 +26,18 @@
   "Logout":{
     "es":"Cerrar sesión",
     "en":"Logout"
+  },
+  "Passwords not match": {
+    "es": "Las contraseñas no coinciden",
+    "en": "Passwords not match"
+  },
+  "Error creating account": {
+    "es": "Error al crear la cuenta",
+    "en": "Error creating account"
+  },
+  "Error creating account,check email": {
+    "es": "Error al crear la cuenta, verifique el email ingresado",
+    "en": "Error creating account,check email"
   }
 
 }
