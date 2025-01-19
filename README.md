@@ -108,10 +108,8 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise�
 
 ### `app.py`
 
-- **Purpose / Propósito**: Configure and start the application 
-Configurar y arrancar la aplicación.
-- **Use / Uso**: Defines main routes and middlewares
-Define las rutas y los middlewares principales.
+- **Purpose / Propósito**: Configure and start the application / Configurar y arrancar la aplicación.
+- **Use / Uso**: Defines main routes and middlewares / Define las rutas y los middlewares principales.
 
 ### `core/`
 
