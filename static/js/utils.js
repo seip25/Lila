@@ -3,7 +3,9 @@ async function Http({
   method = "GET",
   body = false,
   token = false,
+  loading=false
 }) {
+  if(loading)showLoading();
   const options = {
     method: method,
     headers: {},
@@ -13,6 +15,7 @@ async function Http({
   if (token) options.headers["Authorization"] = `Bearer ${token}`;
 
   const response = await fetch(url, options);
+  hideLoading();
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Error fetch");
@@ -52,4 +55,18 @@ function closeMenu({ event = false, id = "drawer" }) {
   if (event) event.preventDefault();
   const element = document.querySelector(`#${id}`);
   element.classList.remove("active");
+}
+
+
+function showLoading(title = '' ){
+  Swal.fire({
+    title,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+}
+
+function hideLoading() {
+  Swal.close();
 }
