@@ -1,16 +1,28 @@
 from starlette.applications import Starlette 
 from starlette.exceptions import HTTPException
 from core.responses import HTMLResponse
+from starlette.middleware.cors import CORSMiddleware
+ 
 
 class App:
-    def __init__(self, debug : bool =False,routes  = []):
+    def __init__(self, debug : bool =False,routes  = [],cors=None):
         self.routes =routes
         self.debug = debug
+        self.cors=cors
 
     def start(self): 
         try:
             app=Starlette(debug=self.debug,routes=self.routes)
             app.add_exception_handler(404, self._404_page)
+            if self.cors:
+                app.add_middleware(
+                CORSMiddleware,
+                allow_origins=self.cors["origin"] or ["*"],  
+                allow_credentials=self.cors["allow_credentials"] or True,
+                allow_methods=self.cors["allow_methods"] or ["*"],  
+                allow_headers=self.cors["allow_headers"] or["*"],  
+            )
+
             return app
         except RuntimeError as e:
             print(f"{e}")
