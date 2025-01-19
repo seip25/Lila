@@ -125,7 +125,7 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise√
 
 ### `locales/`
 
-- **Translations / Traducciones **:
+- **Translations / Traducciones**:
 - Default the 'Render' method loads the translations file 'translations.json'.
 To use it anywhere in the application, you can use the 'translate' helper, passing it the name of the file you want to open to get the translations, returning a dictionary./
 De forma predeterminada, el m√©todo 'Render' carga el archivo de traducciones 'translations.json'.
