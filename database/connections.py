@@ -1,12 +1,11 @@
-from core.database import DatabaseConnection 
-
-# config = {"engine":"sqlite","database":"test"} #test.db
-# db = DatabaseConnection(config=config)
-
-# connection = db.connect()
+from core.database import Database
 
 
-# config = {"engine":"mysql","host":"127.0.0.1","user":"root","password":"root","database":"db_test"}
-# db=DatabaseConnection(config=config)
+# config = {"type":"sqlite","database":"test"} #test.db
+# connection = Database(config=config)
+# connection.connect()
 
-# mysql_connection = db.connect()
+config = {"type":"mysql","host":"127.0.0.1","user":"root","password":"password","database":"db_test","auto_commit":True}
+connection = Database(config=config)
+connection.connect()
+mysql_connection = connection

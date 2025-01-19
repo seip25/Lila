@@ -8,3 +8,4 @@ itsdangerous==2.2.0
 mysql-connector-python==9.1.0
 bcrypt==4.2.1
 markdown==3.7
+SQLAlchemy==2.0.37
