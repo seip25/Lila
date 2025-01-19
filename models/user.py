@@ -30,6 +30,8 @@ class User(Base):
         return connection.query(query,params)
 
 #Example to execute querys with models SQLAlchemy
+#usage mode for running queries (insert, select, update, etc.)
+
 #User.insert({"name":"name","email":"example@example.com","password":"password"})
 
 
