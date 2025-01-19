@@ -2,6 +2,7 @@ from core.request import Request
 from core.responses import JSONResponse
 from core.routing import Router
 from core.helpers import translate
+from core.session import Session
 from pydantic import EmailStr,BaseModel
 
 #Json Responses
@@ -28,7 +29,13 @@ async def login(request:Request):
         return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
     email = input.email
     password = input.password 
+    
     response=JSONResponse({"success":False,"email":email,"password":password,"msg":msg_error})
+   
+    if email=="example@example.com" and password=="password":
+        response=JSONResponse({"success":True,"email":email,"password":password,"msg":msg_error})
+        Session.setSession(new_val='auth',name_cookie='auth',response=response)
+      
     return response
 
 

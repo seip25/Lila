@@ -1,14 +1,76 @@
 <!DOCTYPE html>
 <html lang="{{lang}}">
+
 <head>
-{% include "includes/head.html" with context %}
+  {% include "includes/head.html" with context %}
+  <script src="/public/js/dashboard.js"></script>
 </head>
+
 <body class="light">
-   <div class="responsive flex justify-center">
-    <p>Dashboard</p>
-    <div class="mt-4">
-        <button >Enviar</button>
+  <header class="primary">
+    <nav>
+      <button class="circle transparent" id="btn_menu">
+        <i>menu</i>
+      </button>
+      <h5 class="max center-align">{{title}}</h5>
+      <a href="/logout">
+        <button class="transparent">
+          {{translate['Logout']}}
+          <i>logout</i>
+        </button>
+
+    </nav>
+  </header>
+  <main class="responsive max">
+    <div class="flex justify-center mt-4">
+      <article class="round">
+        <p>{{translate['You are logged in']}}</p>
+        <a href="/" class="mt-4">
+          <button class="fill">
+            {{translate['Back']}}
+          </button>
+        </a>
+      </article>
     </div>
-   </div>
+  </main>
+  <nav class="bottom">
+    <div class="flex evenly">
+      <a href="/set-language/es" class="underline left-align   small">Español(Esp)</a>
+      &nbsp;&nbsp;
+      <a href="/set-language/en" class="underline left-align   small">English(US)</a>
+    </div>
+  </nav>
+  <dialog class="left no-padding" id="drawer">
+    <nav class="drawer">
+      <header>
+        <nav>
+            <h6 class="max">Menu</h6>
+          <button class="transparent circle large" id="btn_close_menu">
+            <i>close</i>
+          </button>
+        </nav>
+      </header>
+      <a>
+        <i>inbox</i>
+        <span class="max">Inbox</span>
+        <b>24</b>
+      </a>
+      <a>
+        <i>send</i>
+        <span>Outbox</span>
+      </a>
+      <a>
+        <i>favorite</i>
+        <span>favorities</span>
+      </a>
+      <a>
+        <i>delete</i>
+        <span>Trash</span>
+      </a>
+      <hr>
+      
+    </nav>
+  </dialog>
 </body>
+
 </html>
