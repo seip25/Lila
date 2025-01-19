@@ -7,25 +7,34 @@
 
 <body class="light">
   <header class="primary">
-    <nav>
-      <button class="circle transparent">
-        <i>menu</i>
+    <nav class="navbar flex justify-between items-center p-4">
+      <button class="circle transparent" aria-label="Open menu">
+        <i class="material-icons">menu</i>
       </button>
-      <h5 class="max center-align">{{title}}</h5>
-      <div class="flex col justify-between"> 
-        <a href="/login">{{translate['Login']}}</a>
-        <a href="/register">{{translate['Register']}}</a>
+      <h5>{{title}}</h5>
+      <div class="flex col justify-between">
+        <a href="/login" class=" underline">{{translate['Login']}}</a>
+        <a href="/register" class=" underline">{{translate['Register']}}</a>
       </div>
     </nav>
   </header>
+
   <main class="responsive mt-4">
-    <article>
-      <p>Index</p>
-     
-        <a href="/markdown" class="mt-2 link underline">Markdown</a>
-       
-    </article>
+    <section>
+      <article>
+        <p class="mt-2">Ddocumentation <a href="https://github.com/seip25/Lila/blob/main/README.md" class="link underline">GitHub</a>
+        </p>
+        <ul class=" mt-4">
+          <li>
+            <a href="/markdown" class="link underline">Markdown example</a>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+
   </main>
+
   {% include 'includes/footer.html' with context %}
 </body>
 
