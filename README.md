@@ -81,11 +81,7 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise√
 
 - If you want to start clean and build from scratch:
 
-- Delete all folders except:
-
-- core
-
-- locals
+- Delete all folders except 'core' and 'locales'
 
 - Empty the templates and static folders.
 
@@ -134,11 +130,7 @@ Lila es un framework minimalista de Python basado en Starlette y Pydantic. Dise√
 
 - Si deseas empezar limpio y construir desde cero:
 
-- Elimina todas las carpetas excepto:
-
-- core
-
-- locales
+- Elimina todas las carpetas excepto 'core' and 'locales'
 
 - Vac√≠a las carpetas templates y static.
 
