@@ -4,6 +4,7 @@ from core.routing import Router  # English: Manages routing for API endpoints. |
 from core.helpers import translate  # English: Provides translation utilities for multilingual support. | Español: Proporciona utilidades de traducción para soporte multilingüe.
 from core.session import Session  # English: Manages user sessions, including cookies. | Español: Administra sesiones de usuario, incluyendo cookies.
 from pydantic import EmailStr, BaseModel  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
+from models.user import User
 
 # English: Initialize the router instance for managing API routes. 
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
@@ -60,6 +61,7 @@ class RegisterModel(BaseModel):
 async def register(request: Request):
     """Register function"""
     body = await request.json()
+    t = translate(file_name="translations", request=request)
     try:
         input = RegisterModel(**body)  # English: Validate input data against the RegisterModel. | Español: Valida los datos de entrada contra RegisterModel.
     except Exception as e:
@@ -68,9 +70,22 @@ async def register(request: Request):
     name = input.name
     email = input.email
     password = input.password
-    password_2 = input.password_2
-    response = JSONResponse({"success": True, "email": email, "password": password, "name": name, "password_2": password_2})  # English: Respond with validated data. | Español: Responde con los datos validados.
-    return response
+    duplicated = User.check_email(email=email)
+    if duplicated:
+        msg = t["Error creating account,check email"]
+        response = JSONResponse({"success": False, "msg": msg})
+        return response
+    result = User.insert({"name": name, "email": email, "password": password})
+    if result:
+        token = result
+        response = JSONResponse({"success": True})
+        Session().setSession(new_val=token, response=response, name_cookie="auth")
+        return response
+    else:
+        msg = t["Error creating account"]
+        response = JSONResponse({"success": False, "msg": msg})
+        return response
+
 
 # English: Enable Swagger UI for API documentation.
 # Español: Habilita Swagger UI para la documentación de la API.
