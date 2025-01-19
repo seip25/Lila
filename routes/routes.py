@@ -3,7 +3,7 @@ from core.routing import Router
 from core.templates import render,renderMarkdown
 from core.session import Session
 from core.responses import RedirectResponse
-from middlewares.middlewares import login_required
+from middlewares.middlewares import login_required,session_active
 from core.env import LANG_DEFAULT
 
 #Example of routes
@@ -24,11 +24,13 @@ async def home(request : Request):
     return response
 
 @router.route(path='/login',methods=['GET'])
+@session_active
 async def login(request : Request):
     response =render(request=request,template='auth/login',files_translate=['guest'])
     return response
 
 @router.route(path='/register',methods=['GET'])
+@session_active
 async def login(request : Request):
     response =render(request=request,template='auth/register',files_translate=['guest'])
     return response
@@ -37,7 +39,7 @@ async def login(request : Request):
 @router.route(path='/dashboard',methods=['GET'])
 @login_required
 async def dashboard(request: Request):
-    response = render(request=request, template='auth/dashboard')
+    response = render(request=request, template='dashboard',files_translate=['authenticated'])
     return response
 
 #Delete cookie for session

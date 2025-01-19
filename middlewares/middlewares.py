@@ -14,6 +14,15 @@ def login_required(func,key:str='auth'):
         return await func(request,*args,**kwargs)
     return wrapper
 
+def session_active(func,key:str='auth',url_return:str ='/dashboard'):
+    @wraps(func)
+    async def wrapper(request,*args,**kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
 def validate_token(func):
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):

@@ -18,6 +18,14 @@
   "Name":{
     "es":"Nombre",
     "en":"Name"
+  },
+  "Back":{
+    "es":"Volver",
+    "en":"Back"
+  },
+  "Logout":{
+    "es":"Cerrar sesión",
+    "en":"Logout"
   }
 
 }

@@ -310,6 +310,52 @@ En este script, inicializamos el objeto App con las rutas y configuramos el serv
 - **Purpose / Propósito**: Perform operations before or after requests reach routes, such as authentication or logging / Realizar operaciones antes o después de que las solicitudes lleguen a las rutas, como autenticación o registro de logs.
 - **Use / Uso**: Defines and configures middlewares tailored to application needs / Define y configura middlewares adaptados a las necesidades de la aplicación.
 
+middlewares/middlewares.py
+
+```python
+from core.session import Session
+from core.responses import RedirectResponse,JSONResponse
+from core.env import SECRET_KEY
+from core.request import Request
+from functools import wraps 
+import jwt
+
+def login_required(func,key:str='auth'):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if not session_data:
+            return RedirectResponse(url='/login')
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def session_active(func,key:str='auth',url_return:str ='/dashboard'):
+    @wraps(func)
+    async def wrapper(request,*args,**kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def validate_token(func):
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return JSONResponse({'message': 'Invalid token'},status_code=401)
+        try:
+            token = token.split(" ")[1] 
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            return await func(request, *args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            return JSONResponse({'message': 'Token has expired'}, status_code=401) 
+        except jwt.InvalidTokenError:
+            return JSONResponse({'message': 'Invalid token'},status_code=401)
+
+    return wrapper
+
+```
 ### `routes/`
 
 - **Organization / Organización**: Logically groups endpoints by functionality / Agrupa lógicamente los endpoints por funcionalidad.
@@ -336,15 +382,22 @@ async def home(request : Request):
     response=render(request=request,template='index',files_translate=['guest'])
     return response
 
-@router.route(path='/mardown',methods=['GET'])
+@router.route(path='/markdown',methods=['GET'])
 async def home(request : Request):
     css=["/public/css/app.css"]
     response =renderMarkdown(request=request,file='test',css_files=css)
     return response
 
 @router.route(path='/login',methods=['GET'])
+@session_active #validate session ,redirect to dashboard
 async def login(request : Request):
-    response =render(request=request,template='login',files_translate=['guest'])
+    response =render(request=request,template='auth/login',files_translate=['guest'])
+    return response
+
+@router.route(path='/register',methods=['GET'])
+@session_active #validate session ,redirect to dashboard
+async def login(request : Request):
+    response =render(request=request,template='auth/register',files_translate=['guest'])
     return response
 
 #Example middleware "login_required" (session web)
@@ -599,13 +652,22 @@ def get_token(token:str):
 - Middleware for validate tokens / Middleware para validar tokens
 
 ```python
-def check_token(func,request=Request):
+def validate_token(func):
     @wraps(func)
-    async def wrapper(request, *args, **kwargs):
-        validate_token(request=request) #jwt validate token
-        return await func(request,*args,**kwargs)
-    return wrapper
+    async def wrapper(request: Request, *args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return JSONResponse({'message': 'Invalid token'},status_code=401)
+        try:
+            token = token.split(" ")[1] 
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            return await func(request, *args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            return JSONResponse({'message': 'Token has expired'}, status_code=401) 
+        except jwt.InvalidTokenError:
+            return JSONResponse({'message': 'Invalid token'},status_code=401)
 
+    return wrapper
 ```
 - In the client there is code that can be helpful in /static/js/utils.js , both to send fetch, delete, generate and set cookies and to save the token or other application data in connection with the backend. /
 En el lado del cliente hay  código que puede ser útil en /static/js/utils.js, tanto para enviar, obtener, eliminar, generar y configurar cookies, como para guardar el token u otros datos de la aplicación en conexión con el backend.
