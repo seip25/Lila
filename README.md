@@ -523,17 +523,30 @@ Lila permite editar y generar páginas en formato Markdown (`.md`), que se convi
 ---
 - **JWT**
 
--Helpers to generate and validate token / Helpers para generar y validar tokens .
-core/helpers.py
-
--It is used in the following way /Se utiliza de la siguiente manera.
+-Helpers and middleware to generate and validate token / Helpers y middleware para generar , validar token .
+ 
+-It is used in the following way /Se utiliza de la siguiente manera para la validación del mismo.
 ```python
-from core.helpers import generate_token,validate_token
-token =generate_token('user','example_user')
 
-return validate_token(request=request)
+from middlewares.middlewares import validate_token
+@router.route(path='/login',methods=['POST'],model=LoginModel)
+@validate_token #middleware validate token
+async def login(request:Request):
+    """Login function"""  
+    msg= translate(file_name='guest',request=request)
+    msg_error=msg['Incorrect email or password']
+    body = await request.json()
+    try:
+        input=LoginModel(**body)
+    except Exception as e:
+        return JSONResponse({"success":False,"msg":f"Invalid JSON Body: {e}"},status_code=400)
+    email = input.email
+    password = input.password 
+    response=JSONResponse({"success":False,"email":email,"password":password,"msg":msg_error})
+    return response
 
 ```
+- core/helpers.py
 
 ```python
 import jwt
@@ -546,18 +559,9 @@ def generate_token(name:str,value:str)->str :
     token = jwt.encode(options,SECRET_KEY,algorithm='HS256')
     return token
 
-def validate_token(request:Request):
-    token = request.headers.get('Authorization')
-    if not token:
-        return JSONResponse({'message': 'Invalid token'}), 401
-    try:
-        token = token.split(" ")[1] 
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        return decoded_token
-    except jwt.ExpiredSignatureError:
-        return JSONResponse({'message': 'Token has expired'}), 401
-    except jwt.InvalidTokenError:
-        return JSONResponse({'message': 'Invalid token'}), 401
+def get_token(token:str):
+    token = token.split(" ")[1] 
+    return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 
 
 ```
