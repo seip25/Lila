@@ -5,6 +5,8 @@ from core.helpers import translate  # English: Provides translation utilities fo
 from core.session import Session  # English: Manages user sessions, including cookies. | Español: Administra sesiones de usuario, incluyendo cookies.
 from pydantic import EmailStr, BaseModel  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 from models.user import User
+import hashlib
+import secrets
 
 # English: Initialize the router instance for managing API routes. 
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
@@ -37,14 +39,26 @@ async def login(request: Request):
     
     email = input.email
     password = input.password
-    response = JSONResponse({"success": False, "email": email, "password": password, "msg": msg_error})
-    
+    check_login = User.check_login(email=email)
+    if not check_login ==None:
+        user = check_login
+        password_db = user[0]
+            
+        if User.validate_password(password_db, password):
+            token_db=user[1] or 'auth'
+            response = JSONResponse({"success": True, "msg": "success","token":token_db})
+            
+            Session.setSession(
+                new_val=token_db, name_cookie="auth", response=response
+            )
+            return response
     # English: Check if email and password match predefined values (mock login validation).
     # Español: Verifica si el email y la contraseña coinciden con valores predefinidos (validación de inicio de sesión simulada).
-    if email == "example@example.com" and password == "password":
+    elif email == "example@example.com" and password == "password":
         response = JSONResponse({"success": True, "email": email, "password": password, "msg": msg_error})
         Session.setSession(new_val='auth', name_cookie='auth', response=response)  # English: Set a session cookie if login is successful. | Español: Establece una cookie de sesión si el inicio de sesión es exitoso.
-    
+        return response
+    response = JSONResponse({"success": False, "msg": msg_error})
     return response
 
 # English: Example data model for user registration using Pydantic.
