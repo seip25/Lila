@@ -4,8 +4,11 @@ from core.database import Base
 from database.connections import connection
 import secrets
 import hashlib
-import bcrypt
 import datetime
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+ 
+ph = PasswordHasher()
 
 class User(Base):
     __tablename__='users'
@@ -17,17 +20,18 @@ class User(Base):
     active=Column( Integer, nullable=False,default=1)
     created_at=Column( TIMESTAMP)
 
-    def validate_password(stored_hash :str, password:str)->bool:
-        return bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8'))
-
+    @staticmethod
+    def validate_password(stored_hash: str, password: str) -> bool:
+        try:
+            return ph.verify(stored_hash, password)
+        except VerifyMismatchError:
+            return False
+        
     def insert(params: dict) -> bool | str:
         params["token"] = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
         params["active"] = 1
-        params["password"] = bcrypt.hashpw(
-            params["password"].encode("utf-8"), bcrypt.gensalt()
-        )
+        params["password"] = ph.hash(params["password"])
         date = datetime.datetime.now()
-        print(date)
         params["created_at"] = date
         placeholders = " ,".join(f":{key}" for key in params.keys())
         columns = ",".join(f"{key}" for key in params.keys())
@@ -38,14 +42,15 @@ class User(Base):
             return params["token"]
 
         return False
-    
+
     def check_email(email: str) -> bool:
         query = f"SELECT id FROM users WHERE email= :email ORDER BY id DESC LIMIT 1"
         params = {"email": email}
         result = connection.query(query=query, params=params, return_rows=True)
         if result:
-            return False if result.fetchone() == None else True
-             
+            result = result.fetchone()
+            result = False if result == None else True
+            return result
         return False
 
     def check_login(email: str) -> bool | list:
