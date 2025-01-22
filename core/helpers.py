@@ -5,7 +5,6 @@ from core.responses import JSONResponse
 import json
 from pathlib import Path
 import jwt
-import datetime
 
 LOCALES_PATH = Path("locales")
 
@@ -44,10 +43,14 @@ def translate(file_name: str , request: Request) -> dict:
 def generate_token(name:str,value:str)->str :
     options={}
     options[name]=value
-    options['exp']=datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = jwt.encode(options,SECRET_KEY,algorithm='HS256')
     return token
 
 def get_token(token:str):
-    token = token.split(" ")[1] 
-    return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+    token = token.strip().split(" ")[1] 
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return JSONResponse({'session':False,'message': 'Token has expired'}, status_code=401) 
+    except jwt.InvalidTokenError:
+        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
