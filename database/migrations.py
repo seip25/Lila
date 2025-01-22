@@ -1,6 +1,7 @@
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
 from database.connections import connection
 from core.database import Base
+from models.user import User
 
 
 # #Example of creating migrations for 'users'
@@ -14,17 +15,6 @@ from core.database import Base
 #     Column('active', Integer,default=1, nullable=False),
 #     Column('created_at', TIMESTAMP), 
 # )
-
-# #For models
-# class User(Base):
-#     __tablename__='users'
-#     id = Column(Integer, primary_key=True,autoincrement=True)
-#     name=Column( String(length=50), nullable=False)
-#     email=Column( String(length=50), unique=True)
-#     password=Column(String(length=150), nullable=False)
-#     token=Column(String(length=150), nullable=False)
-#     active=Column( Integer,default=1, nullable=False)
-#     created_at=Column( TIMESTAMP)
 
 async def migrate(connection,refresh:bool=False)->bool:
     
