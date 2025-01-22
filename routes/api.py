@@ -7,6 +7,7 @@ from pydantic import EmailStr, BaseModel  # English: Validates and parses data m
 from models.user import User
 import hashlib
 import secrets
+from core.helpers import generate_token
 
 # English: Initialize the router instance for managing API routes. 
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
@@ -46,10 +47,13 @@ async def login(request: Request):
             
         if User.validate_password(password_db, password):
             token_db=user[1] or 'auth'
+            token_db =generate_token(name='token',value=token_db)
             response = JSONResponse({"success": True, "msg": "success","token":token_db})
             
+            token = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
+
             Session.setSession(
-                new_val=token_db, name_cookie="auth", response=response
+                new_val=token, name_cookie="auth", response=response
             )
             return response
     # English: Check if email and password match predefined values (mock login validation).
