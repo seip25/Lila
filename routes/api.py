@@ -61,7 +61,9 @@ async def login(request: Request):
     # English: Check if email and password match predefined values (mock login validation).
     # Español: Verifica si el email y la contraseña coinciden con valores predefinidos (validación de inicio de sesión simulada).
     elif email == "example@example.com" and password == "password":
-        response = JSONResponse({"success": True, "email": email, "password": password, "msg": msg_error})
+        token = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
+        token =generate_token(name='token',value=token)
+        response = JSONResponse({"success": True, "email": email, "password": password, "msg": msg_error,"token":token})
         Session.setSession(new_val='auth', name_cookie='auth', response=response)  # English: Set a session cookie if login is successful. | Español: Establece una cookie de sesión si el inicio de sesión es exitoso.
         return response
     response = JSONResponse({"success": False, "msg": msg_error})
