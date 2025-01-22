@@ -31,6 +31,8 @@ def validate_token(func):
             return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
         
         token = get_token(token=token)
+        if isinstance(token,JSONResponse):
+            return token
         return await func(request, *args, **kwargs)
        
     return wrapper
