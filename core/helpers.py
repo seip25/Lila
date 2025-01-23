@@ -58,6 +58,9 @@ def get_token(token:str):
     except jwt.InvalidTokenError:
         return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
 
-        return JSONResponse({'session':False,'message': 'Token has expired'}, status_code=401) 
-    except jwt.InvalidTokenError:
-        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+def get_user_by_id_and_token(request:Request):
+    auth=Session.getSession(key='auth',request=request)
+    auth=auth.strip().split("-")
+    id = auth[0]
+    token = auth[1] 
+    return {"id":id,"token":token}
