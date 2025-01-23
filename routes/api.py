@@ -19,6 +19,12 @@ router = Router()
 @router.route(path='/api', methods=['GET', 'POST'])
 @validate_token
 async def api(request: Request):
+    #Example fetch , for get user id and token (session token not jwt)
+    # const token=await getCookie({name:'token'})
+    # fetch('/api',{ headers:{
+    # 'Authorization': 'Bearer '+token
+    # }
+    # })
     print(get_user_by_id_and_token(request=request))
     return JSONResponse({'api': True})  # English: Returns a simple JSON response for API verification. | Español: Devuelve una respuesta JSON simple para la verificación de la API.
 
