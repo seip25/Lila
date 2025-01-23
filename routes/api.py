@@ -45,19 +45,21 @@ async def login(request: Request):
     check_login = User.check_login(email=email)
     if not check_login ==None:
         user = check_login
-        password_db = user[0]
+        password_db = user[2]
             
         if User.validate_password(password_db, password):
             token_db=user[1] or 'auth'
-            token_db =generate_token(name='token',value=token_db)
-            response = JSONResponse({"success": True, "msg": "success","token":token_db})
+            token_jwt =generate_token(name='token',value=token_db)
+            response = JSONResponse({"success": True, "msg": "success","token":token_jwt})
             
-            token = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
-
+            user_id=user[0]
+            token = f"{user_id}-{token_db}"
+             
             Session.setSession(
                 new_val=token, name_cookie="auth", response=response
             )
             return response
+            
     # English: Check if email and password match predefined values (mock login validation).
     # Español: Verifica si el email y la contraseña coinciden con valores predefinidos (validación de inicio de sesión simulada).
     elif email == "example@example.com" and password == "password":
