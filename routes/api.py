@@ -66,7 +66,11 @@ async def login(request: Request):
         token = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
         token =generate_token(name='token',value=token)
         response = JSONResponse({"success": True, "email": email, "password": password, "msg": msg_error,"token":token})
-        Session.setSession(new_val='auth', name_cookie='auth', response=response)  # English: Set a session cookie if login is successful. | Español: Establece una cookie de sesión si el inicio de sesión es exitoso.
+        token = f"1-example_token___"
+             
+        Session.setSession(
+            new_val=token, name_cookie="auth", response=response
+        )
         return response
     response = JSONResponse({"success": False, "msg": msg_error})
     return response
