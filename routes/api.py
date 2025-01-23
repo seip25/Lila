@@ -7,7 +7,7 @@ from pydantic import EmailStr, BaseModel  # English: Validates and parses data m
 from models.user import User
 import hashlib
 import secrets
-from core.helpers import generate_token
+from core.helpers import generate_token,get_user_by_id_and_token
 from middlewares.middlewares import validate_token
 
 # English: Initialize the router instance for managing API routes. 
@@ -19,6 +19,7 @@ router = Router()
 @router.route(path='/api', methods=['GET', 'POST'])
 @validate_token
 async def api(request: Request):
+    print(get_user_by_id_and_token(request=request))
     return JSONResponse({'api': True})  # English: Returns a simple JSON response for API verification. | Español: Devuelve una respuesta JSON simple para la verificación de la API.
 
 # English: Example data model for login using Pydantic.
