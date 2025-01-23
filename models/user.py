@@ -54,7 +54,7 @@ class User(Base):
         return False
 
     def check_login(email: str) -> bool | list:
-        query = f"SELECT password,token  FROM users WHERE email= :email AND active = 1 ORDER BY id DESC LIMIT 1"
+        query = f"SELECT id,token,password  FROM users WHERE email= :email AND active = 1 ORDER BY id DESC LIMIT 1"
         params = {"email": email}
         result = connection.query(query=query, params=params, return_rows=True)
         if result:
