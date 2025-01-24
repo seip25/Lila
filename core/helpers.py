@@ -40,6 +40,13 @@ def translate(file_name: str , request: Request) -> dict:
     
     return translations
 
+def translate_(key:str,request: Request,file_name:str='translations')->str:
+    t = translate(file_name=file_name, request=request)
+    if key in t:
+        msg = t[key]
+        return msg if msg not in [None, ''] else key
+    return key
+    
 def generate_token(name:str,value:str)->str :
     options={}
     options[name]=value
