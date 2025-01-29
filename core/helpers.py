@@ -8,7 +8,11 @@ import jwt
 
 LOCALES_PATH = Path("locales")
 
-def theme() -> str:
+def theme(request : Request =None) -> str:
+    if request:
+        t = Session.getSession(key="theme", request=request)
+        if t:
+            return Session.unsign(key='theme',request=request)
     t =THEME_DEFAULT
     return t
 
