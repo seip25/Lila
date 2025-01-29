@@ -2,40 +2,66 @@
 <html lang="{{lang}}">
 
 <head>
-  {% include "includes/head.html" with context %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{{title}}</title>
+  <link rel="icon" type="image/x-icon" href="/public/img/icon.ico" />
+
+  <!--CSS-->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
+  <!--CSS-->
+
+  <!-- JS-->
+    <script src="/public/js/utils_example.js"></script>
+
+  <!--JS -->
+    <style>
+        .flex {
+      display: flex;
+    }
+
+    .justify-center {
+      justify-content: center;
+    }
+
+    .justify-between {
+      justify-content: space-between;
+    }
+
+    .items-center {
+      align-items: center;
+    }
+    </style>
 </head>
 
-<body class="light">
-  <header class="primary">
-    <nav class="navbar flex justify-between items-center p-4">
-      <button class="circle transparent" aria-label="Open menu">
-        <i class="material-icons">menu</i>
-      </button>
-      <h5>{{title}}</h5>
-      <div class="flex col justify-between">
-        <a href="/login" class=" underline">{{translate['Login']}}</a>
-        <a href="/register" class=" underline">{{translate['Register']}}</a>
-      </div>
-    </nav>
-  </header>
-
-  <main class="responsive mt-4">
-    <section>
-      <article>
-        <p class="mt-2">Ddocumentation <a href="https://github.com/seip25/Lila/blob/main/README.md" class="link underline">GitHub</a>
-        </p>
-        <ul class=" mt-4">
-          <li>
-            <a href="/markdown" class="link underline">Markdown example</a>
-          </li>
-        </ul>
-      </article>
-    </section>
-
-
+<body>
+   
+ 
+  <main class="container mt-sm   ">
+  <div class="flex justify-center">
+    <article >
+      <h5>
+        {{translate['Welcome to the Lila Framework']}}
+      </h5>
+      <p> {{translate['Hi']}}! </p>
+      <p>
+        {{translate["documentation"]}}
+        <a href="#doc" class="link underline"> link</a>
+      </p>
+      
+    </article>
+  </div>
   </main>
 
-  {% include 'includes/footer.html' with context %}
+  <footer class="container  ">
+    <div class="flex justify-between items-center">
+      <a href="/set-language/es" class="underline left-align   small">Español(Esp)</a>
+      <a href="/set-language/en" class="underline left-align   small">English(US)</a>
+    </div>
+  </footer>
 </body>
 
 </html>

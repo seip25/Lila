@@ -7,37 +7,36 @@
     "es": "Cancelar",
     "en": "Cancel"
   },
-  "Accept":{
+  "Accept": {
     "es": "Aceptar",
     "en": "Accept"
   },
-  "Email":{
-    "es":"Email",
-    "en":"Email"
+  "Email": {
+    "es": "Email",
+    "en": "Email"
   },
-  "Name":{
-    "es":"Nombre",
-    "en":"Name"
+  "Name": {
+    "es": "Nombre",
+    "en": "Name"
   },
-  "Back":{
-    "es":"Volver",
-    "en":"Back"
+  "Back": {
+    "es": "Volver",
+    "en": "Back"
   },
-  "Logout":{
-    "es":"Cerrar sesión",
-    "en":"Logout"
+  "Hi": {
+    "es": "Hola",
+    "en": "Hi"
   },
-  "Passwords not match": {
-    "es": "Las contraseñas no coinciden",
-    "en": "Passwords not match"
+  "Welcome to the Lila Framework": {
+    "es": "Bienvenido al Framework Lila",
+    "en": "Welcome to the Lila Framework"
   },
-  "Error creating account": {
-    "es": "Error al crear la cuenta",
-    "en": "Error creating account"
+  "documentation": {
+    "es": "La documentación para comenzar , la tienes en el siguiente  ",
+    "en": "The documentation , you have it in the following "
   },
-  "Error creating account,check email": {
-    "es": "Error al crear la cuenta, verifique el email ingresado",
-    "en": "Error creating account,check email"
+  "here": {
+    "es": "aquí",
+    "en": "here"
   }
-
 }

@@ -1,21 +1,39 @@
+//English : Example utils.js for fetch and cookies (get,post,put,etc and  jwt token)
+//Español: Ejemplo de utils.js para fetch y cookies (get,post,put,etc y token jwt).
+
+// Ejemplo de búsqueda, para obtener el ID de usuario y el token , en el cliente(token de sesión, no jwt)
+//  const token=await getCookie({name:'token'})
+//  const resp=await fetch('/api',{ headers:{
+//  'Authorization': 'Bearer '+token
+//  }
+//  })
+
+// Example of fetch, to get the user ID and token, on the client (session token, not jwt)
+// const token=await getCookie({name:'token'})
+// const resp=await fetch('/api',{ headers:{
+// 'Authorization': 'Bearer '+token
+// }
+// })
 async function Http({
   url = "/",
   method = "GET",
   body = false,
-  token = false,
-  loading=false
+  token_jwt = false
 }) {
-  if(loading)showLoading();
+ 
   const options = {
     method: method,
     headers: {},
   };
   if (body) options["body"] = JSON.stringify(body);
 
-  if (token) options.headers["Authorization"] = `Bearer ${token}`;
-
+  //JWT Token
+  if (token_jwt) {
+    const token = await getCookie({ name: "token" });
+    options.headers["Authorization"] = `Bearer ${token}`; 
+  }
   const response = await fetch(url, options);
-  hideLoading();
+ 
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Error fetch");
@@ -43,30 +61,4 @@ function getCookie({ name }) {
 
 function deleteCookie({ name }) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
-}
-
-function openMenu({ event = false, id = "drawer" }) {
-  if (event) event.preventDefault();
-  const element = document.querySelector(`#${id}`);
-  element.classList.add("active");
-}
-
-function closeMenu({ event = false, id = "drawer" }) {
-  if (event) event.preventDefault();
-  const element = document.querySelector(`#${id}`);
-  element.classList.remove("active");
-}
-
-
-function showLoading(title = '' ){
-  Swal.fire({
-    title,
-    allowEscapeKey: false,
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading(),
-  });
-}
-
-function hideLoading() {
-  Swal.close();
 }

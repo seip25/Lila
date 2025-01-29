@@ -1,10 +1,11 @@
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
 from database.connections import connection
-from core.database import Base
-from models.user import User
+from core.database import Base #Import Base  for migrations in models
+from models.user import User #Import models for migrations in models
 
 
-# #Example of creating migrations for 'users'
+#English:Example of creating migrations for 'users'
+#Español: Ejemplo de creación de migraciones para 'users'
 # table_users = Table(
 #     'users', connection.metadata,
 #     Column('id', Integer, primary_key=True,autoincrement=True),
@@ -23,7 +24,7 @@ async def migrate(connection,refresh:bool=False)->bool:
             connection.metadata.drop_all(connection.engine)
         # connection.prepare_migrate([table_users])#for tables
         # connection.migrate() 
-        connection.migrate(use_base=True)#for models
+        connection.migrate(use_base=True)#for models , always import models in the file
         print("Migrations completed")
         
         return True
