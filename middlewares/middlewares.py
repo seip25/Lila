@@ -1,6 +1,5 @@
 from core.session import Session
 from core.responses import RedirectResponse,JSONResponse
-from core.env import SECRET_KEY
 from core.request import Request
 from functools import wraps 
 from core.helpers import get_token

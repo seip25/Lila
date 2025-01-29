@@ -29,8 +29,7 @@ app = App(debug=True, routes=all_routes)
 #     "allow_credentials" : True,
 #     "allow_methods":["*"],
 #     "allow_headers": ["*"]
-# } 
-          
+# }      
 # app = App(debug=True, routes=all_routes,cors=cors)
 
 # English: Asynchronous main function to run the application server.
@@ -39,7 +38,7 @@ async def main():
 
     # English: Uncomment the next line to execute database migrations.
     # Español: Descomenta la siguiente línea para ejecutar migraciones de la base de datos.
-    migrations = await migrate(connection) # execute migrations ,for app, login,register,etc
+    #migrations = await migrate(connection) # execute migrations ,for app
 
     # English: Starting the Uvicorn server with the application instance.
     # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.

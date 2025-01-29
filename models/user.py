@@ -1,12 +1,7 @@
-from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
-from sqlalchemy.orm import validates
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
 from core.database import Base
-from database.connections import connection
-import secrets
-import hashlib
-import datetime
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from database.connections import connection 
+from argon2 import PasswordHasher 
  
 ph = PasswordHasher()
 
@@ -20,52 +15,22 @@ class User(Base):
     active=Column( Integer, nullable=False,default=1)
     created_at=Column( TIMESTAMP)
 
-    @staticmethod
-    def validate_password(stored_hash: str, password: str) -> bool:
-        try:
-            return ph.verify(stored_hash, password)
-        except VerifyMismatchError:
-            return False
-        
-    def insert(params: dict) -> bool | str:
-        params["token"] = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
-        params["active"] = 1
-        params["password"] = ph.hash(params["password"])
-        date = datetime.datetime.now()
-        params["created_at"] = date
-        placeholders = " ,".join(f":{key}" for key in params.keys())
-        columns = ",".join(f"{key}" for key in params.keys())
+    #English : Example of how to use SQLAlchemy to make queries to the database
+    #Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
+    def get_all() ->  list:
+        query = f"SELECT *  FROM users WHERE " 
+        result = connection.query(query=query, return_rows=True)
+        return result.fetchAll()
 
-        query = f"INSERT INTO users ({columns}) VALUES({placeholders})"
-        result = connection.query(query, params)
-        if result:
-            return params["token"]
-
-        return False
-
-    def check_email(email: str) -> bool:
-        query = f"SELECT id FROM users WHERE email= :email ORDER BY id DESC LIMIT 1"
-        params = {"email": email}
-        result = connection.query(query=query, params=params, return_rows=True)
-        if result:
-            result = result.fetchone()
-            result = False if result == None else True
-            return result
-        return False
-
-    def check_login(email: str) -> bool | list:
-        query = f"SELECT id,token,password  FROM users WHERE email= :email AND active = 1 ORDER BY id DESC LIMIT 1"
-        params = {"email": email}
-        result = connection.query(query=query, params=params, return_rows=True)
-        if result:
-            result = result.fetchone()
-        return result
-
-#Example to execute querys with models SQLAlchemy
-#usage mode for running queries (insert, select, update, etc.)
-
-#User.insert({"name":"name","email":"example@example.com","password":"password"})
-
-
+    #English : Example of how to use SQLAlchemy to make queries to the database
+    #Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
+    def get_by_id(id:int) -> dict:
+        query = f"SELECT *  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params ={id:id}
+        result = connection.query(query=query,params=params, return_rows=True)
+        return result.fetchOne()
     
-    
+#English : Example of how to use the class to make queries to the database
+#Español : Ejemplo de como usar la clase para realizar consultas a la base de datos   
+#users = User.get_all()
+#user = User.get_by_id(1)
