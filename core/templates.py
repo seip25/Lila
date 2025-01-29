@@ -16,7 +16,7 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
         'version' : VERSION_PROJECT
     }
     if theme_:
-        default_context['theme']=theme()
+        default_context['theme']=theme(request=request)
 
     if translate:
         default_context['lang']=lang(request=request)
