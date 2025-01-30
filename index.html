@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,23 +10,148 @@
     <meta name="color-scheme" content="light dark">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
-
+    <style>
+        .mt-4{
+            margin-top : 4rem!important;
+        }
+    </style>
 </head>
 
-<body>
+<body class="container">
     <header>
         <nav>
             <ul>
-                <li><h5>Lila Framework</h5></li>
+                <li>
+                    <h5>Lila Framework</h5>
+                </li>
             </ul>
             <ul>
+                <li><a href="#intro">Intro</a></li>
                 <li><a href="#doc">documentation | documentación</a></li>
                 <li><a href="#eng">English</a></li>
                 <li><a href="#esp">Español</a></li>
             </ul>
         </nav>
     </header>
+    <main>  
+        <div id="intro">
+            <div id="eng">
+                <h1>Lila</h1>
+                <p>Lila is a minimalist Python framework based on Starlette and Pydantic. Designed for developers
+                    seeking simplicity, flexibility, and robustness, it enables efficient and customizable Web or API
+                    application development. Its modular structure and support for advanced configurations make it
+                    suitable for both beginners and experienced developers.</p>
+                <h2>Key Features</h2>
+                <ul>
+                    <li><strong>Simplicity:</strong> Intuitive and minimalist design.</li>
+                    <li><strong>Flexibility:</strong> Support for multiple databases (MySQL, SQLite) and adaptation to
+                        various environments.</li>
+                    <li><strong>Speed:</strong> Built on Starlette, known for its high performance in asynchronous
+                        applications.</li>
+                    <li><strong>Robust Validation:</strong> Uses Pydantic to ensure consistent data.</li>
+                    <li><strong>Editable and Configurable:</strong> Ready to use but fully customizable.</li>
+                    <li><strong>Multi-language Support:</strong> Integrated support for multilingual applications.</li>
+                    <li><strong>Compatibility:</strong> Can be used with frameworks like Next.js, Remix, and others.
+                    </li>
+                    <li><strong>Easy Migrations:</strong> Quick and straightforward database configuration.</li>
+                    <li><strong>Jinja2 and HTML Sessions:</strong> Ready-to-use with dynamic templates and session
+                        handling, while remaining compatible with React, Angular, Vue, and other frontend frameworks.
+                    </li>
+                    <li><strong>SQLAlchemy:</strong> For the ORM or you can also use the connectors directly
+                        (mysql.connector, sqlite3, etc...)</li>
+                    <li><strong>JWT:</strong> It comes integrated with helpers to generate tokens and the middleware
+                        already has a function that validates it.</li>
+                </ul>
+                <div id="install">
+                    <h2>Installation</h2>
+                    <p>Clone the repository:</p>
+                    <pre>git clone https://github.com/seip25/Lila.git</pre>
+                    <p>Navigate to the project directory:</p>
+                    <pre>cd Lila</pre>
+                    <p>Create a virtual environment and activate it:</p>
+                    <pre>
+          python3 -m venv venv
+          source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+                </pre>
+                    <p>Install dependencies:</p>
+                    <pre>pip install -r requeriments.txt</pre>
+                    <p>Run application:</p>
+                    <pre>python3 app.py #Or python app.py</pre>
+                    <h3>Free customization</h3>
+                    <p>You can use Lila with any styling framework you prefer, such as Tailwind CSS, Bootstrap, PicoCSS,
+                        or others.</p>
+                    <p>By default in the example templates, use Beer CSS.</p>
+                    <p>If you want to start clean and build from scratch:</p>
+                    <ul>
+                        <li>Delete all folders except 'core' and 'locales'</li>
+                        <li>Empty the templates and static folders.</li>
+                        <li>Configure the framework as you wish, modifying or extending the core, which is flexible and
+                            can adapt to any development pattern.</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="esp">
+                <h1>Lila</h1>
+                <p>Lila es un framework minimalista de Python basado en Starlette y Pydantic. Diseñado para
+                    desarrolladores que buscan simplicidad, flexibilidad y robustez, permite crear aplicaciones Web o
+                    APIs de manera eficiente y personalizable. Su estructura modular y soporte para configuraciones
+                    avanzadas lo hacen ideal tanto para principiantes como para desarrolladores experimentados.</p>
+                <h2>Características principales</h2>
+                <ul>
+                    <li><strong>Simplicidad:</strong> Diseño intuitivo y minimalista.</li>
+                    <li><strong>Flexibilidad:</strong> Soporte para múltiples bases de datos (MySQL, SQLite) y
+                        adaptación a diversos entornos.</li>
+                    <li><strong>Rapidez:</strong> Basado en Starlette, conocido por su alto rendimiento en aplicaciones
+                        asíncronas.</li>
+                    <li><strong>Validación robusta:</strong> Uso de Pydantic para garantizar datos consistentes.</li>
+                    <li><strong>Editable y configurable:</strong> Todo está listo para usar, pero también es
+                        completamente personalizable.</li>
+                    <li><strong>Multi-idioma:</strong> Soporte integrado para aplicaciones multilingües.</li>
+                    <li><strong>Compatibilidad:</strong> Puede ser utilizado con frameworks como Next.js, Remix js,
+                        entre otros.</li>
+                    <li><strong>Migraciones sencillas:</strong> Configuración rápida y fácil para bases de datos.</li>
+                    <li><strong>Jinja2 y sesiones HTML:</strong> Listo para usar con plantillas dinámicas y manejo de
+                        sesiones, pero compatible con React, Angular, Vue, entre otros frameworks frontend.</li>
+                    <li><strong>SQLAlchemy:</strong> Para la ORM o también se puede utilizar los connectores
+                        directamente(mysql.connector,sqlite3,etc...)</li>
+                    <li><strong>JWT:</strong> Viene integrado con helpers para generar token y en el middleware ya viene
+                        una función que válida el mismo.</li>
+                </ul>
+                <div id="install">
+                    <h2>Instalación</h2>
+                    <p>Clona el repositorio:</p>
+                    <pre>git clone https://github.com/seip25/Lila.git</pre>
+                    <p>Navega al directorio del proyecto:</p>
+                    <pre>cd Lila</pre>
+                    <p>Crea un entorno virtual y actívalo:</p>
+                    <pre>
+          python3 -m venv venv
+          source venv/bin/activate  # En Windows usa `venv\Scripts\activate`
+                </pre>
+                    <p>Instala las dependencias:</p>
+                    <pre>pip install -r requeriments.txt</pre>
+                    <p>Ejecutar la aplicación:</p>
+                    <pre>python3 app.py #O python app.py</pre>
+                    <h3>Personalización Libre</h3>
+                    <p>Puedes usar Lila con cualquier framework de estilos que prefieras, como Tailwind CSS, Bootstrap,
+                        PicoCSS, u otros.</p>
+                    <p>Por defecto en los templates de ejemplo, utiliza Beer CSS.</p>
+                    <p>Si deseas empezar limpio y construir desde cero:</p>
+                    <ul>
+                        <li>Elimina todas las carpetas excepto 'core' and 'locales'</li>
+                        <li>Vacía las carpetas templates y static.</li>
+                        <li>Configura el framework según lo desees, modificando o ampliando el core, que es flexible y
+                            puede adaptarse a cualquier patrón de desarrollo.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
+        <div id="doc">
+            
+        </div>
+
+    </main>
 </body>
 
 </html>
