@@ -10,6 +10,7 @@
     <meta name="color-scheme" content="light dark">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
     <style>
         .text-lila {
             color: violet;
@@ -96,6 +97,97 @@
             background-color: green;
             animation: parpadeoCursor 0.8s step-end infinite;
         }
+
+        @keyframes blinkCursor {
+            50% {
+                border-right-color: transparent;
+            }
+        }
+
+        .code-editor {
+            background-color: #2e2e2e;
+            color: #f8f8f2;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1em;
+            padding: 2em;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #3c3c3c;
+            padding: 0.6em;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        .editor-title {
+            color: #f1f1f1;
+            font-size: 1.1em;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.4em;
+        }
+
+        .control {
+            width: 0.8em;
+            height: 0.8em;
+            border-radius: 50%;
+            background-color: #888;
+        }
+
+        .control.close {
+            background-color: #e33;
+        }
+
+        .control.minimize {
+            background-color: #ffba00;
+        }
+
+        .control.maximize {
+            background-color: #56b000;
+        }
+
+        .editor-content {
+            padding: 1.5em;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #2b2b2b;
+            border-radius: 5px;
+            padding: 1em;
+            box-sizing: border-box;
+        }
+
+        code {
+            color: #f8f8f2;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        .language-python {
+            color: #f8f8f2;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 0.6em;
+            height: 1.1em;
+            background-color: #f8f8f2;
+            animation: blinkCursor 0.8s step-end infinite;
+        }
     </style>
     <script>
         const sections = [
@@ -143,6 +235,15 @@
         }
 
     </script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+ 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-dark.min.css">
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+ 
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+ 
+ <script>hljs.highlightAll();</script>
 </head>
 
 <body class="container">
@@ -290,6 +391,75 @@
 
                 </article>
 
+                <article id="app-py-eng">
+                    <h2>app.py Explanation</h2>
+                    <h5>Purpose: Configure and start the application.
+                        app.py is the main entry point where the application is configured and initialized.
+                    </h5>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">app.py Explanation</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code class="language-python"> 
+                # Import necessary modules and routes
+                from core.app import App 
+                from routes.routes import routes
+                from routes.api import routes as api_routes
+                
+                # Import environment variables for host and port
+                from core.env import PORT, HOST
+                import itertools
+                import uvicorn
+                import asyncio
+                
+                # Optionally, uncomment the following imports for database migrations and connections.
+                # You can enable database migration or connection setup if necessary.
+                # from database.migrations import migrate
+                # from database.connections import connection
+                
+                # Combine application and API routes into a single list.
+                # This combines both regular app routes and API routes for easy use.
+                all_routes = list(itertools.chain(routes, api_routes))
+                
+                # Initialize the app with debugging enabled and combined routes.
+                # The app is initialized with debug mode on and the routes to handle the requests.
+                app = App(debug=True, routes=all_routes)
+                
+                # Uncomment the following lines for CORS configuration if needed:
+                # CORS (Cross-Origin Resource Sharing) configuration is optional.
+                # cors={
+                #     "origin": ["*"],
+                #     "allow_credentials": True,
+                #     "allow_methods":["*"],
+                #     "allow_headers": ["*"]
+                # }      
+                # app = App(debug=True, routes=all_routes, cors=cors)
+                
+                # Main asynchronous function to run the application.
+                # This function starts the application server asynchronously.
+                async def main():
+                    # Uncomment the following line to execute database migrations.
+                    # This ensures that the database schema is up-to-date before starting the app.
+                    # migrations = await migrate(connection)
+                
+                    # Start the Uvicorn server with the app instance.
+                    # The app is served by Uvicorn, which is an ASGI server.
+                    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
+                
+                # Entry point of the script to run the main async function.
+                # This is where the execution of the app begins.
+                if __name__ == "__main__":
+                    asyncio.run(main())</code></pre>
+                        </div>
+                    </div>
+                </article>
+
             </div>
             <hr />
 
@@ -333,11 +503,83 @@
                         </div>
                     </div>
                 </article>
+                <article id="app-py-es">
+                    <h2>Explicación de app.py</h2>
+                    <h5>
+                        Propósito: Configurar y arrancar la aplicación.
+                        app.py es el punto de entrada principal donde se configura e inicializa la aplicación.
+
+                    </h5>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Explicación de app.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code class="language-python">
+                # Importar los módulos necesarios y las rutas
+                from core.app import App 
+                from routes.routes import routes
+                from routes.api import routes as api_routes
+                
+                # Importar las variables de entorno para el host y el puerto
+                from core.env import PORT, HOST
+                import itertools
+                import uvicorn
+                import asyncio
+                
+                # Opcionalmente, descomentar las siguientes importaciones para migraciones y conexiones de base de datos.
+                # Puedes habilitar la migración de la base de datos o la configuración de la conexión si es necesario.
+                # from database.migrations import migrate
+                # from database.connections import connection
+                
+                # Combinar las rutas de la aplicación y las rutas de la API en una sola lista.
+                # Esto combina tanto las rutas regulares de la aplicación como las rutas de la API para su uso fácil.
+                all_routes = list(itertools.chain(routes, api_routes))
+                
+                # Inicializar la aplicación con depuración activada y rutas combinadas.
+                # La aplicación se inicializa con el modo de depuración activado y las rutas para manejar las solicitudes.
+                app = App(debug=True, routes=all_routes)
+                
+                # Descomentar las siguientes líneas para configurar CORS si es necesario:
+                # La configuración de CORS (Cross-Origin Resource Sharing) es opcional.
+                # cors={
+                #     "origin": ["*"],
+                #     "allow_credentials": True,
+                #     "allow_methods":["*"],
+                #     "allow_headers": ["*"]
+                # }      
+                # app = App(debug=True, routes=all_routes, cors=cors)
+                
+                # Función principal asincrónica para ejecutar la aplicación.
+                # Esta función inicia el servidor de la aplicación de manera asincrónica.
+                async def main():
+                    # Descomenta la siguiente línea para ejecutar migraciones de la base de datos.
+                    # Esto asegura que el esquema de la base de datos esté actualizado antes de arrancar la app.
+                    # migrations = await migrate(connection)
+                
+                    # Iniciar el servidor Uvicorn con la instancia de la aplicación.
+                    # La app se sirve con Uvicorn, que es un servidor ASGI.
+                    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
+                
+                # Punto de entrada del script para ejecutar la función principal asincrónica.
+                # Aquí es donde comienza la ejecución de la app.
+                if __name__ == "__main__":
+                    asyncio.run(main())</code></pre>
+                        </div>
+                    </div>
+                </article>
+
             </div>
 
         </div>
 
     </main>
+ 
 </body>
 
 </html>
