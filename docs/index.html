@@ -11,17 +11,19 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+
+    <script>hljs.highlightAll();</script>
     <link rel="stylesheet" href="index.css" />
     <script src="index.js"> </script>
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
- 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-dark.min.css">
 
- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
- 
- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
- 
- <script>hljs.highlightAll();</script>
 </head>
 
 <body class="container">
@@ -169,9 +171,12 @@
 
                 </article>
 
+
+                </h5>
+                
+                <hr />
                 <article id="app-py-eng">
-                    <h2>app.py Explanation</h2>
-                    <h5>Purpose: Configure and start the application.
+                    <h5 class=" ">Purpose: Configure and start the application.
                         app.py is the main entry point where the application is configured and initialized.
                     </h5>
                     <div class="code-editor">
@@ -184,6 +189,7 @@
                             </div>
                         </div>
                         <div class="editor-content">
+
                             <pre><code class="language-python"> 
                 # Import necessary modules and routes
                 from core.app import App 
@@ -236,7 +242,8 @@
                     asyncio.run(main())</code></pre>
                         </div>
                     </div>
-                </article>
+                </div>
+
 
             </div>
             <hr />
@@ -281,6 +288,7 @@
                         </div>
                     </div>
                 </article>
+
                 <article id="app-py-es">
                     <h2>Explicación de app.py</h2>
                     <h5>
@@ -357,7 +365,7 @@
         </div>
 
     </main>
- 
+
 </body>
 
 </html>
