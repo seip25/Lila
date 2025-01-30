@@ -11,8 +11,90 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
     <style>
-        .mt-4{
-            margin-top : 4rem!important;
+        .text-lila {
+            color: violet;
+        }
+
+        .mt-4 {
+            margin-top: 4rem !important;
+        }
+
+        @keyframes parpadeoCursor {
+            50% {
+                border-right-color: transparent;
+            }
+        }
+
+        .terminal {
+            border: 0.1em solid #333;
+            background-color: #1a1a1a;
+            color: #0f0;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1em;
+            padding: 1.5em;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .terminal-encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            padding: 0.5em;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+
+        .terminal-titulo {
+            color: #eee;
+            font-size: 0.9em;
+        }
+
+        .terminal-controles {
+            display: flex;
+            gap: 0.4em;
+        }
+
+        .control {
+            width: 0.8em;
+            height: 0.8em;
+            border-radius: 50%;
+            background-color: #777;
+        }
+
+        .control.cerrar {
+            background-color: #e33;
+        }
+
+        .control.minimizar {
+            background-color: #ee0;
+        }
+
+        .control.maximizar {
+            background-color: #0b0;
+        }
+
+        .terminal-contenido {
+            padding: 1em;
+        }
+
+        .comando {
+            display: block;
+            color: #0f0;
+            margin-bottom: 0.5em;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 0.6em;
+            height: 1em;
+            background-color: green;
+            animation: parpadeoCursor 0.8s step-end infinite;
         }
     </style>
 </head>
@@ -22,18 +104,17 @@
         <nav>
             <ul>
                 <li>
-                    <h5>Lila Framework</h5>
+                    <h1 class="text-lila">Lila Framework</h1>
                 </li>
             </ul>
             <ul>
-                <li><a href="#intro">Install | Instalación</a></li>
-                <li><a href="#doc">documentation | documentación</a></li>
-                <li><a href="#eng">English</a></li>
-                <li><a href="#esp">Español</a></li>
+                <li><a href="#doc-eng">Documentation</a></li>
+                <li><a href="#doc-esp">Documentación </a></li>
+
             </ul>
         </nav>
     </header>
-    <main>  
+    <main>
         <div id="intro">
             <div id="intro-eng">
                 <h1>Lila</h1>
@@ -41,10 +122,13 @@
                     seeking simplicity, flexibility, and robustness, it enables efficient and customizable Web or API
                     application development. Its modular structure and support for advanced configurations make it
                     suitable for both beginners and experienced developers.</p>
+            </div>
+            <div id="features-eng">
                 <h2>Key Features</h2>
                 <ul>
                     <li><strong>Simplicity:</strong> Intuitive and minimalist design.</li>
-                    <li><strong>Flexibility:</strong> Support for multiple databases (MySQL, SQLite) and adaptation to
+                    <li><strong>Flexibility:</strong> Support for multiple databases (MySQL, SQLite,PostgreSQL) and
+                        adaptation to
                         various environments.</li>
                     <li><strong>Speed:</strong> Built on Starlette, known for its high performance in asynchronous
                         applications.</li>
@@ -61,38 +145,28 @@
                         (mysql.connector, sqlite3, etc...)</li>
                     <li><strong>JWT:</strong> It comes integrated with helpers to generate tokens and the middleware
                         already has a function that validates it.</li>
-                </ul>
-                <div id="install-eng">
-                    <h2>Installation</h2>
-                    <p>Clone the repository:</p>
-                    <pre>git clone https://github.com/seip25/Lila.git</pre>
-                    <p>Navigate to the project directory:</p>
-                    <pre>cd Lila</pre>
-                    <p>Create a virtual environment and activate it:</p>
-                    <pre>
-          python3 -m venv venv
-          source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-                </pre>
-                    <p>Install dependencies:</p>
-                    <pre>pip install -r requeriments.txt</pre>
-                    <p>Run application:</p>
-                    <pre>python3 app.py #Or python app.py</pre>
                     <h3>Free customization</h3>
                     <p>You can use Lila with any styling framework you prefer, such as Tailwind CSS, Bootstrap, PicoCSS,
                         or others.</p>
-                    
-                </div>
+                </ul>
+
             </div>
+            <hr />
             <div id="intro-esp">
                 <h1>Lila</h1>
                 <p>Lila es un framework minimalista de Python basado en Starlette y Pydantic. Diseñado para
                     desarrolladores que buscan simplicidad, flexibilidad y robustez, permite crear aplicaciones Web o
                     APIs de manera eficiente y personalizable. Su estructura modular y soporte para configuraciones
                     avanzadas lo hacen ideal tanto para principiantes como para desarrolladores experimentados.</p>
+
+            </div>
+
+            <div id="features-esp">
                 <h2>Características principales</h2>
                 <ul>
                     <li><strong>Simplicidad:</strong> Diseño intuitivo y minimalista.</li>
-                    <li><strong>Flexibilidad:</strong> Soporte para múltiples bases de datos (MySQL, SQLite) y
+                    <li><strong>Flexibilidad:</strong> Soporte para múltiples bases de datos (MySQL, SQLite,PostgreSQL)
+                        y
                         adaptación a diversos entornos.</li>
                     <li><strong>Rapidez:</strong> Basado en Starlette, conocido por su alto rendimiento en aplicaciones
                         asíncronas.</li>
@@ -110,31 +184,103 @@
                     <li><strong>JWT:</strong> Viene integrado con helpers para generar token y en el middleware ya viene
                         una función que válida el mismo.</li>
                 </ul>
-                <div id="install-esp">
-                    <h2>Instalación</h2>
-                    <p>Clona el repositorio:</p>
-                    <pre>git clone https://github.com/seip25/Lila.git</pre>
-                    <p>Navega al directorio del proyecto:</p>
-                    <pre>cd Lila</pre>
-                    <p>Crea un entorno virtual y actívalo:</p>
-                    <pre>
-          python3 -m venv venv
-          source venv/bin/activate  # En Windows usa `venv\Scripts\activate`
-                </pre>
-                    <p>Instala las dependencias:</p>
-                    <pre>pip install -r requeriments.txt</pre>
-                    <p>Ejecutar la aplicación:</p>
-                    <pre>python3 app.py #O python app.py</pre>
-                    <h3>Personalización Libre</h3>
-                    <p>Puedes usar Lila con cualquier framework de estilos que prefieras, como Tailwind CSS, Bootstrap,
-                        PicoCSS, u otros.</p> 
-                    
-                </div>
+                <h3>Personalización Libre</h3>
+                <p>Puedes usar Lila con cualquier framework de estilos que prefieras, como Tailwind CSS, Bootstrap,
+                    PicoCSS, u otros.</p>
+                </art>
             </div>
         </div>
-
+        <hr />
+        <br />
         <div id="doc">
-            
+            <div id="doc-eng">
+                <article>
+                    <h5>Documentation (English)</h5>
+                    <ul>
+                        <li><a href="#install-eng">Installation</a></li>
+                        <li><a href="#routes-eng">Routes</a></li>
+                        <li><a href="#models-eng">Models</a></li>
+                        <li><a href="#middlewares-eng">Middlewares</a></li>
+                        <li><a href="#connections-eng">Connections</a></li>
+                        <li><a href="#migrations-eng">Migrations</a></li>
+                        <li><a href="#locales-eng">Locales</a></li>
+                        <li><a href="#static-eng">Static</a></li>
+                        <li><a href="#templates-eng">Templates</a></li>
+                        <li><a href="#markdown-eng">Markdown/HTML</a></li>
+                        <li><a href="#helpers-esp">Helpers</a></li>
+                    </ul>
+                </article>
+
+                <article id="install-eng">
+                    <h2>Installation</h2>
+                    <div class="terminal">
+                        <div class="terminal-encabezado">
+                            <span class="terminal-titulo">Installation</span>
+                            <div class="terminal-controles">
+                                <div class="control cerrar"></div>
+                                <div class="control minimizar"></div>
+                                <div class="control maximizar"></div>
+                            </div>
+                        </div>
+                        <div class="terminal-contenido">
+                            <span class="comando">$ git clone https://github.com/seip25/Lila.git</span><br>
+                            <span class="comando">$ cd Lila</span><br>
+                            <span class="comando">$ python3 -m venv venv</span><br>
+                            <span class="comando">$ source venv/bin/activate # On Windows use
+                                `venv\Scripts\activate`</span><br>
+                            <span class="comando">$ pip install -r requeriments.txt</span><br>
+                            <span class="comando">$ python3 app.py # Or python app.py</span>
+                            <span class="cursor"></span>
+                        </div>
+                    </div>
+
+                </article>
+
+            </div>
+            <hr />
+
+            <div id="doc-esp">
+                <article>
+                    <h5>Documentación (Español)</h5>
+                    <ul>
+                        <li><a href="#install-esp">Instalación</a></li>
+                        <li><a href="#routes-esp">Rutas</a></li>
+                        <li><a href="#models-esp">Modelos</a></li>
+                        <li><a href="#middlewares-esp">Middlewares</a></li>
+                        <li><a href="#connections-esp">Connections</a></li>
+                        <li><a href="#migrations-esp">Migraciones</a></li>
+                        <li><a href="#locales-esp">Locales</a></li>
+                        <li><a href="#static-esp">Static</a></li>
+                        <li><a href="#templates-esp">Templates</a></li>
+                        <li><a href="#markdown-esp">Markdown/HTML</a></li>
+                        <li><a href="#helpers-esp">Helpers</a></li>
+                    </ul>
+                </article>
+                <article id="install-esp">
+                    <h2>Instalación</h2>
+                    <div class="terminal">
+                        <div class="terminal-encabezado">
+                            <span class="terminal-titulo">Instalación</span>
+                            <div class="terminal-controles">
+                                <div class="control cerrar"></div>
+                                <div class="control minimizar"></div>
+                                <div class="control maximizar"></div>
+                            </div>
+                        </div>
+                        <div class="terminal-contenido">
+                            <span class="comando">$ git clone https://github.com/seip25/Lila.git</span><br>
+                            <span class="comando">$ cd Lila</span><br>
+                            <span class="comando">$ python3 -m venv venv</span><br>
+                            <span class="comando">$ source venv/bin/activate # En Windows usa
+                                `venv\Scripts\activate`</span><br>
+                            <span class="comando">$ pip install -r requeriments.txt</span><br>
+                            <span class="comando">$ python3 app.py # O python app.py</span>
+                            <span class="cursor"></span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
         </div>
 
     </main>
