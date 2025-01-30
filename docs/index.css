@@ -1,0 +1,176 @@
+.text-lila {
+    color: violet;
+}
+
+.mt-4 {
+    margin-top: 4rem !important;
+}
+
+@keyframes parpadeoCursor {
+    50% {
+        border-right-color: transparent;
+    }
+}
+
+.terminal {
+    border: 0.1em solid #333;
+    background-color: #1a1a1a;
+    color: #0f0;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1em;
+    padding: 1.5em;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.terminal-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 0.5em;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.terminal-titulo {
+    color: #eee;
+    font-size: 0.9em;
+}
+
+.terminal-controles {
+    display: flex;
+    gap: 0.4em;
+}
+
+.control {
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    background-color: #777;
+}
+
+.control.cerrar {
+    background-color: #e33;
+}
+
+.control.minimizar {
+    background-color: #ee0;
+}
+
+.control.maximizar {
+    background-color: #0b0;
+}
+
+.terminal-contenido {
+    padding: 1em;
+}
+
+.comando {
+    display: block;
+    color: #0f0;
+    margin-bottom: 0.5em;
+}
+
+.cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1em;
+    background-color: green;
+    animation: parpadeoCursor 0.8s step-end infinite;
+}
+
+@keyframes blinkCursor {
+    50% {
+        border-right-color: transparent;
+    }
+}
+
+.code-editor {
+    background-color: #2e2e2e;
+    color: #f8f8f2;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1em;
+    padding: 2em;
+    width: 100%;
+    max-width: 800px;
+    border-radius: 6px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3c3c3c;
+    padding: 0.6em;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.editor-title {
+    color: #f1f1f1;
+    font-size: 1.1em;
+}
+
+.editor-controls {
+    display: flex;
+    gap: 0.4em;
+}
+
+.control {
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    background-color: #888;
+}
+
+.control.close {
+    background-color: #e33;
+}
+
+.control.minimize {
+    background-color: #ffba00;
+}
+
+.control.maximize {
+    background-color: #56b000;
+}
+
+.editor-content {
+    padding: 1.5em;
+    overflow-x: auto;
+}
+
+pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #2b2b2b;
+    border-radius: 5px;
+    padding: 1em;
+    box-sizing: border-box;
+}
+
+code {
+    color: #f8f8f2;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.language-python {
+    color: #f8f8f2;
+}
+
+.cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.1em;
+    background-color: #f8f8f2;
+    animation: blinkCursor 0.8s step-end infinite;
+}
