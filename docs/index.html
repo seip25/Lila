@@ -248,15 +248,17 @@ asyncio.run(main())
 
                 <article id="routes-eng">
                     <h5>Routes</h5>
-                
-                    <p>Routes are the access points to the application. In Lila, routes are defined in the  
-                        <code>routes</code> directory (by default, but you can place them wherever you want) and imported into  
-                        <code>app.py</code> for use. Routes can be configured to handle HTTP requests, API methods, and more.  
+
+                    <p>Routes are the access points to the application. In Lila, routes are defined in the
+                        <code>routes</code> directory (by default, but you can place them wherever you want) and
+                        imported into
+                        <code>app.py</code> for use. Routes can be configured to handle HTTP requests, API methods, and
+                        more.
                         Below is an example of how routes are defined in Lila:
                     </p>
                     <div class="code-editor">
                         <div class="editor-header">
-                            <span class="editor-title">Explanation of app.py</span>
+                            <span class="editor-title">routes/api.py</span>
                             <div class="editor-controls">
                                 <div class="control close"></div>
                                 <div class="control minimize"></div>
@@ -266,7 +268,8 @@ asyncio.run(main())
                         <div class="editor-content">
                             <pre>
                             <code class="language-python">
-from core.responses import JSONResponse  # Simplifies sending JSON responses.
+#Import from core JSONResponse .
+from core.responses import JSONResponse 
 
 # Manages routes for API endpoints.
 from core.routing import Router  
@@ -284,8 +287,142 @@ return JSONResponse({'api': True})
                         </pre>
                         </div>
                     </div>
+                    <br />
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Basic Imports</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python">
+from core.responses import JSONResponse  # Simplifies sending JSON responses.
+from core.routing import Router  # Manages API routes.
+from core.request import Request  # Handles HTTP requests in the application.
+from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
+from core.helpers import get_user_by_id_and_token
+from middlewares.middlewares import validate_token
+
+router = Router()
+        </code>
+        </pre>
+                        </div>
+                    </div>
+
+                    <h5>Middleware and Decorators Usage</h5>
+                    <p>Middlewares allow intercepting requests before they reach the main logic of the API.
+                        In this example, we use <code>@validate_token</code> to validate a JWT token in the request
+                        header.</p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Middleware Validation</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python">
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token  # Middleware to validate JWT token.
+async def api_token(request: Request):
+    return JSONResponse({'api': True})
+        </code>
+        </pre>
+                        </div>
+                    </div>
+
+                    <h5>Data Validation with Pydantic</h5>
+                    <p>Pydantic allows defining data models that automatically validate user input.
+                        Additionally, specifying a model in the route generates automatic documentation in
+                        <code>/docs</code>.</p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Validation with Pydantic</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python">
+class ExampleModel(BaseModel):
+    email: EmailStr  # Ensures a valid email.
+    password: str  # String for password.
+
+@router.route(path='/api/example', methods=['POST'], model=ExampleModel)
+async def login(request: Request):
+    body = await request.json()
+    try:
+        input = ExampleModel(**body)  # Automatic validation with Pydantic.
+    except Exception as e:
+        return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400) 
+    return JSONResponse({"email": input.email, "password": input.password})
+        </code>
+        </pre>
+                        </div>
+                    </div>
+
+                    <h5>Automatic Documentation Generation</h5>
+                    <p>Thanks to the integration with Pydantic, the API documentation is generated automatically and is
+                        accessible from
+                        <code>/docs</code>. You can also generate an OpenAPI JSON file for external tools.
+                    </p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Documentation Generation</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python">
+router.swagger_ui()  # Enables Swagger UI for API documentation.
+router.openapi_json()  # Generates OpenAPI JSON for external tools.
+        </code>
+        </pre>
+                        </div>
+                    </div>
+
+                    <h5>Importing Routes in app.py</h5>
+                    <p>To use the routes defined in the router, you need to obtain them with
+                        <code>router.get_routes()</code> and import them into <code>app.py</code>.
+                    </p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Route Import</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python">
+routes = router.get_routes()  # Retrieves all defined routes.
+        </code>
+        </pre>
+                        </div>
+                    </div>
+
                 </article>
-                
+
 
         </div>
         <hr />
@@ -416,7 +553,7 @@ asyncio.run(main())
                 </p>
                 <div class="code-editor">
                     <div class="editor-header">
-                        <span class="editor-title">Explicación de app.py</span>
+                        <span class="editor-title">routes/api.py</span>
                         <div class="editor-controls">
                             <div class="control close"></div>
                             <div class="control minimize"></div>
@@ -426,7 +563,8 @@ asyncio.run(main())
                     <div class="editor-content">
                         <pre>
                         <code class="language-python">
-from core.responses import JSONResponse  #Simplifica el envío de respuestas JSON.
+#Importar para las respuestas JSONResponse .
+from core.responses import JSONResponse 
 
 #Administra las rutas para los puntos finales de la API.
 from core.routing import Router  
@@ -442,6 +580,136 @@ async def api(request: Request):
     return JSONResponse({'api': True})   
                         </code>
                     </pre>
+                    </div>
+                </div>
+                <br />
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Imports básicos</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                        <code class="language-python">
+from core.responses import JSONResponse  # Simplifica el envío de respuestas JSON.
+from core.routing import Router  # Administra las rutas de la API.
+from core.request import Request  # Maneja solicitudes HTTP en la aplicación.
+from pydantic import EmailStr, BaseModel  # Valida y analiza modelos de datos para la validación de entradas.
+from core.helpers import get_user_by_id_and_token
+from middlewares.middlewares import validate_token
+
+router = Router()
+                        </code>
+                        </pre>
+                    </div>
+                </div>
+
+                <h5>Uso de Middlewares y Decoradores</h5>
+                <p>Los middlewares permiten interceptar solicitudes antes de que lleguen a la lógica principal de la
+                    API. En este ejemplo, usamos <code>@validate_token</code> para validar un token JWT en el header de
+                    la solicitud.</p>
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Validación con Middleware</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                        <code class="language-python">
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token  # Middleware para validar el token JWT.
+async def api_token(request: Request):
+    return JSONResponse({'api': True})
+                        </code>
+                        </pre>
+                    </div>
+                </div>
+
+                <h5>Validación de Datos con Pydantic</h5>
+                <p>Pydantic permite definir modelos de datos que validan automáticamente la entrada del usuario. Además,
+                    al especificar un modelo en la ruta, se genera documentación automática en <code>/docs</code>.</p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Validación con Pydantic</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                        <code class="language-python">
+class ExampleModel(BaseModel):
+    email: EmailStr  # Garantiza que el email es válido.
+    password: str  # Cadena de texto para la contraseña.
+
+@router.route(path='/api/example', methods=['POST'], model=ExampleModel)
+async def login(request: Request):
+    body = await request.json()
+    try:
+        input = ExampleModel(**body)  # Validación automática con Pydantic.
+    except Exception as e:
+        return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400) 
+    return JSONResponse({"email": input.email, "password": input.password})
+                        </code>
+                        </pre>
+                    </div>
+                </div>
+
+                <h5>Generación Automática de Documentación</h5>
+                <p>Gracias a la integración con Pydantic, la documentación de la API se genera automáticamente y es
+                    accesible desde <code>/docs</code>. También se puede generar un archivo JSON de OpenAPI para
+                    herramientas externas.</p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Generación de Documentación</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                        <code class="language-python">
+router.swagger_ui()  # Habilita Swagger UI para la documentación de la API.
+router.openapi_json()  # Genera JSON de OpenAPI para herramientas externas.
+                        </code>
+                        </pre>
+                    </div>
+                </div>
+
+                <h5>Importación de Rutas en app.py</h5>
+                <p>Para usar las rutas definidas en el router, es necesario obtenerlas con
+                    <code>router.get_routes()</code> e importarlas en <code>app.py</code>.
+                </p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Importación de Rutas</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                        <code class="language-python">
+routes = router.get_routes()  # Obtiene todas las rutas definidas.
+                        </code>
+                        </pre>
                     </div>
                 </div>
             </article>
