@@ -134,15 +134,16 @@
                     <ul>
                         <li><a href="#install-eng">Installation</a></li>
                         <li><a href="#routes-eng">Routes</a></li>
+                        <li><a href="#static-eng">Static</a></li>
+                        <li><a href="#templates-eng">Templates</a></li>
+                        <li><a href="#markdown-eng">Markdown/HTML</a></li>
+                        <li><a href="#locales-eng">Internationalization (Translations)</a></li>
                         <li><a href="#models-eng">Models</a></li>
                         <li><a href="#middlewares-eng">Middlewares</a></li>
                         <li><a href="#connections-eng">Connections</a></li>
                         <li><a href="#migrations-eng">Migrations</a></li>
-                        <li><a href="#locales-eng">Locales</a></li>
-                        <li><a href="#static-eng">Static</a></li>
-                        <li><a href="#templates-eng">Templates</a></li>
-                        <li><a href="#markdown-eng">Markdown/HTML</a></li>
                         <li><a href="#helpers-esp">Helpers</a></li>
+
                     </ul>
                 </article>
 
@@ -485,6 +486,169 @@ routes = router.get_routes()  # Retrieves all defined routes.
                     </div>
 
                 </article>
+
+                <article id="static-eng">
+                    <h1>Static files</h1>
+                    <p>To load static files(js,css,etc) you can use the <code>mount()</code> method.
+                    </p>
+                    <p>What will be received as parameters that trade by default
+                        <code>path: str = '/public', directory: str = 'static', name: str = 'static'</code>
+                    </p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Static</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+<code class="language-python">
+from core.routing import Router
+# Creating an instance of the Router to define the routes, if it was not previously created in the file
+router = Router()
+# Mounting the static files in the 'static' folder, url ='/public' by default
+router.mount()
+</code> 
+</pre>
+                        </div>
+                    </div>
+                </article>
+
+                <article id="templates-eng">
+
+                </article>
+
+                <article id="markdown-eng">
+                    <h1>Mardown /HTML</h1>
+                </article>
+
+                <article id="locales-eng">
+                    <h1>Internationalization (Translations)</h1>
+                    <p>Translations are used to internationalize an application and display content in different
+                        languages.
+                        In Lila, translations are stored in the <code>locales</code> directory and can be dynamically
+                        loaded into the application.
+                    </p>
+                    <p>To load a locale file, use the <code>translate</code> function from <code>core.helpers</code>.
+                        Then, you can access translations using the <code>translate</code> function, which returns a
+                        dictionary with all translations,
+                        or use <code>translate_</code> for a specific text or translation, which will return the
+                        required translation
+                        (if not found, it returns the provided text).
+                    </p>
+                    <p>You can also use the <code>lang</code> helper to retrieve the language in which the application
+                        is running for the user
+                        making the request, either based on session settings or application configuration.</p>
+
+                    <p>The following example shows how to create and load a locale file and translate a text string.</p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">locales/translations.json</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+                                <code class="language-json">
+{
+    "Send": {
+        "es": "Enviar",
+        "en": "Send"
+    },
+    "Cancel": {
+        "es": "Cancelar",
+        "en": "Cancel"
+    },
+    "Accept": {
+        "es": "Aceptar",
+        "en": "Accept"
+    },
+    "Email": {
+        "es": "Email",
+        "en": "Email"
+    },
+    "Name": {
+        "es": "Nombre",
+        "en": "Name"
+    },
+    "Back": {
+        "es": "Volver",
+        "en": "Back"
+    },
+    "Hi": {
+        "es": "Hola",
+        "en": "Hi"
+    }
+}
+                </code>
+                            </pre>
+                        </div>
+                    </div>
+
+                    <br />
+                    <p>Here we show you how to use these helpers to retrieve translations stored in the
+                        <code>locales</code> directory.
+                    </p>
+                    <p>With the <code>file_name</code> parameter, you specify which file within the locales directory
+                        you want to load.
+                        By default, <code>translations.json</code> is always loaded.</p>
+                    <p>Then, using <code>key</code>, you specify which key to look for within your translations.
+                        The framework will automatically search based on your <code>.env</code> configuration or the
+                        user's session settings.</p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">translations</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+                                <code class="language-python">
+from core.helpers import translate_
+
+msg_error_login = translate_(key="Incorrect email or password", request=request, file_name="guest")
+# By default, translations.json is always loaded if the file_name parameter is not provided.
+                                </code>
+                            </pre>
+                        </div>
+                    </div>
+
+                    <br />
+                    <p>You can also use <code>translate</code> to retrieve all translations from the file.</p>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">translations</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+                                <code class="language-python">
+from core.helpers import translate
+
+msg = translate(request=request, file_name="guest")
+# By default, translations.json is always loaded if the file_name parameter is not provided.
+                                </code>
+                            </pre>
+                        </div>
+                    </div>
+                </article>
+
 
                 <article id="models-eng">
                     <h1>Models (SQLAlchemy)</h1>
@@ -898,120 +1062,12 @@ if __name__ == "__main__":
 
                 </article>
 
-                <article id="locales-eng">
-                    <h1>Internationalization (Translations)</h1>
-                    <p>Translations are used to internationalize an application and display content in different languages.
-                        In Lila, translations are stored in the <code>locales</code> directory and can be dynamically loaded into the application.
-                    </p>
-                    <p>To load a locale file, use the <code>translate</code> function from <code>core.helpers</code>. 
-                        Then, you can access translations using the <code>translate</code> function, which returns a dictionary with all translations, 
-                        or use <code>translate_</code> for a specific text or translation, which will return the required translation 
-                        (if not found, it returns the provided text).
-                    </p>
-                    <p>You can also use the <code>lang</code> helper to retrieve the language in which the application is running for the user 
-                        making the request, either based on session settings or application configuration.</p>
-                
-                    <p>The following example shows how to create and load a locale file and translate a text string.</p>
-                
-                    <div class="code-editor">
-                        <div class="editor-header">
-                            <span class="editor-title">locales/translations.json</span>
-                            <div class="editor-controls">
-                                <div class="control close"></div>
-                                <div class="control minimize"></div>
-                                <div class="control maximize"></div>
-                            </div>
-                        </div>
-                        <div class="editor-content">
-                            <pre>
-                                <code class="language-json">
-                {
-                    "Send": {
-                        "es": "Enviar",
-                        "en": "Send"
-                    },
-                    "Cancel": {
-                        "es": "Cancelar",
-                        "en": "Cancel"
-                    },
-                    "Accept": {
-                        "es": "Aceptar",
-                        "en": "Accept"
-                    },
-                    "Email": {
-                        "es": "Email",
-                        "en": "Email"
-                    },
-                    "Name": {
-                        "es": "Nombre",
-                        "en": "Name"
-                    },
-                    "Back": {
-                        "es": "Volver",
-                        "en": "Back"
-                    },
-                    "Hi": {
-                        "es": "Hola",
-                        "en": "Hi"
-                    }
-                }
-                </code>
-                            </pre>
-                        </div>
-                    </div>
-                
-                    <br />
-                    <p>Here we show you how to use these helpers to retrieve translations stored in the <code>locales</code> directory.</p>
-                    <p>With the <code>file_name</code> parameter, you specify which file within the locales directory you want to load. 
-                        By default, <code>translations.json</code> is always loaded.</p>
-                    <p>Then, using <code>key</code>, you specify which key to look for within your translations. 
-                        The framework will automatically search based on your <code>.env</code> configuration or the user's session settings.</p>
-                
-                    <div class="code-editor">
-                        <div class="editor-header">
-                            <span class="editor-title">locales/translations.json</span>
-                            <div class="editor-controls">
-                                <div class="control close"></div>
-                                <div class="control minimize"></div>
-                                <div class="control maximize"></div>
-                            </div>
-                        </div>
-                        <div class="editor-content">
-                            <pre>
-                                <code class="language-python">
-                from core.helpers import translate_
-                
-                msg_error_login = translate_(key="Incorrect email or password", request=request, file_name="guest")
-                # By default, translations.json is always loaded if the file_name parameter is not provided.
-                                </code>
-                            </pre>
-                        </div>
-                    </div>
-                
-                    <br />
-                    <p>You can also use <code>translate</code> to retrieve all translations from the file.</p>
-                    <div class="code-editor">
-                        <div class="editor-header">
-                            <span class="editor-title">locales/translations.json</span>
-                            <div class="editor-controls">
-                                <div class="control close"></div>
-                                <div class="control minimize"></div>
-                                <div class="control maximize"></div>
-                            </div>
-                        </div>
-                        <div class="editor-content">
-                            <pre>
-                                <code class="language-python">
-                from core.helpers import translate
-                
-                msg = translate(request=request, file_name="guest")
-                # By default, translations.json is always loaded if the file_name parameter is not provided.
-                                </code>
-                            </pre>
-                        </div>
-                    </div>
+
+                <article id="helpers-esp">
+
                 </article>
-                
+
+
         </div>
         <hr />
 
@@ -1022,14 +1078,14 @@ if __name__ == "__main__":
                 <ul>
                     <li><a href="#install-esp">Instalación</a></li>
                     <li><a href="#routes-esp">Rutas</a></li>
+                    <li><a href="#static-esp">Static</a></li>
+                    <li><a href="#templates-esp">Templates</a></li>
+                    <li><a href="#markdown-esp">Markdown/HTML</a></li>
+                    <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
                     <li><a href="#models-esp">Modelos</a></li>
                     <li><a href="#middlewares-esp">Middlewares</a></li>
                     <li><a href="#connections-esp">Connections</a></li>
                     <li><a href="#migrations-esp">Migraciones</a></li>
-                    <li><a href="#locales-esp">Locales</a></li>
-                    <li><a href="#static-esp">Static</a></li>
-                    <li><a href="#templates-esp">Templates</a></li>
-                    <li><a href="#markdown-esp">Markdown/HTML</a></li>
                     <li><a href="#helpers-esp">Helpers</a></li>
                 </ul>
             </article>
@@ -1363,6 +1419,166 @@ routes = router.get_routes()  # Obtiene todas las rutas definidas.
                         </pre>
                     </div>
                 </div>
+            </article>
+
+            <article id="static-esp">
+                <h1>Archivos estáticos</h1>
+                <p>Para cargar archivos estáticos(js,css,etc) se puede utilizar el método <code>mount()</code>. 
+                </p>
+                <p>Qué se recibirá
+                    como parámetros que se intercambian por defecto.
+                    <code>path: str = '/public', directory: str = 'static', name: str = 'static'</code>
+                </p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Estático</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimum"></div>
+                            <div class="control maximum"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                <code class="language-python">
+from core.routing import Router
+# Crear una instancia de Router para definir las rutas, si no se creó previamente en el archivo
+router = Router()
+# Montar los archivos estáticos en la carpeta 'static', url = '/public' por defecto
+router.mount()
+                </code>
+                </pre>
+                    </div>
+                </div>
+            </article>
+
+            <article id="templates-esp">
+
+            </article>
+
+            <article id="markdown-esp">
+
+            </article>
+
+            <article id="locales-esp">
+                <h1>Internalización (Traducciones)</h1>
+                <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en diferentes
+                    idiomas.
+                    En Lila, las traducciones se almacenan en el directorio <code>locales</code> y se pueden cargar
+                    dinámicamente en la aplicación.
+                </p>
+                <p>Para cargar un archivo de locales, utiliza la función <code>translate</code> desde
+                    <code>core.helpers</code>. Luego, puedes acceder a las traducciones utilizando la función
+                    <code>translate</code> que devolvera un diccionario con todas las traducciones o utilizar
+                    <code>translate_</code> ,para un texto o traducción en especifico, que devolvera la traducción que
+                    necesita (en caso de no encontrarla
+                    ,devuelve el texto pasado).
+
+                </p>
+                <p>También puedes utilizar el helper <code>lang</code> para que te devuelva por sessión o configuración
+                    de la aplicación en que idioma se esta ejecutando para dicho usuario que realizo la solicitud.</p>
+
+                <p>El siguiente ejemplo muestra cómo crear y cargar un archivo de locales y traducir una cadena de
+                    texto.</p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">locales/translations.json</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-json">
+{
+    "Send": {
+        "es": "Enviar",
+        "en": "Send"
+    },
+    "Cancel": {
+        "es": "Cancelar",
+        "en": "Cancel"
+    },
+    "Accept": {
+        "es": "Aceptar",
+        "en": "Accept"
+    },
+    "Email": {
+        "es": "Email",
+        "en": "Email"
+    },
+    "Name": {
+        "es": "Nombre",
+        "en": "Name"
+    },
+    "Back": {
+        "es": "Volver",
+        "en": "Back"
+    },
+    "Hi": {
+        "es": "Hola",
+        "en": "Hi"
+    }
+}
+</code>
+                        </pre>
+                    </div>
+                </div>
+
+                <br />
+                <p>Aquí te mostramos como utilizar dichos helpers para obtener las traducciones que dejas en el
+                    directorio <code>locales</code></p>
+                <p>Con el parametro <code>file_name</code> indicas que archivo dentro de locales quieres cargar, por
+                    defecto siempre se caarga translations.json</p>
+                <p>Luego con <code>key</code> le dices que clave quieres buscar dentro de tus traducciones, despues el
+                    framework buscará solo según tengas configurado en tu archivo .env o por sesión del usuario</p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">translations</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                                <code class="language-python">
+from core.helpers import translate_ 
+msg_error_login =translate_(key="Incorrect email or password",request=request,file_name="guest")
+#Por defecto siempre se carga translations.json , si no se pasa el parametro file_name
+                                    </code>
+                                    </pre>
+                    </div>
+                </div>
+
+                <br />
+                <p>También con <code>translate</code> puedes obtener todas las traducciones del archivo .</p>
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">translations</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                                <code class="language-python">
+from core.helpers import translate
+msg =translate(request=request,file_name="guest") 
+#Por defecto siempre se carga translations.json , si no se pasa el parametro file_name
+                                    </code>
+                                    </pre>
+                    </div>
+                </div>
+
             </article>
 
             <article id="models-esp">
@@ -1761,121 +1977,9 @@ except RuntimeError as e:
                 </div>
             </article>
 
-            <article id="locales-esp">
-                <h1>Internalización (Traducciones)</h1>
-                <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en diferentes
-                    idiomas.
-                    En Lila, las traducciones se almacenan en el directorio <code>locales</code> y se pueden cargar
-                    dinámicamente en la aplicación.
-                </p>
-                <p>Para cargar un archivo de locales, utiliza la función <code>translate</code> desde
-                    <code>core.helpers</code>. Luego, puedes acceder a las traducciones utilizando la función
-                    <code>translate</code> que devolvera un diccionario con todas las traducciones o utilizar
-                    <code>translate_</code> ,para un texto o traducción en especifico, que devolvera la traducción que necesita (en caso de no encontrarla
-                    ,devuelve el texto pasado).
 
-                </p>
-                <p>También puedes utilizar el helper <code>lang</code> para que te devuelva por sessión o configuración
-                    de la aplicación en que idioma se esta ejecutando para dicho usuario que realizo la solicitud.</p>
 
-                <p>El siguiente ejemplo muestra cómo crear y cargar un archivo de locales y traducir una cadena de texto.</p>
-
-                <div class="code-editor">
-                    <div class="editor-header">
-                        <span class="editor-title">locales/translations.json</span>
-                        <div class="editor-controls">
-                            <div class="control close"></div>
-                            <div class="control minimize"></div>
-                            <div class="control maximize"></div>
-                        </div>
-                    </div>
-                    <div class="editor-content">
-                        <pre>
-                            <code class="language-json">
-{
-    "Send": {
-        "es": "Enviar",
-        "en": "Send"
-    },
-    "Cancel": {
-        "es": "Cancelar",
-        "en": "Cancel"
-    },
-    "Accept": {
-        "es": "Aceptar",
-        "en": "Accept"
-    },
-    "Email": {
-        "es": "Email",
-        "en": "Email"
-    },
-    "Name": {
-        "es": "Nombre",
-        "en": "Name"
-    },
-    "Back": {
-        "es": "Volver",
-        "en": "Back"
-    },
-    "Hi": {
-        "es": "Hola",
-        "en": "Hi"
-    }
-}
-</code>
-                        </pre>
-                    </div>
-                </div>
-
-                <br />
-                <p>Aquí te mostramos como utilizar dichos helpers para obtener las traducciones que dejas en el
-                    directorio <code>locales</code></p>
-                <p>Con el parametro <code>file_name</code> indicas que archivo dentro de locales quieres cargar, por
-                    defecto siempre se caarga translations.json</p>
-                <p>Luego con <code>key</code> le dices que clave quieres buscar dentro de tus traducciones, despues el
-                    framework buscará solo según tengas configurado en tu archivo .env o por sesión del usuario</p>
-
-                <div class="code-editor">
-                    <div class="editor-header">
-                        <span class="editor-title">locales/translations.json</span>
-                        <div class="editor-controls">
-                            <div class="control close"></div>
-                            <div class="control minimize"></div>
-                            <div class="control maximize"></div>
-                        </div>
-                    </div>
-                    <div class="editor-content">
-                        <pre>
-                                <code class="language-python">
-from core.helpers import translate_ 
-msg_error_login =translate_(key="Incorrect email or password",request=request,file_name="guest")
-#Por defecto siempre se carga translations.json , si no se pasa el parametro file_name
-                                    </code>
-                                    </pre>
-                    </div>
-                </div>
-
-                <br />
-                <p>También con <code>translate</code> puedes obtener todas las traducciones del archivo .</p>
-                <div class="code-editor">
-                    <div class="editor-header">
-                        <span class="editor-title">locales/translations.json</span>
-                        <div class="editor-controls">
-                            <div class="control close"></div>
-                            <div class="control minimize"></div>
-                            <div class="control maximize"></div>
-                        </div>
-                    </div>
-                    <div class="editor-content">
-                        <pre>
-                                <code class="language-python">
-from core.helpers import translate
-msg =translate(request=request,file_name="guest") 
-#Por defecto siempre se carga translations.json , si no se pasa el parametro file_name
-                                    </code>
-                                    </pre>
-                    </div>
-                </div>
+            <article id="helpers-esp">
 
             </article>
         </div>
