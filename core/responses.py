@@ -1,7 +1,8 @@
-from starlette.responses import JSONResponse,HTMLResponse,RedirectResponse,PlainTextResponse,RedirectResponse
+from starlette.responses import JSONResponse,HTMLResponse,RedirectResponse,PlainTextResponse,RedirectResponse,StreamingResponse
 
 JSONResponse = JSONResponse
 HTMLResponse = HTMLResponse
 RedirectResponse = RedirectResponse
 PlainTextResponse = PlainTextResponse
 RedirectResponse=RedirectResponse
+StreamingResponse=StreamingResponse
