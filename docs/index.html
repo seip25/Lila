@@ -43,7 +43,7 @@
     </header>
     <main>
         <div id="search">
-            <input type="text" id="searchBox" placeholder="Search... , Buscar..." onkeyup="searchDocs()">
+            <input type="text" name="search"  id="searchBox" placeholder="Search... , Buscar..." onkeyup="searchDocs()">
             <ul id="searchResults"></ul>
         </div>
         <div id="intro">
@@ -170,11 +170,8 @@
                     </div>
 
                 </article>
-
-
-                </h5>
-
                 <hr />
+
                 <article id="app-py-eng">
                     <h5 class=" ">Purpose: Configure and start the application.
                         app.py is the main entry point where the application is configured and initialized.
@@ -254,14 +251,14 @@ asyncio.run(main())
                         imported into
                         <code>app.py</code> for use. Routes can be configured to handle HTTP requests, API methods, and
                         more.
-                        <p>
-                            In addition to JSONResponse you can use HTMLResponse,
-                            RedirectResponse and PlainTextResponse, or
-                            StreamingResponse , to transmit data in real-time (useful for
-                            streaming video/audio or large responses).
-                            
-                            </p>
-                        Below is an example of how routes are defined in Lila:
+                    <p>
+                        In addition to JSONResponse you can use HTMLResponse,
+                        RedirectResponse and PlainTextResponse, or
+                        StreamingResponse , to transmit data in real-time (useful for
+                        streaming video/audio or large responses).
+
+                    </p>
+                    Below is an example of how routes are defined in Lila:
                     </p>
                     <div class="code-editor">
                         <div class="editor-header">
@@ -297,8 +294,12 @@ return JSONResponse({'api': True})
 
                     <br />
 
-                    <h5>Receiving GET Parameters</h5>
-                    <p>In this function, we receive a parameter via the URL using <code>{param}</code>. If the parameter is not provided, it defaults to <code>'default'</code>. The response is a JSON containing the received value.</p>
+                    <h5>Get url parameteres</h5>
+                    <p>In this function, we receive a parameter via
+                        the URL using <code>{param}</code>.
+                        If the parameter is not provided,
+                        it defaults to <code>'default'</code>.
+                        The response is a JSON containing the received value.</p>
 
                     <div class="code-editor">
                         <div class="editor-header">
@@ -316,6 +317,31 @@ return JSONResponse({'api': True})
 async def param(request: Request):  
     param = request.path_params.get('param', 'default') 
     return JSONResponse({"received_param": param})
+        </code>
+        </pre>
+                        </div>
+                    </div>
+                    <br />
+                    <p>Or you canl also do it like this
+
+                    </p>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Receiving GET Query parameters</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python"> 
+@router.route(path='/url_with_param/?query_param', methods=['GET','POST']) 
+async def query_param(request: Request):  
+    query_param= request.query_params.get('query_param', 'query_param')
+    return JSONResponse({"received_param": query_params})
+                            
         </code>
         </pre>
                         </div>
@@ -348,7 +374,8 @@ router = Router()
 
                     <h5>Middleware and Decorators Usage</h5>
                     <p>Middlewares allow intercepting requests before they reach the main logic of the API.
-                        In this example, we use <code>@validate_token</code> to validate a JWT token in the request
+                        In this example, we use <code>@validate_token</code> to validate a JWT token in the
+                        request
                         header.</p>
 
                     <div class="code-editor">
@@ -408,7 +435,8 @@ async def login(request: Request):
                     </div>
 
                     <h5>Automatic Documentation Generation</h5>
-                    <p>Thanks to the integration with Pydantic, the API documentation is generated automatically and is
+                    <p>Thanks to the integration with Pydantic, the API documentation is generated automatically
+                        and is
                         accessible from
                         <code>/docs</code>. You can also generate an OpenAPI JSON file for external tools.
                     </p>
@@ -458,11 +486,224 @@ routes = router.get_routes()  # Retrieves all defined routes.
 
                 </article>
 
+                <article id="models-eng">
+                    <h1>Models (SQLAlchemy)</h1>
+                    <h5>Models are used to define the structure of data in
+                        the application.
+                    </h5>
+                    <p>
+                        <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy</a> as the default ORM for
+                        database management.
+                        SQLAlchemy allows creating database models,
+                        executing queries, and handling migrations
+                        efficiently.
+                    </p>
+
+                    <h2>Using Models </h2>
+                    <p>
+                        The `Base` class, imported from `core.database`, serves as the foundation for
+                        all models .
+                        Models inherit from `Base` to define database tables with SQLAlchemy.
+                    </p>
+
+                    <h2>Example: User Model</h2>
+                    This example demonstrates how to create a `User` model using SQLAlchemy.
+                    The model defines a `users` table with columns such as `id`, `name`, `email`, `password`, `token`,
+                    `active`, and `created_at`.
+                    </h5>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">models/user.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+
+        <code class="language-python">
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
+from core.database import Base
+from database.connections import connection 
+
+class User(Base):
+    __tablename__='users'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    name=Column( String(length=50), nullable=False)
+    email=Column( String(length=50), unique=True)
+    password=Column(String(length=150), nullable=False)
+    token=Column(String(length=150), nullable=False)
+    active=Column( Integer, nullable=False,default=1)
+    created_at=Column( TIMESTAMP)
+
+#Example of how to use SQLAlchemy to make queries to the database
+    def get_all() ->  list:
+        query = f"SELECT *  FROM users WHERE " 
+        result = connection.query(query=query, return_rows=True)
+        return result.fetchAll()
+
+#Example of how to use SQLAlchemy to make queries to the database
+    def get_by_id(id:int) -> dict:
+        query = f"SELECT *  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params ={id:id}
+        result = connection.query(query=query,params=params, return_rows=True)
+        #Use 'return_rows' to return the result , for default return Boolean
+        return result.fetchOne()
+    
+#Example of how to use the class to make queries to the database
+users = User.get_all()
+user = User.get_by_id(1)
+                    </code>
+                    </pre>
+                        </div>
+                    </div>
+                    <br />
+                    <p>
+                        For details on SQLAlchemy, visit the official documentation:
+                        <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy Documentation</a>.
+                    </p>
+
+                </article>
+
+                <article id="middlewares-eng">
+                    <h1>Middlewares</h1>
+                    <h5>Middleware functions are used to intercept requests before they reach the main logic of the
+                        application.
+                        In Lila, middlewares are defined in the <code>middlewares</code> directory (can be modified to
+                        any file and/or directory) .
+                        Middlewares can be used for tasks such as
+                        authentication, logging, and error handling.</h5>
+                    <p>By default Lila comes with 3 middlewares to start any application, middlewares can be used with
+                        decorators <code>@my_middleware</code> .
+                    </p>
+                    <p>
+                        <code>login_required</code> , to validate that you have a signed session, for the 'auth' key
+                        that is passed as a parameter to be able to modify it as you wish.
+                        If this session is not found, it redirects to the url that is passed as a parameter, by default
+                        it is "/login" .
+                        Otherwise it will continue its course executing the route or function .
+                    </p>
+
+                    <p>Then we have <code>session_active</code> , which is used to verify if you have an active session,
+                        it will redirect to the url that is received as a parameter, by default it is "/dashboard" .
+                    </p>
+
+                    <p>The third is <code>validate_token</code>
+                        Which is used to validate a JWT token thanks to the get_token helpers imported in
+                        <code>from core.helpers import get_token</code>
+                    </p>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">middlewares/middlewares.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+
+            <code class="language-python">
+from core.session import Session
+from core.responses import RedirectResponse,JSONResponse
+from core.request import Request
+from functools import wraps 
+from core.helpers import get_token
+
+def login_required(func,key:str='auth',url_return='/login'):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if not session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def session_active(func,key:str='auth',url_return:str ='/dashboard'):
+    @wraps(func)
+    async def wrapper(request,*args,**kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def validate_token(func):
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+        
+        token = get_token(token=token)
+        if isinstance(token,JSONResponse):
+            return token
+        return await func(request, *args, **kwargs)
+        
+    return wrapper
+                
+            </code>
+            </pre>
+                        </div>
+                    </div>
+
+                    <br />
+                    <h5>
+                        Here we give you several examples of how to use all 3, with the decorators.
+                    </h5>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Middlewares in routes</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+
+                            <pre>
+                        <code class="language-python">
+#Middleware to validate the JWT Token. 
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token #Middleware
+async def api_token(request: Request):
+    """Api Token function"""
+    print(get_user_by_id_and_token(request=request))
+    return JSONResponse({'api': True}) 
+
+#Middleware to validate session active
+@router.route(path='/dashboard', methods=['GET'])  
+@login_required #Middleware
+async def dashboard(request: Request):  
+    response = render(request=request, template='dashboard', files_translate=['authenticated']) 
+    return response 
+
+
+#Middleware validate if user get session active (if user get session redirect '/dashboard')
+@router.route(path='/login', methods=['GET'])  
+@session_active  #Middleware
+async def login(request: Request):  
+    response = render(request=request, template='auth/login', files_translate=['guest'])  
+    return response 
+
+
+                        </code>
+                    </pre>
+                        </div>
+                    </div>
+                </article>
+
 
         </div>
         <hr />
 
         <div id="doc-esp">
+          
             <article id="doc-list-esp">
                 <h5>Documentación (Español)</h5>
                 <ul>
@@ -479,6 +720,7 @@ routes = router.get_routes()  # Retrieves all defined routes.
                     <li><a href="#helpers-esp">Helpers</a></li>
                 </ul>
             </article>
+
             <article id="install-esp">
                 <h2>Instalación</h2>
                 <div class="terminal">
@@ -576,7 +818,6 @@ asyncio.run(main())
                 </div>
             </article>
 
-
             <article id="routes-esp">
                 <h5>Rutas</h5>
 
@@ -584,16 +825,16 @@ asyncio.run(main())
                     <code>routes</code>(por defecto, pero puede ser donde tu quieras) y se importan en
                     <code>app.py</code> para su uso. Las rutas pueden ser
                     configuradas para manejar solicitudes HTTP, métodos de API, y más.
-                    <p>
-                        Además de JSONResponse puedes utilizar HTMLResponse, 
-                        RedirectResponse y PlainTextResponse, o 
-                        StreamingResponse , Para transmitir datos en tiempo 
-                        real (útil para streaming de video/audio o 
-                        respuestas grandes).
-                  
-                    </p>
-                    A continuación, se muestra un
-                    ejemplo de cómo se definen las rutas en Lila:
+                <p>
+                    Además de JSONResponse puedes utilizar HTMLResponse,
+                    RedirectResponse y PlainTextResponse, o
+                    StreamingResponse , Para transmitir datos en tiempo
+                    real (útil para streaming de video/audio o
+                    respuestas grandes).
+
+                </p>
+                A continuación, se muestra un
+                ejemplo de cómo se definen las rutas en Lila:
                 </p>
                 <div class="code-editor">
                     <div class="editor-header">
@@ -650,6 +891,31 @@ async def param(request: Request):
     return JSONResponse({"received_param": param})
                             </code>
                             </pre>
+                    </div>
+                </div>
+                <br />
+                <p>O también puedes hacerlo de esta manera</p>
+
+                </p>
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Receiving GET Query parameters</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+    <code class="language-python"> 
+@router.route(path='/url_with_param/?query_param', methods=['GET','POST']) 
+async def query_param(request: Request):  
+query_param= request.query_params.get('query_param', 'query_param')
+return JSONResponse({"received_param": query_params})
+                        
+    </code>
+    </pre>
                     </div>
                 </div>
 
@@ -785,6 +1051,206 @@ routes = router.get_routes()  # Obtiene todas las rutas definidas.
                     </div>
                 </div>
             </article>
+
+            <article id="models-esp">
+                <h1>Modelos (SQLAlchemy)</h1>
+                <h5>Los modelos se utilizan para definir la estructura de los datos en la aplicación.</h5>
+
+                <p>
+                    <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy</a> es el ORM predeterminado para
+                    la gestión de bases de datos.
+                    SQLAlchemy permite crear modelos de base de datos, ejecutar consultas y manejar migraciones de
+                    manera eficiente.
+                </p>
+
+                <h2>Uso de Modelos</h2>
+                <p>
+                    La clase `Base`, importada desde `core.database`, sirve como base para todos los modelos.
+                    Los modelos heredan de `Base` para definir las tablas de la base de datos con SQLAlchemy.
+                </p>
+
+                <h2>Ejemplo: Modelo de Usuario</h2>
+                <p>
+                    Este ejemplo muestra cómo crear un modelo `User` utilizando SQLAlchemy.
+                    El modelo define una tabla `users` con columnas como `id`, `name`, `email`, `password`, `token`,
+                    `active` y `created_at`.
+                </p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">models/user.py</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-python">
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP 
+from core.database import Base
+from database.connections import connection 
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(length=50), nullable=False)
+    email = Column(String(length=50), unique=True)
+    password = Column(String(length=150), nullable=False)
+    token = Column(String(length=150), nullable=False)
+    active = Column(Integer, nullable=False, default=1)
+    created_at = Column(TIMESTAMP)
+
+#Ejemplo de cómo usar SQLAlchemy para hacer consultas a la base de datos
+    def get_all() -> list:
+        query = "SELECT * FROM users WHERE " 
+        result = connection.query(query=query, return_rows=True)
+        return result.fetchAll()
+
+#Ejemplo de cómo usar SQLAlchemy para hacer consultas a la base de datos
+    def get_by_id(id: int) -> dict:
+        query = "SELECT * FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params = {id: id}
+        result = connection.query(query=query, params=params, return_rows=True)
+        # Usar 'return_rows' para devolver el resultado, por defecto devuelve un Booleano
+        return result.fetchOne()
+
+#Ejemplo de cómo usar la clase para hacer consultas a la base de datos
+users = User.get_all()
+user = User.get_by_id(1)
+                            </code>
+                        </pre>
+                    </div>
+                </div>
+
+                <br />
+
+                <p>
+                    Para más detalles sobre SQLAlchemy, visita la documentación oficial:
+                    <a href="https://www.sqlalchemy.org/" target="_blank">Documentación de SQLAlchemy</a>.
+                </p>
+            </article>
+
+            <article id="middlewares-esp"> 
+                <h1>Middlewares</h1>
+                <h5>Las funciones middleware se utilizan para interceptar solicitudes antes de que lleguen a la lógica principal de la aplicación.
+                    En Lila, los middlewares se definen en el directorio <code>middlewares</code> (puede modificarse a cualquier archivo y/o directorio).
+                    Los middlewares pueden utilizarse para tareas como autenticación, registro de actividad y manejo de errores.
+                </h5>
+                <p>Por defecto, Lila incluye 3 middlewares para iniciar cualquier aplicación. Los middlewares pueden usarse con decoradores <code>@my_middleware</code>.
+                </p>
+                <p>
+                    <code>login_required</code>: se usa para validar que existe una sesión iniciada, utilizando la clave 'auth' que se pasa como parámetro y que puede modificarse según se necesite.
+                    Si la sesión no se encuentra, redirige a la URL que se pase como parámetro, siendo "/login" la predeterminada.
+                    De lo contrario, continuará ejecutando la ruta o función correspondiente.
+                </p>
+            
+                <p><code>session_active</code>: se usa para verificar si hay una sesión activa. Si la hay, redirige a la URL que se recibe como parámetro, siendo "/dashboard" la predeterminada.
+                </p>
+            
+                <p>El tercero es <code>validate_token</code>,
+                    que se usa para validar un token JWT gracias a los helpers de <code>get_token</code>, importados con
+                    <code>from core.helpers import get_token</code>.
+                </p>
+                
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">middlewares/middlewares.py</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-python">
+from core.session import Session
+from core.responses import RedirectResponse,JSONResponse
+from core.request import Request
+from functools import wraps 
+from core.helpers import get_token
+
+def login_required(func, key: str = 'auth', url_return='/login'):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data = Session.unsign(key=key, request=request)
+        if not session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request, *args, **kwargs)
+    return wrapper
+
+def session_active(func, key: str = 'auth', url_return: str = '/dashboard'):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data = Session.unsign(key=key, request=request)
+        if session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request, *args, **kwargs)
+    return wrapper
+
+def validate_token(func):
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return JSONResponse({'session': False, 'message': 'Token inválido'}, status_code=401)
+        
+        token = get_token(token=token)
+        if isinstance(token, JSONResponse):
+            return token
+        return await func(request, *args, **kwargs)
+        
+    return wrapper
+                            </code>
+                        </pre>
+                    </div>
+                </div>
+            
+                <br />
+                <h5>Aquí tienes varios ejemplos de cómo usar los tres middlewares con decoradores.</h5>
+            
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Middlewares en rutas</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-python">
+# Middleware para validar el token JWT
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token  # Middleware
+async def api_token(request: Request):
+    """Función de API Token"""
+    print(get_user_by_id_and_token(request=request))
+    return JSONResponse({'api': True}) 
+
+# Middleware para validar sesión activa
+@router.route(path='/dashboard', methods=['GET'])  
+@login_required  # Middleware
+async def dashboard(request: Request):  
+    response = render(request=request, template='dashboard', files_translate=['authenticated']) 
+    return response 
+
+# Middleware para verificar si el usuario tiene una sesión activa (si la tiene, redirige a '/dashboard')
+@router.route(path='/login', methods=['GET'])  
+@session_active  # Middleware
+async def login(request: Request):  
+    response = render(request=request, template='auth/login', files_translate=['guest'])  
+    return response 
+                            </code>
+                        </pre>
+                    </div>
+                </div>
+            </article>
+            
+
         </div>
 
 

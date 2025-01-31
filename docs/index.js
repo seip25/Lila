@@ -24,8 +24,10 @@ const sections = [
     { id: "helpers-esp", name: "Helpers(esp)" },
 ];
 
-function searchDocs() {
-    let query = document.getElementById("searchBox").value.toLowerCase();
+function searchDocs(event = false) {
+    let query = event
+        ? event.target.value.toLowerCase()
+        : document.getElementById("searchBox").value.toLowerCase();
     let results = document.getElementById("searchResults");
     results.innerHTML = "";
 
