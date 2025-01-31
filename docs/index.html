@@ -254,6 +254,13 @@ asyncio.run(main())
                         imported into
                         <code>app.py</code> for use. Routes can be configured to handle HTTP requests, API methods, and
                         more.
+                        <p>
+                            In addition to JSONResponse you can use HTMLResponse,
+                            RedirectResponse and PlainTextResponse, or
+                            StreamingResponse , to transmit data in real-time (useful for
+                            streaming video/audio or large responses).
+                            
+                            </p>
                         Below is an example of how routes are defined in Lila:
                     </p>
                     <div class="code-editor">
@@ -285,6 +292,32 @@ async def api(request: Request):
 return JSONResponse({'api': True})   
                             </code>
                         </pre>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <h5>Receiving GET Parameters</h5>
+                    <p>In this function, we receive a parameter via the URL using <code>{param}</code>. If the parameter is not provided, it defaults to <code>'default'</code>. The response is a JSON containing the received value.</p>
+
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Receiving GET Parameters</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+        <code class="language-python">
+@router.route(path='/url_with_param/{param}', methods=['GET']) 
+async def param(request: Request):  
+    param = request.path_params.get('param', 'default') 
+    return JSONResponse({"received_param": param})
+        </code>
+        </pre>
                         </div>
                     </div>
                     <br />
@@ -342,7 +375,8 @@ async def api_token(request: Request):
                     <h5>Data Validation with Pydantic</h5>
                     <p>Pydantic allows defining data models that automatically validate user input.
                         Additionally, specifying a model in the route generates automatic documentation in
-                        <code>/docs</code>.</p>
+                        <code>/docs</code>.
+                    </p>
 
                     <div class="code-editor">
                         <div class="editor-header">
@@ -397,6 +431,7 @@ router.openapi_json()  # Generates OpenAPI JSON for external tools.
         </pre>
                         </div>
                     </div>
+
 
                     <h5>Importing Routes in app.py</h5>
                     <p>To use the routes defined in the router, you need to obtain them with
@@ -548,7 +583,16 @@ asyncio.run(main())
                 <p>Las rutas son los puntos de acceso a la aplicación. En Lila, las rutas se definen en el directorio
                     <code>routes</code>(por defecto, pero puede ser donde tu quieras) y se importan en
                     <code>app.py</code> para su uso. Las rutas pueden ser
-                    configuradas para manejar solicitudes HTTP, métodos de API, y más. A continuación, se muestra un
+                    configuradas para manejar solicitudes HTTP, métodos de API, y más.
+                    <p>
+                        Además de JSONResponse puedes utilizar HTMLResponse, 
+                        RedirectResponse y PlainTextResponse, o 
+                        StreamingResponse , Para transmitir datos en tiempo 
+                        real (útil para streaming de video/audio o 
+                        respuestas grandes).
+                  
+                    </p>
+                    A continuación, se muestra un
                     ejemplo de cómo se definen las rutas en Lila:
                 </p>
                 <div class="code-editor">
@@ -582,6 +626,33 @@ async def api(request: Request):
                     </pre>
                     </div>
                 </div>
+                <br />
+                <h5>Recibir parametros por GET</h5>
+                <p>En esta función, recibimos un parámetro a través de la URL usando <code>{param}</code>. Si el
+                    parámetro no se envía, se asigna el valor por defecto <code>'default'</code>. La respuesta es un
+                    JSON con el valor recibido.</p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Recepción de Parámetros GET</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-python">
+@router.route(path='/url_with_param/{param}', methods=['GET']) 
+async def param(request: Request):  
+    param = request.path_params.get('param', 'default') 
+    return JSONResponse({"received_param": param})
+                            </code>
+                            </pre>
+                    </div>
+                </div>
+
                 <br />
                 <div class="code-editor">
                     <div class="editor-header">
@@ -689,6 +760,7 @@ router.openapi_json()  # Genera JSON de OpenAPI para herramientas externas.
                         </pre>
                     </div>
                 </div>
+
 
                 <h5>Importación de Rutas en app.py</h5>
                 <p>Para usar las rutas definidas en el router, es necesario obtenerlas con
