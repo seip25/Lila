@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light dark">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{{title}}</title>
-  <link rel="icon" type="image/x-icon" href="/public/img/Lila.webp" /> 
+  <link rel="icon" type="image/x-icon" href="/public/img/lila.png" /> 
   <!--CSS-->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
@@ -43,9 +43,13 @@
   <div class="flex justify-center">
     <article >
       <h5>
-        {{translate['Welcome to the Lila Framework']}}
+        <div style="display: inline-flex; align-items: center;">
+          <img src="/public/img/lila.png" alt="Lila logo" class="img-responsive" width="10%" height="10%"  />
+          <span>  {{translate['Welcome to the Lila Framework']}}</span>
+        </div>
+      
       </h5>
-      <p> {{translate['Hi']}}! </p>
+       <p> {{translate['Hi']}}! </p>
       <p>
         {{translate["documentation"]}}
         <a href="https://seip25.github.io/Lila/" class="link underline" target="_blank"> link</a>
