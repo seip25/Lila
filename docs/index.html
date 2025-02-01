@@ -420,6 +420,8 @@ async def api_token(request: Request):
                         <div class="editor-content">
                             <pre>
         <code class="language-python">
+
+from pydantic import EmailStr, BaseModel 
 class ExampleModel(BaseModel):
     email: EmailStr  # Ensures a valid email.
     password: str  # String for password.
@@ -1530,6 +1532,7 @@ async def api_token(request: Request):
                     <div class="editor-content">
                         <pre>
                         <code class="language-python">
+from pydantic import EmailStr, BaseModel 
 class ExampleModel(BaseModel):
     email: EmailStr  # Garantiza que el email es válido.
     password: str  # Cadena de texto para la contraseña.
