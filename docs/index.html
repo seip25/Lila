@@ -902,7 +902,7 @@ class User(Base):
     def get_all() ->  list:
         query = f"SELECT *  FROM users WHERE " 
         result = connection.query(query=query, return_rows=True)
-        return result.fetchAll()
+        return result.fetchall()
 
 #Example of how to use SQLAlchemy to make queries to the database
     def get_by_id(id:int) -> dict:
@@ -910,7 +910,7 @@ class User(Base):
         params ={id:id}
         result = connection.query(query=query,params=params, return_rows=True)
         #Use 'return_rows' to return the result , for default return Boolean
-        return result.fetchOne()
+        return result.fetchone()
     
 #Example of how to use the class to make queries to the database
 users = User.get_all()
@@ -2015,7 +2015,7 @@ class User(Base):
     def get_all() -> list:
         query = "SELECT * FROM users WHERE " 
         result = connection.query(query=query, return_rows=True)
-        return result.fetchAll()
+        return result.fetchall()
 
 #Ejemplo de cómo usar SQLAlchemy para hacer consultas a la base de datos
     def get_by_id(id: int) -> dict:
@@ -2023,7 +2023,7 @@ class User(Base):
         params = {id: id}
         result = connection.query(query=query, params=params, return_rows=True)
         # Usar 'return_rows' para devolver el resultado, por defecto devuelve un Booleano
-        return result.fetchOne()
+        return result.fetchone()
 
 #Ejemplo de cómo usar la clase para hacer consultas a la base de datos
 users = User.get_all()

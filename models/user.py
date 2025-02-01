@@ -20,7 +20,7 @@ class User(Base):
     def get_all() ->  list:
         query = f"SELECT *  FROM users WHERE " 
         result = connection.query(query=query, return_rows=True)
-        return result.fetchAll()
+        return result.fetchall()
 
     #English : Example of how to use SQLAlchemy to make queries to the database
     #Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
@@ -28,7 +28,7 @@ class User(Base):
         query = f"SELECT *  FROM users WHERE id = :id AND active = 1 LIMIT 1"
         params ={id:id}
         result = connection.query(query=query,params=params, return_rows=True)
-        return result.fetchOne()
+        return result.fetchone()
     
 #English : Example of how to use the class to make queries to the database
 #Español : Ejemplo de como usar la clase para realizar consultas a la base de datos   
