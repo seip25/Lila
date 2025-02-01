@@ -130,7 +130,7 @@
         <hr />
         <br />
         <div id="doc">
-            <article id="doc-eng">
+            <div id="doc-eng">
                 <article id="doc-list-eng">
                     <h5>Documentation (English)</h5>
                     <ul>
@@ -144,7 +144,7 @@
                         <li><a href="#middlewares-eng">Middlewares</a></li>
                         <li><a href="#connections-eng">Connections</a></li>
                         <li><a href="#migrations-eng">Migrations</a></li>
-                        <li><a href="#helpers-esp">Helpers</a></li>
+                        <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
 
                     </ul>
                 </article>
@@ -247,7 +247,7 @@ asyncio.run(main())
                 </article>
 
                 <article id="routes-eng">
-                    <h5>Routes</h5>
+                    <h1>Routes</h>
 
                     <p>Routes are the access points to the application. In Lila, routes are defined in the
                         <code>routes</code> directory (by default, but you can place them wherever you want) and
@@ -523,49 +523,53 @@ router.mount()
                 <article id="templates-eng">
                     <h1>Templates Render (Jinja2)</h1>
                     <p><strong>
-                            En Lila utilizamos por defecto Jinja2 para renderizar los templates html
-                            y poder enviarlos al cliente.
-                            Con <code>context</code> puedes pasarle información , ya se traducciones, datos,
-                            valores,arrays,lo que quieras.
-
+                            In Lila, we use Jinja2 by default to render HTML templates and send them to the client.
+                            With <code>context</code>, you can pass information such as translations, data,
+                            values, lists,dicts or you need.
                         </strong>
                     </p>
-                    <p>Por defecto siempre se carga las traducciones del archivo <code>translations.json</code>,
-                        <code>theme</code> por si quieres utilizar temas,
-                        <code>lang</code>por defecto ,las constantes del archivo<code>.env</code> o sesión,
-                        <code>title</code> el titulo o nombre del proyecto
-                        y <code>version</code> para poder versionar o evitar la cache en el renderizado con el cliente
-                        HTML.
+                    <p>By default, translations from the <code>translations.json</code> file are always loaded,
+                        <code>theme</code> in case you want to use themes,
+                        <code>lang</code> by default, constants from the <code>.env</code> file or session,
+                        <code>title</code> for the project title or name,
+                        and <code>version</code> to version or avoid cache issues when rendering the HTML for the
+                        client.
                     </p>
-                    <strong>Las ventajas de utilizar este sistema de renderizado ya sea
-                        con traducciones,datos pasados con Jinja2, es el SEO para
-                        tu aplicación Web</strong></p>
+                    <p>
+                        <strong>The advantages of using this rendering system, whether with translations or data passed
+                            with
+                            Jinja2,
+                            include improved SEO for your web application.</strong>
+                    </p>
 
-                    <p>Los parametros que puede recibir la función <code>render</code>
-                        de <code>core.templates</code>
-                        son las siguientes
+                    <p>The parameters that the <code>render</code> function from <code>core.templates</code> can receive
+                        are the following:
                         <strong>
                             <code>
-                            request:Request, template: str,context :dict ={},theme_ :bool= True,
-                            translate:bool = True,files_translate:list=[]
-                        </code>
+                            request:Request, template: str, context: dict = {}, theme_: bool = True,
+                            translate: bool = True, files_translate: list = []
+                            </code>
                         </strong>
                     </p>
                     <p>
-                        <code>template</code> es para el nombre del archivo comenzando el <code>path</code>
-                        de la ruta de los directorios ubciado en <code>templates/html/</code>, ejemplo :
-                        <code>index.html</code>,
-                        buscará un archivo <code>index.html</code> en el directorio html dentro del directorio
-                        templates(templates/html/index.html).
-                    </p>
-                    <p><code>context</code> recibe un diccionario con los valores que quieras pasar al template.
+                        <code>template</code> is for the file name, starting from the <code>path</code>
+                        of the directory located in <code>templates/html/</code>, for example:
+                        <code>index.html</code>.
+                        It will look for a file <code>index.html</code> in the HTML directory within the templates
+                        folder
+                        (templates/html/index.html).
                     </p>
                     <p>
-                        <code>translate</code> y <code>files_translate</code> son para las traducciones, si quieres que
-                        se traduzca el template o no
-                        y si quieres que se traduzca uno o varios archivos(se pasa un <code>list</code> a la función) en
-                        especifico , aparte de
-                        <code>translations.json</code>.
+                        <code>context</code> receives a dictionary with the 
+                        values you want to pass to the template.
+                    </p>
+                    <p>
+                        <code>translate</code> and <code>files_translate</code> are for translations. You can choose
+                        whether
+                        to translate the template or not,
+                        and specify one or multiple files (a <code>list</code> passed to the function) to translate in
+                        addition
+                        to <code>translations.json</code>.
                     </p>
                     <div class="code-editor">
                         <div class="editor-header">
@@ -579,39 +583,39 @@ router.mount()
                         <div class="editor-content">
                             <pre>
                                 <code class="language-python">
-#Example render html file with Jinja2, passing translation parameters in the context
+# Example of rendering an HTML file with Jinja2, passing translation parameters in the context
 @router.route(path='/', methods=['GET'])  
 async def home(request: Request): 
-    response = render(request=request, template='index')  # English: Renders the 'index.html' template with  translations 
+    response = render(request=request, template='index')  # Renders the 'index.html' template with translations 
     return response  
 
-#Example render html file with Jinja2, passing translation parameters in the context
+# Example of rendering an HTML file with Jinja2, passing translation parameters in the context
 @router.route(path='/login', methods=['GET'])  
 @session_active  
 async def login(request: Request):  
-#template login.html inside folder 'auth' (html/auth/login.html).
-#files_translate is a list of files to translate, in this case, the 'guest.json'  file, in folder locales.
-#context is a dictionary with the values to pass to the template.
-    response = render(request=request, template='auth/login', files_translate=['guest'],context={'example_context':'Hi!','example_array':[1,2,3]})  
+# Template login.html inside the 'auth' folder (templates/html/auth/login.html).
+# files_translate is a list of files to translate, in this case, the 'guest.json' file in the locales folder.
+# context is a dictionary with the values to pass to the template.
+    response = render(request=request, template='auth/login', files_translate=['guest'], context={'example_context': 'Hi!', 'example_array': [1,2,3]})  
     return response  
- 
                                 </code>
                             </pre>
                         </div>
                     </div>
                     <br />
                     <p>
-                        Luego en tu archivo html puedes utilizar las variables, utilizar
-                        includes, extends, for, if, etc... de Jinja2, para renderizar el contenido,
-                        aqqui te dejaremos la documentación de
+                        Then, in your HTML file, you can use the variables, includes, extends, for loops, if statements,
+                        etc., from Jinja2 to render the content.
+                        Here is the documentation for
                         <a href="https://jinja.palletsprojects.com/en/stable/">Jinja2</a>.
-                        Así puedes utilizar lo que pasaste en el contexto y las traducciones con <code>translate</code>,
-                        de la siguiente forma.
+                        This allows you to use what you passed in the context and translations with
+                        <code>translate</code>,
+                        as shown in the following example:
                     </p>
 
                     <div class="code-editor">
                         <div class="editor-header">
-                            <span class="editor-title">Templates</span>
+                            <span class="editor-title">templates/html/index.html</span>
                             <div class="editor-controls">
                                 <div class="control close"></div>
                                 <div class="control minimize"></div>
@@ -621,28 +625,80 @@ async def login(request: Request):
                         <div class="editor-content">
                             <pre>
                                 <code class="language-html">
-<!DOCTYPE html>
-<html lang="{{lang}}">
+ 
+<p>title : {{title}}</p>
+<p>version : {{version}}</p>
+<p>lang :{{lang}}</p>
+<p>Context: {{example_context}}</p>
 
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-<title>{{title}}</title>
-</head>
-<body>
-    <p>Context : {{example_context}}</p>
-</body>
-</html>
+<label>
+    {{ translate['Password'] }} # Password in English | Contraseña en español
+ #'translate' is a dictionary containing all the translations from the translations.json file or files you've uploaded.
+
+</label>
+<input type="password" name="password" required id="password" minlength="6" maxlength="50"/>
+
                                 </code>
-                                </pre>
+                            </pre>
                         </div>
                     </div>
+
+
                 </article>
 
                 <article id="markdown-eng">
                     <h1>Markdown /HTML</h1>
+                    <p>To render <code>markdown</code> files, the
+                        <code>renderMarkdown</code> function is used, which receives the following parameters:
+                        <code>request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
+                    </p>
+                    <p>
+                        <code>file</code> is the name of the file, starting from the <code>base_path</code> of the
+                        directory
+                        located in <code>templates/markdown/</code>, for example: <code>index.md</code>.
+                        It will look for an <code>index.md</code> file in the markdown directory inside the templates
+                        folder
+                        (templates/markdown/index.md).
+                    </p>
+                    <p>
+                        <code>css_files</code> and <code>js_files</code> are lists of CSS and JS files that will be
+                        loaded in the
+                        generated HTML file.
+                    </p>
+                    <p>
+                        <code>picocss</code> is a boolean indicating whether the PicoCSS CSS file should be loaded.
+                    </p>
+                    <p>
+                        Below is an example of how <code>markdown</code> files are rendered in
+                        Lilac:
+                    </p>
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">Markdown</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre>
+                     <code class="language-python">
+from core.templates import renderMarkdown
+
+@router.route(path='/markdown', methods=['GET'])
+async def home(request: Request):
+    #Define a list of CSS files to include in the response
+    css = ["/public/css/styles.css"]
+    #Renders a markdown file with PicoCSS styling
+    response = renderMarkdown(request=request, file='example', css_files=css, picocss=True)
+    return response
+
+                     </code>
+                     </pre>
+                        </div>
+                    </div>
+
                 </article>
 
                 <article id="locales-eng">
@@ -1181,10 +1237,10 @@ if __name__ == "__main__":
 
                 </article>
 
+<!-- 
+                <article id="helpers-eng">
 
-                <article id="helpers-esp">
-
-                </article>
+                </article> -->
 
 
         </div>
@@ -1205,7 +1261,7 @@ if __name__ == "__main__":
                     <li><a href="#middlewares-esp">Middlewares</a></li>
                     <li><a href="#connections-esp">Connections</a></li>
                     <li><a href="#migrations-esp">Migraciones</a></li>
-                    <li><a href="#helpers-esp">Helpers</a></li>
+                    <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
                 </ul>
             </article>
 
@@ -1307,7 +1363,7 @@ asyncio.run(main())
             </article>
 
             <article id="routes-esp">
-                <h5>Rutas</h5>
+                <h1>Rutas</h1>
 
                 <p>Las rutas son los puntos de acceso a la aplicación. En Lila, las rutas se definen en el directorio
                     <code>routes</code>(por defecto, pero puede ser donde tu quieras) y se importan en
@@ -1573,12 +1629,177 @@ router.mount()
             </article>
 
             <article id="templates-esp">
+                <h1>Renderizado de Plantillas (Jinja2)</h1>
+                <p><strong>
+                        En Lila, usamos Jinja2 por defecto para renderizar plantillas HTML y enviarlas al cliente.
+                        Con <code>context</code>, puedes pasar información
+                        como traducciones, datos,
+                        valores, listas,diccionarios o lo que necesites.
+                    </strong>
+                </p>
+                <p>Por defecto, siempre se cargan las traducciones del archivo <code>translations.json</code>,
+                    <code>theme</code> en caso de que quieras usar temas,
+                    <code>lang</code> como idioma predeterminado,
+                    constantes del archivo <code>.env</code> o sesión,
+                    <code>title</code> para el título o nombre del proyecto,
+                    y <code>version</code> para gestionar versiones o evitar problemas de caché al renderizar el HTML
+                    para el cliente.
+                </p>
+                <p>
+                    <strong>Las ventajas de usar este sistema de renderizado, ya sea con traducciones o datos pasados
+                        con Jinja2,
+                        incluyen una mejor optimización SEO para tu aplicación web.</strong>
+                </p>
 
+                <p>Los parámetros que puede recibir la función <code>render</code> de <code>core.templates</code>
+                    son los siguientes:
+                    <strong>
+                        <code>
+                        request:Request, template: str, context: dict = {}, theme_: bool = True,
+                        translate: bool = True, files_translate: list = []
+                        </code>
+                    </strong>
+                </p>
+                <p>
+                    <code>template</code> es el nombre del archivo, comenzando desde el <code>path</code>
+                    del directorio ubicado en <code>templates/html/</code>, por ejemplo:
+                    <code>index.html</code>.
+                    Buscará un archivo <code>index.html</code> en el directorio HTML dentro de la carpeta de templates
+                    (templates/html/index.html).
+                </p>
+                <p><code>context</code> recibe un diccionario con los valores que deseas pasar al template.</p>
+                <p>
+                    <code>translate</code> y <code>files_translate</code> son para traducciones. Puedes elegir
+                    si traducir la plantilla o no,
+                    y especificar uno o múltiples archivos (una <code>lista</code> pasada a la función) para traducir
+                    además de <code>translations.json</code>.
+                </p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">Plantillas</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-python">
+from core.templates import render
+# Ejemplo de renderizado de un archivo HTML con Jinja2, pasando parámetros de traducción en el contexto
+@router.route(path='/', methods=['GET'])  
+async def home(request: Request): 
+    response = render(request=request, template='index')  # Renderiza la plantilla 'index.html' con traducciones 
+    return response  
+
+# Ejemplo de renderizado de un archivo HTML con Jinja2, pasando parámetros de traducción en el contexto
+@router.route(path='/login', methods=['GET'])  
+async def login(request: Request):  
+# Plantilla login.html dentro de la carpeta 'auth' (templates/html/auth/login.html).
+# files_translate es una lista de archivos a traducir, en este caso, el archivo 'guest.json' en la carpeta locales.
+# context es un diccionario con los valores a pasar a la plantilla.
+    response = render(request=request, template='auth/login', files_translate=['guest'], context={'example_context': 'Hola!', 'example_array': [1,2,3]})  
+    return response  
+                            </code>
+                        </pre>
+                    </div>
+                </div>
+                <br />
+                <p>
+                    Luego, en tu archivo HTML, puedes usar las variables, includes, extends, bucles for, condicionales
+                    if,
+                    etc., de Jinja2 para renderizar el contenido.
+                    Aquí está la documentación de
+                    <a href="https://jinja.palletsprojects.com/en/stable/">Jinja2</a>.
+                    Esto te permite usar lo que pasaste en el contexto y las traducciones con
+                    <code>translate</code>,
+                    como se muestra en el siguiente ejemplo:
+                </p>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <span class="editor-title">templates/html/index.html</span>
+                        <div class="editor-controls">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre>
+                            <code class="language-html">
+ 
+<p>título : {{title}}</p>
+<p>versión : {{version}}</p>
+<p>idioma :{{lang}}</p>
+<p>Contexto: {{example_context}}</p>
+<label>
+{{ translate['Password'] }} # Password en inglés | Contraseña en español
+#'translate' es un diccionario con todas las traducciones del archivo translations.json o los archivos que hayas cargado .
+</label>
+<input type="password" name="password" required id="password" minlength="6" maxlength="50"/>
+
+                            </code>
+                        </pre>
+                    </div>
+                </div>
             </article>
+
 
             <article id="markdown-esp">
+                <h1>Markdown /HTML</h1>
+                <p>Para renderizar archivos <code>markdown</code> se utiliza la función
+                <code>renderMarkdown</code>, que recibe los siguientes parámetros:
+                <code>request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
+                </p>
+                <p>
+                <code>file</code> es el nombre del archivo, comenzando desde la <code>base_path</code> del
+                directorio
+                ubicado en <code>templates/markdown/</code>, por ejemplo: <code>index.md</code>.
+                Buscará un archivo <code>index.md</code> en el directorio de Markdown dentro de la carpeta de plantillas
+                (templates/markdown/index.md).
+                </p>
+                <p>
+                <code>css_files</code> y <code>js_files</code> son listas de archivos CSS y JS que se cargarán en el
+                archivo HTML generado.
+                </p>
+                <p>
+                <code>picocss</code> es un valor booleano que indica si se debe cargar el archivo CSS PicoCSS.
+                </p>
+                <p>
+                A continuación, se muestra un ejemplo de cómo se representan los archivos <code>markdown</code> en
+                Lilac:
+                </p>
+                <div class="code-editor">
+                <div class="editor-header">
+                <span class="editor-title">Markdown</span>
+                <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimum"></div>
+                <div class="control maximum"></div>
+                </div>
+                </div>
+                <div class="editor-content">
+                <pre>
+                <code class="language-python">
+from core.templates import renderMarkdown
 
-            </article>
+@router.route(path='/markdown', methods=['GET'])
+async def home(request: Request):
+#Define una lista de archivos CSS para incluir en la respuesta
+css = ["/public/css/styles.css"]
+#Representa un archivo markdown con estilo PicoCSS
+response = renderMarkdown(request=request, file='example', css_files=css, picocss=True)
+return response
+                
+                </code>
+                </pre>
+                </div>
+                </div>
+                
+                </article>
 
             <article id="locales-esp">
                 <h1>Internalización (Traducciones)</h1>
@@ -2096,11 +2317,9 @@ except RuntimeError as e:
                 </div>
             </article>
 
+            <!-- <article id="helpers-esp">
 
-
-            <article id="helpers-esp">
-
-            </article>
+            </article> -->
         </div>
 
 
