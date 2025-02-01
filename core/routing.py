@@ -38,9 +38,9 @@ class Router:
                 <html>
                 <head>
                     <title>API Documentation</title>
-                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.1.3/swagger-ui.css" />
-                    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.1.3/swagger-ui-bundle.js"></script>
-                    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.1.3/swagger-ui-standalone-preset.js"></script>
+                    <link rel="stylesheet" type="text/css" href="/public/swagger/swagger-ui.css" />
+                    <script src="/public/swagger/swagger-ui-bundle.js"></script>
+                    <script src="/public/swagger/swagger-ui-standalone-preset.js"></script>
                 </head>
                 <body>
                     <div id="swagger-ui"></div>

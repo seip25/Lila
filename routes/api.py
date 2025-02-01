@@ -14,7 +14,7 @@ router = Router()
 # Español: Define una ruta de API simple que soporta el método GET.
 @router.route(path='/api', methods=['GET'])
 async def api(request: Request):
-    """Api function"""
+    """Api function"""#use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     # English: Returns a simple JSON response for API verification. | Español: Devuelve una respuesta JSON simple para la verificación de la API.
     return JSONResponse({'api': True})  
 
@@ -25,7 +25,7 @@ async def api(request: Request):
 # Español: Middleware para validar token de JWT.
 @validate_token
 async def api_token(request: Request):
-    """Api Token function"""
+    """Api Token function"""#use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     print(get_user_by_id_and_token(request=request))
     return JSONResponse({'api': True}) 
 
@@ -40,7 +40,7 @@ class ExampleModel(BaseModel):
 # Español: Define una ruta "api/example", utilizando ExampleModel para la validación de entradas,con documentación automatica pasandole el parametro "model"("model=ExampleModel")
 @router.route(path='/api/example', methods=['POST'], model=ExampleModel)
 async def login(request: Request):
-    """Example function"""
+    """Example function"""#use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     # English: Asynchronously parse JSON body from the request. 
     # Español: Analiza asíncronamente el cuerpo JSON de la solicitud.
     body = await request.json()  
