@@ -934,6 +934,13 @@ class User(Base):
         #Use 'return_rows' to return the result , for default return Boolean
         return result.fetchone()
     
+    #Example using ORM abstraction in SQLAlchemy
+    @classmethod
+    def get_all_orm(cls, db: Session, limit: int = 1000):
+        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
+        return result
+    
+    
 #Example of how to use the class to make queries to the database
 users = User.get_all()
 user = User.get_by_id(1)
@@ -2046,6 +2053,13 @@ class User(Base):
         result = connection.query(query=query, params=params, return_rows=True)
         # Usar 'return_rows' para devolver el resultado, por defecto devuelve un Booleano
         return result.fetchone()
+
+    
+    # Ejemplo usando abstracción de ORM en SQLAlchemy
+    @classmethod
+    def get_all_orm(cls, db: Session, limit: int = 1000):
+        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
+        return result
 
 #Ejemplo de cómo usar la clase para hacer consultas a la base de datos
 users = User.get_all()
