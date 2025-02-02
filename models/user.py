@@ -17,18 +17,19 @@ class User(Base):
 
     #English : Example of how to use SQLAlchemy to make queries to the database
     #Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
-    def get_all() ->  list:
-        query = f"SELECT *  FROM users WHERE " 
-        result = connection.query(query=query, return_rows=True)
-        return result.fetchall()
-
+    def get_all(limit : int =1000) ->  list:
+        query = f"SELECT *  FROM users WHERE active =1  LIMIT :limit" 
+        result = connection.query(query=query,params={"limit":limit}, return_rows=True)
+        if result :
+            return result.fetchall() if not result == None else []
+        return []
     #English : Example of how to use SQLAlchemy to make queries to the database
     #Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
     def get_by_id(id:int) -> dict:
         query = f"SELECT *  FROM users WHERE id = :id AND active = 1 LIMIT 1"
         params ={id:id}
         result = connection.query(query=query,params=params, return_rows=True)
-        return result.fetchone()
+        return result.fetchone() if not result == None else None
     
 #English : Example of how to use the class to make queries to the database
 #Español : Ejemplo de como usar la clase para realizar consultas a la base de datos   
