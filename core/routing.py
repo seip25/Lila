@@ -168,7 +168,7 @@ class Router:
             query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
             results = connection.query(query=query)
             items = results.fetchall() if results else []
-            items = [dict(getattr(row, "_mapping",{})) for row in items]
+            items = [dict(getattr(row, "_mapping", {})) for row in items]
             return JSONResponse(items)
 
         async def post(self):
@@ -249,14 +249,14 @@ class Router:
                 "user_id" in model_pydantic.__fields__.keys()
                 or "user_id" in self.query_params
             ):
-                params["user_id"] = self.query_params["user_id"]
+                params["user_id"] = int(self.query_params["user_id"])
                 filters += " AND user_id = :user_id"
 
             elif (
                 "id_user" in model_pydantic.__fields__.keys()
                 or "id_user" in self.query_params
             ):
-                params["id_user"] = self.query_params["id_user"]
+                params["id_user"] = int(self.query_params["id_user"])
                 filters += " AND id_user = :id_user"
             query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
             results = connection.query(query=query, params=params)
@@ -295,12 +295,33 @@ class Router:
             if "password" in params:
                 params["password"] = ph.hash(params["password"])
 
-            query = f" UPDATE {model_sql.__tablename__} SET {values} WHERE id:id"
+            if "token" in params:
+                params["token"] = generate_token_value()
+            if "hash" in params:
+                params["hash"] = generate_token_value()
+
+            filters = ""
+            if (
+                "user_id" in model_pydantic.__fields__.keys()
+                or "user_id" in self.query_params
+            ):
+                params["user_id"] = int(self.query_params["user_id"])
+                filters += " AND user_id = :user_id"
+
+            elif (
+                "id_user" in model_pydantic.__fields__.keys()
+                or "id_user" in self.query_params
+            ):
+                params["id_user"] = int(self.query_params["id_user"])
+                filters += " AND id_user = :id_user"
+
+            query = (
+                f" UPDATE {model_sql.__tablename__} SET {values} WHERE id= :id {filters}"
+            )
             id = self.path_params["id"]
             params["id"] = int(id)
-            result = False
-            print(query)
-            # result = connection.query(query=query, params=params)
+            result = connection.query(query=query, params=params)
+            result_update = True if result else False
             return JSONResponse({"success": result_update})
 
         def delete(self):
