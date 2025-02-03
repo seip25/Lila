@@ -78,16 +78,14 @@ class UserModel(BaseModel):
     name: str
     token: str
     password: str
-    active: int
-
 
 router.rest_crud_generate(
     connection=connection,
     model_sql=User,
     model_pydantic=UserModel, 
     select=["name", "email", "id", "created_at"],
+    active=True
 )
-
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
