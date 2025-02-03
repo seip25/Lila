@@ -20,17 +20,17 @@ all_routes = list(itertools.chain(routes, api_routes))
 
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
-app = App(debug=True, routes=all_routes)
+#app = App(debug=True, routes=all_routes)
 
 #English: CORS usage example
 #Español : Ejemplo de utilización de CORS
-# cors={
-#     "origin": ["*"],
-#     "allow_credentials" : True,
-#     "allow_methods":["*"],
-#     "allow_headers": ["*"]
-# }      
-# app = App(debug=True, routes=all_routes,cors=cors)
+cors={
+    "origin": ["*"],
+    "allow_credentials" : True,
+    "allow_methods":["*"],
+    "allow_headers": ["*"]
+}      
+app = App(debug=True, routes=all_routes,cors=cors)
 
 # English: Asynchronous main function to run the application server.
 # Español: Función principal asíncrona para ejecutar el servidor de la aplicación.

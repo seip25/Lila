@@ -924,18 +924,18 @@ class User(Base):
     created_at=Column( TIMESTAMP)
 
 #Example of how to use SQLAlchemy to make queries to the database
-    def get_all() ->  list:
-        query = f"SELECT *  FROM users WHERE " 
-        result = connection.query(query=query, return_rows=True)
-        return result.fetchall()
+    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
+        result = connection.query(query=query)
+        return [dict(row._mapping) for row in result.fetchall()] if result else []
+
 
 #Example of how to use SQLAlchemy to make queries to the database
-    def get_by_id(id:int) -> dict:
-        query = f"SELECT *  FROM users WHERE id = :id AND active = 1 LIMIT 1"
-        params ={id:id}
-        result = connection.query(query=query,params=params, return_rows=True)
-        #Use 'return_rows' to return the result , for default return Boolean
-        return result.fetchone()
+    def get_by_id(id: int, select="id,email,name") -> dict:
+        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        result = connection.query(query=query, params=params)
+        return result.fetchone()._mapping if result else {}
     
     #Example using ORM abstraction in SQLAlchemy
     @classmethod
@@ -2029,12 +2029,17 @@ msg =translate(request=request,file_name="guest")
                         <div class="editor-content">
                             <pre>
                             <code class="language-python">
-from sqlalchemy import Table, Column, Integer, String, TIMESTAMP 
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
+from sqlalchemy.orm import Session
 from core.database import Base
-from database.connections import connection 
+from database.connections import connection
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
+
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(length=50), nullable=False)
     email = Column(String(length=50), unique=True)
@@ -2043,30 +2048,31 @@ class User(Base):
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP)
 
-#Ejemplo de cómo usar SQLAlchemy para hacer consultas a la base de datos
-    def get_all() -> list:
-        query = "SELECT * FROM users WHERE " 
-        result = connection.query(query=query, return_rows=True)
-        return result.fetchall()
+    #Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
+    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
+        result = connection.query(query=query)
+        return [dict(row._mapping) for row in result.fetchall()] if result else []
 
-#Ejemplo de cómo usar SQLAlchemy para hacer consultas a la base de datos
-    def get_by_id(id: int) -> dict:
-        query = "SELECT * FROM users WHERE id = :id AND active = 1 LIMIT 1"
-        params = {id: id}
-        result = connection.query(query=query, params=params, return_rows=True)
-        # Usar 'return_rows' para devolver el resultado, por defecto devuelve un Booleano
-        return result.fetchone()
 
-    
-    # Ejemplo usando abstracción de ORM en SQLAlchemy
+    # Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
+    def get_by_id(id: int, select="id,email,name") -> dict:
+        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        result = connection.query(query=query, params=params)
+        return result.fetchone()._mapping if result else {}
+
+    #Ejemplo usando abstracción de ORM en SQLAlchemy
     @classmethod
     def get_all_orm(cls, db: Session, limit: int = 1000):
         result = db.query(cls).filter(cls.active == 1).limit(limit).all()
         return result
 
-#Ejemplo de cómo usar la clase para hacer consultas a la base de datos
-users = User.get_all()
-user = User.get_by_id(1)
+
+#Ejemplo de como usar la clase para realizar consultas a la base de datos
+# users = User.get_all()
+# user = User.get_by_id(1)
+
                             </code>
                         </pre>
                         </div>
@@ -2282,20 +2288,20 @@ mysql_connection = connection
                         </div>
                         <div class="editor-content">
                             <pre><code class="language-python">
-                from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
-                from database.connections import connection
-                
-                # Ejemplo de creación de migraciones para 'users'
-                table_users = Table(
-                    'users', connection.metadata,
-                    Column('id', Integer, primary_key=True, autoincrement=True),
-                    Column('name', String(length=50), nullable=False),
-                    Column('email', String(length=50), unique=True),
-                    Column('password', String(length=150), nullable=False),
-                    Column('token', String(length=150), nullable=False),
-                    Column('active', Integer, default=1, nullable=False),
-                    Column('created_at', TIMESTAMP),
-                )
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
+from database.connections import connection
+
+# Ejemplo de creación de migraciones para 'users'
+table_users = Table(
+    'users', connection.metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('name', String(length=50), nullable=False),
+    Column('email', String(length=50), unique=True),
+    Column('password', String(length=150), nullable=False),
+    Column('token', String(length=150), nullable=False),
+    Column('active', Integer, default=1, nullable=False),
+    Column('created_at', TIMESTAMP),
+)
                         </code></pre>
                         </div>
                     </div>
@@ -2392,18 +2398,18 @@ except RuntimeError as e:
                         </div>
                         <div class="editor-content">
                             <pre><code class="language-python">
-                from database.migrations import migrate
-                from database.connections import connection
-                import asyncio
-                import uvicorn
-                
-                async def main():
-                migrations = await migrate(connection,refresh=False) # Ejecutar migraciones para la aplicación
-                    
-                    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
-                
-                if __name__ == "__main__":
-                    asyncio.run(main())
+from database.migrations import migrate
+from database.connections import connection
+import asyncio
+import uvicorn
+
+async def main():
+migrations = await migrate(connection,refresh=False) # Ejecutar migraciones para la aplicación
+    
+    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
+
+if __name__ == "__main__":
+    asyncio.run(main())
                         </code></pre>
                         </div>
                     </div>

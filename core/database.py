@@ -4,47 +4,52 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Optional
 
- 
+
 Base = declarative_base()
+
 
 class Database:
     def __init__(self, config: dict) -> None:
-        self.type = config.get('type', 'sqlite')
+        self.type = config.get("type", "sqlite")
         self.config = config
         self.connection = None
         self.metadata = MetaData()
         self.tables = []
-        self.auto_commit = self.config.get('auto_commit', False)
+        self.auto_commit = self.config.get("auto_commit", False)
         self.engine = None
-        self.SessionLocal = None   
+        self.SessionLocal = None
 
     def connect(self) -> bool:
-        if self.type in ['mysql', 'postgresql', 'psgr']:
-            user = self.config.get('user', 'root')
-            password = self.config.get('password', '')
-            host = self.config.get('host', '127.0.0.1')
-            port = self.config.get('port', 3306)
-            database = self.config.get('database', 'db')
-            db_type = 'postgresql' if self.type in ['postegresql', 'psg'] else self.type
-            connector = 'mysqlconnector' if self.type == 'mysql' else 'psycopg2'
-            isolation_level = self.config.get('isolation_level', None)
+        if self.type in ["mysql", "postgresql", "psgr"]:
+            user = self.config.get("user", "root")
+            password = self.config.get("password", "")
+            host = self.config.get("host", "127.0.0.1")
+            port = self.config.get("port", 3306)
+            database = self.config.get("database", "db")
+            db_type = "postgresql" if self.type in ["postegresql", "psg"] else self.type
+            connector = "mysqlconnector" if self.type == "mysql" else "psycopg2"
+            isolation_level = self.config.get("isolation_level", None)
 
             try:
                 self.engine = create_engine(
                     f"{db_type}+{connector}://{user}:{password}@{host}:{port}/{database}",
                     isolation_level=isolation_level,
-                    execution_options={'autocommit': self.auto_commit}
+                    execution_options={"autocommit": self.auto_commit},
                 )
-                self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+                self.SessionLocal = sessionmaker(
+                    autocommit=False, autoflush=False, bind=self.engine
+                )
             except SQLAlchemyError as e:
                 print(f"Database connection error: {e}")
                 return False
 
         else:
-            database = self.config.get('database', 'db')
+            database = self.config.get("database", "db")
             try:
                 self.engine = create_engine(f"sqlite:///{database}.sqlite")
-                self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+                self.SessionLocal = sessionmaker(
+                    autocommit=False, autoflush=False, bind=self.engine
+                )
             except SQLAlchemyError as e:
                 print(f"Create database, error: {e}")
                 return False
@@ -55,10 +60,10 @@ class Database:
             raise Exception("Database not connected. Call `connect()` first.")
         return self.SessionLocal()
 
-    def prepare_migrate(self,tables: list)->None:
+    def prepare_migrate(self, tables: list) -> None:
         self.tables.extend(tables)
-    
-    def migrate(self,use_base:bool=False):
+
+    def migrate(self, use_base: bool = False):
         try:
             if use_base:
                 Base.metadata.create_all(self.engine)
@@ -67,20 +72,23 @@ class Database:
             print("success migrations")
         except SQLAlchemyError as e:
             print(e)
-    def query(self, query: str, params: Optional[dict] = None, return_rows: bool = False):
+
+    def query(self, query: str, params: Optional[dict] = None):
+        result = False
         try:
             with self.engine.connect() as connection:
                 result = connection.execute(text(query), params or ())
-                
-                if query.strip().upper().startswith(('CREATE', 'INSERT', 'UPDATE', 'DELETE')):
+                if (
+                    query.strip()
+                    .upper()
+                    .startswith(("CREATE", "INSERT", "UPDATE", "DELETE"))
+                ):
                     connection.commit()
 
-            if return_rows:
                 return result
-            return True
         except SQLAlchemyError as e:
             print(f"Query error: {e}")
-        return False
+        return result
 
     def commit(self) -> None:
         if self.connection and not self.auto_commit:
