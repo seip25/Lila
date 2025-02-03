@@ -5,7 +5,11 @@ from core.request import Request
 from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from argon2 import PasswordHasher
+from core.helpers import generate_token_value
+import datetime
+
+ph = PasswordHasher()
 
 
 class Router:
@@ -18,7 +22,7 @@ class Router:
 
             def decorator(func):
                 self.routes.append(Route(path=path, endpoint=func, methods=methods))
-                if not model == None:
+                if model is not None:
                     self.docs.append({"path": path, "model": model})
 
                 return func
@@ -153,45 +157,159 @@ class Router:
         model_sql,
         model_pydantic: Type[BaseModel],
         select: Optional[List[str]] = None,
-        active: str = None,
+        columns: Optional[List[str]] = None,
+        active: bool = False,
     ) -> None:
         self.name = f"/api/{model_sql.__tablename__}"
 
         def get(self):
             columns = " , ".join(select) if select else "*"
-            filters = f"WHERE {active}" if active else ""
+            filters = f"WHERE active = 1" if active else ""
             query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
-            print(query)
             results = connection.query(query=query)
-            items = (
-                [dict(row._mapping) for row in results.fetchall()] if results else []
-            )
+            items = results.fetchall() if results else []
+            items = [dict(getattr(row, "_mapping",{})) for row in items]
             return JSONResponse(items)
 
-        def post(self):
-            return True
-
-        def get_id(self, request:Request) -> dict:
-            columns = " , ".join(select) if select else "*"
-            filters = f"{active}" if active else ""
-            filters += (
-                " id : id"
-                if not (filters == None or filters == "")
-                else " AND id = : id"
+        async def post(self):
+            try:
+                body = await self.json()
+                model = model_pydantic(**body)
+            except Exception as e:
+                print(str(e))
+                return JSONResponse({"success": False}, status_code=400)
+            columns_ = (
+                " , ".join(columns)
+                if columns
+                else " , ".join((row) for row in list(model_pydantic.__fields__.keys()))
             )
-            query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
-            id = request.path_params["id"] or request.query_params["id"]
+            values = (
+                " , ".join(f":{row}" for row in columns)
+                if columns
+                else " , ".join(
+                    f":{row}" for row in list(model_pydantic.__fields__.keys())
+                )
+            )
+            params = {
+                field: getattr(model, field)
+                for field in model_pydantic.__fields__.keys()
+            }
+            if "token" in params:
+                params["token"] = generate_token_value()
+            if "hash" in params:
+                params["hash"] = generate_token_value()
+
+            if "password" in params:
+                params["password"] = ph.hash(params["password"])
+
+            if "created_at" in body:
+                params["created_at"] = datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                columns_ += ",created_at"
+                values += ",:created_at"
+
+            if "created_date" in body:
+                params["created_date"] = datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                columns_ += ",created_date"
+                values += ",:created_date"
+
+            if active:
+                params["active"] = 1
+                columns_ += ", active"
+                values += ", :active"
+
+            query = (
+                f" INSERT INTO {model_sql.__tablename__} ({columns_}) VALUES ({values})"
+            )
+            try:
+                result = connection.query(query=query, params=params)
+                result = True if result else False
+                status_code = 201 if result else 200
+                return JSONResponse({"success": result}, status_code=status_code)
+            except Exception as e:
+                print(e)
+                return JSONResponse({"success": False}, status_code=500)
+
+        def search_id(self) -> bool | dict:
+            columns = " , ".join(select) if select else "*"
+            filters = f"active = 1" if active else ""
+            filters += " AND  id =:id" if filters else "  id = :id"
+            if "user_id" in model_pydantic.__fields__.keys():
+                filters += " AND user_id:user_id"
+            elif "id_user" in model_pydantic.__fields__.keys():
+                filters += " AND id_user:id_user"
+
+            id = self.path_params["id"] or self.query_params["id"]
             params = {"id": int(id)}
+
+            if (
+                "user_id" in model_pydantic.__fields__.keys()
+                or "user_id" in self.query_params
+            ):
+                params["user_id"] = self.query_params["user_id"]
+                filters += " AND user_id = :user_id"
+
+            elif (
+                "id_user" in model_pydantic.__fields__.keys()
+                or "id_user" in self.query_params
+            ):
+                params["id_user"] = self.query_params["id_user"]
+                filters += " AND id_user = :id_user"
+            query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
             results = connection.query(query=query, params=params)
-            item = dict(results.fetchone()._mapping) if results else {}
+            return results
+
+        def get_id(self) -> dict:
+            result = search_id(self)
+            row = result.fetchone() if result else None
+            item = dict(getattr(row, "_mapping", {}))
             return JSONResponse(item)
 
-        def put(self):
-            return True
+        async def put(self):
+            result = search_id(self)
+            if result is not None:
+                JSONResponse({"success": False})
+
+            result_update = False
+            try:
+                body = await self.json()
+                model = model_pydantic(**body)
+            except Exception as e:
+                print(str(e))
+                return JSONResponse({"success": False}, status_code=400)
+
+            values = (
+                "  ".join(f"{row}= :{row}" for row in columns)
+                if columns
+                else " , ".join(
+                    f"{row}=:{row}" for row in list(model_pydantic.__fields__.keys())
+                )
+            )
+            params = {
+                field: getattr(model, field)
+                for field in model_pydantic.__fields__.keys()
+            }
+            if "password" in params:
+                params["password"] = ph.hash(params["password"])
+
+            query = f" UPDATE {model_sql.__tablename__} SET {values} WHERE id:id"
+            id = self.path_params["id"]
+            params["id"] = int(id)
+            result = False
+            print(query)
+            # result = connection.query(query=query, params=params)
+            return JSONResponse({"success": result_update})
 
         def delete(self):
             return True
 
+        # self.docs.append({"path": self.name, "model": model_pydantic})
+        # self.docs.append(
+        #     {"path": f"{self.name}/{{id:int}}", "model": model_pydantic}
+        # )
         self.routes += [
             Route(path=self.name, name=self.name, methods=["GET"], endpoint=get),
             Route(path=self.name, name=self.name, methods=["POST"], endpoint=post),
@@ -214,8 +332,3 @@ class Router:
                 endpoint=delete,
             ),
         ]
-        if not model_pydantic == None:
-            self.docs.append({"path": self.name, "model": model_pydantic})
-            self.docs.append(
-                {"path": f"{self.name}/{{id:int}}", "model": model_pydantic}
-            )
