@@ -19,22 +19,18 @@ class User(Base):
 
     # English : Example of how to use SQLAlchemy to make queries to the database
     # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
-    def get_all(select: str = "*", limit: int = 1000) -> list:
+    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        result = connection.query(query=query, return_rows=True)
-        if result:
-            return result.fetchall() if not result == None else []
-        return []
+        result = connection.query(query=query)
+        return [dict(row._mapping) for row in result.fetchall()] if result else []
 
     # English : Example of how to use SQLAlchemy to make queries to the database
     # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
-    def get_by_id(id: int) -> dict:
-        query = f"SELECT *  FROM users WHERE id = :id AND active = 1 LIMIT 1"
-        params = {id: id}
-        result = connection.query(query=query, params=params, return_rows=True)
-        if result:
-            return result.fetchone() if not result == None else {}
-        return {}
+    def get_by_id(id: int, select="id,email,name") -> dict:
+        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        result = connection.query(query=query, params=params)
+        return result.fetchone()._mapping if result else {}
 
     # English: Example using ORM abstraction in SQLAlchemy
     # Español : Ejemplo usando abstracción de ORM en SQLAlchemy
@@ -42,7 +38,6 @@ class User(Base):
     def get_all_orm(cls, db: Session, limit: int = 1000):
         result = db.query(cls).filter(cls.active == 1).limit(limit).all()
         return result
- 
 
 
 # English : Example of how to use the class to make queries to the database
