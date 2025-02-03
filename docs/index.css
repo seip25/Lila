@@ -5,7 +5,9 @@
 .mt-4 {
     margin-top: 4rem   !important ;
 }
-
+.mt-1{
+    margin-top: 1rem ;
+}
 @keyframes parpadeoCursor {
     50% {
         border-right-color: transparent !important ;
