@@ -21,7 +21,7 @@ const sections = [
     { id: "static-esp", name: "Static(esp)" },
     { id: "templates-esp", name: "Templates(esp)" },
     { id: "markdown-esp", name: "Markdown/HTML(esp)" },
-    { id: "rest_api_crud-esp", name: "Generación sencilla de CRUD de API Rest" },
+    { id: "rest_api_crud-esp", name: "Generación sencilla de CRUD , API Rest" },
 ];
 
 function searchDocs(event = false) {
