@@ -51,7 +51,7 @@ async def check_token(request: Request):
         return JSONResponse(
             {"session": False, "message": "Invalid token"}, status_code=401
         )
-    print(generate_token(name='token',value='token'))
+    
     token = get_token(token=token)
     if isinstance(token, JSONResponse):
         return token
