@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from argon2 import PasswordHasher
 from core.helpers import generate_token_value
 import datetime
+import re
 
 ph = PasswordHasher()
 
@@ -99,16 +100,33 @@ class Router:
                                 openapi_schema["paths"][path] = {}
                             openapi_schema["paths"][path][method.lower()] = {
                                 "summary": f"{route.name} ",
-                                "requestBody": {
-                                    "content": {
-                                        "application/json": {
-                                            "schema": {
-                                                "type": "object",
-                                                "properties": self.get_params(route),
+                                **(
+                                    {
+                                        "requestBody": {
+                                            "content": {
+                                                "application/json": {
+                                                    "schema": {
+                                                        "type": "object",
+                                                        "properties": self.get_params(
+                                                            route
+                                                        ),
+                                                    }
+                                                }
                                             }
                                         }
                                     }
-                                },
+                                    if method.lower() not in ["get", "delete"]
+                                    else {}
+                                ),
+                                "parameters": [
+                                    {
+                                        "name": self.get_path_params(path,param),
+                                        "in": "path",
+                                        "required": True,
+                                        "schema": {"type": "integer"},
+                                    }
+                                    for param in self.get_path_params(path)
+                                ],
                                 "responses": {
                                     "200": {
                                         "description": route.endpoint.__doc__
@@ -116,9 +134,17 @@ class Router:
                                     }
                                 },
                             }
+
             return JSONResponse(openapi_schema)
 
         self.routes.append(Route(path=path, endpoint=openapi_schema, methods=methods))
+
+    def get_path_params(self, path: str,param:str=''):
+        matches = re.findall(r"{(\w+)(?::\w+)?}", path)
+        if len(matches) > 0:
+            return matches[0]
+        else:
+           return param
 
     def get_params(self, route):
         model = None
@@ -126,6 +152,7 @@ class Router:
         for doc in self.docs:
             if doc["path"] == route.path:
                 model = doc["model"]
+                break
 
         if model:
             fields = model.__fields__
@@ -159,6 +186,7 @@ class Router:
         select: Optional[List[str]] = None,
         columns: Optional[List[str]] = None,
         active: bool = False,
+        delete_logic: bool = False,
     ) -> None:
         self.name = f"/api/{model_sql.__tablename__}"
 
@@ -177,7 +205,7 @@ class Router:
                 model = model_pydantic(**body)
             except Exception as e:
                 print(str(e))
-                return JSONResponse({"success": False}, status_code=400)
+                return JSONResponse({"success": False, "msg": str(e)}, status_code=400)
             columns_ = (
                 " , ".join(columns)
                 if columns
@@ -260,26 +288,26 @@ class Router:
                 filters += " AND id_user = :id_user"
             query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
             results = connection.query(query=query, params=params)
-            return results
+            return results.fetchone() if results else None
 
         def get_id(self) -> dict:
-            result = search_id(self)
-            row = result.fetchone() if result else None
+            row = search_id(self)
+            if row is None:
+                return JSONResponse({})
             item = dict(getattr(row, "_mapping", {}))
             return JSONResponse(item)
 
         async def put(self):
             result = search_id(self)
-            if result is not None:
-                JSONResponse({"success": False})
-
+            if result is None:
+                return JSONResponse({"success": False})
             result_update = False
             try:
                 body = await self.json()
                 model = model_pydantic(**body)
             except Exception as e:
                 print(str(e))
-                return JSONResponse({"success": False}, status_code=400)
+                return JSONResponse({"success": False, "msg": str(e)}, status_code=400)
 
             values = (
                 "  ".join(f"{row}= :{row}" for row in columns)
@@ -315,9 +343,7 @@ class Router:
                 params["id_user"] = int(self.query_params["id_user"])
                 filters += " AND id_user = :id_user"
 
-            query = (
-                f" UPDATE {model_sql.__tablename__} SET {values} WHERE id= :id {filters}"
-            )
+            query = f" UPDATE {model_sql.__tablename__} SET {values} WHERE id= :id {filters}"
             id = self.path_params["id"]
             params["id"] = int(id)
             result = connection.query(query=query, params=params)
@@ -325,12 +351,36 @@ class Router:
             return JSONResponse({"success": result_update})
 
         def delete(self):
-            return True
+            result = search_id(self)
+            if result is None:
+                JSONResponse({"success": False})
 
-        # self.docs.append({"path": self.name, "model": model_pydantic})
-        # self.docs.append(
-        #     {"path": f"{self.name}/{{id:int}}", "model": model_pydantic}
-        # )
+            id = self.path_params["id"]
+            params = {"id": int(id)}
+            filters = ""
+            if (
+                "user_id" in model_pydantic.__fields__.keys()
+                or "user_id" in self.query_params
+            ):
+                params["user_id"] = int(self.query_params["user_id"])
+                filters += " AND user_id = :user_id"
+
+            elif (
+                "id_user" in model_pydantic.__fields__.keys()
+                or "id_user" in self.query_params
+            ):
+                params["id_user"] = int(self.query_params["id_user"])
+                filters += " AND id_user = :id_user"
+
+            if delete_logic:
+                query = f" UPDATE {model_sql.__tablename__} SET active=0 WHERE id= :id {filters}"
+            else:
+                query = f"DELETE FROM {model_sql.__tablename__} WHERE id=:id {filters}"
+
+            result = connection.query(query=query, params=params)
+            result_delete = True if result else False
+            return JSONResponse({"success": result_delete})
+
         self.routes += [
             Route(path=self.name, name=self.name, methods=["GET"], endpoint=get),
             Route(path=self.name, name=self.name, methods=["POST"], endpoint=post),
@@ -353,3 +403,6 @@ class Router:
                 endpoint=delete,
             ),
         ]
+
+        self.docs.append({"path": self.name, "model": model_pydantic})
+        self.docs.append({"path": f"{self.name}/{{id:int}}", "model": model_pydantic})

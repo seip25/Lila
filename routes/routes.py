@@ -67,26 +67,6 @@ async def set_language(request: Request):
     Session.setSession(name_cookie="lang", new_val=lang, response=response)
     return response
 
-
-from database.connections import connection
-from models.user import User
-from pydantic import BaseModel, EmailStr
-
-
-class UserModel(BaseModel):
-    email: EmailStr
-    name: str
-    token: str
-    password: str
-
-router.rest_crud_generate(
-    connection=connection,
-    model_sql=User,
-    model_pydantic=UserModel, 
-    select=["name", "email", "id", "created_at"],
-    active=True
-)
-
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
 

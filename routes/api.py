@@ -57,6 +57,29 @@ async def login(request: Request):
     return response
 
 
+
+from database.connections import connection
+from models.user import User
+from pydantic import BaseModel, EmailStr
+
+
+class UserModel(BaseModel):
+    email: EmailStr
+    name: str
+    token: str
+    password: str
+
+
+router.rest_crud_generate(
+    connection=connection,
+    model_sql=User,
+    model_pydantic=UserModel,
+    select=["name", "email", "id", "created_at", "active"],
+    delete_logic=True,
+    active=True,
+)
+
+
 # English: Enable Swagger UI for API documentation.
 # Español: Habilita Swagger UI para la documentación de la API.
 router.swagger_ui()
