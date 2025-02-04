@@ -187,6 +187,7 @@ class Router:
         active: bool = False,
         delete_logic: bool = False,
         middlewares: dict = None,
+        prefix_jsonresponse:str=''
     ) -> None:
         self.name = f"/api/{model_sql.__tablename__}"
 
@@ -221,7 +222,7 @@ class Router:
             results = connection.query(query=query)
             items = results.fetchall() if results else []
             items = [dict(getattr(row, "_mapping", {})) for row in items]
-            return JSONResponse(items)
+            return JSONResponse(items) if prefix_jsonresponse =='' else JSONResponse({prefix_jsonresponse:items})
 
         async def post(self):
             response =await execute_middleware(self,type='post')
@@ -325,7 +326,7 @@ class Router:
             if row is None:
                 return JSONResponse({}, status_code=404)
             item = dict(getattr(row, "_mapping", {}))
-            return JSONResponse(item)
+            return JSONResponse(item) if prefix_jsonresponse =='' else JSONResponse({prefix_jsonresponse:item})
 
         async def put(self):
             response =await execute_middleware(self,type='put')
