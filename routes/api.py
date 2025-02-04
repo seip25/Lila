@@ -69,39 +69,39 @@ async def login(request: Request):
     response = JSONResponse({"email": email, "password": password})
     return response
 
-
-from database.connections import connection
-from models.user import User
-from pydantic import BaseModel, EmailStr
-
-
-class UserModel(BaseModel):
-    email: EmailStr
-    name: str
-    token: str
-    password: str
+#Example generate API REST CRUD with 'rest_crud_generate'
+# from database.connections import connection
+# from models.user import User
+# from pydantic import BaseModel, EmailStr
 
 
-# Example execute middlewares for rest crud generate
-middlewares_user = {
-    "get": [
-        check_session,
-    ],
-    "post": [check_session, check_token],
-    "get_id": [check_session],
-    "put": [check_token],
-    "delete": [check_token],
-}
-# Rest crud generate ,base models SQl and models pydantic
-router.rest_crud_generate(
-    connection=connection,
-    model_sql=User,
-    model_pydantic=UserModel,
-    select=["name", "email", "id", "created_at", "active"],
-    delete_logic=True,
-    active=True,
-    middlewares=middlewares_user,
-)
+# class UserModel(BaseModel):
+#     email: EmailStr
+#     name: str
+#     token: str
+#     password: str
+
+
+# # Example execute middlewares for rest crud generate
+# middlewares_user = {
+#     "get": [
+#         check_session,
+#     ],
+#     "post": [check_session, check_token],
+#     "get_id": [check_session],
+#     "put": [check_token],
+#     "delete": [check_token],
+# }
+# # Rest crud generate ,base models SQl and models pydantic
+# router.rest_crud_generate(
+#     connection=connection,
+#     model_sql=User,
+#     model_pydantic=UserModel,
+#     select=["name", "email", "id", "created_at", "active"],
+#     delete_logic=True,
+#     active=True,
+#     middlewares=middlewares_user,
+# )
 
 
 # English: Enable Swagger UI for API documentation.
