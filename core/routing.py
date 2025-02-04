@@ -3,12 +3,13 @@ from starlette.staticfiles import StaticFiles
 from core.responses import HTMLResponse, JSONResponse
 from core.request import Request
 from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
-from typing import Any, Type, Optional, List
+from typing import Any, Type, Optional, List, Dict
 from pydantic import BaseModel
 from argon2 import PasswordHasher
 from core.helpers import generate_token_value
 import datetime
 import re
+from functools import wraps
 
 ph = PasswordHasher()
 
@@ -98,53 +99,51 @@ class Router:
                         for method in methods:
                             if path not in openapi_schema["paths"]:
                                 openapi_schema["paths"][path] = {}
-                            openapi_schema["paths"][path][method.lower()] = {
-                                "summary": f"{route.name} ",
-                                **(
-                                    {
-                                        "requestBody": {
-                                            "content": {
-                                                "application/json": {
-                                                    "schema": {
-                                                        "type": "object",
-                                                        "properties": self.get_params(
-                                                            route
-                                                        ),
+                            if method.lower() != "head":
+                                openapi_schema["paths"][path][method.lower()] = {
+                                    "summary": f"{route.name} ",
+                                    **(
+                                        {
+                                            "requestBody": {
+                                                "content": {
+                                                    "application/json": {
+                                                        "schema": {
+                                                            "type": "object",
+                                                            "properties": self.get_params(
+                                                                route
+                                                            ),
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                    if method.lower() not in ["get", "delete"]
-                                    else {}
-                                ),
-                                "parameters": [
-                                    {
-                                        "name": param,
-                                        "in": "path",
-                                        "required": True,
-                                        "schema": {"type": "integer"},
-                                    } 
-                                    for param in self.get_path_params(path)
-                                ],
-                                "responses": {
-                                    "200": {
-                                        "description": route.endpoint.__doc__
-                                        or f"{route.name} function"
-                                    }
-                                },
-                            }
+                                        if method.lower() not in ["get", "delete"]
+                                        else {}
+                                    ),
+                                    "parameters": [
+                                        {
+                                            "name": param,
+                                            "in": "path",
+                                            "required": True,
+                                            "schema": {"type": "integer"},
+                                        }
+                                        for param in self.get_path_params(path)
+                                    ],
+                                    "responses": {
+                                        "200": {
+                                            "description": route.endpoint.__doc__
+                                            or f"{route.name} function"
+                                        }
+                                    },
+                                }
 
             return JSONResponse(openapi_schema)
 
         self.routes.append(Route(path=path, endpoint=openapi_schema, methods=methods))
 
-    def get_path_params(self, path: str,param:str=''):
+    def get_path_params(self, path: str):
         matches = re.findall(r"{(\w+)(?::\w+)?}", path)
-        if len(matches) > 0:
-            return matches[0]
-        else:
-           return param
+        return matches
 
     def get_params(self, route):
         model = None
@@ -187,10 +186,35 @@ class Router:
         columns: Optional[List[str]] = None,
         active: bool = False,
         delete_logic: bool = False,
+        middlewares: dict = None,
     ) -> None:
         self.name = f"/api/{model_sql.__tablename__}"
 
-        def get(self):
+        def middleware(func):
+            @wraps(func)
+            async def middleware_wr(*args, **kwargs):
+                # print(f"{func.__name__} was called, with {args}, {kwargs}")
+                if callable(func):
+                    result = func(*args, **kwargs)
+                    if hasattr(result, "__await__"):
+                        return await result
+                    return result
+
+            return middleware_wr
+        
+        async def execute_middleware(self,type:str):
+            if middleware is not None and type in middlewares:
+                        for middleware_get in middlewares[type]:
+                            middleware_func = middleware(middleware_get)
+                            response =await middleware_func(self)
+                            if isinstance(response,JSONResponse):
+                                return response
+
+        async def get(self):
+            response =await execute_middleware(self,type='get')
+            if isinstance(response,JSONResponse):
+                return response
+
             columns = " , ".join(select) if select else "*"
             filters = f"WHERE active = 1" if active else ""
             query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
@@ -200,6 +224,9 @@ class Router:
             return JSONResponse(items)
 
         async def post(self):
+            response =await execute_middleware(self,type='post')
+            if isinstance(response,JSONResponse):
+                return response
             try:
                 body = await self.json()
                 model = model_pydantic(**body)
@@ -290,17 +317,23 @@ class Router:
             results = connection.query(query=query, params=params)
             return results.fetchone() if results else None
 
-        def get_id(self) -> dict:
+        async def get_id(self) -> dict:
+            response =await execute_middleware(self,type='get_id')
+            if isinstance(response,JSONResponse):
+                return response
             row = search_id(self)
             if row is None:
-                return JSONResponse({})
+                return JSONResponse({}, status_code=404)
             item = dict(getattr(row, "_mapping", {}))
             return JSONResponse(item)
 
         async def put(self):
+            response =await execute_middleware(self,type='put')
+            if isinstance(response,JSONResponse):
+                return response
             result = search_id(self)
             if result is None:
-                return JSONResponse({"success": False})
+                return JSONResponse({"success": False}, status_code=404)
             result_update = False
             try:
                 body = await self.json()
@@ -350,10 +383,13 @@ class Router:
             result_update = True if result else False
             return JSONResponse({"success": result_update})
 
-        def delete(self):
+        async def delete(self):
+            response =await execute_middleware(self,type='delete')
+            if isinstance(response,JSONResponse):
+                return response
             result = search_id(self)
             if result is None:
-                JSONResponse({"success": False})
+                JSONResponse({"success": False}, status_code=404)
 
             id = self.path_params["id"]
             params = {"id": int(id)}
@@ -385,19 +421,19 @@ class Router:
             Route(path=self.name, name=self.name, methods=["GET"], endpoint=get),
             Route(path=self.name, name=self.name, methods=["POST"], endpoint=post),
             Route(
-                path=f"{self.name}/{{id:int}}",
+                path=f"{self.name}/{{id}}",
                 name=f"{self.name}_get_id",
                 methods=["GET"],
                 endpoint=get_id,
             ),
             Route(
-                path=f"{self.name}/{{id:int}}",
+                path=f"{self.name}/{{id}}",
                 name=f"{self.name}_put",
                 methods=["PUT"],
                 endpoint=put,
             ),
             Route(
-                path=f"{self.name}/{{id:int}}",
+                path=f"{self.name}/{{id}}",
                 name=f"{self.name}_delete",
                 methods=["DELETE"],
                 endpoint=delete,
@@ -405,4 +441,4 @@ class Router:
         ]
 
         self.docs.append({"path": self.name, "model": model_pydantic})
-        self.docs.append({"path": f"{self.name}/{{id:int}}", "model": model_pydantic})
+        self.docs.append({"path": f"{self.name}/{{id}}", "model": model_pydantic})

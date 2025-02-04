@@ -1026,16 +1026,20 @@ def session_active(func,key:str='auth',url_return:str ='/dashboard'):
 def validate_token(func):
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        token = request.headers.get('Authorization')
-        if not token:
-            return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
-        
-        token = get_token(token=token)
-        if isinstance(token,JSONResponse):
-            return token
+        await check_token(request=request)
         return await func(request, *args, **kwargs)
-        
+       
     return wrapper
+
+
+async def check_token(request:Request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+    
+    token = get_token(token=token)
+    if isinstance(token,JSONResponse):
+        return token 
                 
             </code>
             </pre>
@@ -2160,16 +2164,20 @@ def session_active(func, key: str = 'auth', url_return: str = '/dashboard'):
 def validate_token(func):
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        token = request.headers.get('Authorization')
-        if not token:
-            return JSONResponse({'session': False, 'message': 'Token inválido'}, status_code=401)
-        
-        token = get_token(token=token)
-        if isinstance(token, JSONResponse):
-            return token
+        await check_token(request=request)
         return await func(request, *args, **kwargs)
-        
+       
     return wrapper
+
+
+async def check_token(request:Request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+    
+    token = get_token(token=token)
+    if isinstance(token,JSONResponse):
+        return token 
                             </code>
                         </pre>
                         </div>

@@ -3,14 +3,14 @@
 
 // Ejemplo de búsqueda, para obtener el ID de usuario y el token , en el cliente(token de sesión, no jwt)
 //  const token=await getCookie({name:'token'})
-//  const resp=await fetch('/api',{ headers:{
+//  const resp=await fetch('/api/token',{ headers:{
 //  'Authorization': 'Bearer '+token
 //  }
 //  })
 
 // Example of fetch, to get the user ID and token, on the client (session token, not jwt)
 // const token=await getCookie({name:'token'})
-// const resp=await fetch('/api',{ headers:{
+// const resp=await fetch('/api/token',{ headers:{
 // 'Authorization': 'Bearer '+token
 // }
 // })
