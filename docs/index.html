@@ -6,45 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    
+
     <title>Lila Framework - Minimalist Python Web Framework</title>
-    <meta name="description" content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
+    <meta name="description"
+        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
     <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT">
     <meta name="author" content="Lila Framework Team">
-    
+
     <!-- Spanish Meta Tags -->
-    <meta name="description" lang="es" content="Lila es un framework minimalista de Python basado en Starlette y Pydantic, diseñado para ser simple, flexible y de alto rendimiento.">
+    <meta name="description" lang="es"
+        content="Lila es un framework minimalista de Python basado en Starlette y Pydantic, diseñado para ser simple, flexible y de alto rendimiento.">
     <meta name="keywords" lang="es" content="Python, Framework Web, API, Starlette, Pydantic,  SQLAlchemy, JWT">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content="Lila Framework - Minimalist Python Web Framework">
-    <meta property="og:description" content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
+    <meta property="og:description"
+        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
     <meta property="og:image" content="https://seip25.github.io/Lila/lila.png">
     <meta property="og:url" content="https://seip25.github.io/Lila/">
     <meta property="og:type" content="website">
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Lila Framework - Minimalist Python Web Framework">
-    <meta name="twitter:description" content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
+    <meta name="twitter:description"
+        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
     <meta name="twitter:image" content="https://seip25.github.io/Lila/lila.png">
-    
+
     <!-- Multi-language support -->
     <meta name="language" content="en, es">
     <meta http-equiv="Content-Language" content="en, es">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="lila.png" alt="Lila Framework Logo">
-    
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <link rel="stylesheet" href="index.css">
-    
+
     <!-- Highlight.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>
-    
+
     <!-- Scripts -->
     <script src="index.js"></script>
 </head>
@@ -62,14 +67,15 @@
                     <a href="#doc-eng">Documentation</a>
                     &nbsp;&nbsp;
                     <a href="#doc-esp" class="mt-1">Documentación </a>
-                </li> 
+                </li>
 
             </ul>
         </nav>
     </header>
     <main>
         <div id="search">
-            <input type="search" name="search" id="searchBox" placeholder="Search... , Buscar..." onkeyup="searchDocs()">
+            <input type="search" name="search" id="searchBox" placeholder="Search... , Buscar..."
+                onkeyup="searchDocs()">
             <ul id="searchResults"></ul>
         </div>
         <div>
@@ -117,14 +123,18 @@
                         (mysql.connector, sqlite3, etc...)</li>
                     <li><strong>JWT:</strong> It comes integrated with helpers to generate tokens and the middleware
                         already has a function that validates it.</li>
-                    <h3>Free customization</h3>
-                    <p>You can use Lila with any styling framework you prefer, such as Tailwind CSS, Bootstrap, PicoCSS,
-                        or others.</p>
+                    <li><strong>Easy generate Rest API CRUD: </strong>
+                        with few lines of code you can have a crud (get, post, put, delete, etc.), with field
+                        validations, middlewares, saving you time in developing</li>
                 </ul>
+                <h3>Free customization</h3>
+                <p>You can use Lila with any styling framework you prefer, such as Tailwind CSS, Bootstrap, PicoCSS,
+                    or others.</p>
+
 
             </div>
             <hr />
-            <div id="intro-esp"> 
+            <div id="intro-esp">
                 <div style="display: inline-flex; align-items: center;">
                     <img src="lila.png" alt="Lila" class="img-fluid" width="10%" height="10%" />
 
@@ -164,6 +174,9 @@
                         directamente(mysql.connector,sqlite3,etc...)</li>
                     <li><strong>JWT:</strong> Viene integrado con helpers para generar token y en el middleware ya viene
                         una función que válida el mismo.</li>
+                    <li><strong>Generación sencilla de CRUD de API Rest</strong>:
+                        con pocas lineas de codigo puedes tener un crud (get,post,put,delete,etc) , con validaciones de
+                        campos, middlewares, ahorrandote tiempo en desarrollar</li>
                 </ul>
                 <h3>Personalización Libre</h3>
                 <p>Puedes usar Lila con cualquier framework de estilos que prefieras, como Tailwind CSS, Bootstrap,
@@ -188,6 +201,7 @@
                         <li><a href="#middlewares-eng">Middlewares</a></li>
                         <li><a href="#connections-eng">Connections</a></li>
                         <li><a href="#migrations-eng">Migrations</a></li>
+                        <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
                         <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
 
                     </ul>
@@ -1294,6 +1308,133 @@ if __name__ == "__main__":
 
                 </article>
 
+                <article id="rest_api_crud-eng"> 
+                    <h1>Simple Generation of REST API CRUD</h1>
+                    <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing you to create your REST API efficiently.</h5>
+                    
+                    <p>Thanks to the combination of <strong>SQLAlchemy</strong> and <strong>Pydantic</strong> models, it is possible to perform data validations and execute structured queries for API generation.</p>
+                    
+                    <p>Additionally, you can integrate custom <strong>middlewares</strong> to validate tokens, manage sessions, or process requests. With just a few lines of code, you can generate a fully documented REST API CRUD.</p>
+                    
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">routes/api.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code class="language-python">
+from core.request import Request
+from core.responses import JSONResponse
+from core.routing import Router
+from pydantic import EmailStr, BaseModel
+from middlewares.middlewares import validate_token, check_token, check_session
+from database.connections import connection  # Database connection with SQLAlchemy
+from models.user import User  # SQLAlchemy 'User' model
+
+# Pydantic model for validations when creating or modifying a user.
+class UserModel(BaseModel):
+    email: EmailStr
+    name: str
+    token: str
+    password: str
+
+# Middleware definitions for CRUD operations
+middlewares_user = {
+    "get": [check_session],
+    "post": [check_session, check_token],
+    "get_id": [check_session],
+    "put": [check_token],
+    "delete": [check_token],
+}
+
+# Automatically generate CRUD with validations and configurations
+router.rest_crud_generate(
+    connection=connection,  # Database connection
+    model_sql=User,  # SQLAlchemy model
+    model_pydantic=UserModel,  # Pydantic model
+    select=["name", "email", "id", "created_at", "active"],  # Fields to select in queries
+    delete_logic=True,  # Enables logical deletion (updates 'active = 0' instead of deleting records)
+    active=True,  # Automatically filters active records ('active = 1')
+    middlewares=middlewares_user,  # Custom middlewares for each CRUD action
+)
+                            </code></pre>
+                        </div>
+                    </div>
+                    
+                    <br />
+                    <p>You can create your own <strong>middlewares</strong> and pass them as a list to customize security and validations for each <code>rest_crud_generate</code> operation.</p>
+                    <p>
+                        <strong>
+                        To generate the documentation, always remember to
+                        run it after the routes <code>router.swagger_ui()</code> and
+                        <code>router.openapi_json()</code>
+                        </strong>
+                        </p>
+                    <h5>Function Parameters for <code>rest_crud_generate</code></h5>
+                    <p>Below are the parameters that this function accepts to generate CRUD automatically:</p>
+                    
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">core/routing.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code class="language-python">
+def rest_crud_generate(
+    connection,
+    model_sql,
+    model_pydantic: Type[BaseModel],
+    select: Optional[List[str]] = None,
+    columns: Optional[List[str]] = None,
+    active: bool = False,
+    delete_logic: bool = False,
+    middlewares: dict = None
+):
+                            </code></pre>
+                        </div>
+                    </div>
+                    
+                    <h5>Automatic Documentation</h5>
+                    <p>Below is an example of the generated documentation for the <code>rest_crud_generate</code> function:</p>
+                    <p>Go to <code>http://127.0.0.1:8001/docs</code>, or as configured in your .env file (by HOST and PORT).</p>
+                    <div>
+                        <h5>GET - Retrieve all users</h5>
+                        <img src="img/rest_1.png" alt="GET - Retrieve all users">
+                        <br />
+                    
+                        <h5>GET - Output of all users</h5>
+                        <img src="img/rest_2.png" alt="GET - Output">
+                        <br />
+                    
+                        <h5>POST - Create new user</h5>
+                        <img src="img/rest_3.png" alt="POST - Create new user">
+                        <br />
+                    
+                        <h5>GET_ID - Retrieve a specific user</h5>
+                        <img src="img/rest_4-5.png" alt="GET_ID - Retrieve a specific user">
+                        <br />
+                    
+                        <h5>PUT - Update user</h5>
+                        <img src="img/rest_4.png" alt="PUT - Update user">
+                        <br />
+                    
+                        <h5>DELETE - Delete user</h5>
+                        <img src="img/rest_5.png" alt="DELETE - Delete user">
+                        <br />
+                    </div>
+                    <br />
+                    <p>In this example, we did it with 'users', but you can apply it however you want according to your logic, even modifying the core in <code>core/routing.py</code>.</p>
+                </article>
+                
+            
                 <!-- 
                 <article id="helpers-eng">
 
@@ -1318,6 +1459,7 @@ if __name__ == "__main__":
                         <li><a href="#middlewares-esp">Middlewares</a></li>
                         <li><a href="#connections-esp">Connections</a></li>
                         <li><a href="#migrations-esp">Migraciones</a></li>
+                        <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
                         <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
                     </ul>
                 </article>
@@ -2226,6 +2368,8 @@ async def login(request: Request):
                 </article>
 
 
+
+
                 <article id="connections-esp">
                     <h1>Conexiones a la base de datos</h1>
                     <p>
@@ -2422,6 +2566,133 @@ if __name__ == "__main__":
                         </div>
                     </div>
                 </article>
+
+                <article id="rest_api_crud-esp">
+                    <h1>Generación sencilla de CRUD de API Rest</h1>
+                    <h5>En Lila tenemos una forma sencilla para generar CRUDs con documentación automática, permitiéndote crear tu API Rest de manera eficiente.</h5>
+                    
+                    <p>Gracias a la combinación de los modelos de <strong>SQLAlchemy</strong> y <strong>Pydantic</strong>, es posible realizar validaciones de datos y ejecutar consultas de manera estructurada para la generación de la API.</p>
+                    
+                    <p>Además, puedes integrar <strong>middlewares</strong> personalizados para validar tokens, manejar sesiones o procesar solicitudes. Con pocas líneas de código, puedes generar un CRUD de API Rest completamente documentado.</p>
+                    
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">routes/api.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code class="language-python">
+from core.request import Request
+from core.responses import JSONResponse
+from core.routing import Router
+from pydantic import EmailStr, BaseModel
+from middlewares.middlewares import validate_token, check_token, check_session
+from database.connections import connection  # Conexión a la base de datos con SQLAlchemy
+from models.user import User  # Modelo 'User' de SQLAlchemy
+
+# Modelo de Pydantic para validaciones al crear o modificar un usuario.
+class UserModel(BaseModel):
+    email: EmailStr
+    name: str
+    token: str
+    password: str
+
+# Definición de middlewares para las operaciones CRUD
+middlewares_user = {
+    "get": [check_session],
+    "post": [check_session, check_token],
+    "get_id": [check_session],
+    "put": [check_token],
+    "delete": [check_token],
+}
+
+# Generación del CRUD automáticamente con validaciones y configuraciones
+router.rest_crud_generate(
+    connection=connection,  # Conexión a la base de datos
+    model_sql=User,  # Modelo SQLAlchemy
+    model_pydantic=UserModel,  # Modelo Pydantic
+    select=["name", "email", "id", "created_at", "active"],  # Campos a seleccionar en las consultas
+    delete_logic=True,  # Habilita el borrado lógico (actualiza 'active = 0' en lugar de eliminar registros)
+    active=True,  # Filtra automáticamente los registros activos ('active = 1')
+    middlewares=middlewares_user,  # Middlewares personalizados para cada acción CRUD
+)
+                            </code></pre>
+                        </div>
+                    </div>
+                    
+                    <br />
+                    <p>Puedes crear tus propios <strong>middlewares</strong> y pasarlos como lista para personalizar la seguridad y validaciones en cada operación de <code>rest_crud_generate</code>.</p>
+                    <p>
+                        <strong>
+                            Para generar la documentación recuerda siempre
+                             ejecutar luego de las rutas <code>router.swagger_ui()</code> y 
+                             <code>router.openapi_json()</code>
+                        </strong>
+                    </p>
+                    <h5>Parámetros de la función <code>rest_crud_generate</code></h5>
+                    <p>A continuación, se detallan los parámetros que acepta esta función para generar el CRUD automáticamente:</p>
+                    
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <span class="editor-title">core/routing.py</span>
+                            <div class="editor-controls">
+                                <div class="control close"></div>
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code class="language-python">
+def rest_crud_generate(
+    connection,
+    model_sql,
+    model_pydantic: Type[BaseModel],
+    select: Optional[List[str]] = None,
+    columns: Optional[List[str]] = None,
+    active: bool = False,
+    delete_logic: bool = False,
+    middlewares: dict = None
+):
+                            </code></pre>
+                        </div>
+                    </div>
+                    
+                    <h5>Documentación automática</h5>
+                    <p>A continuación, se muestra un ejemplo de la documentación generada para la función <code>rest_crud_generate</code>:</p>
+                    <p>Dirigite a <code>http://127.0.0.1:8001/docs</code>, o como hayas configurado tu .env (por HOST y PORT)</p>
+                    <div>
+                        <h5>GET - Obtener todos los usuarios</h5>
+                        <img src="img/rest_1.png" alt="GET - Obtener todos los usuarios">
+                        <br />
+                    
+                        <h5>GET -Sálida de todos los usuarios </h5>
+                        <img src="img/rest_2.png" alt="GET - Sálida">
+                        <br />
+                    
+                        <h5>POST - Crear nuevo usuario</h5>
+                        <img src="img/rest_3.png" alt="POST - Crear nuevo usuario">
+                        <br />
+                    
+                        <h5>GET_ID - Obtener un usuario específico</h5>
+                        <img src="img/rest_4-5.png" alt="GET_ID - Obtener un usuario específico">
+                        <br />
+                    
+                        <h5>PUT - Actualizar usuario</h5>
+                        <img src="img/rest_4.png" alt="PUT - Actualizar usuario">
+                        <br />
+                    
+                        <h5>DELETE - Eliminar usuario</h5>
+                        <img src="img/rest_5.png" alt="DELETE - Eliminar usuario">
+                        <br />
+                    </div>
+                    <br />
+                    <p>En este ejemplo lo hicimos con 'usuarios' , pero puedes aplicarlo como quieras según tu lógica. Hasta modificando el core en <code>core/routing.py</code></p>
+                </article>
+                
 
                 <!-- <article id="helpers-esp">
 
