@@ -8,7 +8,7 @@ from core.helpers import get_token,generate_token
 def login_required(func, key: str = "auth", url_return="/login"):
     @wraps(func)
     async def wrapper(request, *args, **kwargs):
-        session_data = await check_session(request=request, key=key)
+        session_data = await check_session(request=request, key=key,return_JsonResponse=False)
         if not session_data:
             return RedirectResponse(url=url_return)
         return await func(request, *args, **kwargs)
@@ -19,7 +19,7 @@ def login_required(func, key: str = "auth", url_return="/login"):
 def session_active(func, key: str = "auth", url_return: str = "/dashboard"):
     @wraps(func)
     async def wrapper(request, *args, **kwargs):
-        session_data = await check_session(request=request, key=key)
+        session_data = await check_session(request=request, key=key,return_JsonResponse=False)
         if session_data:
             return RedirectResponse(url=url_return)
         return await func(request, *args, **kwargs)
@@ -27,7 +27,7 @@ def session_active(func, key: str = "auth", url_return: str = "/dashboard"):
     return wrapper
 
 
-async def check_session(request: Request, key: str='auth', return_JsonResponse: bool = False):
+async def check_session(request: Request, key: str='auth', return_JsonResponse: bool = True):
     session_data = Session.unsign(key=key, request=request)
     if return_JsonResponse:
         return JSONResponse({"session": False, "success": False}, status_code=401)
