@@ -1428,6 +1428,7 @@ router.rest_crud_generate(
                         <div class="editor-content">
                             <pre><code class="language-python">
 def rest_crud_generate(
+    self,
     connection,
     model_sql,
     model_pydantic: Type[BaseModel],
@@ -1435,9 +1436,12 @@ def rest_crud_generate(
     columns: Optional[List[str]] = None,
     active: bool = False,
     delete_logic: bool = False,
-    middlewares: dict = None
-):
-                            </code></pre>
+    middlewares: dict = None,
+    jsonresponse_prefix:str='',#Return with prefix list o dict 'data' first key
+    
+    user_id_session:bool| str=False #Example 'user id' to validate in query with where 'user_id'= id session_user
+ 
+) :                    </code></pre>
                         </div>
                     </div>
 
@@ -2793,16 +2797,21 @@ router.rest_crud_generate(
                         <div class="editor-content">
                             <pre><code class="language-python">
 def rest_crud_generate(
-    connection,
-    model_sql,
-    model_pydantic: Type[BaseModel],
-    select: Optional[List[str]] = None,
-    columns: Optional[List[str]] = None,
-    active: bool = False,
-    delete_logic: bool = False,
-    middlewares: dict = None
-):
-                            </code></pre>
+self,
+connection,
+model_sql,
+model_pydantic: Type[BaseModel],
+select: Optional[List[str]] = None,
+columns: Optional[List[str]] = None,
+active: bool = False,
+delete_logic: bool = False,
+middlewares: dict = None,
+jsonresponse_prefix:str='',#Retorna siempre con la primer clave 'data' para una lista o diccionario
+
+user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id' en la clausula where 'user_id'= id session_user (tomado de la sesión)
+
+) :  
+                                                     </code></pre>
                         </div>
                     </div>
 

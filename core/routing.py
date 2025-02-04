@@ -3,10 +3,11 @@ from starlette.staticfiles import StaticFiles
 from core.responses import HTMLResponse, JSONResponse
 from core.request import Request
 from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
-from typing import Any, Type, Optional, List, Dict
+from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
-from core.helpers import generate_token_value
+from core.helpers import generate_token_value,get_user_by_id_and_token
+
 import datetime
 import re
 from functools import wraps
@@ -187,7 +188,8 @@ class Router:
         active: bool = False,
         delete_logic: bool = False,
         middlewares: dict = None,
-        jsonresponse_prefix:str=''
+        jsonresponse_prefix:str='',
+        user_id_session:bool| str=False
     ) -> None:
         self.name = f"/api/{model_sql.__tablename__}"
 
@@ -211,6 +213,14 @@ class Router:
                             if isinstance(response,JSONResponse):
                                 return response
 
+        def get_user_id_session(self):
+            id_token =get_user_by_id_and_token(self)
+            if id_token is not None:
+                if "id" in id_token:
+                    return int(id_token["id"])
+            
+            return JSONResponse({"session": False, "success": False}, status_code=401)
+        
         async def get(self):
             response =await execute_middleware(self,type='get')
             if isinstance(response,JSONResponse):
@@ -218,8 +228,20 @@ class Router:
 
             columns = " , ".join(select) if select else "*"
             filters = f"WHERE active = 1" if active else ""
+            params={"user_id":0}
+            if user_id_session: 
+                
+                user_id=get_user_id_session(self)
+                if isinstance(user_id,JSONResponse):
+                    return user_id
+                if user_id is not None:
+                    params[user_id_session]=user_id
+                    filters +=f" AND {user_id_session}= :{user_id_session}"
+            else:
+                params=None
+
             query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
-            results = connection.query(query=query)
+            results = connection.query(query=query,params=params)
             items = results.fetchall() if results else []
             items = [dict(getattr(row, "_mapping", {})) for row in items]
             return JSONResponse(items) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:items})
@@ -272,11 +294,21 @@ class Router:
                 columns_ += ",created_date"
                 values += ",:created_date"
 
+            if user_id_session: 
+                user_id=get_user_id_session(self)
+                if isinstance(user_id,JSONResponse):
+                    return user_id
+                if user_id is not None:
+                    params[user_id_session] = user_id
+                    columns_ += f", {user_id_session}"
+                    values += f", :{user_id_session}" 
+             
             if active:
                 params["active"] = 1
                 columns_ += ", active"
                 values += ", :active"
 
+           
             query = (
                 f" INSERT INTO {model_sql.__tablename__} ({columns_}) VALUES ({values})"
             )
@@ -298,22 +330,20 @@ class Router:
             elif "id_user" in model_pydantic.__fields__.keys():
                 filters += " AND id_user:id_user"
 
-            id = self.path_params["id"] or self.query_params["id"]
-            params = {"id": int(id)}
 
-            if (
-                "user_id" in model_pydantic.__fields__.keys()
-                or "user_id" in self.query_params
-            ):
-                params["user_id"] = int(self.query_params["user_id"])
-                filters += " AND user_id = :user_id"
+            id = int(self.path_params["id"] )
+            params = {"user_id":0,"id":id}
 
-            elif (
-                "id_user" in model_pydantic.__fields__.keys()
-                or "id_user" in self.query_params
-            ):
-                params["id_user"] = int(self.query_params["id_user"])
-                filters += " AND id_user = :id_user"
+            if user_id_session: 
+                user_id=get_user_id_session(self)
+                if isinstance(user_id,JSONResponse):
+                    return user_id
+                if user_id is not None:
+                    params[user_id_session] = user_id
+                    filters += f" AND {user_id_session} = :{user_id_session}"
+                    
+            
+            
             query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
             results = connection.query(query=query, params=params)
             return results.fetchone() if results else None
@@ -354,6 +384,9 @@ class Router:
                 field: getattr(model, field)
                 for field in model_pydantic.__fields__.keys()
             }
+
+            id = int(self.path_params["id"] )
+            params["id"]=id
             if "password" in params:
                 params["password"] = ph.hash(params["password"])
 
@@ -363,20 +396,15 @@ class Router:
                 params["hash"] = generate_token_value()
 
             filters = ""
-            if (
-                "user_id" in model_pydantic.__fields__.keys()
-                or "user_id" in self.query_params
-            ):
-                params["user_id"] = int(self.query_params["user_id"])
-                filters += " AND user_id = :user_id"
 
-            elif (
-                "id_user" in model_pydantic.__fields__.keys()
-                or "id_user" in self.query_params
-            ):
-                params["id_user"] = int(self.query_params["id_user"])
-                filters += " AND id_user = :id_user"
-
+            if user_id_session: 
+                user_id=get_user_id_session(self)
+                if isinstance(user_id,JSONResponse):
+                    return user_id
+                if user_id is not None:
+                    params[user_id_session] = user_id
+                    filters += f" AND {user_id_session} = :{user_id_session}"
+            
             query = f" UPDATE {model_sql.__tablename__} SET {values} WHERE id= :id {filters}"
             id = self.path_params["id"]
             params["id"] = int(id)
@@ -392,22 +420,17 @@ class Router:
             if result is None:
                 JSONResponse({"success": False}, status_code=404)
 
-            id = self.path_params["id"]
-            params = {"id": int(id)}
+            id = int(self.path_params["id"] )
+            params["id"]=id
+            params = {"user_id":0}
             filters = ""
-            if (
-                "user_id" in model_pydantic.__fields__.keys()
-                or "user_id" in self.query_params
-            ):
-                params["user_id"] = int(self.query_params["user_id"])
-                filters += " AND user_id = :user_id"
-
-            elif (
-                "id_user" in model_pydantic.__fields__.keys()
-                or "id_user" in self.query_params
-            ):
-                params["id_user"] = int(self.query_params["id_user"])
-                filters += " AND id_user = :id_user"
+            if user_id_session: 
+                user_id=get_user_id_session(self)
+                if isinstance(user_id,JSONResponse):
+                    return user_id
+                if user_id is not None:
+                    params[user_id_session] = user_id
+                    filters += f" AND {user_id_session} = :{user_id_session}"
 
             if delete_logic:
                 query = f" UPDATE {model_sql.__tablename__} SET active=0 WHERE id= :id {filters}"

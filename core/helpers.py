@@ -90,7 +90,9 @@ def get_token(token: str):
 
 def get_user_by_id_and_token(request: Request):
     auth = Session.getSession(key="auth", request=request)
-    auth = auth.strip().split("-")
-    id = auth[0]
-    token = auth[1]
-    return {"id": id, "token": token}
+    if auth is not None:
+        auth = auth.strip().split("-")
+        id = auth[0]
+        token = auth[1]
+        return {"id": id, "token": token}
+    return None

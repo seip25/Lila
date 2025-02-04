@@ -69,7 +69,8 @@ async def login(request: Request):
     response = JSONResponse({"email": email, "password": password})
     return response
 
-#Example generate API REST CRUD with 'rest_crud_generate'
+
+# Example generate API REST CRUD with 'rest_crud_generate'
 # from database.connections import connection
 # from models.user import User
 # from pydantic import BaseModel, EmailStr
@@ -84,13 +85,11 @@ async def login(request: Request):
 
 # # Example execute middlewares for rest crud generate
 # middlewares_user = {
-#     "get": [
-#         check_session,
-#     ],
-#     "post": [check_session, check_token],
-#     "get_id": [check_session],
-#     "put": [check_token],
-#     "delete": [check_token],
+#     "get": [],
+#     "post": [check_session, check_token],  # Example of passing middlewares to the function  'rest_crud_generate'
+#     "get_id": [],
+#     "put": [],
+#     "delete": [],
 # }
 # # Rest crud generate ,base models SQl and models pydantic
 # router.rest_crud_generate(
