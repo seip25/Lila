@@ -86,7 +86,6 @@ class UserModel(BaseModel):
 middlewares_user = {
     "get": [
         check_session,
-        # check_token
     ],
     "post": [check_session, check_token],
     "get_id": [check_session],
