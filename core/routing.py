@@ -120,11 +120,11 @@ class Router:
                                 ),
                                 "parameters": [
                                     {
-                                        "name": self.get_path_params(path,param),
+                                        "name": param,
                                         "in": "path",
                                         "required": True,
                                         "schema": {"type": "integer"},
-                                    }
+                                    } 
                                     for param in self.get_path_params(path)
                                 ],
                                 "responses": {
