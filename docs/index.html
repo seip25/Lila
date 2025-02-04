@@ -1308,14 +1308,18 @@ if __name__ == "__main__":
 
                 </article>
 
-                <article id="rest_api_crud-eng"> 
+                <article id="rest_api_crud-eng">
                     <h1>Simple Generation of REST API CRUD</h1>
-                    <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing you to create your REST API efficiently.</h5>
-                    
-                    <p>Thanks to the combination of <strong>SQLAlchemy</strong> and <strong>Pydantic</strong> models, it is possible to perform data validations and execute structured queries for API generation.</p>
-                    
-                    <p>Additionally, you can integrate custom <strong>middlewares</strong> to validate tokens, manage sessions, or process requests. With just a few lines of code, you can generate a fully documented REST API CRUD.</p>
-                    
+                    <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing you to
+                        create your REST API efficiently.</h5>
+
+                    <p>Thanks to the combination of <strong>SQLAlchemy</strong> and <strong>Pydantic</strong> models, it
+                        is possible to perform data validations and execute structured queries for API generation.</p>
+
+                    <p>Additionally, you can integrate custom <strong>middlewares</strong> to validate tokens, manage
+                        sessions, or process requests. With just a few lines of code, you can generate a fully
+                        documented REST API CRUD.</p>
+
                     <div class="code-editor">
                         <div class="editor-header">
                             <span class="editor-title">routes/api.py</span>
@@ -1364,19 +1368,20 @@ router.rest_crud_generate(
                             </code></pre>
                         </div>
                     </div>
-                    
+
                     <br />
-                    <p>You can create your own <strong>middlewares</strong> and pass them as a list to customize security and validations for each <code>rest_crud_generate</code> operation.</p>
+                    <p>You can create your own <strong>middlewares</strong> and pass them as a list to customize
+                        security and validations for each <code>rest_crud_generate</code> operation.</p>
                     <p>
                         <strong>
-                        To generate the documentation, always remember to
-                        run it after the routes <code>router.swagger_ui()</code> and
-                        <code>router.openapi_json()</code>
+                            To generate the documentation, always remember to
+                            run it after the routes <code>router.swagger_ui()</code> and
+                            <code>router.openapi_json()</code>
                         </strong>
-                        </p>
+                    </p>
                     <h5>Function Parameters for <code>rest_crud_generate</code></h5>
                     <p>Below are the parameters that this function accepts to generate CRUD automatically:</p>
-                    
+
                     <div class="code-editor">
                         <div class="editor-header">
                             <span class="editor-title">core/routing.py</span>
@@ -1401,40 +1406,89 @@ def rest_crud_generate(
                             </code></pre>
                         </div>
                     </div>
-                    
+
                     <h5>Automatic Documentation</h5>
-                    <p>Below is an example of the generated documentation for the <code>rest_crud_generate</code> function:</p>
-                    <p>Go to <code>http://127.0.0.1:8001/docs</code>, or as configured in your .env file (by HOST and PORT).</p>
+                    <p>Below is an example of the generated documentation for the <code>rest_crud_generate</code>
+                        function:</p>
+                    <p>Go to <code>http://127.0.0.1:8001/docs</code>, or as configured in your .env file (by HOST and
+                        PORT).</p>
                     <div>
                         <h5>GET - Retrieve all users</h5>
                         <img src="img/rest_1.png" alt="GET - Retrieve all users">
                         <br />
-                    
+
                         <h5>GET - Output of all users</h5>
                         <img src="img/rest_2.png" alt="GET - Output">
                         <br />
-                    
+
                         <h5>POST - Create new user</h5>
                         <img src="img/rest_3.png" alt="POST - Create new user">
                         <br />
-                    
+
                         <h5>GET_ID - Retrieve a specific user</h5>
                         <img src="img/rest_4-5.png" alt="GET_ID - Retrieve a specific user">
                         <br />
-                    
+
                         <h5>PUT - Update user</h5>
                         <img src="img/rest_4.png" alt="PUT - Update user">
                         <br />
-                    
+
                         <h5>DELETE - Delete user</h5>
                         <img src="img/rest_5.png" alt="DELETE - Delete user">
                         <br />
                     </div>
                     <br />
-                    <p>In this example, we did it with 'users', but you can apply it however you want according to your logic ,'products','stores',etc. Even modifying the core in <code>core/routing.py</code>.</p>
+                    <p>In this example, we did it with 'users', but you can apply it however you want according to your
+                        logic ,'products','stores',etc. Even modifying the core in <code>core/routing.py</code>.</p>
+                    <br />
+                    <p>
+                        <strong>
+                            For both the 'POST' or 'PUT' method function,
+                        </strong>
+                        If the framework detects that you pass data in the request body such as:
+                        'password' , it will automatically encode it with argon2 to make it secure.
+                        Body example : {
+                            "email":"example@example.com",
+                            "name":"name",
+                            "password":"my_password_secret"
+                        }
+                    </p>
+                    <p>Then, if you pass 'token' or 'hash', with the <code>helper</code> function
+                        <code>generate_token_value</code>
+                        , it automatically generates a token, which will be saved in the database as the 'token' column
+                        with the value generated by the function
+                        .
+                        Body example : {
+                            "email":"example@example.com",
+                            "name":"name",
+                            "password":"my_password_secret",
+                            "token":""
+                        }
+                    </p>
+                    <p>
+                        With 'created_at' or 'created_date' , it will save the date and time of the moment, as long as
+                        that field exists in the database table.
+                        Body example : {
+                            "email":"example@example.com",
+                            "name":"name",
+                            "password":"my_password_secret",
+                            "token":"",
+                            "created_at":""
+                        }
+                    </p>
+                    <p>
+                        <strong>For the 'PUT', 'GET' (get_id) or 'DELETE' methods</strong>
+                        It is optional according to the logic of each REST API, you can pass it as
+                        <code>query string</code> , <code>user_id</code>
+                        or <code>id_user</code>, an example would be GET, PUT or DELETE as a method
+                        to the url http://127.0.0.1:8001/api/products/1?user_id=20
+                    </p>
+                    <p>Where it validates that the product ID '1' exists but also that it belongs to the user ID '20' .
+                    </p>
+
                 </article>
-                
-            
+
+
                 <!-- 
                 <article id="helpers-eng">
 
@@ -2569,12 +2623,18 @@ if __name__ == "__main__":
 
                 <article id="rest_api_crud-esp">
                     <h1>Generación sencilla de CRUD de API Rest</h1>
-                    <h5>En Lila tenemos una forma sencilla para generar CRUDs con documentación automática, permitiéndote crear tu API Rest de manera eficiente.</h5>
-                    
-                    <p>Gracias a la combinación de los modelos de <strong>SQLAlchemy</strong> y <strong>Pydantic</strong>, es posible realizar validaciones de datos y ejecutar consultas de manera estructurada para la generación de la API.</p>
-                    
-                    <p>Además, puedes integrar <strong>middlewares</strong> personalizados para validar tokens, manejar sesiones o procesar solicitudes. Con pocas líneas de código, puedes generar un CRUD de API Rest completamente documentado.</p>
-                    
+                    <h5>En Lila tenemos una forma sencilla para generar CRUDs con documentación automática,
+                        permitiéndote crear tu API Rest de manera eficiente.</h5>
+
+                    <p>Gracias a la combinación de los modelos de <strong>SQLAlchemy</strong> y
+                        <strong>Pydantic</strong>, es posible realizar validaciones de datos y ejecutar consultas de
+                        manera estructurada para la generación de la API.
+                    </p>
+
+                    <p>Además, puedes integrar <strong>middlewares</strong> personalizados para validar tokens, manejar
+                        sesiones o procesar solicitudes. Con pocas líneas de código, puedes generar un CRUD de API Rest
+                        completamente documentado.</p>
+
                     <div class="code-editor">
                         <div class="editor-header">
                             <span class="editor-title">routes/api.py</span>
@@ -2623,19 +2683,21 @@ router.rest_crud_generate(
                             </code></pre>
                         </div>
                     </div>
-                    
+
                     <br />
-                    <p>Puedes crear tus propios <strong>middlewares</strong> y pasarlos como lista para personalizar la seguridad y validaciones en cada operación de <code>rest_crud_generate</code>.</p>
+                    <p>Puedes crear tus propios <strong>middlewares</strong> y pasarlos como lista para personalizar la
+                        seguridad y validaciones en cada operación de <code>rest_crud_generate</code>.</p>
                     <p>
                         <strong>
                             Para generar la documentación recuerda siempre
-                             ejecutar luego de las rutas <code>router.swagger_ui()</code> y 
-                             <code>router.openapi_json()</code>
+                            ejecutar luego de las rutas <code>router.swagger_ui()</code> y
+                            <code>router.openapi_json()</code>
                         </strong>
                     </p>
                     <h5>Parámetros de la función <code>rest_crud_generate</code></h5>
-                    <p>A continuación, se detallan los parámetros que acepta esta función para generar el CRUD automáticamente:</p>
-                    
+                    <p>A continuación, se detallan los parámetros que acepta esta función para generar el CRUD
+                        automáticamente:</p>
+
                     <div class="code-editor">
                         <div class="editor-header">
                             <span class="editor-title">core/routing.py</span>
@@ -2660,39 +2722,90 @@ def rest_crud_generate(
                             </code></pre>
                         </div>
                     </div>
-                    
+
                     <h5>Documentación automática</h5>
-                    <p>A continuación, se muestra un ejemplo de la documentación generada para la función <code>rest_crud_generate</code>:</p>
-                    <p>Dirigite a <code>http://127.0.0.1:8001/docs</code>, o como hayas configurado tu .env (por HOST y PORT)</p>
+                    <p>A continuación, se muestra un ejemplo de la documentación generada para la función
+                        <code>rest_crud_generate</code>:
+                    </p>
+                    <p>Dirigite a <code>http://127.0.0.1:8001/docs</code>, o como hayas configurado tu .env (por HOST y
+                        PORT)</p>
                     <div>
                         <h5>GET - Obtener todos los usuarios</h5>
                         <img src="img/rest_1.png" alt="GET - Obtener todos los usuarios">
                         <br />
-                    
+
                         <h5>GET -Sálida de todos los usuarios </h5>
                         <img src="img/rest_2.png" alt="GET - Sálida">
                         <br />
-                    
+
                         <h5>POST - Crear nuevo usuario</h5>
                         <img src="img/rest_3.png" alt="POST - Crear nuevo usuario">
                         <br />
-                    
+
                         <h5>GET_ID - Obtener un usuario específico</h5>
                         <img src="img/rest_4-5.png" alt="GET_ID - Obtener un usuario específico">
                         <br />
-                    
+
                         <h5>PUT - Actualizar usuario</h5>
                         <img src="img/rest_4.png" alt="PUT - Actualizar usuario">
                         <br />
-                    
+
                         <h5>DELETE - Eliminar usuario</h5>
                         <img src="img/rest_5.png" alt="DELETE - Eliminar usuario">
                         <br />
                     </div>
                     <br />
-                    <p>En este ejemplo lo hicimos con 'usuarios' , pero puedes aplicarlo como quieras según tu lógica, 'productos','comercios',etc. Hasta modificando el core en <code>core/routing.py</code></p>
+                    <p>En este ejemplo lo hicimos con 'usuarios' , pero puedes aplicarlo como quieras según tu lógica,
+                        'productos','comercios',etc. Hasta modificando el core en <code>core/routing.py</code></p>
+
+                    <br />
+                    <p>
+                        <strong>
+                            Tanto para la función por el metodo 'POST' o 'PUT',
+                        </strong>
+                        Si el framework detecta que pasas datos en el cuerpo de la solicitud como:
+                        'password' , los codificará automáticamente con argon2 para hacerlo seguro.
+                        Body de ejemplo en la request a enviar : {
+                            "email":"example@example.com",
+                            "name":"name",
+                            "password":"my_password_secret", 
+                        }
+                    </p>
+                    <p>Luego, si pasas 'token' o 'hash', con la función del <code>helper</code>
+                        <code>generate_token_value</code>
+                        , genera automáticamente un token, que se guardará en base como columna 'token'
+                        con el valor generado por la función
+                        .
+                        Body example : {
+                            "email":"example@example.com",
+                            "name":"name",
+                            "password":"my_password_secret",
+                            "token":""
+                        }
+                    </p>
+                    <p>
+                        Con 'created_at' o 'created_date' , guardará la fecha y hora del momento, siempre que
+                        ese campo exista en la tabla de la base de datos.
+                        Body example : {
+                            "email":"example@example.com",
+                            "name":"name",
+                            "password":"my_password_secret",
+                            "token":"",
+                            "created_at":""
+                        }
+                    </p>
+                    <p>
+                        <strong>Para los metodos 'PUT','GET' (get_id) o 'DELETE'</strong>
+                        Es opcional según la logica de cada API REST,le puedes pasar como <code>query string</code> ,
+                        <code>user_id</code>
+                        o <code>id_user</code>, un ejemplo seria por GET,PUT o DELETE como metodo
+                        a la url http://127.0.0.1:8001/api/products/1?user_id=20
+                    </p>
+                    <p>Donde válida que existe el ID de producto '1' pero también que pertenezca al id de usuario '20' .
+                    </p>
+
                 </article>
-                
+
 
                 <!-- <article id="helpers-esp">
 
