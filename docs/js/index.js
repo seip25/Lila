@@ -9,7 +9,7 @@ const sections = [
     { id: "static-eng", name: "Static (eng)" },
     { id: "templates-eng", name: "Templates (eng)" },
     { id: "markdown-eng", name: "Markdown/HTML (eng)" },
-    { id: "helpers-eng", name: "Helpers (eng)" },
+    { id: "rest_api_crud-eng", name: "Simple Generation of REST API CRUD" },
 
     { id: "install-esp", name: "Installación (esp)" },
     { id: "routes-esp", name: "Rutas (esp)" },
@@ -21,7 +21,7 @@ const sections = [
     { id: "static-esp", name: "Static(esp)" },
     { id: "templates-esp", name: "Templates(esp)" },
     { id: "markdown-esp", name: "Markdown/HTML(esp)" },
-    { id: "helpers-esp", name: "Helpers(esp)" },
+    { id: "rest_api_crud-esp", name: "Generación sencilla de CRUD de API Rest" },
 ];
 
 function searchDocs(event = false) {
