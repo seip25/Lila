@@ -203,7 +203,7 @@ class Router:
             return middleware_wr
         
         async def execute_middleware(self,type:str):
-            if middleware is not None and type in middlewares:
+            if middlewares is not None and type in middlewares:
                         for middleware_get in middlewares[type]:
                             middleware_func = middleware(middleware_get)
                             response =await middleware_func(self)
