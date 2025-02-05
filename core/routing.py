@@ -6,7 +6,7 @@ from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
-from core.helpers import generate_token_value,get_user_by_id_and_token
+from core.helpers import generate_token_value,get_user_by_token
 
 import datetime
 import re
@@ -214,12 +214,11 @@ class Router:
                                 return response
 
         def get_user_id_session(self):
-            id_token =get_user_by_id_and_token(self)
-            if id_token is not None:
-                if "id" in id_token:
-                    return int(id_token["id"])
-            
-            return JSONResponse({"session": False, "success": False}, status_code=401)
+            id_token =get_user_by_token(self)
+            if isinstance(id_token,JSONResponse):
+                return id_token
+            return id_token
+        
         
         async def get(self):
             response =await execute_middleware(self,type='get')
@@ -234,9 +233,8 @@ class Router:
                 user_id=get_user_id_session(self)
                 if isinstance(user_id,JSONResponse):
                     return user_id
-                if user_id is not None:
-                    params[user_id_session]=user_id
-                    filters +=f" AND {user_id_session}= :{user_id_session}"
+                params[user_id_session]=user_id
+                filters +=f" AND {user_id_session}= :{user_id_session}"
             else:
                 params=None
 
