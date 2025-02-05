@@ -418,9 +418,8 @@ class Router:
             if result is None:
                 JSONResponse({"success": False}, status_code=404)
 
-            id = int(self.path_params["id"] )
-            params["id"]=id
-            params = {"user_id":0}
+            id = int(self.path_params["id"])
+            params = {"id": id, "user_id": 0}
             filters = ""
             if user_id_session: 
                 user_id=get_user_id_session(self)
