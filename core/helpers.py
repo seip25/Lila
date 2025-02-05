@@ -7,6 +7,8 @@ from pathlib import Path
 import jwt
 import hashlib
 import secrets
+from datetime import datetime, timedelta
+
 
 LOCALES_PATH = Path("locales")
 
@@ -62,8 +64,8 @@ def generate_token_value() -> str:
     return hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
 
 
-def generate_token(name: str, value: str = None) -> str:
-    options = {}
+def generate_token(name: str, value: str = None, minutes: int = 1440) -> str:
+    options = {name: value, "exp": datetime.utcnow() + timedelta(minutes=minutes)}
     options[name] = value if value else generate_token_value()
     token = jwt.encode(options, SECRET_KEY, algorithm="HS256")
     return token
@@ -87,12 +89,18 @@ def get_token(token: str):
             {"session": False, "message": "Invalid token"}, status_code=401
         )
 
-
-def get_user_by_id_and_token(request: Request):
-    auth = Session.getSession(key="auth", request=request)
-    if auth is not None:
-        auth = auth.strip().split("-")
-        id = auth[0]
-        token = auth[1]
-        return {"id": id, "token": token}
-    return None
+def get_user_by_token(request: Request):
+    token = request.headers.get("Authorization")
+    if not token:
+        return JSONResponse(
+            {"session": False, "message": "Invalid token"}, status_code=401
+        )
+    token = get_token(token=token)
+    if isinstance(token, JSONResponse):
+        return token
+    user_id = token.get("user_id")
+    if not user_id:
+        return JSONResponse(
+            {"session": False, "message": "Invalid token"}, status_code=401
+        )
+    return user_id
