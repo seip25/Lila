@@ -1383,10 +1383,10 @@ class UserModel(BaseModel):
 # Middleware definitions for CRUD operations
 middlewares_user = {
     "get": [],
-    "post": [check_session, check_token], #Example middlewares for web session 'check_session' and jwt 'check_token'
+    "post": [], 
     "get_id": [],
     "put": [],
-    "delete": [],
+    "delete": [check_session, check_token],#Example middlewares for web session 'check_session' and jwt 'check_token'
 }
 
 # Automatically generate CRUD with validations and configurations
@@ -2751,10 +2751,10 @@ class UserModel(BaseModel):
 # Definición de middlewares para las operaciones CRUD
 middlewares_user = {
     "get": [],
-    "post": [check_session, check_token], #Ejemplo de middleware para sesión web con 'check_session' y jwt con 'check_token'
+    "post": [], 
     "get_id": [],
     "put": [],
-    "delete": [],
+    "delete": [check_session, check_token],#Ejemplo de middleware para sesión web con 'check_session' y jwt con 'check_token'
 }
 
 # Generación del CRUD automáticamente con validaciones y configuraciones
