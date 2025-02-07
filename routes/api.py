@@ -11,7 +11,7 @@ from pydantic import (
     EmailStr,
     BaseModel,
 )  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
-from core.helpers import get_user_by_id_and_token
+from core.helpers import get_user_by_token
 from middlewares.middlewares import validate_token, check_token, check_session
 
 # English: Initialize the router instance for managing API routes.
@@ -36,7 +36,7 @@ async def api(request: Request):
 @validate_token
 async def api_token(request: Request):
     """Api Token function"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
-    print(get_user_by_id_and_token(request=request))
+    print(get_user_by_token(request=request))
     return JSONResponse({"api": True})
 
 
