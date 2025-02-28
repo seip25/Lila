@@ -6,7 +6,7 @@ from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
-from core.helpers import generate_token_value,get_user_by_token
+from core.helpers import generate_token_value,get_user_by_token,convert_date_to_str
 
 import datetime
 import re
@@ -241,7 +241,7 @@ class Router:
             query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
             results = connection.query(query=query,params=params)
             items = results.fetchall() if results else []
-            items = [dict(getattr(row, "_mapping", {})) for row in items]
+            items = [{key:convert_date_to_str(value) for key,value in getattr(row, "_mapping", {}).items()} for row in items]
             return JSONResponse(items) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:items})
 
         async def post(self):
@@ -353,7 +353,7 @@ class Router:
             row = search_id(self)
             if row is None:
                 return JSONResponse({}, status_code=404)
-            item = dict(getattr(row, "_mapping", {}))
+            item = {k:convert_date_to_str(v) for k,v in getattr(row, "_mapping", {}).items()}
             return JSONResponse(item) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:item})
 
         async def put(self):
