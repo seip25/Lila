@@ -7,7 +7,7 @@ from pathlib import Path
 import jwt
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
 
 
 LOCALES_PATH = Path("locales")
@@ -104,3 +104,8 @@ def get_user_by_token(request: Request):
             {"session": False, "message": "Invalid token"}, status_code=401
         )
     return user_id
+    
+def convert_date_to_str(value):
+    if isinstance(value, (date, datetime)):
+        return value.isoformat() if value else None
+    return value
