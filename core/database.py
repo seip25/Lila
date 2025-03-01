@@ -1,9 +1,8 @@
-from sqlalchemy import create_engine, MetaData, text
+from sqlalchemy import create_engine, MetaData, text, inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Optional
-
 
 Base = declarative_base()
 
@@ -26,9 +25,30 @@ class Database:
             host = self.config.get("host", "127.0.0.1")
             port = self.config.get("port", 3306)
             database = self.config.get("database", "db")
-            db_type = "postgresql" if self.type in ["postegresql", "psg"] else self.type
+            db_type = "postgresql" if self.type in ["postgresql", "psgr"] else self.type
             connector = "mysqlconnector" if self.type == "mysql" else "psycopg2"
             isolation_level = self.config.get("isolation_level", None)
+
+            temp_engine = create_engine(
+                f"{db_type}+{connector}://{user}:{password}@{host}:{port}/postgres"
+                if db_type == "postgresql"
+                else f"{db_type}+{connector}://{user}:{password}@{host}:{port}/mysql"
+            )
+
+            with temp_engine.connect() as connection:
+                if db_type == "postgresql":
+                    result = connection.execute(
+                        text(f"SELECT 1 FROM pg_database WHERE datname = '{database}'")
+                    )
+                else:  # MySQL
+                    result = connection.execute(
+                        text(f"SHOW DATABASES LIKE '{database}'")
+                    )
+
+                if not result.fetchone():
+
+                    connection.execute(text(f"CREATE DATABASE {database}"))
+                    print(f"Database '{database}' created.")
 
             try:
                 self.engine = create_engine(
@@ -73,7 +93,13 @@ class Database:
         except SQLAlchemyError as e:
             print(e)
 
-    def query(self, query: str, params: Optional[dict] = None):
+    def query(
+        self,
+        query: str,
+        params: Optional[dict] = None,
+        return_rows: bool = False,
+        return_row: bool = False,
+    ):
         result = False
         try:
             with self.engine.connect() as connection:
@@ -84,7 +110,21 @@ class Database:
                     .startswith(("CREATE", "INSERT", "UPDATE", "DELETE"))
                 ):
                     connection.commit()
-
+                if return_rows:
+                    if result:
+                        rows = result.fetchall() if result else []
+                        items = list(
+                            (dict(getattr(item, "_mapping", {})) for item in rows)
+                        )
+                        return items
+                    return []
+                if return_row:
+                    if result:
+                        row = result.fetchone() if result else None
+                        if row:
+                            item = dict(getattr(row, "_mapping", {}))
+                            return item
+                    return None
                 return result
         except SQLAlchemyError as e:
             print(f"Query error: {e}")
