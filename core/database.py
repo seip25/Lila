@@ -99,7 +99,7 @@ class Database:
         params: Optional[dict] = None,
         return_rows: bool = False,
         return_row: bool = False,
-    ):
+    )-> dict | bool | list | None:
         result = False
         try:
             with self.engine.connect() as connection:
