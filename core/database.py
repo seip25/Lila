@@ -113,7 +113,7 @@ class Database:
                 if return_rows:
                     if result:
                         rows = result.fetchall() if result else []
-                        items = [(dict(getattr(item, "_mapping", {})) for item in rows)]
+                        items = [dict(getattr(item, "_mapping", {})) for item in rows]
                         return items
                     return []
                 if return_row:
