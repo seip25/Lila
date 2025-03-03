@@ -2620,18 +2620,18 @@ except RuntimeError as e:
                         </div>
                         <div class="editor-content">
                             <pre><code class="language-python">
-                from models.user import User # Importar modelos para las migraciones
-                
-                async def migrate(connection, refresh: bool = False) -> bool:
-                    try:
-                        if refresh:
-                            connection.metadata.drop_all(connection.engine)
-                
-                        connection.migrate(use_base=True) # Para modelos, siempre importa los modelos en el archivo
-                        print("Migraciones completadas")
-                        return True
-                    except RuntimeError as e:
-                        print(e)
+from models.user import User # Importar modelos para las migraciones
+
+async def migrate(connection, refresh: bool = False) -> bool:
+    try:
+        if refresh:
+            connection.metadata.drop_all(connection.engine)
+
+        connection.migrate(use_base=True) # Para modelos, siempre importa los modelos en el archivo
+        print("Migraciones completadas")
+        return True
+    except RuntimeError as e:
+        print(e)
                         </code></pre>
                         </div>
                     </div>
