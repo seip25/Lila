@@ -1372,6 +1372,9 @@ from middlewares.middlewares import validate_token, check_token, check_session
 from database.connections import connection  # Database connection with SQLAlchemy
 from models.user import User  # SQLAlchemy 'User' model
 
+router = Router()# Initialize the router instance for managing API routes.
+
+
 # Pydantic model for validations when creating or modifying a user.
 class UserModel(BaseModel):
     email: EmailStr
@@ -2731,13 +2734,15 @@ asyncio.run(main())
                         </div>
                         <div class="editor-content">
                             <pre><code class="language-python">
-from core.request import Request
+from core.request import Request 
 from core.responses import JSONResponse
 from core.routing import Router
 from pydantic import EmailStr, BaseModel
 from middlewares.middlewares import validate_token, check_token, check_session
 from database.connections import connection  # Conexión a la base de datos con SQLAlchemy
 from models.user import User  # Modelo 'User' de SQLAlchemy
+
+router = Router()# Inicializa la instancia del enrutador para manejar rutas de la API.
 
 # Modelo de Pydantic para validaciones al crear o modificar un usuario.
 class UserModel(BaseModel):
