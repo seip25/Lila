@@ -13,7 +13,8 @@ from core.session import (
     Session,
 )  # English: Importing Session class for session handling | Español: Importando la clase Session para el manejo de sesiones
 from core.responses import (
-    RedirectResponse,HTMLResponse
+    RedirectResponse,
+    HTMLResponse,
 )  # English: Importing RedirectResponse to handle HTTP redirects | Español: Importando RedirectResponse para manejar redirecciones HTTP
 from core.env import (
     LANG_DEFAULT,
@@ -68,19 +69,40 @@ async def set_language(request: Request):
     return response
 
 
-
 import psutil
+from models.user import User
+
+
 @router.route(path="/admin", methods=["GET"])
 async def home(request: Request):
-    memory_usage = psutil.virtual_memory().used / (1024 * 1024)  
-    cpu_usage = psutil.cpu_percent()
-    response="""
-        <h2>Métricas</h2>
-        <p>Memoria usada: {memory_usage:.2f} MB</p>
-        <p>Uso de CPU: {cpu_usage}%</p>
-    """
-    response=HTMLResponse(response)
+    lila_memory,lila_cpu_usage = get_lila_memory_usage()
+    system_used_memory, system_total_memory,cpu_usage = get_system_memory_usage()
+    response=f"""
+        <h1>Métricas del Sistema</h1> 
+        <p>Memoria de Lila Framework usada: {lila_memory:.0f} MB</p> 
+        <p>Cpu de Lila Framework usada: {lila_cpu_usage:.0f} %</p>
+        <p>Memoria del Servidor usada: {system_used_memory:.0f} MB / {system_total_memory:.0f} MB</p>
+        <p>Cpu del Servidor usado :{ cpu_usage:.0f} %</p>
+        """
+    
+    response = HTMLResponse(content=response)
     return response
+
+import os
+def get_lila_memory_usage():
+    process = psutil.Process(os.getpid())
+    memory_usage = process.memory_info().rss / (1024 * 1024)
+    cpu_usage= process.cpu_percent()
+    return memory_usage,cpu_usage
+
+
+def get_system_memory_usage():
+    memory_info = psutil.virtual_memory()
+    used_memory = memory_info.used / (1024 * 1024)
+    total_memory = memory_info.total / (1024 * 1024)
+    cpu_usage=psutil.cpu_percent()
+    return used_memory, total_memory,cpu_usage
+
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
