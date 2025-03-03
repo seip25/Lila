@@ -939,16 +939,15 @@ class User(Base):
 #Example of how to use SQLAlchemy to make queries to the database
     def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        result = connection.query(query=query)
-        return [dict(row._mapping) for row in result.fetchall()] if result else []
-
+        result = connection.query(query=query,return_rows=True)#Return rows 
+        return result 
 
 #Example of how to use SQLAlchemy to make queries to the database
     def get_by_id(id: int, select="id,email,name") -> dict:
         query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
         params = {"id": id}
-        result = connection.query(query=query, params=params)
-        return result.fetchone()._mapping if result else {}
+        row = connection.query(query=query, params=params,return_row=True)#Retrurn row
+        return row
     
     #Example using ORM abstraction in SQLAlchemy
     @classmethod
@@ -2302,16 +2301,15 @@ class User(Base):
     #Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
     def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        result = connection.query(query=query)
-        return [dict(row._mapping) for row in result.fetchall()] if result else []
-
+        result = connection.query(query=query,return_rows=True)#Retornar todos los elementos
+        return result 
 
     # Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
     def get_by_id(id: int, select="id,email,name") -> dict:
         query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
         params = {"id": id}
-        result = connection.query(query=query, params=params)
-        return result.fetchone()._mapping if result else {}
+        row = connection.query(query=query, params=params,return_row=True)#Retorna un elemento
+        return row
 
     #Ejemplo usando abstracción de ORM en SQLAlchemy
     @classmethod

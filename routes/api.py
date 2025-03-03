@@ -35,7 +35,7 @@ async def api(request: Request):
 # Español: Middleware para validar token de JWT.
 @validate_token
 async def api_token(request: Request):
-    """Api Token function"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
+    """Api Token function"""  # use doc for descripction http://127.0.0.1:8001/openapi.json and http://127.0.0.1:8001/docs
     print(get_user_by_token(request=request))
     return JSONResponse({"api": True})
 
@@ -71,36 +71,36 @@ async def login(request: Request):
 
 
 # Example generate API REST CRUD with 'rest_crud_generate'
-# from database.connections import connection
-# from models.user import User
-# from pydantic import BaseModel, EmailStr
+from database.connections import connection
+from models.user import User
+from pydantic import BaseModel, EmailStr
 
 
-# class UserModel(BaseModel):
-#     email: EmailStr
-#     name: str
-#     token: str
-#     password: str
+class UserModel(BaseModel):
+    email: EmailStr
+    name: str
+    token: str
+    password: str
 
 
-# # Example execute middlewares for rest crud generate
-# middlewares_user = {
-#     "get": [],
-#     "post": [check_session, check_token],  # Example of passing middlewares to the function  'rest_crud_generate'
-#     "get_id": [],
-#     "put": [],
-#     "delete": [],
-# }
-# # Rest crud generate ,base models SQl and models pydantic
-# router.rest_crud_generate(
-#     connection=connection,
-#     model_sql=User,
-#     model_pydantic=UserModel,
-#     select=["name", "email", "id", "created_at", "active"],
-#     delete_logic=True,
-#     active=True,
-#     middlewares=middlewares_user,
-# )
+# Example execute middlewares for rest crud generate
+middlewares_user = {
+    "get": [],
+    "post": [],  
+    "get_id": [],
+    "put": [],
+    "delete": [check_session, check_token],# Example of passing middlewares to the function  'rest_crud_generate'
+}
+# Rest crud generate ,base models SQl and models pydantic
+router.rest_crud_generate(
+    connection=connection,
+    model_sql=User,
+    model_pydantic=UserModel,
+    select=["name", "email", "id", "created_at", "active"],
+    delete_logic=True,
+    active=True,
+    middlewares=middlewares_user,
+)
 
 
 # English: Enable Swagger UI for API documentation.

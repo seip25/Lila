@@ -196,7 +196,6 @@ class Router:
         def middleware(func):
             @wraps(func)
             async def middleware_wr(*args, **kwargs):
-                # print(f"{func.__name__} was called, with {args}, {kwargs}")
                 if callable(func):
                     result = func(*args, **kwargs)
                     if hasattr(result, "__await__"):
@@ -239,9 +238,7 @@ class Router:
                 params=None
 
             query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
-            results = connection.query(query=query,params=params)
-            items = results.fetchall() if results else []
-            items = [{key:convert_date_to_str(value) for key,value in getattr(row, "_mapping", {}).items()} for row in items]
+            items = connection.query(query=query,params=params,return_rows=True)
             return JSONResponse(items) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:items})
 
         async def post(self):
@@ -343,17 +340,16 @@ class Router:
             
             
             query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
-            results = connection.query(query=query, params=params)
-            return results.fetchone() if results else None
+            results = connection.query(query=query, params=params,return_row=True)
+            return results
 
         async def get_id(self) -> dict:
             response =await execute_middleware(self,type='get_id')
             if isinstance(response,JSONResponse):
                 return response
-            row = search_id(self)
-            if row is None:
+            item = search_id(self)
+            if item is None:
                 return JSONResponse({}, status_code=404)
-            item = {k:convert_date_to_str(v) for k,v in getattr(row, "_mapping", {}).items()}
             return JSONResponse(item) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:item})
 
         async def put(self):
