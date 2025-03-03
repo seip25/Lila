@@ -13,7 +13,7 @@ from core.session import (
     Session,
 )  # English: Importing Session class for session handling | Español: Importando la clase Session para el manejo de sesiones
 from core.responses import (
-    RedirectResponse,
+    RedirectResponse,HTMLResponse
 )  # English: Importing RedirectResponse to handle HTTP redirects | Español: Importando RedirectResponse para manejar redirecciones HTTP
 from core.env import (
     LANG_DEFAULT,
@@ -65,6 +65,21 @@ async def set_language(request: Request):
     referer = request.headers.get("Referer", "/")
     response = RedirectResponse(url=referer)
     Session.setSession(name_cookie="lang", new_val=lang, response=response)
+    return response
+
+
+
+import psutil
+@router.route(path="/admin", methods=["GET"])
+async def home(request: Request):
+    memory_usage = psutil.virtual_memory().used / (1024 * 1024)  
+    cpu_usage = psutil.cpu_percent()
+    response="""
+        <h2>Métricas</h2>
+        <p>Memoria usada: {memory_usage:.2f} MB</p>
+        <p>Uso de CPU: {cpu_usage}%</p>
+    """
+    response=HTMLResponse(response)
     return response
 
 # English: Get all the defined routes
