@@ -1,0 +1,624 @@
+import psutil
+import os
+from core.helpers import lang, translate_, generate_token_value
+from core.responses import HTMLResponse, RedirectResponse, JSONResponse
+from core.request import Request
+from core.routing import Router
+from core.session import Session
+from database.connections import connection
+from argon2 import PasswordHasher
+from functools import wraps
+ 
+
+def Admin(models:list):
+    router=Router()
+    admin=AdminClass(models=models,router=router,connection=connection)
+    admin._check_and_create_table()
+    admin._create_default_admin()
+    admin._generate_admin_routes()
+    routes=admin.router.get_routes() 
+    return routes
+
+def admin_required(func):
+    """Middleware to ensure the user is authenticated as an admin."""
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        session_data = Session.unsign(key="admin", request=request)
+        if not session_data:
+            return RedirectResponse(url="/admin/login")
+        if session_data["admin_id"] is None   :
+            return RedirectResponse(url="/admin/login")
+        return await func(request, *args, **kwargs)
+    return wrapper
+
+class AdminClass:
+    """A class to handle admin functionality, including authentication, routes, and model management."""
+
+    def __init__(self, models: list, router: Router, connection):
+        """
+        Initialize the Admin class.
+
+        Args:
+            models (list): List of models to be managed in the admin panel.
+            router (Router): The router instance to register admin routes.
+            connection: The database connection instance.
+            password_default (str, optional): Default password for the admin user. Defaults to None.
+        """
+        self.models = models
+        self.router = router
+        self.connection = connection 
+        self.ph = PasswordHasher()
+        self.password_default=None
+
+        
+
+    def _check_and_create_table(self):
+        """Check if the 'admins' table exists and create it if it doesn't."""
+        db_type = self.connection.engine.url.drivername
+
+        if db_type == "sqlite":
+            query = "SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"
+        elif db_type in {"postgresql", "mysql"}:
+            query = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_name = 'admins'
+            )
+            """
+        else:
+            raise ValueError(f"Unsupported database type: {db_type}")
+
+        table_exists = self.connection.query(query=query, return_row=True)
+       
+        if db_type == "sqlite":
+            column_definition = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+        elif db_type == "mysql":
+            column_definition = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
+        elif db_type == "postgresql":
+            column_definition = "id SERIAL PRIMARY KEY"
+        else:
+            raise ValueError(f"Unsupported database type: {db_type}")
+        if not table_exists or (db_type != "sqlite" and not table_exists.get("exists", False)):
+            create_table_query = f"""
+            CREATE TABLE admins (
+                 {column_definition},
+                username VARCHAR(50) NOT NULL UNIQUE,
+                password VARCHAR(150) NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            self.connection.query(query=create_table_query)
+
+    def _create_default_admin(self):
+        """Create a default admin user if it doesn't exist."""
+        query = "SELECT id FROM admins WHERE username = 'admin' LIMIT 1"
+        admin = self.connection.query(query=query, return_row=True)
+        if not admin:
+            password = "admin#" 
+            self._create_admin("admin", password)
+            self.password_default = password
+            print(f"Default admin password: '{password}' and user is 'admin'")
+
+    def _create_admin(self, username: str, password: str) -> bool:
+        """Create a new admin user.
+
+        Args:
+            username (str): The username of the admin.
+            password (str): The password of the admin.
+
+        Returns:
+            bool: True if the admin was created successfully, False otherwise.
+        """
+        hashed_password = self.ph.hash(password)
+        query = "INSERT INTO admins (username, password, active) VALUES (:username, :password, 1)"
+        params = {"username": username, "password": hashed_password}
+        result = self.connection.query(query=query, params=params)
+        return result
+
+    def _generate_admin_routes(self):
+        """Generate routes for the admin panel, including model management."""
+        
+        self.router.route(path="/admin/login", methods=["GET", "POST"])(self.admin_login)
+
+        self.router.route(path="/admin/logout", methods=["GET"])(self.admin_logout)
+
+        @self.router.route(path="/admin/change_password", methods=["POST"])
+        @admin_required
+        async def change_password_route(request: Request):
+            return await self.change_password(request)
+
+        @self.router.route(path="/admin", methods=["GET"])
+        @admin_required
+        async def admin_route(request: Request):
+            return await self.admin_dashboard(request)
+
+        for model in self.models:
+            model_name = model.__name__.lower()
+            model_plural = f"{model_name}s"
+
+            @self.router.route(path=f"/admin/{model_plural}", methods=["GET"])
+            @admin_required
+            async def model_list(request: Request, model=model):
+                items = model.get_all()
+                return HTMLResponse(content=self._model_table_view(items, model_name, request))
+        
+        return self.router
+    
+    async def admin_login(self, request: Request):
+        """Handle admin login requests."""
+        if request.method == "POST":
+            try:
+                form_data = await request.json()
+                username = form_data.get("user")
+                password = form_data.get("password")
+                admin = self._authenticate(username, password)
+                if admin:
+                    response = JSONResponse({"success": True, "redirect": "/admin"})
+                    Session.setSession({"admin_id": admin["id"]}, response=response, name_cookie="admin")
+                    return response
+                return JSONResponse({"success": False, "message": "Invalid credentials"}, status_code=401)
+            except Exception as e:
+                return JSONResponse({"success": False, "message": "Error"}, status_code=500)
+        return HTMLResponse(self._login_form(request))
+
+    async def admin_logout(self, request: Request):
+        """Handle admin logout requests."""
+        response = RedirectResponse(url="/admin/login")
+        response.delete_cookie("admin")
+        return response
+
+    async def change_password(self, request: Request):
+        """Handle password change requests."""
+        try:
+            data = await request.json()
+            new_password = data.get("new_password")
+            if not new_password:
+                return JSONResponse({"success": False, "message": "New password not provided"}, status_code=400)
+
+            session_data = Session.unsign(key="admin", request=request)
+            admin_id = session_data.get("admin_id") if session_data else None
+
+            if admin_id:
+                hashed_password = self.ph.hash(new_password)
+                query = "UPDATE admins SET password = :password WHERE id = :id"
+                params = {"password": hashed_password, "id": admin_id}
+                self.connection.query(query=query, params=params)
+                return JSONResponse({"success": True, "message": "Password changed successfully"})
+            return JSONResponse({"success": False, "message": "Admin not found"}, status_code=404)
+        except Exception as e:
+            return JSONResponse({"success": False, "message": str(e)}, status_code=500)
+
+    async def admin_dashboard(self, request: Request):
+        
+        """Render the admin dashboard."""
+        users = self.models[0].get_all() if self.models else []
+        return HTMLResponse(content=self._admin_dashboard_view(users, request))
+
+    def _authenticate(self, username: str, password: str) -> dict:
+        """Authenticate an admin user.
+
+        Args:
+            username (str): The username of the admin.
+            password (str): The password of the admin.
+
+        Returns:
+            dict: The admin data if authentication is successful, otherwise None.
+        """
+        query = "SELECT id, username, password FROM admins WHERE username = :username AND active = 1 LIMIT 1"
+        params = {"username": username}
+        admin = self.connection.query(query=query, params=params, return_row=True)
+
+        if not admin or not admin.get("password"):
+            return None 
+
+        try:
+            if self.ph.verify(admin["password"], password):
+                return admin
+        except Exception as e:
+            print(f"Error verifying password: {e}")
+            return None
+
+        return None
+
+    def _login_form(self, request: Request) -> str:
+        """Generate the HTML for the login form."""
+        html_login = translate_(key="Login", request=request)
+        html_user = translate_(key="User", request=request)
+        html_send = translate_(key="Send", request=request)
+        html_password = translate_(key="Password", request=request)
+        html_lang = lang(request=request)
+        return f"""
+        <!DOCTYPE html>
+        <html lang="{html_lang}">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Admin Login</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+            {self._styles()}
+        </head>
+        <body>
+            <main class="container">
+                <div class="flex center">
+                    <article class="shadow mx-sm">
+                        <header>
+                            <h4 class="flex center">{html_login}</h4>
+                        </header>
+                        <form id="loginForm">
+                            <fieldset class="flex center column">
+                                <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="{html_user}" />
+                                <input type="password" name="password" id="password" required minlength="2" maxlength="255" placeholder="{html_password}" />
+                                <button type="submit" class="contrast">{html_send}</button>
+                            </fieldset>
+                        </form>
+                    </article>
+                </div>
+            </main>
+            <script>
+                document.getElementById("loginForm").addEventListener("submit", async function (event) {{
+                    event.preventDefault();
+                    const formData = Object.fromEntries(new FormData(event.target));
+                    try {{
+                        const r = await fetch("/admin/login", {{
+                            method: "POST",
+                            headers: {{
+                                "Content-Type": "application/json",
+                            }},
+                            body: JSON.stringify(formData),
+                        }});
+                        const response = await r.json();
+                        if (response.success) {{
+                            window.location.href = response.redirect;
+                        }} else {{
+                            document.getElementById('password').value = '';
+                            alert(response.message || "Error");
+                        }}
+                    }} catch (error) {{
+                        alert("Error");
+                        console.error("Error:", error);
+                    }}
+                }});
+            </script>
+        </body>
+        </html>
+        """
+
+    def _admin_dashboard_view(self, users: list, request: Request) -> str:
+        """Generate the HTML for the admin dashboard."""
+        user_rows = "".join([f"<tr><td>{user['name']}</td><td>{user['email']}</td></tr>" for user in users])
+        html_lang = lang(request=request)
+        lila_memory, lila_cpu_usage = self._get_lila_memory_usage()
+        system_used_memory, system_total_memory, cpu_usage = self._get_system_memory_usage()
+
+        session_data = Session.unsign(key="admin", request=request)
+        admin_id = session_data.get("admin_id") if session_data else None
+
+        change_password_form = ""
+        if admin_id:
+            admin = self._get_admin_by_id(admin_id, select="id,password")
+            if admin  and self.ph.verify(admin["password"], "admin#"):
+                change_password_form = """
+                <article class="shadow">
+                    <h4>Change Password</h4>
+                    <form id="changePasswordForm">
+                        <fieldset class="flex center column">
+                            <input type="password" name="new_password" id="new_password" required minlength="2" maxlength="255" placeholder="New Password" />
+                            <button type="submit" class="contrast">Change Password</button>
+                        </fieldset>
+                    </form>
+                </article>
+                <script>
+                    document.getElementById("changePasswordForm").addEventListener("submit", async function (event) {
+                        event.preventDefault();
+                        const formData = {
+                            new_password: document.getElementById("new_password").value,
+                        };
+                        try {
+                            const response = await fetch("/admin/change_password", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(formData),
+                            });
+                            const result = await response.json();
+                            if (result.success) {
+                                alert("Password changed successfully.");
+                                window.location.reload();
+                            } else {
+                                alert(result.message || "Error changing password");
+                            }
+                        } catch (error) {
+                            console.error("Error:", error);
+                        }
+                    });
+                </script>
+                """
+
+        return f"""
+        <!DOCTYPE html>
+        <html lang="{html_lang}">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Admin Dashboard</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            {self._styles()}
+        </head>
+        <body>
+            <header class="container">
+                <nav>
+                    <ul>
+                        <li><strong>Admin Dashboard</strong></li>
+                    </ul>
+                    <ul>
+                        <li><a href="/admin/logout">Logout</a></li>
+                    </ul>
+                </nav>
+            </header>
+            <main class="container">
+                {change_password_form}
+                <article class="shadow">
+                    <h4>Server Metrics</h4>
+                    <div class="flex between">
+                        <div>
+                            <p>Lila Framework Memory Used: {lila_memory:.0f} MB</p>
+                            <p>Lila Framework CPU Used: {lila_cpu_usage:.0f} %</p>
+                            <p>Server Memory Used: {system_used_memory:.0f} MB / {system_total_memory:.0f} MB</p>
+                            <p>Server CPU Used: {cpu_usage:.0f} %</p>
+                        </div>
+                    </div>
+                    <div class="flex between">
+                        <div style="width: 25%;">
+                            <canvas id="memoryDoughnutChart"></canvas>
+                        </div>
+                        <div style="width: 25%;">
+                            <canvas id="cpuDoughnutChart"></canvas>
+                        </div>
+                    </div>
+                </article>
+                <br />
+                <article>
+                    <h2>Users</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {user_rows}
+                        </tbody>
+                    </table>
+                </article>
+            </main>
+            {self._scripts(system_used_memory, cpu_usage, system_total_memory)}
+        </body>
+        </html>
+        """
+
+    def _model_table_view(self, items: list, model_name: str, request: Request) -> str:
+        """Generate the HTML for a model table view."""
+        headers = items[0].keys() if items else []
+        rows = "".join([f"<tr>{''.join([f'<td>{item[header]}</td>' for header in headers])}</tr>" for item in items])
+        html_lang = lang(request=request)
+        return f"""
+        <!DOCTYPE html>
+        <html lang="{html_lang}">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Admin - {model_name.capitalize()}</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        </head>
+        <body>
+            <header class="container">
+                <nav>
+                    <ul>
+                        <li><strong>Admin - {model_name.capitalize()}</strong></li>
+                    </ul>
+                    <ul>
+                        <li><a href="/admin">Dashboard</a></li>
+                    </ul>
+                </nav>
+            </header>
+            <main class="container">
+                <article>
+                    <h2>{model_name.capitalize()}</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                {"".join([f"<th>{header.capitalize()}</th>" for header in headers])}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows}
+                        </tbody>
+                    </table>
+                </article>
+            </main>
+        </body>
+        </html>
+        """
+
+    def _styles(self) -> str:
+        """Generate custom CSS styles for the admin panel."""
+        return """
+        <style>
+        button:not([role="search"]) {
+        border-radius: 2rem !important;
+        padding: 0.5rem !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        }
+
+        button.secondary{
+        background-color: #f8f9fa !important;
+        border: 1px solid #f8f9fa !important;
+        color: #000 !important;
+        }
+
+        input.secondary {
+        background-color: #f8f9fa !important;
+        border: 1px solid #696969 !important;
+        color: #000 !important;
+        }
+
+        .shadow {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.09) !important;
+        }
+        article {
+        border: none !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        article header {
+        border: none !important;
+        }
+
+        article footer {
+        border: none !important;
+        }
+
+        .flex {
+        display: flex !important;
+        }
+
+        .column {
+        flex-direction: column !important;
+        }
+
+        .center {
+        justify-content: center !important;
+        }
+
+        .items-center {
+        align-items: center !important;
+        }
+
+        .between{
+        justify-content: space-between !important;
+        }
+        .w-100{
+        width: 100% !important;
+        }
+
+        .w-full{
+        width: 100% !important;
+        }
+
+        .me-2 {
+        margin-right: 0.5rem;
+        }
+
+        .mx-sm {
+        max-width: 400px !important;
+        }
+        </style>
+        """
+
+    def _scripts(self, system_used_memory, cpu_usage, system_total_memory) -> str:
+        """Generate JavaScript for the admin panel."""
+        return f"""
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {{
+                const memoryDoughnutData = {{
+                    labels: ['Used Memory', 'Free Memory'],
+                    datasets: [{{
+                        label: 'Memory',
+                        data: [{system_used_memory}, {system_total_memory - system_used_memory}],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(75, 192, 192, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }}]
+                }};
+
+                const memoryDoughnutCtx = document.getElementById('memoryDoughnutChart').getContext('2d');
+                const memoryDoughnutChart = new Chart(memoryDoughnutCtx, {{
+                    type: 'doughnut',
+                    data: memoryDoughnutData,
+                    options: {{
+                        responsive: true,
+                        plugins: {{
+                            legend: {{
+                                position: 'bottom',
+                            }},
+                            title: {{
+                                display: true,
+                                text: 'Memory Usage'
+                            }}
+                        }}
+                    }}
+                }});
+
+                const cpuDoughnutData = {{
+                    labels: ['Used CPU', 'Free CPU'],
+                    datasets: [{{
+                        label: 'CPU',
+                        data: [{cpu_usage}, {100 - cpu_usage}],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(255, 206, 86, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
+                    }}]
+                }};
+
+                const cpuDoughnutCtx = document.getElementById('cpuDoughnutChart').getContext('2d');
+                const cpuDoughnutChart = new Chart(cpuDoughnutCtx, {{
+                    type: 'doughnut',
+                    data: cpuDoughnutData,
+                    options: {{
+                        responsive: true,
+                        plugins: {{
+                            legend: {{
+                                position: 'bottom',
+                            }},
+                            title: {{
+                                display: true,
+                                text: 'CPU Usage'
+                            }}
+                        }}
+                    }}
+                }});
+            }});
+        </script>
+        """
+
+    def _get_lila_memory_usage(self) -> tuple:
+        """Get memory and CPU usage of the Lila Framework process."""
+        process = psutil.Process(os.getpid())
+        memory_usage = process.memory_info().rss / (1024 * 1024)
+        cpu_usage = process.cpu_percent()
+        return memory_usage, cpu_usage
+
+    def _get_system_memory_usage(self) -> tuple:
+        """Get system memory and CPU usage."""
+        memory_info = psutil.virtual_memory()
+        used_memory = memory_info.used / (1024 * 1024)
+        total_memory = memory_info.total / (1024 * 1024)
+        cpu_usage = psutil.cpu_percent()
+        return used_memory, total_memory, cpu_usage
+
+    def _get_admin_by_id(self, id: int, select: str = "id,password") -> dict:
+        """Get an admin by ID."""
+        query = f"SELECT {select} FROM admins WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        row=self.connection.query(query=query, params=params, return_row=True)
+        return row

@@ -1,7 +1,7 @@
 from core.app import App 
 from routes.routes import routes
 from routes.api import routes as api_routes
-
+from core.admin import Admin
 # English: Importing the host and port configurations from the environment settings.
 # Español: Importando las configuraciones de host y puerto desde la configuración del entorno.
 from core.env import PORT, HOST
@@ -16,7 +16,9 @@ from database.connections import connection
 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
-all_routes = list(itertools.chain(routes, api_routes))
+from models.user import User
+admin_routes=Admin(models=[User])
+all_routes = list(itertools.chain(routes, api_routes,admin_routes))
 
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
@@ -38,7 +40,7 @@ async def main():
 
     # English: Uncomment the next line to execute database migrations.
     # Español: Descomenta la siguiente línea para ejecutar migraciones de la base de datos.
-    #migrations = await migrate(connection) # execute migrations ,for app
+    migrations = await migrate(connection) # execute migrations ,for app
 
     # English: Starting the Uvicorn server with the application instance.
     # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
