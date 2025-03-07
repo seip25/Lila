@@ -60,8 +60,8 @@ def translate_(key: str, request: Request, file_name: str = "translations") -> s
     return key
 
 
-def generate_token_value() -> str:
-    return hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
+def generate_token_value(hex:int=16) -> str:
+    return hashlib.sha256(secrets.token_hex(hex).encode()).hexdigest()
 
 
 def generate_token(name: str, value: str = None, minutes: int = 1440) -> str:
