@@ -24,6 +24,6 @@ def convert_to_serializable(obj):
         return obj 
 
 class JSONResponse(StarletteJSONResponse):
-    def __init__(self, data, status_code=200):
-        serialized_data = convert_to_serializable(data)
+    def __init__(self, data, status_code=200,serialize=True):
+        serialized_data = convert_to_serializable(data) if serialize else data
         super().__init__(serialized_data, status_code=status_code)

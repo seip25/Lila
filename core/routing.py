@@ -7,7 +7,7 @@ from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
 from core.helpers import generate_token_value,get_user_by_token,convert_date_to_str
-
+from core.logger import Logger
 import datetime
 import re
 from functools import wraps
@@ -32,6 +32,7 @@ class Router:
 
             return decorator
         except RuntimeError as e:
+            Logger.error(f"Error : {str(e)}")
             print(f"Error : {e}")
 
     def mount(
@@ -41,6 +42,7 @@ class Router:
         try:
             self.routes.append(Mount(path, StaticFiles(directory=directory), name=name))
         except RuntimeError as e:
+            Logger.error(f"Error : {str(e)}")
             print(f"Error :{e}")
 
     def get_routes(self) -> list:
@@ -220,26 +222,29 @@ class Router:
         
         
         async def get(self):
-            response =await execute_middleware(self,type='get')
-            if isinstance(response,JSONResponse):
-                return response
+            try:
+                response =await execute_middleware(self,type='get')
+                if isinstance(response,JSONResponse):
+                    return response
 
-            columns = " , ".join(select) if select else "*"
-            filters = f"WHERE active = 1" if active else ""
-            params={"user_id":0}
-            if user_id_session: 
-                
-                user_id=get_user_id_session(self)
-                if isinstance(user_id,JSONResponse):
-                    return user_id
-                params[user_id_session]=user_id
-                filters +=f" AND {user_id_session}= :{user_id_session}"
-            else:
-                params=None
+                columns = " , ".join(select) if select else "*"
+                filters = f"WHERE active = 1" if active else ""
+                params={"user_id":0}
+                if user_id_session: 
+                    
+                    user_id=get_user_id_session(self)
+                    if isinstance(user_id,JSONResponse):
+                        return user_id
+                    params[user_id_session]=user_id
+                    filters +=f" AND {user_id_session}= :{user_id_session}"
+                else:
+                    params=None
 
-            query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
-            items = connection.query(query=query,params=params,return_rows=True)
-            return JSONResponse(items) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:items})
+                query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
+                items = connection.query(query=query,params=params,return_rows=True)
+                return JSONResponse(items) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:items})
+            except Exception as e:
+                Logger.error(f"Error rest crud , GET: {str(e)}")
 
         async def post(self):
             response =await execute_middleware(self,type='post')
@@ -250,6 +255,7 @@ class Router:
                 model = model_pydantic(**body)
             except Exception as e:
                 print(str(e))
+                Logger.warning(f"Error rest_crud_generate - POST: {str(e)}")
                 return JSONResponse({"success": False, "msg": str(e)}, status_code=400)
             columns_ = (
                 " , ".join(columns)
@@ -314,6 +320,7 @@ class Router:
                 return JSONResponse({"success": result}, status_code=status_code)
             except Exception as e:
                 print(e)
+                Logger.error(f"Error rest_crud_generate , POST: {str(e)}")
                 return JSONResponse({"success": False}, status_code=500)
 
         def search_id(self) -> bool | dict:

@@ -1,33 +1,38 @@
-from starlette.applications import Starlette 
-from starlette.exceptions import HTTPException
+from starlette.applications import Starlette
 from core.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware
- 
+from core.logger import Logger
+from core.middleware import ErrorHandlerMiddleware
 
 class App:
-    def __init__(self, debug : bool =False,routes  = [],cors=None):
-        self.routes =routes
+    def __init__(self, debug: bool = False, routes=[], cors=None):
+        self.routes = routes
         self.debug = debug
-        self.cors=cors
+        self.cors = cors
 
-    def start(self): 
+    def start(self):
         try:
-            app=Starlette(debug=self.debug,routes=self.routes)
+            app = Starlette(debug=self.debug, routes=self.routes)
             app.add_exception_handler(404, self._404_page)
+            app.add_middleware(ErrorHandlerMiddleware)
+            
             if self.cors:
                 app.add_middleware(
-                CORSMiddleware,
-                allow_origins=self.cors["origin"] or ["*"],  
-                allow_credentials=self.cors["allow_credentials"] or True,
-                allow_methods=self.cors["allow_methods"] or ["*"],  
-                allow_headers=self.cors["allow_headers"] or["*"],  
-            )
+                    CORSMiddleware,
+                    allow_origins=self.cors.get("origin", ["*"]),
+                    allow_credentials=self.cors.get("allow_credentials", True),
+                    allow_methods=self.cors.get("allow_methods", ["*"]),
+                    allow_headers=self.cors.get("allow_headers", ["*"]),
+                )
 
+            Logger.info("Application started successfully")
             return app
-        except RuntimeError as e:
-            print(f"{e}")
+        except Exception as e:
+            Logger.error(f"Error: {e}", exception=e)
 
-    def _404_page(self,request, exc):
+    def _404_page(self, request, exc):
+        Logger.info(f"404 URL: {request.url.path} , method: {request.method}")
+        
         html_content = """
         <!DOCTYPE html>
         <html lang="en">

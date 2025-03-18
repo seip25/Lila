@@ -49,7 +49,7 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     head+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
     head+=f"<title>{title}</title>\n"
     if  picocss:
-       head+= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
+       head+= '<link rel="stylesheet" href="/public/css/pico.min.css">'
     if css_files :
         for css in css_files:
             head+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
@@ -61,6 +61,6 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     head+='</head>\n<body>\n'
 
  
-    html=f"{head}{html_markdown}</body>\n</html>"    
+    html=f"{head}<main class='container'>{html_markdown}</main></body>\n</html>"    
     
     return HTMLResponse(content=html)

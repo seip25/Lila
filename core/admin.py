@@ -1,5 +1,6 @@
 import psutil
-import os
+import os 
+import json
 from core.helpers import lang, translate_, generate_token_value
 from core.responses import HTMLResponse, RedirectResponse, JSONResponse
 from core.request import Request
@@ -7,7 +8,8 @@ from core.routing import Router
 from core.session import Session
 from database.connections import connection
 from argon2 import PasswordHasher
-from functools import wraps
+from functools import wraps 
+from middlewares.middlewares import check_session
  
 
 def Admin(models:list):
@@ -23,10 +25,10 @@ def admin_required(func):
     """Middleware to ensure the user is authenticated as an admin."""
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        session_data = Session.unsign(key="admin", request=request)
+        session_data = Session.unsign(key="auth_admin", request=request)
         if not session_data:
             return RedirectResponse(url="/admin/login")
-        if session_data["admin_id"] is None   :
+        if session_data["id"] is None   :
             return RedirectResponse(url="/admin/login")
         return await func(request, *args, **kwargs)
     return wrapper
@@ -49,8 +51,6 @@ class AdminClass:
         self.connection = connection 
         self.ph = PasswordHasher()
         self.password_default=None
-
-        
 
     def _check_and_create_table(self):
         """Check if the 'admins' table exists and create it if it doesn't."""
@@ -96,7 +96,7 @@ class AdminClass:
         query = "SELECT id FROM admins WHERE username = 'admin' LIMIT 1"
         admin = self.connection.query(query=query, return_row=True)
         if not admin:
-            password = "admin#" 
+            password = generate_token_value(2)
             self._create_admin("admin", password)
             self.password_default = password
             print(f"Default admin password: '{password}' and user is 'admin'")
@@ -124,7 +124,7 @@ class AdminClass:
 
         self.router.route(path="/admin/logout", methods=["GET"])(self.admin_logout)
 
-        @self.router.route(path="/admin/change_password", methods=["POST"])
+        @self.router.route(path="/admin/change_password", methods=["GET","POST"])
         @admin_required
         async def change_password_route(request: Request):
             return await self.change_password(request)
@@ -137,13 +137,30 @@ class AdminClass:
         for model in self.models:
             model_name = model.__name__.lower()
             model_plural = f"{model_name}s"
-
+                
             @self.router.route(path=f"/admin/{model_plural}", methods=["GET"])
             @admin_required
             async def model_list(request: Request, model=model):
-                items = model.get_all()
+                items = model.get_all()  
                 return HTMLResponse(content=self._model_table_view(items, model_name, request))
         
+
+        @self.router.route(path="/admin/metrics", methods=["GET"])
+        @admin_required
+        async def get_metrics(request: Request):
+            lila_memory, lila_cpu_usage = self._get_lila_memory_usage()
+            system_used_memory, system_total_memory, cpu_usage = self._get_system_memory_usage()
+            
+            metrics = {
+                "lila_memory": lila_memory,
+                "lila_cpu_usage": lila_cpu_usage,
+                "system_used_memory": system_used_memory,
+                "system_total_memory": system_total_memory,
+                "cpu_usage": cpu_usage
+            }
+            
+            return JSONResponse(metrics)
+
         return self.router
     
     async def admin_login(self, request: Request):
@@ -155,46 +172,71 @@ class AdminClass:
                 password = form_data.get("password")
                 admin = self._authenticate(username, password)
                 if admin:
-                    response = JSONResponse({"success": True, "redirect": "/admin"})
-                    Session.setSession({"admin_id": admin["id"]}, response=response, name_cookie="admin")
+                    response = JSONResponse({"success": True, "redirect": "/admin"},serialize=False)
+                    admin_val={"id":admin["id"]}
+                    Session.setSession(new_val=admin_val, response=response, name_cookie="auth_admin")
                     return response
                 return JSONResponse({"success": False, "message": "Invalid credentials"}, status_code=401)
             except Exception as e:
+                print(e)
                 return JSONResponse({"success": False, "message": "Error"}, status_code=500)
         return HTMLResponse(self._login_form(request))
 
     async def admin_logout(self, request: Request):
         """Handle admin logout requests."""
         response = RedirectResponse(url="/admin/login")
-        response.delete_cookie("admin")
+        response.delete_cookie("auth_admin")
         return response
 
     async def change_password(self, request: Request):
         """Handle password change requests."""
-        try:
-            data = await request.json()
-            new_password = data.get("new_password")
-            if not new_password:
-                return JSONResponse({"success": False, "message": "New password not provided"}, status_code=400)
+        if request.method == "POST":
+            try:
+                data = await request.json()
+                new_password = data.get("new_password")
+                if not new_password:
+                    return JSONResponse({"success": False, "message": "New password not provided"}, status_code=400)
 
-            session_data = Session.unsign(key="admin", request=request)
-            admin_id = session_data.get("admin_id") if session_data else None
+                session_data = Session.unsign(key="auth_admin", request=request)
+                admin_id = session_data.get("id") if session_data else None
 
-            if admin_id:
-                hashed_password = self.ph.hash(new_password)
-                query = "UPDATE admins SET password = :password WHERE id = :id"
-                params = {"password": hashed_password, "id": admin_id}
-                self.connection.query(query=query, params=params)
-                return JSONResponse({"success": True, "message": "Password changed successfully"})
-            return JSONResponse({"success": False, "message": "Admin not found"}, status_code=404)
-        except Exception as e:
-            return JSONResponse({"success": False, "message": str(e)}, status_code=500)
+                if admin_id:
+                    hashed_password = self.ph.hash(new_password)
+                    query = "UPDATE admins SET password = :password WHERE id = :id"
+                    params = {"password": hashed_password, "id": admin_id}
+                    self.connection.query(query=query, params=params)
+                    return JSONResponse({"success": True, "message": "Password changed successfully"})
+                return JSONResponse({"success": False, "message": "Admin not found"}, status_code=404)
+            except Exception as e:
+                return JSONResponse({"success": False, "message": str(e)}, status_code=500)
+        else:
+            html_lang = lang(request=request)
+            content= f"""
+        <!DOCTYPE html>
+        <html lang="{html_lang}">
+        <head>
+            <meta charset="UTF-8">
+            <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
+            
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Admin Dashboard</title>
+            <link rel="stylesheet" href="/public/css/pico.min.css">
+        </head>
+        <body>
+           {self.menu()}
+            <main class="container">
+                {self._change_password_form()}
+            </main>
+            </body>
+            </html>
+
+            """
+            return HTMLResponse(content)
 
     async def admin_dashboard(self, request: Request):
         
-        """Render the admin dashboard."""
-        users = self.models[0].get_all() if self.models else []
-        return HTMLResponse(content=self._admin_dashboard_view(users, request))
+        """Render the admin dashboard.""" 
+        return HTMLResponse(content=self._admin_dashboard_view( request))
 
     def _authenticate(self, username: str, password: str) -> dict:
         """Authenticate an admin user.
@@ -209,12 +251,12 @@ class AdminClass:
         query = "SELECT id, username, password FROM admins WHERE username = :username AND active = 1 LIMIT 1"
         params = {"username": username}
         admin = self.connection.query(query=query, params=params, return_row=True)
-
         if not admin or not admin.get("password"):
             return None 
 
         try:
             if self.ph.verify(admin["password"], password):
+                admin["password"]=None
                 return admin
         except Exception as e:
             print(f"Error verifying password: {e}")
@@ -234,10 +276,10 @@ class AdminClass:
         <html lang="{html_lang}">
         <head>
             <meta charset="UTF-8">
+            <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin Login</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
-            {self._styles()}
+            <link rel="stylesheet" href="/public/css/pico.min.css" />
         </head>
         <body>
             <main class="container">
@@ -248,9 +290,19 @@ class AdminClass:
                         </header>
                         <form id="loginForm">
                             <fieldset class="flex center column">
-                                <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="{html_user}" />
-                                <input type="password" name="password" id="password" required minlength="2" maxlength="255" placeholder="{html_password}" />
-                                <button type="submit" class="contrast">{html_send}</button>
+                               <div class="input-icon">
+                                    <i class="icon-person"></i> 
+                                    <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="{html_user}" />
+                               </div>
+                                 <div class="input-icon">
+                                    <i class="icon-lock"></i> 
+                                     <input type="password" name="password" id="password" required minlength="2" maxlength="255" placeholder="{html_password}" />
+                             
+                               </div>
+                                 <button type="submit" class="contrast">
+                                    <i class="icon-login"></i> 
+                                    {html_send}
+                                </button>
                             </fieldset>
                         </form>
                     </article>
@@ -284,29 +336,22 @@ class AdminClass:
         </body>
         </html>
         """
-
-    def _admin_dashboard_view(self, users: list, request: Request) -> str:
-        """Generate the HTML for the admin dashboard."""
-        user_rows = "".join([f"<tr><td>{user['name']}</td><td>{user['email']}</td></tr>" for user in users])
-        html_lang = lang(request=request)
-        lila_memory, lila_cpu_usage = self._get_lila_memory_usage()
-        system_used_memory, system_total_memory, cpu_usage = self._get_system_memory_usage()
-
-        session_data = Session.unsign(key="admin", request=request)
-        admin_id = session_data.get("admin_id") if session_data else None
-
-        change_password_form = ""
-        if admin_id:
-            admin = self._get_admin_by_id(admin_id, select="id,password")
-            if admin  and self.ph.verify(admin["password"], "admin#"):
-                change_password_form = """
+   
+    def _change_password_form(self):
+        return """
                 <article class="shadow">
                     <h4>Change Password</h4>
                     <form id="changePasswordForm">
-                        <fieldset class="flex center column">
+                    <fieldset class="flex center column">
+                        <div class="input-icon">
+                            <i class="icon icon-lock"></i>
                             <input type="password" name="new_password" id="new_password" required minlength="2" maxlength="255" placeholder="New Password" />
-                            <button type="submit" class="contrast">Change Password</button>
-                        </fieldset>
+                        </div>
+                        <button type="submit" class="contrast">
+                           <i class="icon-check-circle"></i>
+                        Change Password
+                        </button>
+                    </fieldset>
                     </form>
                 </article>
                 <script>
@@ -337,38 +382,87 @@ class AdminClass:
                 </script>
                 """
 
+    def menu(self):
+        """Generate the admin menu."""
+        
+        m=""
+        for model in self.models:
+            model_name = model.__name__.lower()
+            model_plural = f"{model_name}s"
+            m+=f"<li><a href='/admin/{model_plural}'>{model_name.capitalize()}s</a></li>"
+            
+            menu_=f"""
+            <details class="dropdown">
+                <summary>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+                </summary>
+                <ul dir="rtl">
+                {m}
+                <li><a href="/admin/change_password">Change Password</a></li>
+                <li><a href="/admin/logout">Logout</a></li>
+                </ul>
+            </details>
+        """
+        return  f"""
+      <header class=" shadow">
+                <nav class="container">
+                    <ul>
+                        <li><strong>Admin Dashboard</strong></li>
+                    </ul>
+                    <ul>
+                    <li><a href="/admin/">Dashboard</a></li>
+                        <li>
+                       {menu_}
+                        </li>
+                    </ul>
+                </nav>
+            </header>
+
+        """
+   
+    def _admin_dashboard_view(self, request: Request) -> str:
+        """Generate the HTML for the admin dashboard."""
+    
+        html_lang = lang(request=request)
+        lila_memory, lila_cpu_usage = self._get_lila_memory_usage()
+        system_used_memory, system_total_memory, cpu_usage = self._get_system_memory_usage()
+
+        session_data = Session.unsign(key="auth_admin", request=request)
+        admin_id = session_data.get("admin_id") if session_data else None
+
+        change_password_form = ""
+        if admin_id:
+            admin = self._get_admin_by_id(admin_id, select="id,password")
+            if admin  and self.ph.verify(admin["password"], "admin#"):
+                change_password_form = self._change_password_form()
+
         return f"""
         <!DOCTYPE html>
         <html lang="{html_lang}">
         <head>
             <meta charset="UTF-8">
+            <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin Dashboard</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            {self._styles()}
+            <link rel="stylesheet" href="/public/css/pico.min.css">
+            <script src="/public/js/chart.js"></script>
+            
         </head>
         <body>
-            <header class="container">
-                <nav>
-                    <ul>
-                        <li><strong>Admin Dashboard</strong></li>
-                    </ul>
-                    <ul>
-                        <li><a href="/admin/logout">Logout</a></li>
-                    </ul>
-                </nav>
-            </header>
+        {self.menu()}
             <main class="container">
                 {change_password_form}
                 <article class="shadow">
                     <h4>Server Metrics</h4>
                     <div class="flex between">
                         <div>
-                            <p>Lila Framework Memory Used: {lila_memory:.0f} MB</p>
-                            <p>Lila Framework CPU Used: {lila_cpu_usage:.0f} %</p>
-                            <p>Server Memory Used: {system_used_memory:.0f} MB / {system_total_memory:.0f} MB</p>
-                            <p>Server CPU Used: {cpu_usage:.0f} %</p>
+                            <p>Lila Framework Memory Used: <span id="lilaMemory">{lila_memory:.0f}</span> MB</p>
+                            <p>Lila Framework CPU Used: <span id="lilaCpuUsage">{lila_cpu_usage:.0f}</span> %</p>
+                            <p>Server Memory Used: <span id="systemUsedMemory">{system_used_memory:.0f}</span> MB / <span id="systemTotalMemory">{system_total_memory:.0f}</span> MB</p>
+                            <p>Server CPU Used: <span id="cpuUsage">{cpu_usage:.0f}</span> %</p>
                         </div>
                     </div>
                     <div class="flex between">
@@ -381,147 +475,151 @@ class AdminClass:
                     </div>
                 </article>
                 <br />
-                <article>
-                    <h2>Users</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {user_rows}
-                        </tbody>
-                    </table>
-                </article>
-            </main>
-            {self._scripts(system_used_memory, cpu_usage, system_total_memory)}
+            
+            </main> 
+             
+            <script>
+                let memoryChart, cpuChart;
+
+                function updateCharts() {{
+                    fetch('/admin/metrics')
+                        .then(response => response.json())
+                        .then(data => {{
+                            document.getElementById('lilaMemory').textContent = data.lila_memory.toFixed(0);
+                            document.getElementById('lilaCpuUsage').textContent = data.lila_cpu_usage.toFixed(0);
+                            document.getElementById('systemUsedMemory').textContent = data.system_used_memory.toFixed(0);
+                            document.getElementById('systemTotalMemory').textContent = data.system_total_memory.toFixed(0);
+                            document.getElementById('cpuUsage').textContent = data.cpu_usage.toFixed(0);
+
+                            memoryChart.data.datasets[0].data = [data.system_used_memory, data.system_total_memory - data.system_used_memory];
+                            cpuChart.data.datasets[0].data = [data.cpu_usage, 100 - data.cpu_usage];
+
+                            memoryChart.update();
+                            cpuChart.update();
+                        }});
+                }}
+
+                document.addEventListener('DOMContentLoaded', function () {{
+                    const memoryCtx = document.getElementById('memoryDoughnutChart').getContext('2d');
+                    const cpuCtx = document.getElementById('cpuDoughnutChart').getContext('2d');
+
+                    memoryChart = new Chart(memoryCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['Used Memory', 'Free Memory'],
+                            datasets: [{{
+                                label: 'Memory Usage',
+                                data: [{system_used_memory}, {system_total_memory - system_used_memory}],
+                                backgroundColor: ['#FF6384', '#36A2EB']
+                            }}]
+                        }}
+                    }});
+
+                    cpuChart = new Chart(cpuCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['CPU Used', 'CPU Free'],
+                            datasets: [{{
+                                label: 'CPU Usage',
+                                data: [{cpu_usage}, {100 - cpu_usage}],
+                                backgroundColor: ['#FFCE56', '#4BC0C0']
+                            }}]
+                        }}
+                    }});
+
+                     
+                    setInterval(updateCharts, 10000);
+                }});
+            </script>
         </body>
         </html>
         """
 
     def _model_table_view(self, items: list, model_name: str, request: Request) -> str:
-        """Generate the HTML for a model table view."""
+        """Generate the HTML for a model table view with Tabulator."""
         headers = items[0].keys() if items else []
-        rows = "".join([f"<tr>{''.join([f'<td>{item[header]}</td>' for header in headers])}</tr>" for item in items])
+        
+        items_json = json.dumps(items)
         html_lang = lang(request=request)
         return f"""
         <!DOCTYPE html>
         <html lang="{html_lang}">
         <head>
             <meta charset="UTF-8">
+            <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
+            
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin - {model_name.capitalize()}</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+            <link rel="stylesheet" href="/public/css/pico.min.css">
+        
+            <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+            <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
+        
+            <style>
+            #tabulator-table button {{
+             all: unset;  
+            }}
+            .tabulator-paginator{{
+                display:flex !important;
+                justify-content: space-between !important;
+            }}
+            </style>
         </head>
         <body>
-            <header class="container">
-                <nav>
-                    <ul>
-                        <li><strong>Admin - {model_name.capitalize()}</strong></li>
-                    </ul>
-                    <ul>
-                        <li><a href="/admin">Dashboard</a></li>
-                    </ul>
-                </nav>
-            </header>
+             {self.menu()}
             <main class="container">
                 <article>
-                    <h2>{model_name.capitalize()}</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                {"".join([f"<th>{header.capitalize()}</th>" for header in headers])}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rows}
-                        </tbody>
-                    </table>
+                    <h2>{model_name.capitalize()}s</h2>
+                    <div id="tabulator-table"></div>
                 </article>
             </main>
+            <script>
+                
+                let table = new Tabulator("#tabulator-table", {{
+                    data: {items_json}, 
+                    layout: "fitColumns", 
+                    columns: [
+                        {{
+                            title: "ID",
+                            field: "id",
+                            visible: false 
+                        }},
+                        {",".join([
+                            f'{{title: "{header.capitalize()}", field: "{header}"}}' for header in headers
+                        ])}
+                    ],
+                    pagination: "local", 
+                    paginationSize: 10, 
+                    paginationSizeSelector: [10, 20, 50, 100], 
+                    movableColumns: true, 
+                    responsiveLayout: "hide", 
+                }});
+            </script>
         </body>
         </html>
         """
+   
+    def _get_lila_memory_usage(self) -> tuple:
+        """Get memory and CPU usage of the Lila Framework process."""
+        process = psutil.Process(os.getpid())
+        memory_usage = process.memory_info().rss / (1024 * 1024)
+        cpu_usage = process.cpu_percent()
+        return memory_usage, cpu_usage
 
-    def _styles(self) -> str:
-        """Generate custom CSS styles for the admin panel."""
-        return """
-        <style>
-        button:not([role="search"]) {
-        border-radius: 2rem !important;
-        padding: 0.5rem !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        }
+    def _get_system_memory_usage(self) -> tuple:
+        """Get system memory and CPU usage."""
+        memory_info = psutil.virtual_memory()
+        used_memory = memory_info.used / (1024 * 1024)
+        total_memory = memory_info.total / (1024 * 1024)
+        cpu_usage = psutil.cpu_percent()
+        return used_memory, total_memory, cpu_usage
 
-        button.secondary{
-        background-color: #f8f9fa !important;
-        border: 1px solid #f8f9fa !important;
-        color: #000 !important;
-        }
-
-        input.secondary {
-        background-color: #f8f9fa !important;
-        border: 1px solid #696969 !important;
-        color: #000 !important;
-        }
-
-        .shadow {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.09) !important;
-        }
-        article {
-        border: none !important;
-        border-radius: 1rem !important;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-
-        article header {
-        border: none !important;
-        }
-
-        article footer {
-        border: none !important;
-        }
-
-        .flex {
-        display: flex !important;
-        }
-
-        .column {
-        flex-direction: column !important;
-        }
-
-        .center {
-        justify-content: center !important;
-        }
-
-        .items-center {
-        align-items: center !important;
-        }
-
-        .between{
-        justify-content: space-between !important;
-        }
-        .w-100{
-        width: 100% !important;
-        }
-
-        .w-full{
-        width: 100% !important;
-        }
-
-        .me-2 {
-        margin-right: 0.5rem;
-        }
-
-        .mx-sm {
-        max-width: 400px !important;
-        }
-        </style>
-        """
+    def _get_admin_by_id(self, id: int, select: str = "id,password") -> dict:
+        """Get an admin by ID."""
+        query = f"SELECT {select} FROM admins WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        row=self.connection.query(query=query, params=params, return_row=True)
+        return row
 
     def _scripts(self, system_used_memory, cpu_usage, system_total_memory) -> str:
         """Generate JavaScript for the admin panel."""
@@ -600,25 +698,3 @@ class AdminClass:
             }});
         </script>
         """
-
-    def _get_lila_memory_usage(self) -> tuple:
-        """Get memory and CPU usage of the Lila Framework process."""
-        process = psutil.Process(os.getpid())
-        memory_usage = process.memory_info().rss / (1024 * 1024)
-        cpu_usage = process.cpu_percent()
-        return memory_usage, cpu_usage
-
-    def _get_system_memory_usage(self) -> tuple:
-        """Get system memory and CPU usage."""
-        memory_info = psutil.virtual_memory()
-        used_memory = memory_info.used / (1024 * 1024)
-        total_memory = memory_info.total / (1024 * 1024)
-        cpu_usage = psutil.cpu_percent()
-        return used_memory, total_memory, cpu_usage
-
-    def _get_admin_by_id(self, id: int, select: str = "id,password") -> dict:
-        """Get an admin by ID."""
-        query = f"SELECT {select} FROM admins WHERE id = :id AND active = 1 LIMIT 1"
-        params = {"id": id}
-        row=self.connection.query(query=query, params=params, return_row=True)
-        return row
