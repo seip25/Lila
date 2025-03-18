@@ -3,6 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Optional
+from core.logger import Logger
 
 Base = declarative_base()
 
@@ -72,6 +73,7 @@ class Database:
                 )
             except SQLAlchemyError as e:
                 print(f"Create database, error: {e}")
+                Logger.error(f"Create database, error: {e}")
                 return False
         return True
 
@@ -91,6 +93,7 @@ class Database:
                 self.metadata.create_all(self.engine)
             print("success migrations")
         except SQLAlchemyError as e:
+            Logger.error(f"Error database.py: {e}")
             print(e)
 
     def query(
@@ -126,6 +129,7 @@ class Database:
                 return result
         except SQLAlchemyError as e:
             print(f"Query error: {e}")
+            Logger.error(f"Query error: {e}")
         return result
 
     def commit(self) -> None:
@@ -133,6 +137,7 @@ class Database:
             try:
                 self.connection.commit()
             except SQLAlchemyError as e:
+                Logger.error(f"Commit error: {e}")
                 print(f"Commit error: {e}")
 
     def close(self) -> None:

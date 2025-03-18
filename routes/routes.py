@@ -50,7 +50,7 @@ async def home(request: Request):
     css = ["/public/css/styles.css"]
     # English: Renders a markdown file with PicoCSS styling
     # Español: Renderiza un archivo markdown con el estilo PicoCSS
-    response = renderMarkdown(
+    response = renderMarkdowns(
         request=request, file="example", css_files=css, picocss=True
     )
     return response

@@ -71,14 +71,30 @@
             </ul>
         </nav>
     </header>
-    <main>
+    <main >
+     <div class="flex between gap-1">
+        <aside>
+            <header class="container">
+                <nav>
+                     
+                    <ul>
+                        <li>
+                            <a href="#doc-eng">Documentation</a>
+                            &nbsp;&nbsp;
+                            <a href="#doc-esp" class="mt-1">Documentación </a>
+                        </li>
+        
+                    </ul>
+                </nav>
+            </header>
+    
+          </aside>
+     
+      <div class="main flex column container  ">
         <div id="search">
             <input type="search" name="search" id="searchBox" placeholder="Search... , Buscar..."
                 onkeyup="searchDocs()">
             <ul id="searchResults"></ul>
-        </div>
-        <div>
-
         </div>
         <div id="intro">
             <div id="intro-eng">
@@ -180,7 +196,7 @@
                 <h3>Personalización Libre</h3>
                 <p>Puedes usar Lila con cualquier framework de estilos que prefieras, como Tailwind CSS, Bootstrap,
                     PicoCSS, u otros.</p>
-               
+
             </div>
         </div>
         <hr />
@@ -2530,7 +2546,7 @@ mysql_connection = connection
                         definir tablas de bases de datos: utilizando "Tabla" directamente o utilizando Modelos con
                         "Base". A
                         continuación se incluyen explicaciones y ejemplos de ambos métodos.</p>
-                  
+
                     <p><strong>Usando Table:</strong> Este método define manualmente la estructura de la tabla con el
                         objeto
                         Table de SQLAlchemy.</p>
@@ -2919,7 +2935,10 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
             </article> -->
             </div>
 
+        </div>
+      </div>
 
+    </div>
     </main>
 
 </body>
