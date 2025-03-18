@@ -22,7 +22,7 @@ class Logger:
         log_file = folder_logs(log_type)
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(log_file, "a") as file:
-            file.write(f"{timestamp} - {log_type.upper()} - {message}\n")
+            file.write(f"{timestamp} - {log_type.upper()} - {message}\n\n\n")
 
     @classmethod
     def error(cls, message: str, exception: Exception = None):
@@ -43,19 +43,28 @@ class Logger:
         client_ip = request.client.host
         try:
             body = await request.body()
-            body_content = body.decode() if body else "No body"
+            body_content = body.decode() if body else ""
+            if "password" in body_content:
+                body_content["password"]=""
+            if "token" in body_content:
+                body_content["token"]=""
         except Exception as e:
-            body_content="No body"
+            body_content=""
         try:   
             json_content=await request.json()
+            if "password" in json_content:
+                json_content["password"]=""
+            if "token" in json_content:
+                json_content["token"]=""
+            
         except Exception as e:
             json_content={}
         return (
         f"IP: {client_ip}, URL: {request.url.path}, Method: {request.method} | "
-        f"Headers: {dict(request.headers)} | "
+        # f"Headers: {dict(request.headers)} | "
+        # f"Cookies: {request.cookies} |" 
         f"Query Params: {dict(request.query_params)} | "
         f"Path Params: {request.path_params} | "
-        f"Cookies: {request.cookies} |" 
         f"Body: {body_content} |"
         f" JSON: {json_content}"
         )

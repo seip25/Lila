@@ -7,7 +7,7 @@ signer = Signer(SECRET_KEY)
 
 class Session:
     @staticmethod
-    def setSession( new_val: str| dict | list, response,name_cookie:str="session",secure : bool=False) -> None:
+    def setSession( new_val: str| dict | list, response,name_cookie:str="session",secure : bool=True,samesite:str="samesite",max_age: int = 1800) -> None:
         if isinstance(new_val, (dict, list)): 
             new_val = json.dumps(new_val)
         signed_session = signer.sign(new_val.encode("utf-8")) 
@@ -15,7 +15,8 @@ class Session:
         value=signed_session.decode("utf-8"),
         httponly=True,
         secure=secure,
-        samesite="Lax"
+        samesite=samesite,
+        max_age=max_age
 )
     @staticmethod
     def getSession( key: str, request: Request) -> dict | str | None:
@@ -34,4 +35,8 @@ class Session:
                 return unsigned_data
         except BadSignature:
             return None
+        
+    @staticmethod
+    def deleteSession(response,name_cookie:str)->None:
+        response.delete_cookie(name_cookie)
  

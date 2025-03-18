@@ -8,7 +8,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request, call_next):
         try:
-            Logger.info(await Logger.request())
+            Logger.info(await Logger.request(request=request))
             response = await call_next(request)
             return response
         except Exception as e:

@@ -21,7 +21,6 @@ class User(Base):
     # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
     def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        print(query)
         result = connection.query(query=query,return_rows=True)
         return result 
 
