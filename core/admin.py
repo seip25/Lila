@@ -1,6 +1,7 @@
 import psutil
 import os 
 import json
+from datetime import datetime
 from core.helpers import lang, translate_, generate_token_value
 from core.responses import HTMLResponse, RedirectResponse, JSONResponse
 from core.request import Request
@@ -430,15 +431,52 @@ class AdminClass:
         lila_memory, lila_cpu_usage = self._get_lila_memory_usage()
         system_used_memory, system_total_memory, cpu_usage = self._get_system_memory_usage()
 
-        session_data = Session.unsign(key="auth_admin", request=request)
-        admin_id = session_data.get("admin_id") if session_data else None
+        logs = {}
+        log_base_dir = "logs"
+        logs_html = ""
 
-        change_password_form = ""
-        if admin_id:
-            admin = self._get_admin_by_id(admin_id, select="id,password")
-            if admin  and self.ph.verify(admin["password"], "admin#"):
-                change_password_form = self._change_password_form()
+        if os.path.exists(log_base_dir):
+            for log_folder in os.listdir(log_base_dir):
+                log_folder_path = os.path.join(log_base_dir, log_folder)
+                if os.path.isdir(log_folder_path):  
+                    logs[log_folder] = {}
+                    for log_file in os.listdir(log_folder_path):
+                        if log_file.endswith(".log"):  
+                            with open(os.path.join(log_folder_path, log_file), "r") as f:
+                                logs[log_folder][log_file] = f.readlines()
+                                
 
+            logs_html = """
+            <details class="logs-container container ">
+                <summary class="logs-summary">📁 Logs</summary>
+                <ul class="logs-list">
+            """
+            for log_folder, log_files in logs.items():
+                logs_html += f"""
+                <li class="log-item">
+                    <details class="log-folder">
+                        <summary class="log-folder-summary">📁 {log_folder}</summary>
+                        <ul class="log-files-list">
+                """
+                for log_file, log_lines in log_files.items():
+                    logs_html += f"""
+                    <li class="log-file-item">
+                        <details class="log-file">
+                            <summary class="log-summary">📄 {log_file}</summary>
+                            <pre class="log-content">{"".join(log_lines)}</pre>
+                        </details>
+                    </li>
+                    """
+                logs_html += """
+                        </ul>
+                    </details>
+                </li>
+                """
+            logs_html += """
+                </ul>
+            </details>
+            """ 
+     
         return f"""
         <!DOCTYPE html>
         <html lang="{html_lang}">
@@ -449,12 +487,98 @@ class AdminClass:
             <title>Admin Dashboard</title>
             <link rel="stylesheet" href="/public/css/pico.min.css">
             <script src="/public/js/chart.js"></script>
+            <style>
+            li {{
+                list-style: none !important;
+            }}
+            :root {{
+                --logs-container-bg: #f9f9f9;
+                --logs-container-border: #e0e0e0;
+                --logs-summary-bg: #e0e0e0;
+                --logs-summary-color: #333;
+                --log-file-bg: #ffffff;
+                --log-file-border: #d0d0d0;
+                --log-summary-color: #333;
+                --log-content-bg: #000;
+                --log-content-color: #36f936;
+                --log-content-border: #e0e0e0;
+            }}
+
+            @media (prefers-color-scheme: dark) {{
+                :root {{
+                    --logs-container-bg: #2d2d2d;
+                    --logs-container-border: #444;
+                    --logs-summary-bg: #444;
+                    --logs-summary-color: #f5f5f5;
+                    --log-file-bg: #1e1e1e;
+                    --log-file-border: #444;
+                    --log-summary-color: #f5f5f5;
+                    --log-content-bg: #000;
+                    --log-content-color: #36f936;
+                    --log-content-border: #444;
+                }}
+            }}
+
             
+            .logs-container {{
+                margin-top: 1rem;
+                border: 1px solid var(--logs-container-border);
+                border-radius: 8px;
+                padding: 0.5rem;
+                background-color: var(--logs-container-bg);
+            }}
+
+            .logs-summary {{
+                font-weight: bold;
+                cursor: pointer;
+                padding: 0.5rem;
+                background-color: var(--logs-summary-bg);
+                border-radius: 4px;
+                color: var(--logs-summary-color);
+            }}
+
+            .logs-list {{
+                list-style-type: none;
+                padding-left: 0;
+                margin-top: 0.5rem;
+            }}
+
+            .log-item {{
+                margin-bottom: 0.5rem;
+            }}
+
+            .log-file {{
+                border: 1px solid var(--log-file-border);
+                border-radius: 4px;
+                padding: 0.5rem;
+                background-color: var(--log-file-bg);
+            }}
+
+            .log-summary {{
+                cursor: pointer;
+                font-weight: 500;
+                color: var(--log-summary-color);
+            }}
+
+            .log-content {{
+                margin-top: 0.5rem;
+                padding: 0.5rem;
+                border: 1px solid var(--log-content-border);
+                border-radius: 4px;
+                max-height: 600px;
+                overflow-y: auto;
+                font-family: monospace;
+                font-size: 0.9rem;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                color: var(--log-content-color);
+                background-color: var(--log-content-bg);
+            }}
+            </style>
         </head>
         <body>
         {self.menu()}
-            <main class="container">
-                {change_password_form}
+            <main class="container"> 
                 <article class="shadow">
                     <h4>Server Metrics</h4>
                     <div class="flex between">
@@ -476,6 +600,10 @@ class AdminClass:
                 </article>
                 <br />
             
+                <article class="shadow">
+                    <h4>Logs</h4>
+                    {logs_html}
+                </article>
             </main> 
              
             <script>
