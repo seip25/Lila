@@ -50,7 +50,7 @@ async def home(request: Request):
     css = ["/public/css/styles.css"]
     # English: Renders a markdown file with PicoCSS styling
     # Español: Renderiza un archivo markdown con el estilo PicoCSS
-    response = renderMarkdowns(
+    response = renderMarkdown(
         request=request, file="example", css_files=css, picocss=True
     )
     return response
@@ -71,7 +71,9 @@ async def set_language(request: Request):
     return response
 
 
-
+@router.route(path="/error", methods=["GET"])
+async def trigger_error(request: Request):
+    raise ValueError("Error")
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas

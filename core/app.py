@@ -30,8 +30,8 @@ class App:
         except Exception as e:
             Logger.error(f"Error: {e}", exception=e)
 
-    def _404_page(self, request, exc):
-        Logger.info(f"404 URL: {request.url.path} , method: {request.method}")
+    async def _404_page(self, request, exc):
+        Logger.warning(await Logger.request(request=request))
         
         html_content = """
         <!DOCTYPE html>

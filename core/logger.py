@@ -1,8 +1,8 @@
 import os
-import datetime
-import logging
+import datetime 
 from datetime import timedelta
 import traceback
+from core.request import Request
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -38,6 +38,27 @@ class Logger:
     def info(cls, message: str):
         cls._write_log("info", message)
 
+    @classmethod
+    async def request(cls,request:Request):
+        client_ip = request.client.host
+        try:
+            body = await request.body()
+            body_content = body.decode() if body else "No body"
+        except Exception as e:
+            body_content="No body"
+        try:   
+            json_content=await request.json()
+        except Exception as e:
+            json_content={}
+        return (
+        f"IP: {client_ip}, URL: {request.url.path}, Method: {request.method} | "
+        f"Headers: {dict(request.headers)} | "
+        f"Query Params: {dict(request.query_params)} | "
+        f"Path Params: {request.path_params} | "
+        f"Cookies: {request.cookies} |" 
+        f"Body: {body_content} |"
+        f" JSON: {json_content}"
+        )
 
 def delete_old_logs(days: int = 30):
     now = datetime.datetime.now()
