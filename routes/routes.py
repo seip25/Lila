@@ -77,5 +77,4 @@ async def trigger_error(request: Request):
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
-
 routes = router.get_routes()
