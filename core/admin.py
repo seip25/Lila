@@ -11,12 +11,12 @@ from argon2 import PasswordHasher
 from functools import wraps 
  
 
-def Admin(models:list,prefix:str="admin",user_default:str="admin"):
+def Admin(models:list,user_default:str="admin"):
     router=Router()
     admin=AdminClass(models=models,router=router,connection=connection)
     admin._check_and_create_table()
     admin._create_default_admin(user_default)
-    admin._generate_admin_routes(prefix=prefix)
+    admin._generate_admin_routes()
     routes=admin.router.get_routes() 
     return routes
 
@@ -92,8 +92,9 @@ class AdminClass:
 
     def _create_default_admin(self,user_default:str="admin"):
         """Create a default admin user if it doesn't exist."""
-        query = "SELECT id FROM admins WHERE username = 'admin' LIMIT 1"
-        admin = self.connection.query(query=query, return_row=True)
+        query = "SELECT id FROM admins WHERE username = :user_params LIMIT 1"
+        params= {"user_params":user_default}
+        admin = self.connection.query(query=query,params=params, return_row=True)
         if not admin:
             password = generate_token_value(2)
             self._create_admin(user_default, password)
@@ -116,19 +117,19 @@ class AdminClass:
         result = self.connection.query(query=query, params=params)
         return result
 
-    def _generate_admin_routes(self,prefix:str="admin"):
+    def _generate_admin_routes(self):
         """Generate routes for the admin panel, including model management."""
         
-        self.router.route(path=f"/{prefix}/login", methods=["GET", "POST"])(self.admin_login)
+        self.router.route(path=f"/admin/login", methods=["GET", "POST"])(self.admin_login)
 
-        self.router.route(path=f"/{prefix}/logout", methods=["GET"])(self.admin_logout)
+        self.router.route(path=f"/admin/logout", methods=["GET"])(self.admin_logout)
 
-        @self.router.route(path=f"/{prefix}/change_password", methods=["GET","POST"])
+        @self.router.route(path=f"/admin/change_password", methods=["GET","POST"])
         @admin_required
         async def change_password_route(request: Request):
             return await self.change_password(request)
 
-        @self.router.route(path=f"/{prefix}", methods=["GET"])
+        @self.router.route(path=f"/admin", methods=["GET"])
         @admin_required
         async def admin_route(request: Request):
             return await self.admin_dashboard(request)
@@ -137,14 +138,14 @@ class AdminClass:
             model_name = model.__name__.lower()
             model_plural = f"{model_name}s"
                 
-            @self.router.route(path=f"/{prefix}/{model_plural}", methods=["GET"])
+            @self.router.route(path=f"/admin/{model_plural}", methods=["GET"])
             @admin_required
             async def model_list(request: Request, model=model):
                 items = model.get_all()  
                 return HTMLResponse(content=self._model_table_view(items, model_name, request))
         
 
-        @self.router.route(path=f"/{prefix}/metrics", methods=["GET"])
+        @self.router.route(path=f"/admin/metrics", methods=["GET"])
         @admin_required
         async def get_metrics(request: Request):
             lila_memory, lila_cpu_usage = self._get_lila_memory_usage()
