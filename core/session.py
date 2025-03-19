@@ -7,7 +7,7 @@ signer = Signer(SECRET_KEY)
 
 class Session:
     @staticmethod
-    def setSession( new_val: str| dict | list, response,name_cookie:str="session",secure : bool=True,samesite:str="samesite",max_age: int = 1800) -> None:
+    def setSession( new_val: str| dict | list, response,name_cookie:str="session",secure : bool=True,samesite:str="strict",max_age: int = 1800) -> None:
         if isinstance(new_val, (dict, list)): 
             new_val = json.dumps(new_val)
         signed_session = signer.sign(new_val.encode("utf-8")) 
