@@ -80,9 +80,9 @@
 </head>
 
 <body>
-    <header>
+    <header class="container">
         <nav>
-            <ul class="container">
+            <ul>
                 <li>
                     <h1 class="text-lila">Lila Framework</h1>
                 </li>
@@ -105,41 +105,43 @@
                     <nav>
                         <details>
                             <summary>English</summary>
-                       
-                        <ul>
 
-                            <li><a href="#install-eng">Installation</a></li>
-                            <li><a href="#routes-eng">Routes</a></li>
-                            <li><a href="#static-eng">Static</a></li>
-                            <li><a href="#templates-eng">Templates</a></li>
-                            <li><a href="#markdown-eng">Markdown/HTML</a></li>
-                            <li><a href="#locales-eng">Internationalization (Translations)</a></li>
-                            <li><a href="#models-eng">Models</a></li>
-                            <li><a href="#middlewares-eng">Middlewares</a></li>
-                            <li><a href="#connections-eng">Connections</a></li>
-                            <li><a href="#migrations-eng">Migrations</a></li>
-                            <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
-                            <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
-                        </ul>
-                    </details>
-                    <details>
-                        <summary>Español</summary>
-                   
-                        <ul>
-                            <li><a href="#install-esp">Instalación</a></li>
-                            <li><a href="#routes-esp">Rutas</a></li>
-                            <li><a href="#static-esp">Static</a></li>
-                            <li><a href="#templates-esp">Templates</a></li>
-                            <li><a href="#markdown-esp">Markdown/HTML</a></li>
-                            <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
-                            <li><a href="#models-esp">Modelos</a></li>
-                            <li><a href="#middlewares-esp">Middlewares</a></li>
-                            <li><a href="#connections-esp">Connections</a></li>
-                            <li><a href="#migrations-esp">Migraciones</a></li>
-                            <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
-                            <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
-                        </ul>
-                    </details>
+                            <ul>
+
+                                <li><a href="#install-eng">Installation</a></li>
+                                <li><a href="#routes-eng">Routes</a></li>
+                                <li><a href="#static-eng">Static</a></li>
+                                <li><a href="#templates-eng">Templates</a></li>
+                                <li><a href="#markdown-eng">Markdown/HTML</a></li>
+                                <li><a href="#locales-eng">Internationalization (Translations)</a></li>
+                                <li><a href="#models-eng">Models</a></li>
+                                <li><a href="#middlewares-eng">Middlewares</a></li>
+                                <li><a href="#connections-eng">Connections</a></li>
+                                <li><a href="#migrations-eng">Migrations</a></li>
+                                <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
+                                <li><a href="#admin-panel-eng">Admin Panel</a></li>
+                                <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
+                            </ul>
+                        </details>
+                        <details>
+                            <summary>Español</summary>
+
+                            <ul>
+                                <li><a href="#install-esp">Instalación</a></li>
+                                <li><a href="#routes-esp">Rutas</a></li>
+                                <li><a href="#static-esp">Static</a></li>
+                                <li><a href="#templates-esp">Templates</a></li>
+                                <li><a href="#markdown-esp">Markdown/HTML</a></li>
+                                <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
+                                <li><a href="#models-esp">Modelos</a></li>
+                                <li><a href="#middlewares-esp">Middlewares</a></li>
+                                <li><a href="#connections-esp">Connections</a></li>
+                                <li><a href="#migrations-esp">Migraciones</a></li>
+                                <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
+                                <li><a href="#admin-panel-esp">Panel de Admin</a></li>
+                                <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
+                            </ul>
+                        </details>
                     </nav>
                 </header>
             </aside>
@@ -291,6 +293,7 @@
                                 <li><a href="#connections-eng">Connections</a></li>
                                 <li><a href="#migrations-eng">Migrations</a></li>
                                 <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
+                                <li><a href="#admin-panel-eng">Admin Panel</a></li>
                                 <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
 
                             </ul>
@@ -1684,7 +1687,159 @@ def rest_crud_generate(
 
                         </article>
 
+                        <article id="admin-panel-eng">
+                            <h1>Admin Panel</h1>
+                            <p>
+                                The <code>Admin</code> module allows you to manage an admin panel for your application. It includes authentication, model management, system metrics, and more. This panel is highly customizable and integrates easily with your application.
+                            </p>
+                            <p>
+                                The idea is to provide you with a starting point for your admin panel. In <code>core/admin.py</code>, you can customize everything to your liking, adding two-factor authentication, different types of security, various model management options, etc.
+                            </p>
+                        
+                            <h2>Key Features</h2>
+                            <ul>
+                                <li><strong>Authentication</strong>: Secure login and logout for administrators.</li>
+                                <li><strong>Model Management</strong>: Automatically generates routes and views to manage your models.</li>
+                                <li><strong>System Metrics</strong>: Monitors memory and CPU usage for both the application and the server.</li>
+                                <li><strong>Password Management</strong>: Allows administrators to change their passwords.</li>
+                                <li><strong>Logs</strong>: Enables administrators to view application <code>Logs</code>.</li>
+                            </ul>
+                        
+                            <h2>Basic Usage</h2>
+                            <p>
+                                To use the admin panel, you need to import the <code>Admin</code> class and pass it a list of models you want to manage, the <code>prefix</code> that will be used for the URL (e.g., <a href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a>, where "admin" is the default prefix or the one passed to the <code>Admin</code> function). You can also specify the default user with the <code>user_default</code> parameter. Then, integrate the generated routes into your application.
+                            </p>
+                        
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-python">
+from core.admin import Admin
+from models import User
 
+# Create admin routes for the User model
+admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
+
+# Integrate routes into the application
+from core.app import App
+from routes.routes import routes
+from routes.api import routes as api_routes
+import itertools
+
+all_routes = list(itertools.chain(routes, api_routes, admin_routes))
+app = App(debug=True, routes=all_routes)
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Default Admin User</h2>
+                            <p>
+                                The first time you start the admin panel, a default user is created (which you can modify using the <code>user_default</code> parameter in the <code>Admin</code> function) with the following credentials:
+                            </p>
+                            <ul>
+                                <li><strong>Username</strong>: <code>admin</code></li>
+                                <li><strong>Password</strong>: Automatically generated and displayed in the console.</li>
+                            </ul>
+                            <p>
+                                Example console message:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Console</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-plaintext">
+Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf0c8079863126' and user is 'admin'
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Generated Routes</h2>
+                            <p>
+                                The admin panel automatically generates the following routes:
+                            </p>
+                            <ul>
+                                <li><strong>Login</strong>: <code>/admin/login</code> (GET/POST)</li>
+                                <li><strong>Logout</strong>: <code>/admin/logout</code> (GET)</li>
+                                <li><strong>Change Password</strong>: <code>/admin/change_password</code> (GET/POST)</li>
+                                <li><strong>Dashboard</strong>: <code>/admin</code> (GET)</li>
+                                <li><strong>Model Management</strong>: <code>/admin/{model_plural}</code> (GET)</li>
+                            </ul>
+                        
+                            <h2>Authentication Middleware</h2>
+                            <p>
+                                To protect routes and ensure only authenticated administrators can access them, use the <code>@admin_required</code> decorator.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Middleware Usage</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-python">
+@router.route(path="/admin/dashboard", methods=["GET"])
+@admin_required
+async def admin_dashboard(request: Request):
+    return await self.admin_dashboard(request)
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+                        
+                            <h2>System Metrics</h2>
+                            <p>
+                                The admin panel displays real-time metrics, including:
+                            </p>
+                            <ul>
+                                <li>Lila framework memory usage.</li>
+                                <li>Lila framework CPU usage.</li>
+                                <li>System memory usage.</li>
+                                <li>System CPU usage.</li>
+                            </ul>
+                            <p>
+                                These metrics are updated every 10 seconds.
+                            </p>
+                        
+                            <h2>Logs</h2>
+                            <p>
+                                In Lila, we use a middleware that you can enable or disable if you want to use <code>Logs</code> for info, warnings, or errors in your application.
+                            </p>
+                            <p>
+                                The middleware is located in <code>core/middleware.py</code> and is added to the application with:
+                                <code>app.add_middleware(ErrorHandlerMiddleware)</code>.
+                            </p>
+                            <p>
+                                This helps generate logs that you can view in the admin panel, organized by date (in folders) and type.
+                            </p>
+                            <p class="container">
+                                <img src="img/admin.png" alt="admin" />
+                            </p>
+                            <br />
+                            <p class="container">
+                                <img src="img/admin_2.png" alt="admin" />
+                            </p>
+                        </article>
                         <!-- 
                 <article id="helpers-eng">
 
@@ -1710,6 +1865,7 @@ def rest_crud_generate(
                                 <li><a href="#connections-esp">Connections</a></li>
                                 <li><a href="#migrations-esp">Migraciones</a></li>
                                 <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
+                                <li><a href="#admin-panel-esp">Panel de Admin</a></li>
                                 <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
                             </ul>
                         </article>
@@ -3122,6 +3278,184 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
                             </p>
 
                         </article>
+
+
+                        <article id="admin-panel-esp">
+                            <h1>Panel de Administración</h1>
+                            <p>
+                                El módulo <code>Admin</code> permite gestionar un panel de administración para tu
+                                aplicación. Incluye autenticación, gestión de modelos, métricas del sistema y más. Este
+                                panel es altamente personalizable y se integra fácilmente con tu aplicación.
+                            </p>
+                            <p>
+                                La idea es darte una ayuda para ir comenzando con tu panel de administración, en
+                                <code>core/admin.py</code>, ahí puedes personalizar todo a tu gusto, agregando doble
+                                autenticación,distintos tipos de seguridad,diferentes gestiones de modelos,etc
+                            </p>
+
+                            <h2>Características Principales</h2>
+                            <ul>
+                                <li><strong>Autenticación</strong>: Inicio y cierre de sesión seguros para
+                                    administradores.</li>
+                                <li><strong>Gestión de Modelos</strong>: Genera automáticamente rutas y vistas para
+                                    administrar tus modelos.</li>
+                                <li><strong>Métricas del Sistema</strong>: Monitorea el uso de memoria y CPU de la
+                                    aplicación y del servidor.</li>
+                                <li><strong>Cambio de Contraseña</strong>: Permite a los administradores cambiar su
+                                    contraseña.</li>
+
+                                <li><strong>Logs</strong>: Permite a los administradores ver los <code>Logs</code>, de
+                                    tu aplicación.</li>
+                            </ul>
+
+                            <h2>Uso Básico</h2>
+                            <p>
+                                Para usar el panel de administración, debes importar la clase <code>Admin</code> y
+                                pasarle una lista de modelos que deseas gestionar, el <code>prefix</code> que sera
+                                utilizado para la url ejemplo <a
+                                    href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a> , donde "admin"
+                                seria el prefixo por defecto y/o pasado a la función <code>Admin</code>, también puedes
+                                pasarle el usuario que utilizara por defecto con <code>user_default</code>. Luego,
+                                integra las rutas generadas en
+                                tu aplicación.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-python">
+from core.admin import Admin
+from models import User
+
+# Crear rutas de administración para el modelo User
+admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
+
+# Integrar las rutas en la aplicación
+from core.app import App
+from routes.routes import routes
+from routes.api import routes as api_routes
+import itertools
+
+all_routes = list(itertools.chain(routes, api_routes, admin_routes))
+app = App(debug=True, routes=all_routes)
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>Usuario Administrador Predeterminado</h2>
+                            <p>
+                                La primera vez que inicias el panel de administración, se crea un usuario predeterminado
+                                ,que puedes modificar con el parametro <code>user_default</code>, en la función
+                                <code>Admin</code>con las siguientes credenciales:
+                            </p>
+                            <ul>
+                                <li><strong>Usuario</strong>: <code>admin</code></li>
+                                <li><strong>Contraseña</strong>: Generada automáticamente y mostrada en la consola.</li>
+                            </ul>
+                            <p>
+                                Ejemplo de mensaje en la consola:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Consola</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-plaintext">
+Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf0c8079863126' and user is 'admin'
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>Rutas Generadas</h2>
+                            <p>
+                                El panel de administración genera automáticamente las siguientes rutas:
+                            </p>
+                            <ul>
+                                <li><strong>Inicio de Sesión</strong>: <code>/admin/login</code> (GET/POST)</li>
+                                <li><strong>Cierre de Sesión</strong>: <code>/admin/logout</code> (GET)</li>
+                                <li><strong>Cambio de Contraseña</strong>: <code>/admin/change_password</code>
+                                    (GET/POST)</li>
+                                <li><strong>Panel de Control</strong>: <code>/admin</code> (GET)</li>
+                                <li><strong>Gestión de Modelos</strong>: <code>/admin/{model_plural}</code> (GET)</li>
+                            </ul>
+
+                            <h2>Middleware de Autenticación</h2>
+                            <p>
+                                Para proteger rutas y asegurar que solo los administradores autenticados puedan acceder,
+                                se utiliza el decorador <code>@admin_required</code>.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Uso del Middleware</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-python">
+@router.route(path="/admin/dashboard", methods=["GET"])
+@admin_required
+async def admin_dashboard(request: Request):
+return await self.admin_dashboard(request)
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>Métricas del Sistema</h2>
+                            <p>
+                                El panel de administración muestra métricas en tiempo real, incluyendo:
+                            </p>
+                            <ul>
+                                <li>Uso de memoria del framework Lila.</li>
+                                <li>Uso de CPU del framework Lila.</li>
+                                <li>Uso de memoria del sistema.</li>
+                                <li>Uso de CPU del sistema.</li>
+                            </ul>
+                            <p>
+                                Estas métricas se actualizan cada 10 segundos.
+                            </p>
+
+                            <h2>Logs</h2>
+                            <p>
+                               En Lila utilizamos un middleware que puedes desactivar o no, por si quieres utilizar <code>Logs</code> de info,warnings o errores de tu aplicación.
+                            </p>
+                            <p>
+                                El middleware se encuentra en <code>core/middleware.py</code> y lo agregamos a la aplicación en <code>
+                                    app.add_middleware(ErrorHandlerMiddleware)
+                                </code>
+                            </p>
+                            <p>
+                                Esto ayuda a generar los logs que los puedes ver en el panel de administrador , ordenados por fecha (en carpetas) y tipo
+                            </p> 
+                            <p class="container">
+                                <img src="img/admin.png" alt="admin" />
+                            </p>
+                            <br />
+                            <p class="container">
+                                <img src="img/admin_2.png" alt="admin" />
+                            </p>
+                        </article>
+
 
 
                         <!-- <article id="helpers-esp">

@@ -10,6 +10,7 @@ const sections = [
     { id: "templates-eng", name: "Templates (eng)" },
     { id: "markdown-eng", name: "Markdown/HTML (eng)" },
     { id: "rest_api_crud-eng", name: "Simple Generation of REST API CRUD" },
+    {id:"admin-panel-eng",name:"Admin Panel"},
 
     { id: "install-esp", name: "Installación (esp)" },
     { id: "routes-esp", name: "Rutas (esp)" },
@@ -22,6 +23,7 @@ const sections = [
     { id: "templates-esp", name: "Templates(esp)" },
     { id: "markdown-esp", name: "Markdown/HTML(esp)" },
     { id: "rest_api_crud-esp", name: "Generación sencilla de CRUD , API Rest" },
+    {id:"admin-panel-esp",name:"Panel de Admin"},
 ];
 
 function searchDocs(event = false) {
