@@ -3243,4 +3243,7 @@ i {
 
 .icon-check-circle {
     mask-image: var(--icon-check-circle);
+} 
+li{
+    list-style: none !important;
 }

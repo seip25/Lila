@@ -28,7 +28,7 @@
     "en": "Hi"
   },
   "Welcome to the Lila Framework": {
-    "es": "Bienvenido al Framework Lila",
+    "es": "Bienvenido a Framework Lila",
     "en": "Welcome to the Lila Framework"
   },
   "documentation": {
@@ -38,5 +38,49 @@
   "here": {
     "es": "aquí",
     "en": "here"
+  },
+  "go_to_docs": {
+    "es": "Puedes dirigirte a",
+    "en": "You can go to"
+  },
+  "view_api_docs": {
+    "es": "para ver la documentación de tu API",
+    "en": "to view your API documentation"
+  },
+  "go_to_markdown": {
+    "es": "Puedes dirigirte a",
+    "en": "You can go to"
+  },
+  "view_markdown_example": {
+    "es": "para ver un ejemplo de renderizar, escrito en Markdown",
+    "en": "to view an example of rendering written in Markdown"
+  },
+  "also_left_in": {
+    "es": "También te hemos dejado en",
+    "en": "We have also left in"
+  },
+  "and_in": {
+    "es": "y en",
+    "en": "and in"
+  },
+  "examples_of_how_to_use": {
+    "es": "ejemplos de cómo utilizar",
+    "en": "examples of how to use"
+  },
+  "routes_queries_crud": {
+    "es": "rutas, querys_params, rest_crud_generate",
+    "en": "routes, query_params, rest_crud_generate"
+  },
+  "crud_with_30_lines": {
+    "es": "Para hacer CRUDS con 30 líneas de código",
+    "en": "To make CRUDS with 30 lines of code"
+  },
+  "with_middlewares_validations": {
+    "es": "con middlewares, validaciones",
+    "en": "with middlewares, validations"
+  },
+  "and_more": {
+    "es": "y mucho más",
+    "en": "and much more"
   }
 }

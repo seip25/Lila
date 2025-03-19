@@ -10,3 +10,4 @@ argon2-cffi ==23.1.0
 markdown==3.7
 SQLAlchemy==2.0.37
 PyJWT==2.10.1
+psutil==7.0.0

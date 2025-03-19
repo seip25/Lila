@@ -7,39 +7,109 @@
   <meta name="color-scheme" content="light dark">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{{title}}</title>
-  <link rel="icon" type="image/x-icon" href="/public/img/lila.png" /> 
+  <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
   <!--CSS-->
   <link rel="stylesheet" href="/public/css/pico.min.css">
   <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
   <!--CSS-->
 
   <!-- JS-->
-    <script src="/public/js/utils_example.js"></script>
+  <script src="/public/js/utils_example.js"></script>
 
-  <!--JS --> 
+  <!--JS -->
 </head>
 
 <body>
-   
- 
+
+
   <main class="container mt-sm   ">
-  <div class="flex  center">
-    <article >
-      <h5>
-        <div style="display: inline-flex; align-items: center;">
-          <img src="/public/img/lila.png" alt="Lila logo" class="img-responsive" width="10%" height="10%"  />
-          <span>  {{translate['Welcome to the Lila Framework']}}</span>
+    <div class="flex  center">
+      <article>
+        <h5>
+          <div style="display: inline-flex; align-items: center;">
+            <img src="/public/img/lila.png" alt="Lila logo" class="img-responsive" width="10%" height="10%" />
+            <span> {{translate['Welcome to the Lila Framework']}}</span>
+          </div>
+
+        </h5>
+        <p> {{translate['Hi']}}! </p>
+
+        <p>
+          {{translate['go_to_docs']}} <a href="/docs">docs</a>, {{translate['view_api_docs']}}
+        </p>
+
+        <p>
+          {{translate['go_to_markdown']}} <a href="/markdown">Markdown</a>, {{translate['view_markdown_example']}}
+        </p>
+
+        <p>
+        <h5>
+          {{translate['also_left_in']}} <code>routes/api.py</code> {{translate['and_in']}}
+          <code>routes/routes.py</code>,
+          {{translate['examples_of_how_to_use']}} {{translate['routes_queries_crud']}}
+          ({{translate['crud_with_30_lines']}}, {{translate['with_middlewares_validations']}},
+          {{translate['and_more']}}!)
+        </h5>
+        </p>
+
+        <p>
+          {{translate["documentation"]}}
+          <a href="https://seip25.github.io/Lila/#" class="link underline" target="_blank"> link</a>
+        </p>
+        <p>
+
+        <div class=" grid">
+          <div class="container">
+
+            <ul>
+              <li>
+                <h6>English</h6>
+              </li>
+              <li><a href="https://seip25.github.io/Lila/#install-eng" target="_blank">Installation</a></li>
+              <li><a href="https://seip25.github.io/Lila/#routes-eng" target="_blank">Routes</a></li>
+              <li><a href="https://seip25.github.io/Lila/#static-eng" target="_blank">Static</a></li>
+              <li><a href="https://seip25.github.io/Lila/#templates-eng" target="_blank">Templates</a></li>
+              <li><a href="https://seip25.github.io/Lila/#markdown-eng" target="_blank">Markdown/HTML</a></li>
+              <li><a href="https://seip25.github.io/Lila/#locales-eng" target="_blank">Internationalization
+                  (Translations)</a></li>
+              <li><a href="https://seip25.github.io/Lila/#models-eng" target="_blank">Models</a></li>
+              <li><a href="https://seip25.github.io/Lila/#middlewares-eng" target="_blank">Middlewares</a></li>
+              <li><a href="https://seip25.github.io/Lila/#connections-eng" target="_blank">Connections</a></li>
+              <li><a href="https://seip25.github.io/Lila/#migrations-eng" target="_blank">Migrations</a></li>
+              <li><a href="https://seip25.github.io/Lila/#rest_api_crud-eng" target="_blank">API Rest crud generate</a>
+              </li>
+              <li><a href="https://seip25.github.io/Lila/#admin-panel-eng" target="_blank">Admin Panel</a></li>
+
+            </ul>
+          </div>
+
+          <div class="container">
+
+            <ul>
+              <li>
+                <h6>Español</h6>
+              </li>
+              <li><a href="https://seip25.github.io/Lila/#install-esp" target="_blank">Instalación</a></li>
+              <li><a href="https://seip25.github.io/Lila/#routes-esp" target="_blank">Rutas</a></li>
+              <li><a href="https://seip25.github.io/Lila/#static-esp" target="_blank">Static</a></li>
+              <li><a href="https://seip25.github.io/Lila/#templates-esp" target="_blank">Templates</a></li>
+              <li><a href="https://seip25.github.io/Lila/#markdown-esp" target="_blank">Markdown/HTML</a></li>
+              <li><a href="https://seip25.github.io/Lila/#locales-esp" target="_blank">Internalización
+                  (Traducciones)</a></li>
+              <li><a href="https://seip25.github.io/Lila/#models-esp" target="_blank">Modelos</a></li>
+              <li><a href="https://seip25.github.io/Lila/#middlewares-esp" target="_blank">Middlewares</a></li>
+              <li><a href="https://seip25.github.io/Lila/#connections-esp" target="_blank">Connections</a></li>
+              <li><a href="https://seip25.github.io/Lila/#migrations-esp" target="_blank">Migraciones</a></li>
+              <li><a href="https://seip25.github.io/Lila/#rest_api_crud-esp" target="_blank">Generación sencilla de CRUD
+                  de API Rest</a></li>
+              <li><a href="https://seip25.github.io/Lila/#admin-panel-esp" target="_blank">Panel de Admin</a></li>
+
+            </ul>
+          </div>
         </div>
-      
-      </h5>
-       <p> {{translate['Hi']}}! </p>
-      <p>
-        {{translate["documentation"]}}
-        <a href="https://seip25.github.io/Lila/" class="link underline" target="_blank"> link</a>
-      </p>
-      
-    </article>
-  </div>
+        </p>
+      </article>
+    </div>
   </main>
 
   <footer class="container  ">
