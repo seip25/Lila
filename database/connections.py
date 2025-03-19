@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 #English : Example connection to a sqlite database
 #Español: Ejemplo de conexión a la base de datos con sqlite
-config = {"type":"sqlite","database":"test"} #test.db
+config = {"type":"sqlite","database":"lila"} #lila.db
 connection = Database(config=config)
 connection.connect()
 
