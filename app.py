@@ -1,7 +1,7 @@
 from core.app import App 
 from routes.routes import routes
 from routes.api import routes as api_routes
-from core.admin import Admin
+
 # English: Importing the host and port configurations from the environment settings.
 # Español: Importando las configuraciones de host y puerto desde la configuración del entorno.
 from core.env import PORT, HOST
@@ -16,9 +16,14 @@ from database.connections import connection
 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
-from models.user import User
-admin_routes=Admin(models=[User])
-all_routes = list(itertools.chain(routes, api_routes,admin_routes))
+all_routes = list(itertools.chain(routes, api_routes))
+
+# English: Here we activate the admin panel with default settings.
+# Español: Aquí activamos el panel de administrador con configuraciones predeterminadas.
+#from core.admin import Admin
+# from models.user import User
+# admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
+# all_routes = list(itertools.chain(routes, api_routes,admin_routes))
 
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
