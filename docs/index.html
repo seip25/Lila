@@ -1723,7 +1723,7 @@ def rest_crud_generate(
                                     <pre>
                                         <code class="language-python">
 from core.admin import Admin
-from models import User
+from models.user import User
 
 # Create admin routes for the User model
 admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
@@ -3332,7 +3332,7 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
                                     <pre>
                                         <code class="language-python">
 from core.admin import Admin
-from models import User
+from models.user import User
 
 # Crear rutas de administración para el modelo User
 admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
