@@ -3000,6 +3000,19 @@ article footer {
     justify-content: space-between !important;
 }
 
+.mt-4 {
+    margin-top: 4rem   !important ;
+}
+.mt-2 {
+    margin-top: 2rem   !important ;
+}
+.mt-3 {
+    margin-top: 3rem   !important ;
+}
+.mt-1{
+    margin-top: 1rem ;
+}
+
 button{
     border-radius: 3rem !important;
     padding: 0.5rem !important;
@@ -3020,6 +3033,9 @@ button.secondary {
 
 .mx-sm {
     max-width: 400px !important;
+}
+.mx-m {
+    max-width: 500px !important;
 }
 
 .mx-img-card {
