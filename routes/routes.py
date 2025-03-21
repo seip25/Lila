@@ -71,10 +71,6 @@ async def set_language(request: Request):
     return response
 
 
-@router.route(path="/error", methods=["GET"])
-async def trigger_error(request: Request):
-    raise ValueError("Error")
-
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
 routes = router.get_routes()
