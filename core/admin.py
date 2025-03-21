@@ -57,7 +57,7 @@ class AdminClass:
 
         if db_type == "sqlite":
             query = "SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"
-        elif db_type in {"postgresql", "mysql"}:
+        elif db_type in {"postgresql", "mysql","mysql+mysqlconnector"}:
             query = """
             SELECT EXISTS (
                 SELECT 1
@@ -69,16 +69,21 @@ class AdminClass:
             raise ValueError(f"Unsupported database type: {db_type}")
 
         table_exists = self.connection.query(query=query, return_row=True)
-       
         if db_type == "sqlite":
-            column_definition = "id INTEGER PRIMARY KEY AUTOINCREMENT"
-        elif db_type == "mysql":
-            column_definition = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
-        elif db_type == "postgresql":
-            column_definition = "id SERIAL PRIMARY KEY"
-        else:
-            raise ValueError(f"Unsupported database type: {db_type}")
-        if not table_exists or (db_type != "sqlite" and not table_exists.get("exists", False)):
+            table_exists = bool(table_exists)
+        elif db_type in {"postgresql", "mysql", "mysql+mysqlconnector"}:
+            table_exists = table_exists.get("table_exists", 0) == 1
+        
+        
+        if not table_exists :
+            if db_type == "sqlite":
+                column_definition = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+            elif db_type == "mysql" or "mysql+mysqlconnector":
+                column_definition = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
+            elif db_type == "postgresql":
+                column_definition = "id SERIAL PRIMARY KEY"
+            else:
+                raise ValueError(f"Unsupported database type: {db_type}")
             create_table_query = f"""
             CREATE TABLE admins (
                  {column_definition},
