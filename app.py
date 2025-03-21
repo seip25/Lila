@@ -11,8 +11,8 @@ import asyncio
 
 # English: Optionally, uncomment the following imports for database migrations and connections.
 # Español: Opcionalmente, descomenta las siguientes importaciones para migraciones y conexiones de la base de datos.
-from database.migrations import migrate
-from database.connections import connection
+# from database.migrations import migrate
+# from database.connections import connection
 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
