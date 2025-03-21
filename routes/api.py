@@ -1,23 +1,13 @@
-from core.request import (
-    Request,
-)  # English: Handles HTTP requests in the application. | Español: Maneja solicitudes HTTP en la aplicación.
-from core.responses import (
-    JSONResponse,
-)  # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
-from core.routing import (
-    Router,
-)  # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
-from pydantic import (
-    EmailStr,
-    BaseModel,
-)  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
+from core.request import Request  # English: Handles HTTP requests in the application. | Español: Maneja solicitudes HTTP en la aplicación.
+from core.responses import  JSONResponse # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
+from core.routing import Router # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
+from pydantic import  EmailStr,BaseModel  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 from core.helpers import get_user_by_token
 from middlewares.middlewares import validate_token, check_token, check_session
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
 router = Router()
-
 
 # English: Define a simple API route that supports GET method.
 # Español: Define una ruta de API simple que soporta el método GET.
