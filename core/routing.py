@@ -6,7 +6,7 @@ from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
-from core.helpers import generate_token_value,get_user_by_token,convert_date_to_str
+from core.helpers import generate_token_value,get_user_by_token
 from core.logger import Logger
 import datetime
 import re
