@@ -9,7 +9,7 @@ from core.session import Session
 from database.connections import connection
 from argon2 import PasswordHasher
 from functools import wraps 
- 
+from core.responses import convert_to_serializable
 
 def Admin(models:list,user_default:str="admin"):
     router=Router()
@@ -147,6 +147,7 @@ class AdminClass:
             @admin_required
             async def model_list(request: Request, model=model):
                 items = model.get_all()  
+                items=convert_to_serializable(items)
                 return HTMLResponse(content=self._model_table_view(items, model_name, request))
         
 
@@ -394,7 +395,7 @@ class AdminClass:
         for model in self.models:
             model_name = model.__name__.lower()
             model_plural = f"{model_name}s"
-            m+=f"<li><a href='/admin/{model_plural}'>{model_name.capitalize()}s</a></li>"
+            m+=f"<li><a href='/admin/{model_plural}'>{model_name.capitalize()}</a></li>"
             
             menu_=f"""
             <details class="dropdown">
@@ -670,7 +671,7 @@ class AdminClass:
     def _model_table_view(self, items: list, model_name: str, request: Request) -> str:
         """Generate the HTML for a model table view with Tabulator."""
         headers = items[0].keys() if items else []
-        
+         
         items_json = json.dumps(items)
         html_lang = lang(request=request)
         return f"""
@@ -701,7 +702,7 @@ class AdminClass:
              {self.menu()}
             <main class="container">
                 <article>
-                    <h2>{model_name.capitalize()}s</h2>
+                    <h2>{model_name.capitalize()}</h2>
                     <div id="tabulator-table"></div>
                 </article>
             </main>
