@@ -1,26 +1,10 @@
 # Import necessary modules and functions from the core and middlewares
-from core.request import (
-    Request,
-)  # English: Importing Request class to handle HTTP requests | Español: Importando la clase Request para manejar las solicitudes HTTP
-from core.routing import (
-    Router,
-)  # English: Importing Router class to define and manage routes | Español: Importando la clase Router para definir y manejar rutas
-from core.templates import (
-    render,
-    renderMarkdown,
-)  # English: Importing functions for rendering templates and Markdown files | Español: Importando funciones para renderizar plantillas y archivos Markdown
-from core.session import (
-    Session,
-)  # English: Importing Session class for session handling | Español: Importando la clase Session para el manejo de sesiones
-from core.responses import (
-    RedirectResponse,
-    HTMLResponse,
-)  # English: Importing RedirectResponse to handle HTTP redirects | Español: Importando RedirectResponse para manejar redirecciones HTTP
-from core.env import (
-    LANG_DEFAULT,
-)  # English: Importing the default language setting from the environment | Español: Importando la configuración de idioma por defecto desde el entorno
-
-
+from core.request import Request  # English: Importing Request class to handle HTTP requests | Español: Importando la clase Request para manejar las solicitudes HTTP
+from core.routing import Router # English: Importing Router class to define and manage routes | Español: Importando la clase Router para definir y manejar rutas
+from core.templates import render,renderMarkdown# English: Importing functions for rendering templates and Markdown files | Español: Importando funciones para renderizar plantillas y archivos Markdown
+from core.session import Session # English: Importing Session class for session handling | Español: Importando la clase Session para el manejo de sesiones
+from core.responses import RedirectResponse# English: Importing RedirectResponse to handle HTTP redirects | Español: Importando RedirectResponse para manejar redirecciones HTTP
+from core.env import LANG_DEFAULT # English: Importing the default language setting from the environment | Español: Importando la configuración de idioma por defecto desde el entorno
 
 # English: Creating an instance of Router to define routes
 # Español: Creando una instancia del Router para definir las rutas
@@ -29,7 +13,6 @@ router = Router()
 # English: Mounting statics files ,in folder 'static',url ='/public'
 #  Español: Montando los archivos estaticos en la carpeta 'static',url ='/public'
 router.mount()
-
 
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto
