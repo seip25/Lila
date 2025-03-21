@@ -18,22 +18,25 @@ async function Http({
   url = "/",
   method = "GET",
   body = false,
-  token_jwt = false
+  bodyForm = false,
+  token_jwt = false,
+  headers = {}
 }) {
- 
+
   const options = {
     method: method,
-    headers: {},
+    headers: headers,
   };
   if (body) options["body"] = JSON.stringify(body);
+  if (bodyForm) options["body"] = bodyForm;
 
   //JWT Token
   if (token_jwt) {
     const token = await getCookie({ name: "token" });
-    options.headers["Authorization"] = `Bearer ${token}`; 
+    options.headers["Authorization"] = `Bearer ${token}`;
   }
   const response = await fetch(url, options);
- 
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Error fetch");
