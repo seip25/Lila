@@ -26,6 +26,10 @@ https://seip25.github.io/Lila
 - **Jinja2 and HTML Sessions**: Ready-to-use with dynamic templates and session handling, while remaining compatible with React, Angular, Vue, and other frontend frameworks.
 - **SQLAlchemy** :For the ORM or you can also use the connectors directly (mysql.connector, sqlite3, etc...)
 - **JWT** :It comes integrated with helpers to generate tokens and the middleware already has a function that validates it.
+- **Admin Panel**: Includes a built-in admin panel for easy management of your application's data and settings.
+- **Robust Security**: Features IP blocking, URL filtering, and request sanitization to prevent malicious attacks and suspicious requests.
+- **REST CRUD Generator**: Generate REST APIs with just a few lines of code. Includes field validations and middleware support.
+
 ---
 
 ## Características principales
@@ -41,6 +45,9 @@ https://seip25.github.io/Lila
 - **Jinja2 y sesiones HTML**: Listo para usar con plantillas dinámicas y manejo de sesiones, pero compatible con React, Angular, Vue, entre otros frameworks frontend.
 - **SQLAlchemy** :Para la ORM o también se puede utilizar los connectores directamente(mysql.connector,sqlite3,etc...)
 - **JWT** :Viene integrado con helpers para generar token y en el middleware ya viene una función que válida el mismo.
+- **Panel de Administración**: Incluye un panel de administración integrado para gestionar fácilmente los datos y configuraciones de tu aplicación.
+- **Seguridad Robusta**: Cuenta con bloqueo de IPs, filtrado de URLs y sanitización de solicitudes para prevenir ataques maliciosos y solicitudes sospechosas.
+- **Generador de APIs REST**: Genera APIs REST con solo unas pocas líneas de código. Incluye validaciones de campos y soporte para middlewares.
 
 
 ---
