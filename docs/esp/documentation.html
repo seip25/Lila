@@ -91,7 +91,7 @@
                 </li>
             </ul>
             <ul>
-               
+
                 <li>
                     <details class="dropdown">
                         <summary>🌐</summary>
@@ -110,22 +110,22 @@
             <aside>
                 <header>
                     <nav>
-                     
-                            <ul>
-                                <li><a href="#install-esp">Instalación</a></li>
-                                <li><a href="#routes-esp">Rutas</a></li>
-                                <li><a href="#static-esp">Static</a></li>
-                                <li><a href="#templates-esp">Templates</a></li>
-                                <li><a href="#markdown-esp">Markdown/HTML</a></li>
-                                <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
-                                <li><a href="#models-esp">Modelos</a></li>
-                                <li><a href="#middlewares-esp">Middlewares</a></li>
-                                <li><a href="#connections-esp">Connections</a></li>
-                                <li><a href="#migrations-esp">Migraciones</a></li>
-                                <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
-                                <li><a href="#admin-panel-esp">Panel de Admin</a></li>
-                                <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
-                            </ul> 
+
+                        <ul>
+                            <li><a href="#install-esp">Instalación</a></li>
+                            <li><a href="#routes-esp">Rutas</a></li>
+                            <li><a href="#static-esp">Static</a></li>
+                            <li><a href="#templates-esp">Templates</a></li>
+                            <li><a href="#markdown-esp">Markdown/HTML</a></li>
+                            <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
+                            <li><a href="#models-esp">Modelos</a></li>
+                            <li><a href="#middlewares-esp">Middlewares</a></li>
+                            <li><a href="#connections-esp">Connections</a></li>
+                            <li><a href="#migrations-esp">Migraciones</a></li>
+                            <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
+                            <li><a href="#admin-panel-esp">Panel de Admin</a></li>
+                            <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
+                        </ul>
                     </nav>
                 </header>
             </aside>
@@ -136,13 +136,13 @@
                         onkeyup="searchDocs(false,'esp')">
                     <ul id="searchResults"></ul>
                 </div>
-               
+
                 <br />
                 <div id="doc">
-                  
+
                     <div id="doc-esp">
 
-                    
+
                         <article id="install-esp">
                             <h2>Instalación</h2>
                             <div class="terminal">
@@ -949,47 +949,36 @@ class User(Base):
 
                         <article id="middlewares-esp">
                             <h1>Middlewares</h1>
-                            <h5>Las funciones middleware se utilizan para interceptar solicitudes antes de que lleguen a
-                                la
-                                lógica
-                                principal de la aplicación.
+                            <h5>
+                                Las funciones de middleware se utilizan para interceptar solicitudes antes de que
+                                lleguen a la lógica principal de la aplicación.
                                 En Lila, los middlewares se definen en el directorio <code>middlewares</code> (puede
-                                modificarse
-                                a
-                                cualquier archivo y/o directorio).
-                                Los middlewares pueden utilizarse para tareas como autenticación, registro de actividad
-                                y manejo
-                                de
+                                modificarse a cualquier archivo y/o directorio).
+                                Los middlewares se pueden utilizar para tareas como autenticación, registro y manejo de
                                 errores.
                             </h5>
-                            <p>Por defecto, Lila incluye 3 middlewares para iniciar cualquier aplicación. Los
-                                middlewares pueden
-                                usarse con decoradores <code>@my_middleware</code>.
+                            <p>
+                                Por defecto, Lila incluye 3 middlewares para iniciar cualquier aplicación. Los
+                                middlewares se pueden utilizar con decoradores <code>@my_middleware</code>.
                             </p>
                             <p>
-                                <code>login_required</code>: se usa para validar que existe una sesión iniciada,
-                                utilizando la
-                                clave
-                                'auth' que se pasa como parámetro y que puede modificarse según se necesite.
-                                Si la sesión no se encuentra, redirige a la URL que se pase como parámetro, siendo
-                                "/login" la
-                                predeterminada.
-                                De lo contrario, continuará ejecutando la ruta o función correspondiente.
+                                <code>login_required</code>, para validar que tengas una sesión firmada, para la clave
+                                'auth' que se pasa como parámetro para poder modificarla como desees.
+                                Si no se encuentra esta sesión, redirige a la URL que se pasa como parámetro, por
+                                defecto es <code>"/login"</code>.
+                                De lo contrario, continuará su curso ejecutando la ruta o función.
                             </p>
-
-                            <p><code>session_active</code>: se usa para verificar si hay una sesión activa. Si la hay,
-                                redirige
-                                a la
-                                URL que se recibe como parámetro, siendo "/dashboard" la predeterminada.
+                            <p>
+                                Luego tenemos <code>session_active</code>, que se utiliza para verificar si tienes una
+                                sesión activa.
+                                Redirigirá a la URL que se recibe como parámetro, por defecto es
+                                <code>"/dashboard"</code>.
                             </p>
-
-                            <p>El tercero es <code>validate_token</code>,
-                                que se usa para validar un token JWT gracias a los helpers de <code>get_token</code>,
-                                importados
-                                con
+                            <p>
+                                El tercero es <code>validate_token</code>, que se utiliza para validar un token JWT
+                                gracias a los helpers <code>get_token</code> importados en
                                 <code>from core.helpers import get_token</code>.
                             </p>
-
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">middlewares/middlewares.py</span>
@@ -1000,12 +989,11 @@ class User(Base):
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                            <code class="language-python">
+                                    <pre><code class="language-python">
 from core.session import Session
-from core.responses import RedirectResponse,JSONResponse
+from core.responses import RedirectResponse, JSONResponse
 from core.request import Request
-from functools import wraps 
+from functools import wraps
 from core.helpers import get_token
 
 def login_required(func, key: str = 'auth', url_return='/login'):
@@ -1031,25 +1019,24 @@ def validate_token(func):
     async def wrapper(request: Request, *args, **kwargs):
         await check_token(request=request)
         return await func(request, *args, **kwargs)
-       
     return wrapper
 
-
-async def check_token(request:Request):
+async def check_token(request: Request):
     token = request.headers.get('Authorization')
     if not token:
-        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+        return JSONResponse({'session': False, 'message': 'Token inválido'}, status_code=401)
     
     token = get_token(token=token)
-    if isinstance(token,JSONResponse):
-        return token 
-                            </code>
-                        </pre>
+    if isinstance(token, JSONResponse):
+        return token
+                                    </code></pre>
                                 </div>
                             </div>
 
                             <br />
-                            <h5>Aquí tienes varios ejemplos de cómo usar los tres middlewares con decoradores.</h5>
+                            <h5>
+                                Aquí te damos varios ejemplos de cómo usar los 3, con los decoradores.
+                            </h5>
 
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1061,31 +1048,259 @@ async def check_token(request:Request):
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                            <code class="language-python">
-# Middleware para validar el token JWT
-@router.route(path='/api/token', methods=['GET','POST'])
+                                    <pre><code class="language-python">
+# Middleware para validar el token JWT.
+@router.route(path='/api/token', methods=['GET', 'POST'])
 @validate_token  # Middleware
 async def api_token(request: Request):
-    """Función de API Token"""
+    """Función Api Token"""
     print(get_user_by_id_and_token(request=request))
-    return JSONResponse({'api': True}) 
+    return JSONResponse({'api': True})
 
 # Middleware para validar sesión activa
-@router.route(path='/dashboard', methods=['GET'])  
+@router.route(path='/dashboard', methods=['GET'])
 @login_required  # Middleware
-async def dashboard(request: Request):  
-    response = render(request=request, template='dashboard', files_translate=['authenticated']) 
-    return response 
+async def dashboard(request: Request):
+    response = render(request=request, template='dashboard', files_translate=['authenticated'])
+    return response
 
-# Middleware para verificar si el usuario tiene una sesión activa (si la tiene, redirige a '/dashboard')
-@router.route(path='/login', methods=['GET'])  
+# Middleware para validar si el usuario tiene sesión activa (si el usuario tiene sesión, redirige a '/dashboard')
+@router.route(path='/login', methods=['GET'])
 @session_active  # Middleware
-async def login(request: Request):  
-    response = render(request=request, template='auth/login', files_translate=['guest'])  
-    return response 
-                            </code>
-                        </pre>
+async def login(request: Request):
+    response = render(request=request, template='auth/login', files_translate=['guest'])
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Middleware de Seguridad</h2>
+                            <p>
+                                Lila Framework incluye un <code>ErrorHandlerMiddleware</code> integrado que no solo
+                                maneja excepciones no controladas, sino que también proporciona verificaciones de
+                                seguridad robustas para proteger tu aplicación de solicitudes maliciosas. Este
+                                middleware está diseñado para bloquear IPs sospechosas, URLs y rutas sensibles,
+                                asegurando que tu aplicación permanezca segura.
+                            </p>
+                            <h3>Características</h3>
+                            <ul>
+                                <li>
+                                    <strong>Bloqueo de IPs</strong>:
+                                    Bloquea direcciones IP que han sido marcadas por actividad maliciosa. Las IPs se
+                                    bloquean durante 6 horas por defecto.
+                                </li>
+                                <li>
+                                    <strong>Bloqueo de URLs</strong>:
+                                    Bloquea URLs específicas que se sabe que son maliciosas o sospechosas.
+                                </li>
+                                <li>
+                                    <strong>Bloqueo de Rutas Sensibles</strong>:
+                                    Bloquea el acceso a rutas sensibles como <code>/etc/passwd</code>,
+                                    <code>.env</code>, y otras.
+                                </li>
+                                <li>
+                                    <strong>Bloqueo de Extensiones Maliciosas</strong>:
+                                    Bloquea URLs que contienen extensiones de archivo maliciosas como <code>.php</code>,
+                                    <code>.asp</code>, <code>.jsp</code> y <code>.aspx</code>.
+                                </li>
+                                <li>
+                                    <strong>Detección de HTTP</strong>:
+                                    Bloquea solicitudes que contienen <code>"http"</code> en los parámetros de consulta
+                                    o en el contenido del cuerpo.
+                                </li>
+                            </ul>
+                            <h3>Configuración</h3>
+                            <p>
+                                El middleware utiliza tres archivos JSON ubicados en el directorio
+                                <code>security</code>:
+                            </p>
+                            <ul>
+                                <li><code>blocked_ips.json</code>: Almacena las IPs bloqueadas con su tiempo de
+                                    expiración.</li>
+                                <li><code>blocked_urls.json</code>: Almacena las URLs bloqueadas con su tiempo de
+                                    expiración.</li>
+                                <li><code>sensitive_paths.json</code>: Almacena una lista de rutas sensibles para
+                                    bloquear.</li>
+                            </ul>
+                            <p>
+                                Si estos archivos no existen, se crean automáticamente y se inicializan con valores
+                                predeterminados:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">security/sensitive_paths.json</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-json">
+[
+    "/etc/passwd",
+    ".env",
+    "wp-content",
+    "docker/.env",
+    "owa/auth/logon.aspx",
+    "containers/json",
+    "models",
+    "autodiscover/autodiscover.json",
+    "heapdump",
+    "actuator/heapdump",
+    "cgi-bin/vitogate.cgi",
+    "CFIDE/wizards/common/utils.cfc",
+    "var/www/html/.env",
+    "home/user/.muttrc",
+    "usr/local/spool/mail/root",
+    "etc/postfix/master.cf"
+]
+                                    </code></pre>
+                                </div>
+                            </div>
+                            <h3>Uso</h3>
+                            <p>
+                                El <code>ErrorHandlerMiddleware</code> se aplica automáticamente a todas las
+                                solicitudes. Puedes personalizar su comportamiento modificando los archivos JSON en el
+                                directorio <code>security</code>.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">core/middleware.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from starlette.middleware.base import BaseHTTPMiddleware
+from core.responses import JSONResponse, HTMLResponse
+from core.request import Request
+from core.logger import Logger
+from datetime import datetime, timedelta
+import json
+import os
+
+def load_blocked_data(file_path, default_value):
+try:
+    if not os.path.exists(file_path):
+        with open(file_path, "w") as file:
+            json.dump(default_value, file, indent=4)
+        return default_value
+
+    with open(file_path, "r") as file:
+        content = file.read().strip()
+        if not content:
+            with open(file_path, "w") as file:
+                json.dump(default_value, file, indent=4)
+            return default_value
+
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            with open(file_path, "w") as file:
+                json.dump(default_value, file, indent=4)
+            return default_value
+
+except Exception as e:
+    Logger.error(f"Error cargando {file_path}: {str(e)}")
+    return default_value
+
+def save_blocked_data(file_path, data):
+try:
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)
+except Exception as e:
+    Logger.error(f"Error guardando {file_path}: {str(e)}")
+
+async def is_blocked(blocked_data, key, request: Request):
+if key in blocked_data:
+    expiration_time = datetime.fromisoformat(blocked_data[key]["expiration_time"])
+    if datetime.now() < expiration_time:
+        req = await Logger.request(request=request)
+        Logger.warning(f"Bloqueado: {key} \n {req}")
+        return True
+return False
+
+class ErrorHandlerMiddleware(BaseHTTPMiddleware):
+def __init__(
+    self,
+    app,
+    blocked_ips_file="security/blocked_ips.json",
+    blocked_urls_file="security/blocked_urls.json",
+    sensitive_paths_file="security/sensitive_paths.json",
+):
+    super().__init__(app)
+    self.blocked_ips_file = blocked_ips_file
+    self.blocked_urls_file = blocked_urls_file
+    self.sensitive_paths_file = sensitive_paths_file
+
+    self.blocked_ips = load_blocked_data(blocked_ips_file, default_value={})
+    self.blocked_urls = load_blocked_data(blocked_urls_file, default_value={})
+    self.sensitive_paths = load_blocked_data(sensitive_paths_file, default_value=[])
+
+async def dispatch(self, request, call_next):
+    try:
+        client_ip = request.client.host
+        url_path = request.url.path
+        query_params = str(request.query_params)
+        body = await request.body()
+
+        if await is_blocked(self.blocked_ips, client_ip, request=request):
+            return HTMLResponse(
+                content="<h1>Acceso Denegado</h1><p>Tu IP ha sido bloqueada temporalmente.</p>",
+                status_code=403,
+            )
+
+        if await is_blocked(self.blocked_urls, url_path, request=request):
+            return HTMLResponse(
+                content="<h1>Acceso Denegado</h1><p>Esta URL ha sido bloqueada temporalmente.</p>",
+                status_code=403,
+            )
+
+        malicious_extensions = [".php", ".asp", ".jsp", ".aspx"]
+        if any(ext in url_path for ext in malicious_extensions):
+            self.blocked_ips[client_ip] = {
+                "expiration_time": (datetime.now() + timedelta(hours=6)).isoformat()
+            }
+            save_blocked_data(self.blocked_ips_file, self.blocked_ips)
+            return HTMLResponse(
+                content="<h1>Acceso Denegado</h1><p>Se detectó una URL maliciosa.</p>",
+                status_code=403,
+            )
+
+        if "http" in query_params or "http" in str(body):
+            self.blocked_ips[client_ip] = {
+                "expiration_time": (datetime.now() + timedelta(hours=6)).isoformat()
+            }
+            save_blocked_data(self.blocked_ips_file, self.blocked_ips)
+            return HTMLResponse(
+                content="<h1>Acceso Denegado</h1><p>Se detectaron parámetros de consulta maliciosos.</p>",
+                status_code=403,
+            )
+
+        if any(path in url_path or path in str(body) for path in self.sensitive_paths):
+            self.blocked_ips[client_ip] = {
+                "expiration_time": (datetime.now() + timedelta(hours=6)).isoformat()
+            }
+            save_blocked_data(self.blocked_ips_file, self.blocked_ips)
+            return HTMLResponse(
+                content="<h1>Acceso Denegado</h1><p>Se detectó una ruta sensible.</p>",
+                status_code=403,
+            )
+
+        Logger.info(await Logger.request(request=request))
+        response = await call_next(request)
+        return response
+
+    except Exception as e:
+        Logger.error(f"Error no controlado: {str(e)}")
+        return JSONResponse(
+            {"error": "Error interno del servidor", "success": False}, status_code=500
+        )
+                                    </code></pre>
                                 </div>
                             </div>
                         </article>
@@ -1586,7 +1801,8 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
                                 Para usar el panel de administración, debes importar la clase <code>Admin</code> y
                                 pasarle una lista de modelos que deseas gestionar, el <code>prefix</code> que sera
                                 utilizado para la url ejemplo <a
-                                    href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a> , también puedes
+                                    href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a> , también
+                                puedes
                                 pasarle el usuario que utilizara por defecto con <code>user_default</code>. Luego,
                                 integra las rutas generadas en
                                 tu aplicación.
@@ -1709,16 +1925,19 @@ return await self.admin_dashboard(request)
 
                             <h2>Logs</h2>
                             <p>
-                               En Lila utilizamos un middleware que puedes desactivar o no, por si quieres utilizar <code>Logs</code> de info,warnings o errores de tu aplicación.
+                                En Lila utilizamos un middleware que puedes desactivar o no, por si quieres utilizar
+                                <code>Logs</code> de info,warnings o errores de tu aplicación.
                             </p>
                             <p>
-                                El middleware se encuentra en <code>core/middleware.py</code> y lo agregamos a la aplicación en <code>
+                                El middleware se encuentra en <code>core/middleware.py</code> y lo agregamos a la
+                                aplicación en <code>
                                     app.add_middleware(ErrorHandlerMiddleware)
                                 </code>
                             </p>
                             <p>
-                                Esto ayuda a generar los logs que los puedes ver en el panel de administrador , ordenados por fecha (en carpetas) y tipo
-                            </p> 
+                                Esto ayuda a generar los logs que los puedes ver en el panel de administrador ,
+                                ordenados por fecha (en carpetas) y tipo
+                            </p>
                             <p class="container">
                                 <img src="../img/admin.png" alt="admin" />
                             </p>
