@@ -1,11 +1,12 @@
 import os
-import datetime 
+import datetime
 from datetime import timedelta
 import traceback
 from core.request import Request
+import re
 
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+if not os.path.exists("logs"):
+    os.makedirs("logs")
 
 
 def folder_logs(type):
@@ -16,7 +17,7 @@ def folder_logs(type):
 
 
 class Logger:
-    
+
     @classmethod
     def _write_log(cls, log_type, message):
         log_file = folder_logs(log_type)
@@ -39,35 +40,60 @@ class Logger:
         cls._write_log("info", message)
 
     @classmethod
-    async def request(cls,request:Request):
+    def log(cls,log_type:str,message:str)->None:
+        cls._write_log(log_type,message)
+
+    @classmethod
+    async def request(cls, request: Request):
         client_ip = request.client.host
+        user_agent = request.headers.get("user-agent", "Unknown")
+        os_info = "Unknown"
+
+        os_patterns = {
+            "Windows": r"Windows NT|Windows",
+            "Linux": r"Linux|X11",
+            "Mac OS": r"Macintosh|Mac OS X",
+            "iOS": r"iPhone|iPad|iPod",
+            "Android": r"Android",
+        }
+
+        for os_name, pattern in os_patterns.items():
+            if re.search(pattern, user_agent, re.IGNORECASE):
+                os_info = os_name
+                break
         try:
             body = await request.body()
             body_content = body.decode() if body else ""
             if "password" in body_content:
-                body_content["password"]=""
+                body_content["password"] = ""
+            if "password_2" in body_content:
+                body_content["password_2"] = ""
             if "token" in body_content:
-                body_content["token"]=""
+                body_content["token"] = ""
         except Exception as e:
-            body_content=""
-        try:   
-            json_content=await request.json()
+            body_content = ""
+        try:
+            json_content = await request.json()
             if "password" in json_content:
-                json_content["password"]=""
+                json_content["password"] = ""
+            if "password_2" in json_content:
+                json_content["password_2"] = ""
             if "token" in json_content:
-                json_content["token"]=""
-            
+                json_content["token"] = ""
+
         except Exception as e:
-            json_content={}
+            json_content = {}
         return (
-        f"IP: {client_ip}, URL: {request.url.path}, Method: {request.method} | "
-        # f"Headers: {dict(request.headers)} | "
-        # f"Cookies: {request.cookies} |" 
-        f"Query Params: {dict(request.query_params)} | "
-        f"Path Params: {request.path_params} | "
-        f"Body: {body_content} |"
-        f" JSON: {json_content}"
+            f"IP: {client_ip}, "
+            f"OS: {os_info}, "
+            f"URL: {request.url.path}, "
+            f"Method: {request.method} | "
+            f"Query Params: {dict(request.query_params)} | "
+            f"Path Params: {request.path_params} | "
+            f"Body: {body_content} | "
+            f"JSON: {json_content}"
         )
+
 
 def delete_old_logs(days: int = 30):
     now = datetime.datetime.now()

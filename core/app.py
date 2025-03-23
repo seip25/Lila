@@ -31,7 +31,10 @@ class App:
             Logger.error(f"Error: {e}", exception=e)
 
     async def _404_page(self, request, exc):
-        Logger.warning(await Logger.request(request=request))
+        excluded_words={"public", "service-worker", "css","js","img","favicon.ico"}
+
+        if all(word not in request.url.path for word in excluded_words ):
+            Logger.warning(await Logger.request(request=request))
         
         html_content = """
         <!DOCTYPE html>

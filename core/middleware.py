@@ -149,10 +149,16 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                     content="<h1>Access Denied</h1><p>Sensitive path detected.</p>",
                     status_code=403,
                 )
+            
+            excluded_words={"public", "service-worker", "css","js","img","favicon.ico"}
+
+            if all(word not in url_path for word in excluded_words ):
+                log_file=client_ip
+                Logger.log(log_file,await Logger.request(request=request))
 
             # English: If everything is fine, log the request and proceed.
             # Español: Si todo está bien, registrar la solicitud y continuar.
-            Logger.info(await Logger.request(request=request))
+            #Logger.info(await Logger.request(request=request))
             response = await call_next(request)
             return response
 
