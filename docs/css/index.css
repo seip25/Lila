@@ -1,0 +1,216 @@
+.text-lila {
+    color: violet !important ;
+}
+.bg-lila{
+    background-color :violet !important;
+    border-color: violet !important;
+    color:white !important;
+}
+.mt-4 {
+    margin-top: 4rem   !important ;
+}
+.mt-2 {
+    margin-top: 2rem   !important ;
+}
+.mt-3 {
+    margin-top: 3rem   !important ;
+}
+.mt-1{
+    margin-top: 1rem ;
+}
+@keyframes parpadeoCursor {
+    50% {
+        border-right-color: transparent !important ;
+    }
+}
+
+.terminal {
+    border: 0.1em solid #333 !important ;
+    background-color: #1a1a1a !important ;
+    color: #0f0 !important ;
+    font-family: "Courier New", Courier, monospace !important ;
+    font-size: 1em !important ;
+   
+    width: 100% !important ;
+    max-width: 600px !important ;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important ;
+    border-radius: 4px !important ;
+    position: relative !important ;
+    box-sizing: border-box !important ;
+}
+
+.terminal-encabezado {
+    display: flex !important ;
+    justify-content: space-between !important ;
+    align-items: center !important ;
+    background-color: #333 !important ;
+    padding: 0.5em !important ;
+    border-top-left-radius: 4px !important ;
+    border-top-right-radius: 4px !important ;
+}
+
+.terminal-titulo {
+    color: #eee !important ;
+    font-size: 0.9em !important ;
+}
+
+.terminal-controles {
+    display: flex !important ;
+    gap: 0.4em !important ;
+}
+
+.control {
+    width: 0.8em !important ;
+    height: 0.8em !important ;
+    border-radius: 50% !important ;
+    background-color: #777 !important ;
+}
+
+.control.cerrar {
+    background-color: #e33 !important ;
+}
+
+.control.minimizar {
+    background-color: #ee0 !important ;
+}
+
+.control.maximizar {
+    background-color: #0b0 !important ;
+}
+
+.terminal-contenido {
+    padding: 1em !important ;
+}
+
+.comando {
+    display: block !important ;
+    color: #0f0 !important ;
+    margin-bottom: 0.5em !important ;
+}
+
+.cursor {
+    display: inline-block !important ;
+    width: 0.6em !important ;
+    height: 1em !important ;
+    background-color: green !important ;
+    animation: parpadeoCursor 0.8s step-end infinite !important ;
+}
+
+@keyframes blinkCursor {
+    50% {
+        border-right-color: transparent !important ;
+    }
+}
+
+.code-editor {
+    background-color: #2e2e2e !important ;
+    color: #f8f8f2 !important ;
+    font-family: "Courier New", Courier, monospace !important ;
+    font-size: 1em !important ;
+    /* padding: 2em !important ; */
+    width: 100% !important ;
+    /* max-width: 800px !important ; */
+    border-radius: 6px !important ;
+    box-sizing: border-box !important ;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important ;
+    position: relative !important ;
+    direction: ltr !important ;  
+}
+
+.editor-header {
+    display: flex !important ;
+    justify-content: space-between !important ;
+    align-items: center !important ;
+    background-color: #3c3c3c !important ;
+    padding: 0.6em !important ;
+    border-top-left-radius: 6px !important ;
+    border-top-right-radius: 6px !important ;
+}
+
+.editor-title {
+    color: #f1f1f1 !important ;
+    font-size: 1.1em !important ;
+}
+
+.editor-controls {
+    display: flex !important ;
+    gap: 0.4em !important ;
+}
+
+.control {
+    width: 0.8em !important ;
+    height: 0.8em !important ;
+    border-radius: 50% !important ;
+    background-color: #888 !important ;
+}
+
+.control.close {
+    background-color: #e33 !important ;
+}
+
+.control.minimize {
+    background-color: #ffba00 !important ;
+}
+
+.control.maximize {
+    background-color: #56b000 !important ;
+}
+
+.editor-content {
+     
+    overflow-x: auto !important ;
+}
+pre {
+    margin: 0 !important ;
+    white-space: pre-wrap !important ;
+    word-wrap: break-word !important ;
+    background-color: #2b2b2b !important ;
+    border-radius: 5px !important ;
+    padding: 1em !important ;
+    box-sizing: border-box !important ;
+    text-align: left !important ;  
+}
+
+
+ 
+
+.language-python {
+    color: #f8f8f2 !important ;
+}
+.cursor {
+    display: inline-block !important ;
+    width: 0.6em !important ;
+    height: 1.1em !important ;
+    background-color: #f8f8f2 !important ;
+    animation: blinkCursor 0.8s step-end infinite !important ;
+}
+ 
+.hljs-comment, .hljs-quote {
+    color: #a0a0a0 !important ;  
+    font-style: italic !important ;  
+}
+
+
+.copy-btn {
+    background-color: #56b000 !important ;
+    color: white !important ;
+    padding: 0.5em 1em !important ;
+    border-radius: 5px !important ;
+    cursor: pointer !important ;
+    position: absolute !important ;
+    top: 10px !important ;
+    right: 10px !important ;
+    font-size: 0.9em !important ;
+}
+
+.copy-btn:hover {
+    background-color: #4a9f00 !important ;
+}
+
+.white {
+    color :white!important;
+}
+
+.mb-4{
+    margin-bottom:  4rem !important;
+}

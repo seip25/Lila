@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Minimalist Python Web Framework</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT">
+    <meta name="author" content="Lila Framework Team">
+
+    <!-- Spanish Meta Tags -->
+    <meta name="description" lang="es"
+        content="Lila es un framework minimalista de Python basado en Starlette y Pydantic, diseñado para ser simple, flexible y de alto rendimiento.">
+    <meta name="keywords" lang="es" content="Python, Framework Web, API, Starlette, Pydantic,  SQLAlchemy, JWT">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Lila Framework - Minimalist Python Web Framework">
+    <meta property="og:description"
+        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png">
+    <meta property="og:url" content="https://seip25.github.io/Lila/">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lila Framework - Minimalist Python Web Framework">
+    <meta name="twitter:description"
+        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png">
+
+    <!-- Multi-language support -->
+    <meta name="language" content="en, es">
+    <meta http-equiv="Content-Language" content="en, es">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://seip25.github.io/Lila/img/lila.png" alt="Lila Framework Logo">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="css/atom-one-dark.min.css">
+    <link rel="stylesheet" href="css/index.css">
+
+    <!-- Highlight.js -->
+    <script src="js/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <!-- Scripts -->
+    <script src="js/index.js"></script>
+    <style>
+        .container-sm {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .grid {
+            display: grid !important;
+            grid-template-columns: 35% 1fr !important;
+            gap: 1rem !important;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 25% 1fr !important;
+            }
+        }
+
+        aside {
+            position: sticky !important;
+            top: 0 !important;
+            height: 100vh !important;
+            overflow-y: auto !important;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="container">
+        <nav>
+            <ul>
+                <li>
+                    <a href="index.html">
+                        <h1 class="text-lila">Lila Framework</h1>
+                    </a>
+                </li>
+            </ul>
+            <ul>
+
+                <li>
+                    <details class="dropdown">
+                        <summary>🌐</summary>
+                        <ul dir="rtl">
+                            <li><a href="esp/documentation.html">Español</a></li>
+                            <li><a href="documentation.html">English</a></li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container ">
+
+        <div class="grid">
+            <aside>
+                <header>
+                    <nav>
+
+                        <ul>
+
+                            <li><a href="#install-eng">Installation</a></li>
+                            <li><a href="#routes-eng">Routes</a></li>
+                            <li><a href="#static-eng">Static</a></li>
+                            <li><a href="#templates-eng">Templates</a></li>
+                            <li><a href="#markdown-eng">Markdown/HTML</a></li>
+                            <li><a href="#locales-eng">Internationalization (Translations)</a></li>
+                            <li><a href="#models-eng">Models</a></li>
+                            <li><a href="#middlewares-eng">Middlewares</a></li>
+                            <li><a href="#connections-eng">Connections</a></li>
+                            <li><a href="#migrations-eng">Migrations</a></li>
+                            <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
+                            <li><a href="#admin-panel-eng">Admin Panel</a></li>
+                            <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
+                        </ul>
+
+                    </nav>
+                </header>
+            </aside>
+
+            <div class="main">
+                <div id="search">
+                    <input type="search" name="search" id="searchBox" placeholder="Search..."
+                        onkeyup="searchDocs(false,'eng')" />
+                    <ul id="searchResults"></ul>
+                </div>
+
+                <div id="doc">
+                    <div id="doc-eng">
+
+                        <article id="install-eng">
+                            <h2>Installation</h2>
+                            <div class="terminal">
+                                <div class="terminal-encabezado">
+                                    <span class="terminal-titulo">Installation</span>
+                                    <div class="terminal-controles">
+                                        <div class="control cerrar"></div>
+                                        <div class="control minimizar"></div>
+                                        <div class="control maximizar"></div>
+                                    </div>
+                                </div>
+                                <div class="terminal-contenido">
+                                    <span class="comando">$ git clone https://github.com/seip25/Lila.git</span><br>
+                                    <span class="comando">$ cd Lila</span><br>
+                                    <span class="comando">$ python3 -m venv venv</span><br>
+                                    <span class="comando">$ source venv/bin/activate # On Windows use
+                                        `venv\Scripts\activate`</span><br>
+                                    <span class="comando">$ pip install -r requeriments.txt</span><br>
+                                    <span class="comando">$ python3 app.py # Or python app.py</span>
+                                    <span class="cursor"></span>
+                                </div>
+                            </div>
+
+                        </article>
+                        <hr />
+
+                        <article id="app-py-eng">
+                            <h5 class=" ">Purpose: Configure and start the application.
+                                app.py is the main entry point where the application is configured and initialized.
+                            </h5>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app.py Explanation</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+
+                                    <pre><code class="language-python"> 
+# Import necessary modules and routes
+from core.app import App 
+from routes.routes import routes
+from routes.api import routes as api_routes
+
+# Import environment variables for host and port
+from core.env import PORT, HOST
+import itertools
+import uvicorn
+import asyncio
+
+# Optionally, uncomment the following imports for database migrations and connections.
+# You can enable database migration or connection setup if necessary.
+# from database.migrations import migrate
+# from database.connections import connection
+
+# Combine application and API routes into a single list.
+# This combines both regular app routes and API routes for easy use.
+all_routes = list(itertools.chain(routes, api_routes))
+
+# Initialize the app with debugging enabled and combined routes.
+# The app is initialized with debug mode on and the routes to handle the requests.
+app = App(debug=True, routes=all_routes)
+
+# Uncomment the following lines for CORS configuration if needed:
+# CORS (Cross-Origin Resource Sharing) configuration is optional.
+# cors={
+#     "origin": ["*"],
+#     "allow_credentials": True,
+#     "allow_methods":["*"],
+#     "allow_headers": ["*"]
+# }      
+# app = App(debug=True, routes=all_routes, cors=cors)
+
+# Main asynchronous function to run the application.
+# This function starts the application server asynchronously.
+async def main():
+# Uncomment the following line to execute database migrations.
+# This ensures that the database schema is up-to-date before starting the app.
+# migrations = await migrate(connection)
+
+# Start the Uvicorn server with the app instance.
+# The app is served by Uvicorn, which is an ASGI server.
+uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
+
+# Entry point of the script to run the main async function.
+# This is where the execution of the app begins.
+if __name__ == "__main__":
+asyncio.run(main())
+                </code>
+            </pre>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article id="routes-eng">
+                            <h1>Routes</h1>
+
+                            <p>Routes are the access points to the application. In Lila, routes are defined in the
+                                <code>routes</code> directory (by default, but you can place them wherever you want) and
+                                imported into
+                                <code>app.py</code> for use. Routes can be configured to handle HTTP requests, API
+                                methods, and
+                                more.
+                            <p>
+                                In addition to JSONResponse you can use HTMLResponse,
+                                RedirectResponse and PlainTextResponse, or
+                                StreamingResponse , to transmit data in real-time (useful for
+                                streaming video/audio or large responses).
+
+                            </p>
+                            Below is an example of how routes are defined in Lila:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">routes/api.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                            <code class="language-python">
+#Import from core JSONResponse .
+from core.responses import JSONResponse 
+
+# Manages routes for API endpoints.
+from core.routing import Router  
+# Initializes the router instance to handle API routes.
+router = Router()
+
+
+# Defines a simple API route that supports the GET method.
+@router.route(path='/api', methods=['GET'])
+async def api(request: Request):
+"""Api function"""
+# English: Returns a simple JSON response for API verification.
+return JSONResponse({'api': True})   
+                            </code>
+                        </pre>
+                                </div>
+                            </div>
+
+                            <br />
+
+                            <h5>Get url parameteres</h5>
+                            <p>In this function, we receive a parameter via
+                                the URL using <code>{param}</code>.
+                                If the parameter is not provided,
+                                it defaults to <code>'default'</code>.
+                                The response is a JSON containing the received value.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Receiving GET Parameters</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python">
+@router.route(path='/url_with_param/{param}', methods=['GET']) 
+async def param(request: Request):  
+    param = request.path_params.get('param', 'default') 
+    return JSONResponse({"received_param": param})
+        </code>
+        </pre>
+                                </div>
+                            </div>
+                            <br />
+                            <p>Or you canl also do it like this
+
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Receiving GET Query parameters</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python"> 
+@router.route(path='/url_with_param/?query_param', methods=['GET','POST']) 
+async def query_param(request: Request):  
+    query_param= request.query_params.get('query_param', 'query_param')
+    return JSONResponse({"received_param": query_params})
+                            
+        </code>
+        </pre>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Basic Imports</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python">
+from core.responses import JSONResponse  # Simplifies sending JSON responses.
+from core.routing import Router  # Manages API routes.
+from core.request import Request  # Handles HTTP requests in the application.
+from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
+from core.helpers import get_user_by_id_and_token
+from middlewares.middlewares import validate_token
+
+router = Router()
+        </code>
+        </pre>
+                                </div>
+                            </div>
+
+                            <h5>Middleware and Decorators Usage</h5>
+                            <p>Middlewares allow intercepting requests before they reach the main logic of the API.
+                                In this example, we use <code>@validate_token</code> to validate a JWT token in the
+                                request
+                                header.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Middleware Validation</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python">
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token  # Middleware to validate JWT token.
+async def api_token(request: Request):
+    return JSONResponse({'api': True})
+        </code>
+        </pre>
+                                </div>
+                            </div>
+
+                            <h5>Data Validation with Pydantic</h5>
+                            <p>Pydantic allows defining data models that automatically validate user input.
+                                Additionally, specifying a model in the route generates automatic documentation in
+                                <code>/docs</code>.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Validation with Pydantic</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python">
+
+from pydantic import EmailStr, BaseModel 
+class ExampleModel(BaseModel):
+    email: EmailStr  # Ensures a valid email.
+    password: str  # String for password.
+
+@router.route(path='/api/example', methods=['POST'], model=ExampleModel)
+async def login(request: Request):
+    body = await request.json()
+    try:
+        input = ExampleModel(**body)  # Automatic validation with Pydantic.
+    except Exception as e:
+        return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400) 
+    return JSONResponse({"email": input.email, "password": input.password})
+        </code>
+        </pre>
+                                </div>
+                            </div>
+
+                            <h5>Automatic Documentation Generation</h5>
+                            <p>Thanks to the integration with Pydantic, the API documentation is generated automatically
+                                and is
+                                accessible from
+                                <code>/docs</code>. You can also generate an OpenAPI JSON file for external tools.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Documentation Generation</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python">
+router.swagger_ui()  # Enables Swagger UI for API documentation.
+router.openapi_json()  # Generates OpenAPI JSON for external tools.
+        </code>
+        </pre>
+                                </div>
+                            </div>
+
+
+                            <h5>Importing Routes in app.py</h5>
+                            <p>To use the routes defined in the router, you need to obtain them with
+                                <code>router.get_routes()</code> and import them into <code>app.py</code>.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Route Import</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+        <code class="language-python">
+routes = router.get_routes()  # Retrieves all defined routes.
+        </code>
+        </pre>
+                                </div>
+                            </div>
+
+                        </article>
+
+                        <article id="static-eng">
+                            <h1>Static files</h1>
+                            <p>To load static files(js,css,etc) you can use the <code>mount()</code> method.
+                            </p>
+                            <p>What will be received as parameters that trade by default
+                                <code>path: str = '/public', directory: str = 'static', name: str = 'static'</code>
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Static</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+<code class="language-python">
+from core.routing import Router
+# Creating an instance of the Router to define the routes, if it was not previously created in the file
+router = Router()
+# Mounting the static files in the 'static' folder, url ='/public' by default
+router.mount()
+</code> 
+</pre>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article id="templates-eng">
+                            <h1>Templates Render (Jinja2)</h1>
+                            <p><strong>
+                                    In Lila, we use Jinja2 by default to render HTML templates and send them to the
+                                    client.
+                                    With <code>context</code>, you can pass information such as translations, data,
+                                    values, lists,dicts or you need.
+                                </strong>
+                            </p>
+                            <p>By default, translations from the <code>translations.json</code> file are always loaded,
+                                <code>theme</code> in case you want to use themes,
+                                <code>lang</code> by default, constants from the <code>.env</code> file or session,
+                                <code>title</code> for the project title or name,
+                                and <code>version</code> to version or avoid cache issues when rendering the HTML for
+                                the
+                                client.
+                            </p>
+                            <p>
+                                <strong>The advantages of using this rendering system, whether with translations or data
+                                    passed
+                                    with
+                                    Jinja2,
+                                    include improved SEO for your web application.</strong>
+                            </p>
+
+                            <p>The parameters that the <code>render</code> function from <code>core.templates</code> can
+                                receive
+                                are the following:
+                                <strong>
+                                    <code>
+                            request:Request, template: str, context: dict = {}, theme_: bool = True,
+                            translate: bool = True, files_translate: list = []
+                            </code>
+                                </strong>
+                            </p>
+                            <p>
+                                <code>template</code> is for the file name, starting from the <code>path</code>
+                                of the directory located in <code>templates/html/</code>, for example:
+                                <code>index.html</code>.
+                                It will look for a file <code>index.html</code> in the HTML directory within the
+                                templates
+                                folder
+                                (templates/html/index.html).
+                            </p>
+                            <p>
+                                <code>context</code> receives a dictionary with the
+                                values you want to pass to the template.
+                            </p>
+                            <p>
+                                <code>translate</code> and <code>files_translate</code> are for translations. You can
+                                choose
+                                whether
+                                to translate the template or not,
+                                and specify one or multiple files (a <code>list</code> passed to the function) to
+                                translate in
+                                addition
+                                to <code>translations.json</code>.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Templates</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                <code class="language-python">
+# Example of rendering an HTML file with Jinja2, passing translation parameters in the context
+@router.route(path='/', methods=['GET'])  
+async def home(request: Request): 
+    response = render(request=request, template='index')  # Renders the 'index.html' template with translations 
+    return response  
+
+# Example of rendering an HTML file with Jinja2, passing translation parameters in the context
+@router.route(path='/login', methods=['GET'])  
+@session_active  
+async def login(request: Request):  
+# Template login.html inside the 'auth' folder (templates/html/auth/login.html).
+# files_translate is a list of files to translate, in this case, the 'guest.json' file in the locales folder.
+# context is a dictionary with the values to pass to the template.
+    response = render(request=request, template='auth/login', files_translate=['guest'], context={'example_context': 'Hi!', 'example_array': [1,2,3]})  
+    return response  
+                                </code>
+                            </pre>
+                                </div>
+                            </div>
+                            <br />
+                            <p>
+                                Then, in your HTML file, you can use the variables, includes, extends, for loops, if
+                                statements,
+                                etc., from Jinja2 to render the content.
+                                Here is the documentation for
+                                <a href="https://jinja.palletsprojects.com/en/stable/">Jinja2</a>.
+                                This allows you to use what you passed in the context and translations with
+                                <code>translate</code>,
+                                as shown in the following example:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">templates/html/index.html</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                <code class="language-html">
+ 
+<p>title : {{title}}</p>
+<p>version : {{version}}</p>
+<p>lang :{{lang}}</p>
+<p>Context: {{example_context}}</p>
+
+<label>
+    {{ translate['Password'] }} # Password in English | Contraseña en español
+ #'translate' is a dictionary containing all the translations from the translations.json file or files you've uploaded.
+
+</label>
+<input type="password" name="password" required id="password" minlength="6" maxlength="50"/>
+
+                                </code>
+                            </pre>
+                                </div>
+                            </div>
+
+
+                        </article>
+
+                        <article id="markdown-eng">
+                            <h1>Markdown /HTML</h1>
+                            <p>To render <code>markdown</code> files, the
+                                <code>renderMarkdown</code> function is used, which receives the following parameters:
+                                <code>request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
+                            </p>
+                            <p>
+                                <code>file</code> is the name of the file, starting from the <code>base_path</code> of
+                                the
+                                directory
+                                located in <code>templates/markdown/</code>, for example: <code>index.md</code>.
+                                It will look for an <code>index.md</code> file in the markdown directory inside the
+                                templates
+                                folder
+                                (templates/markdown/index.md).
+                            </p>
+                            <p>
+                                <code>css_files</code> and <code>js_files</code> are lists of CSS and JS files that will
+                                be
+                                loaded in the
+                                generated HTML file.
+                            </p>
+                            <p>
+                                <code>picocss</code> is a boolean indicating whether the PicoCSS CSS file should be
+                                loaded.
+                            </p>
+                            <p>
+                                Below is an example of how <code>markdown</code> files are rendered in
+                                Lilac:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Markdown</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                     <code class="language-python">
+from core.templates import renderMarkdown
+
+@router.route(path='/markdown', methods=['GET'])
+async def home(request: Request):
+    #Define a list of CSS files to include in the response
+    css = ["/public/css/styles.css"]
+    #Renders a markdown file with PicoCSS styling
+    response = renderMarkdown(request=request, file='example', css_files=css, picocss=True)
+    return response
+
+                     </code>
+                     </pre>
+                                </div>
+                            </div>
+
+                        </article>
+
+                        <article id="locales-eng">
+                            <h1>Internationalization (Translations)</h1>
+                            <p>Translations are used to internationalize an application and display content in different
+                                languages.
+                                In Lila, translations are stored in the <code>locales</code> directory and can be
+                                dynamically
+                                loaded into the application.
+                            </p>
+                            <p>To load a locale file, use the <code>translate</code> function from
+                                <code>core.helpers</code>.
+                                Then, you can access translations using the <code>translate</code> function, which
+                                returns a
+                                dictionary with all translations,
+                                or use <code>translate_</code> for a specific text or translation, which will return the
+                                required translation
+                                (if not found, it returns the provided text).
+                            </p>
+                            <p>You can also use the <code>lang</code> helper to retrieve the language in which the
+                                application
+                                is running for the user
+                                making the request, either based on session settings or application configuration.</p>
+
+                            <p>The following example shows how to create and load a locale file and translate a text
+                                string.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">locales/translations.json</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                <code class="language-json">
+{
+    "Send": {
+        "es": "Enviar",
+        "en": "Send"
+    },
+    "Cancel": {
+        "es": "Cancelar",
+        "en": "Cancel"
+    },
+    "Accept": {
+        "es": "Aceptar",
+        "en": "Accept"
+    },
+    "Email": {
+        "es": "Email",
+        "en": "Email"
+    },
+    "Name": {
+        "es": "Nombre",
+        "en": "Name"
+    },
+    "Back": {
+        "es": "Volver",
+        "en": "Back"
+    },
+    "Hi": {
+        "es": "Hola",
+        "en": "Hi"
+    }
+}
+                </code>
+                            </pre>
+                                </div>
+                            </div>
+
+                            <br />
+                            <p>Here we show you how to use these helpers to retrieve translations stored in the
+                                <code>locales</code> directory.
+                            </p>
+                            <p>With the <code>file_name</code> parameter, you specify which file within the locales
+                                directory
+                                you want to load.
+                                By default, <code>translations.json</code> is always loaded.</p>
+                            <p>Then, using <code>key</code>, you specify which key to look for within your translations.
+                                The framework will automatically search based on your <code>.env</code> configuration or
+                                the
+                                user's session settings.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">translations</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                <code class="language-python">
+from core.helpers import translate_
+
+msg_error_login = translate_(key="Incorrect email or password", request=request, file_name="guest")
+# By default, translations.json is always loaded if the file_name parameter is not provided.
+                                </code>
+                            </pre>
+                                </div>
+                            </div>
+
+                            <br />
+                            <p>You can also use <code>translate</code> to retrieve all translations from the file.</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">translations</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                <code class="language-python">
+from core.helpers import translate
+
+msg = translate(request=request, file_name="guest")
+# By default, translations.json is always loaded if the file_name parameter is not provided.
+                                </code>
+                            </pre>
+                                </div>
+                            </div>
+                        </article>
+
+
+                        <article id="models-eng">
+                            <h1>Models (SQLAlchemy)</h1>
+                            <h5>Models are used to define the structure of data in
+                                the application.
+                            </h5>
+                            <p>
+                                <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy</a> as the default ORM
+                                for
+                                database management.
+                                SQLAlchemy allows creating database models,
+                                executing queries, and handling migrations
+                                efficiently.
+                            </p>
+
+                            <h2>Using Models </h2>
+                            <p>
+                                The `Base` class, imported from `core.database`, serves as the foundation for
+                                all models .
+                                Models inherit from `Base` to define database tables with SQLAlchemy.
+                            </p>
+
+                            <h2>Example: User Model</h2>
+                            This example demonstrates how to create a `User` model using SQLAlchemy.
+                            The model defines a `users` table with columns such as `id`, `name`, `email`, `password`,
+                            `token`,
+                            `active`, and `created_at`.
+                            </h5>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">models/user.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+
+        <code class="language-python">
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
+from core.database import Base
+from database.connections import connection 
+
+class User(Base):
+    __tablename__='users'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    name=Column( String(length=50), nullable=False)
+    email=Column( String(length=50), unique=True)
+    password=Column(String(length=150), nullable=False)
+    token=Column(String(length=150), nullable=False)
+    active=Column( Integer, nullable=False,default=1)
+    created_at=Column( TIMESTAMP)
+
+#Example of how to use SQLAlchemy to make queries to the database
+    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
+        result = connection.query(query=query,return_rows=True)#Return rows 
+        return result 
+
+#Example of how to use SQLAlchemy to make queries to the database
+    def get_by_id(id: int, select="id,email,name") -> dict:
+        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        row = connection.query(query=query, params=params,return_row=True)#Retrurn row
+        return row
+    
+    #Example using ORM abstraction in SQLAlchemy
+    @classmethod
+    def get_all_orm(cls, db: Session, limit: int = 1000):
+        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
+        return result
+    
+    
+#Example of how to use the class to make queries to the database
+users = User.get_all()
+user = User.get_by_id(1)
+                    </code>
+                    </pre>
+                                </div>
+                            </div>
+                            <br />
+                            <p>
+                                For details on SQLAlchemy, visit the official documentation:
+                                <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy Documentation</a>.
+                            </p>
+
+                        </article>
+
+                        <article id="middlewares-eng">
+                            <h1>Middlewares</h1>
+                            <h5>
+                                Middleware functions are used to intercept requests before they reach the main logic of
+                                the application.
+                                In Lila, middlewares are defined in the <code>middlewares</code> directory (can be
+                                modified to any file and/or directory).
+                                Middlewares can be used for tasks such as authentication, logging, and error handling.
+                            </h5>
+                            <p>
+                                By default, Lila comes with 3 middlewares to start any application. Middlewares can be
+                                used with decorators <code>@my_middleware</code>.
+                            </p>
+                            <p>
+                                <code>login_required</code>, to validate that you have a signed session, for the 'auth'
+                                key that is passed as a parameter to be able to modify it as you wish.
+                                If this session is not found, it redirects to the URL that is passed as a parameter, by
+                                default, it is <code>"/login"</code>.
+                                Otherwise, it will continue its course executing the route or function.
+                            </p>
+                            <p>
+                                Then we have <code>session_active</code>, which is used to verify if you have an active
+                                session.
+                                It will redirect to the URL that is received as a parameter, by default, it is
+                                <code>"/dashboard"</code>.
+                            </p>
+                            <p>
+                                The third is <code>validate_token</code>, which is used to validate a JWT token thanks
+                                to the <code>get_token</code> helpers imported in
+                                <code>from core.helpers import get_token</code>.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">middlewares/middlewares.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+
+            <code class="language-python">
+from core.session import Session
+from core.responses import RedirectResponse,JSONResponse
+from core.request import Request
+from functools import wraps 
+from core.helpers import get_token
+
+def login_required(func,key:str='auth',url_return='/login'):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if not session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def session_active(func,key:str='auth',url_return:str ='/dashboard'):
+    @wraps(func)
+    async def wrapper(request,*args,**kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def validate_token(func):
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        await check_token(request=request)
+        return await func(request, *args, **kwargs)
+       
+    return wrapper
+
+
+async def check_token(request:Request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+    
+    token = get_token(token=token)
+    if isinstance(token,JSONResponse):
+        return token 
+                
+            </code>
+            </pre>
+                                </div>
+                            </div>
+
+                            <br />
+                            <h5>
+                                Here we give you several examples of how to use all 3, with the decorators.
+                            </h5>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Middlewares in routes</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+
+                                    <pre>
+                        <code class="language-python">
+#Middleware to validate the JWT Token. 
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token #Middleware
+async def api_token(request: Request):
+    """Api Token function"""
+    print(get_user_by_id_and_token(request=request))
+    return JSONResponse({'api': True}) 
+
+#Middleware to validate session active
+@router.route(path='/dashboard', methods=['GET'])  
+@login_required #Middleware
+async def dashboard(request: Request):  
+    response = render(request=request, template='dashboard', files_translate=['authenticated']) 
+    return response 
+
+
+#Middleware validate if user get session active (if user get session redirect '/dashboard')
+@router.route(path='/login', methods=['GET'])  
+@session_active  #Middleware
+async def login(request: Request):  
+    response = render(request=request, template='auth/login', files_translate=['guest'])  
+    return response 
+
+
+                        </code>
+                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>Security Middleware</h2>
+                            <p>
+                                Lila Framework includes a built-in <code>ErrorHandlerMiddleware</code> that not only
+                                handles unhandled exceptions but also provides robust security checks to protect your
+                                application from malicious requests. This middleware is designed to block suspicious
+                                IPs, URLs, and sensitive paths, ensuring that your application remains secure.
+                            </p>
+                            <h3>Features</h3>
+                            <ul>
+                                <li>
+                                    <strong>IP Blocking</strong>:
+                                    Blocks IP addresses that have been flagged for malicious activity. IPs are blocked
+                                    for 6 hours by default.
+                                </li>
+                                <li>
+                                    <strong>URL Blocking</strong>:
+                                    Blocks specific URLs that are known to be malicious or suspicious.
+                                </li>
+                                <li>
+                                    <strong>Sensitive Paths Blocking</strong>:
+                                    Blocks access to sensitive paths such as <code>/etc/passwd</code>,
+                                    <code>.env</code>, and others.
+                                </li>
+                                <li>
+                                    <strong>Malicious Extensions Blocking</strong>:
+                                    Blocks URLs containing malicious file extensions like <code>.php</code>,
+                                    <code>.asp</code>, <code>.jsp</code>, and <code>.aspx</code>.
+                                </li>
+                                <li>
+                                    <strong>HTTP Detection</strong>:
+                                    Blocks requests containing <code>"http"</code> in query parameters or body content.
+                                </li>
+                            </ul>
+                            <h3>Configuration</h3>
+                            <p>
+                                The middleware uses three JSON files located in the <code>security</code> directory:
+                            </p>
+                            <ul>
+                                <li><code>blocked_ips.json</code>: Stores blocked IPs with their expiration time.</li>
+                                <li><code>blocked_urls.json</code>: Stores blocked URLs with their expiration time.</li>
+                                <li><code>sensitive_paths.json</code>: Stores a list of sensitive paths to block.</li>
+                            </ul>
+                            <p>
+                                If these files do not exist, they are automatically created and initialized with default
+                                values:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">security/sensitive_paths.json</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-json">
+[
+    "/etc/passwd",
+    ".env",
+    "wp-content",
+    "docker/.env",
+    "owa/auth/logon.aspx",
+    "containers/json",
+    "models",
+    "autodiscover/autodiscover.json",
+    "heapdump",
+    "actuator/heapdump",
+    "cgi-bin/vitogate.cgi",
+    "CFIDE/wizards/common/utils.cfc",
+    "var/www/html/.env",
+    "home/user/.muttrc",
+    "usr/local/spool/mail/root",
+    "etc/postfix/master.cf"
+]
+                                    </code></pre>
+                                </div>
+                            </div>
+                            <h3>Usage</h3>
+                            <p>
+                                The <code>ErrorHandlerMiddleware</code> is automatically applied to all requests. You
+                                can customize its behavior by modifying the JSON files in the <code>security</code>
+                                directory.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">core/middleware.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from starlette.middleware.base import BaseHTTPMiddleware
+from core.responses import JSONResponse, HTMLResponse
+from core.request import Request
+from core.logger import Logger
+from datetime import datetime, timedelta
+import json
+import os
+
+def load_blocked_data(file_path, default_value):
+try:
+if not os.path.exists(file_path):
+    with open(file_path, "w") as file:
+        json.dump(default_value, file, indent=4)
+    return default_value
+
+with open(file_path, "r") as file:
+    content = file.read().strip()
+    if not content:
+        with open(file_path, "w") as file:
+            json.dump(default_value, file, indent=4)
+        return default_value
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        with open(file_path, "w") as file:
+            json.dump(default_value, file, indent=4)
+        return default_value
+
+except Exception as e:
+Logger.error(f"Error loading {file_path}: {str(e)}")
+return default_value
+
+def save_blocked_data(file_path, data):
+try:
+with open(file_path, "w") as file:
+    json.dump(data, file, indent=4)
+except Exception as e:
+Logger.error(f"Error saving {file_path}: {str(e)}")
+
+async def is_blocked(blocked_data, key, request: Request):
+if key in blocked_data:
+expiration_time = datetime.fromisoformat(blocked_data[key]["expiration_time"])
+if datetime.now() < expiration_time:
+    req = await Logger.request(request=request)
+    Logger.warning(f"Blocked: {key} \n {req}")
+    return True
+return False
+
+class ErrorHandlerMiddleware(BaseHTTPMiddleware):
+def __init__(
+self,
+app,
+blocked_ips_file="security/blocked_ips.json",
+blocked_urls_file="security/blocked_urls.json",
+sensitive_paths_file="security/sensitive_paths.json",
+):
+super().__init__(app)
+self.blocked_ips_file = blocked_ips_file
+self.blocked_urls_file = blocked_urls_file
+self.sensitive_paths_file = sensitive_paths_file
+
+self.blocked_ips = load_blocked_data(blocked_ips_file, default_value={})
+self.blocked_urls = load_blocked_data(blocked_urls_file, default_value={})
+self.sensitive_paths = load_blocked_data(sensitive_paths_file, default_value=[])
+
+async def dispatch(self, request, call_next):
+try:
+    client_ip = request.client.host
+    url_path = request.url.path
+    query_params = str(request.query_params)
+    body = await request.body()
+
+    if await is_blocked(self.blocked_ips, client_ip, request=request):
+        return HTMLResponse(
+            content="<h1>Access Denied</h1><p>Your IP has been temporarily blocked.</p>",
+            status_code=403,
+        )
+
+    if await is_blocked(self.blocked_urls, url_path, request=request):
+        return HTMLResponse(
+            content="<h1>Access Denied</h1><p>This URL has been temporarily blocked.</p>",
+            status_code=403,
+        )
+
+    malicious_extensions = [".php", ".asp", ".jsp", ".aspx"]
+    if any(ext in url_path for ext in malicious_extensions):
+        self.blocked_ips[client_ip] = {
+            "expiration_time": (datetime.now() + timedelta(hours=6)).isoformat()
+        }
+        save_blocked_data(self.blocked_ips_file, self.blocked_ips)
+        return HTMLResponse(
+            content="<h1>Access Denied</h1><p>Malicious URL detected.</p>",
+            status_code=403,
+        )
+
+    if "http" in query_params or "http" in str(body):
+        self.blocked_ips[client_ip] = {
+            "expiration_time": (datetime.now() + timedelta(hours=6)).isoformat()
+        }
+        save_blocked_data(self.blocked_ips_file, self.blocked_ips)
+        return HTMLResponse(
+            content="<h1>Access Denied</h1><p>Malicious query parameters detected.</p>",
+            status_code=403,
+        )
+
+    if any(path in url_path or path in str(body) for path in self.sensitive_paths):
+        self.blocked_ips[client_ip] = {
+            "expiration_time": (datetime.now() + timedelta(hours=6)).isoformat()
+        }
+        save_blocked_data(self.blocked_ips_file, self.blocked_ips)
+        return HTMLResponse(
+            content="<h1>Access Denied</h1><p>Sensitive path detected.</p>",
+            status_code=403,
+        )
+
+    Logger.info(await Logger.request(request=request))
+    response = await call_next(request)
+    return response
+
+except Exception as e:
+    Logger.error(f"Unhandled Error: {str(e)}")
+    return JSONResponse(
+        {"error": "Internal Server Error", "success": False}, status_code=500
+    )
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
+
+
+                        <article id="connections-eng">
+                            <h1>Connections to database</h1>
+                            <p>
+                                To use connections, you need to import the <code>Database</code> class from
+                                core.database. With
+                                that you can connect to your database, which can be SQLite, MySLQ, PostgreSQL or
+                                whatever you
+                                want to configure.
+                            <p>Below we leave you the example of how to connect. The connection will close automatically
+                                after
+                                being used, so you can use it as in this example in the variable <code>connection</code>
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">connections/connections.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+
+            <code class="language-python">
+from core.database import Database
+
+#SQLite
+
+#Example connection to a sqlite database 
+config = {"type":"sqlite","database":"test"} #test.db
+connection = Database(config=config)
+connection.connect()
+
+#MySql
+
+#Example connection to a mysql database 
+config = {"type":"mysql","host":"127.0.0.1","user":"root","password":"password","database":"db_test","auto_commit":True}
+connection = Database(config=config)
+connection.connect()
+mysql_connection = connection
+                
+
+                </code>
+                </pre>
+                                </div>
+                            </div>
+
+                        </article>
+
+                        <article id="migrations-eng">
+                            <h1>Migrations</h1>
+                            <p>In Lila Framework, database migrations can be managed using SQLAlchemy and Lila's
+                                configuration
+                                to make migrations as easy as possible, using only the framework's code, thanks to its
+                                <code>Database</code> class. There are two main ways to define database tables: using
+                                "Table"
+                                directly or using Models with "Base". Explanations and examples of both methods are
+                                included
+                                below.
+                            </p>
+                            <br />
+                            <p><strong>Using Table:</strong> This method manually defines the table structure using
+                                SQLAlchemy's
+                                Table object.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">mgirations/mgirations.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
+from database.connections import connection
+
+# Example of creating migrations for 'users'
+table_users = Table(
+    'users', connection.metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('name', String(length=50), nullable=False),
+    Column('email', String(length=50), unique=True),
+    Column('password', String(length=150), nullable=False),
+    Column('token', String(length=150), nullable=False),
+    Column('active', Integer, default=1, nullable=False),
+    Column('created_at', TIMESTAMP),
+)
+
+async def migrate(connection,refresh:bool=False)->bool:
+
+try:
+    if refresh:
+        connection.metadata.drop_all(connection.engine)
+    connection.prepare_migrate([table_users])#for tables
+    connection.migrate() 
+    print("Migrations completed")
+    
+    return True
+except RuntimeError as e:
+    print(e)
+        </code></pre>
+                                </div>
+                            </div>
+                            <br />
+                            <p><strong>Using Models:</strong> This approach defines database tables as Python classes
+                                that
+                                inherit from "Base". This is the recommended method as it provides more structure and
+                                ORM
+                                capabilities.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">models/user.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from core.database import Base
+from sqlalchemy import Column, Integer, String, TIMESTAMP
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(length=50), nullable=False)
+    email = Column(String(length=50), unique=True)
+    password = Column(String(length=150), nullable=False)
+    token = Column(String(length=150), nullable=False)
+    active = Column(Integer, nullable=False, default=1)
+    created_at = Column(TIMESTAMP)
+
+
+        </code></pre>
+                                </div>
+                            </div>
+
+                            <p><strong>Running Migrations:</strong> To apply migrations, import the models and execute
+                                the
+                                migration script.</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">migrations/migrations.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from models.user import User # Import models for migrations
+
+async def migrate(connection, refresh: bool = False) -> bool:
+    try:
+        if refresh:
+            connection.metadata.drop_all(connection.engine)
+
+        connection.migrate(use_base=True) # For models, always import models in the file
+        print("Migrations completed")
+        return True
+    except RuntimeError as e:
+        print(e)
+        </code></pre>
+                                </div>
+                            </div>
+                            <br />
+
+                            <p><strong>Execute:</strong>Finally, for both Models and Table (you can use both if you
+                                want), run
+                                the migration function in
+                                the application's startup file:</p>
+                            <p>You can pass the parameter <code>refresh</code>, to delete and recreate the tables </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from database.migrations import migrate
+from database.connections import connection
+import asyncio
+import uvicorn
+
+async def main():
+    migrations = await migrate(connection,refresh=False) # Execute migrations for the app
+    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+        </code></pre>
+                                </div>
+                            </div>
+
+
+
+                        </article>
+
+                        <article id="rest_api_crud-eng">
+                            <h1>Simple Generation of REST API CRUD</h1>
+                            <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing
+                                you to
+                                create your REST API efficiently.</h5>
+
+                            <p>Thanks to the combination of <strong>SQLAlchemy</strong> and <strong>Pydantic</strong>
+                                models, it
+                                is possible to perform data validations and execute structured queries for API
+                                generation.</p>
+
+                            <p>Additionally, you can integrate custom <strong>middlewares</strong> to validate tokens,
+                                manage
+                                sessions, or process requests. With just a few lines of code, you can generate a fully
+                                documented REST API CRUD.</p>
+
+                            <br />
+                            <p>
+                                <strong>If you haven't already, enable migrations when you start the server</strong>
+                                .
+                                By default it uses SQLite, it will create a database file <code>lila.sqlite</code> in
+                                the
+                                project root.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from database.migrations import migrate
+from database.connections import connection
+async def main():
+    # execute migrations ,for app
+    migrations = await migrate(connection) 
+
+    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
+
+if __name__ == "__main__":
+asyncio.run(main())
+
+</code>
+</pre>
+                                </div>
+                            </div>
+                            <br />
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">routes/api.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from core.request import Request
+from core.responses import JSONResponse
+from core.routing import Router
+from pydantic import EmailStr, BaseModel
+from middlewares.middlewares import validate_token, check_token, check_session
+from database.connections import connection  # Database connection with SQLAlchemy
+from models.user import User  # SQLAlchemy 'User' model
+
+router = Router()# Initialize the router instance for managing API routes.
+
+
+# Pydantic model for validations when creating or modifying a user.
+class UserModel(BaseModel):
+    email: EmailStr
+    name: str
+    token: str
+    password: str
+
+# Middleware definitions for CRUD operations
+middlewares_user = {
+    "get": [],
+    "post": [], 
+    "get_id": [],
+    "put": [],
+    "delete": [check_session, check_token],#Example middlewares for web session 'check_session' and jwt 'check_token'
+}
+
+# Automatically generate CRUD with validations and configurations
+router.rest_crud_generate(
+    connection=connection,  # Database connection
+    model_sql=User,  # SQLAlchemy model
+    model_pydantic=UserModel,  # Pydantic model
+    select=["name", "email", "id", "created_at", "active"],  # Fields to select in queries
+    delete_logic=True,  # Enables logical deletion (updates 'active = 0' instead of deleting records)
+    active=True,  # Automatically filters active records ('active = 1')
+    middlewares=middlewares_user,  # Custom middlewares for each CRUD action
+)
+                            </code></pre>
+                                </div>
+                            </div>
+
+                            <br />
+                            <p>You can create your own <strong>middlewares</strong> and pass them as a list to customize
+                                security and validations for each <code>rest_crud_generate</code> operation.</p>
+                            <p>
+                                <strong>
+                                    To generate the documentation, always remember to
+                                    run it after the routes <code>router.swagger_ui()</code> and
+                                    <code>router.openapi_json()</code>
+                                </strong>
+                            </p>
+                            <h5>Function Parameters for <code>rest_crud_generate</code></h5>
+                            <p>Below are the parameters that this function accepts to generate CRUD automatically:</p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">core/routing.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+def rest_crud_generate(
+    self,
+    connection,
+    model_sql,
+    model_pydantic: Type[BaseModel],
+    select: Optional[List[str]] = None,
+    columns: Optional[List[str]] = None,
+    active: bool = False,
+    delete_logic: bool = False,
+    middlewares: dict = None,
+    jsonresponse_prefix:str='',#Return with prefix list o dict 'data' first key
+    
+    user_id_session:bool| str=False #Example 'user id' to validate in query with where 'user_id'= id session_user
+ 
+) :                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Automatic Documentation</h5>
+                            <p>Below is an example of the generated documentation for the
+                                <code>rest_crud_generate</code>
+                                function:
+                            </p>
+                            <p>Go to <code>http://127.0.0.1:8001/docs</code>, or as configured in your .env file (by
+                                HOST and
+                                PORT).</p>
+                            <div>
+                                <h5>GET - Retrieve all users</h5>
+                                <img src="img/rest_1.png" alt="GET - Retrieve all users">
+                                <br />
+
+                                <h5>GET - Output of all users</h5>
+                                <img src="img/rest_2.png" alt="GET - Output">
+                                <br />
+
+                                <h5>POST - Create new user</h5>
+                                <img src="img/rest_3.png" alt="POST - Create new user">
+                                <br />
+
+                                <h5>GET_ID - Retrieve a specific user</h5>
+                                <img src="img/rest_4-5.png" alt="GET_ID - Retrieve a specific user">
+                                <br />
+
+                                <h5>PUT - Update user</h5>
+                                <img src="img/rest_4.png" alt="PUT - Update user">
+                                <br />
+
+                                <h5>DELETE - Delete user</h5>
+                                <img src="img/rest_5.png" alt="DELETE - Delete user">
+                                <br />
+                            </div>
+                            <br />
+                            <p>In this example, we did it with 'users', but you can apply it however you want according
+                                to your
+                                logic ,'products','stores',etc. Even modifying the core in <code>core/routing.py</code>.
+                            </p>
+                            <br />
+                            <p>
+                                <strong>
+                                    For both the 'POST' or 'PUT' method function,
+                                </strong>
+                                If the framework detects that you pass data in the request body such as:
+                                'password' , it will automatically encode it with argon2 to make it secure.
+                                Body example :
+                            <pre><code class="language-json">
+{
+"email":"example@example.com",
+"name":"name",
+"password":"my_password_secret"
+}
+                        </code>
+                        </pre>
+                            </p>
+                            <p>Then, if you pass 'token' or 'hash', with the <code>helper</code> function
+                                <code>generate_token_value</code>
+                                , it automatically generates a token, which will be saved in the database as the 'token'
+                                column
+                                with the value generated by the function
+                                .
+                                Body example :
+                            <pre><code class="language-json">
+{
+"email":"example@example.com",
+"name":"name",
+"password":"my_password_secret",
+"token":""
+}
+                        </code>
+                        </pre>
+                            </p>
+                            <p>
+                                With 'created_at' or 'created_date' , it will save the date and time of the moment, as
+                                long as
+                                that field exists in the database table.
+                                Body example :
+                            <pre><code class="language-json">
+{
+"email":"example@example.com",
+"name":"name",
+"password":"my_password_secret",
+"token":"",
+"created_at":""
+}
+                        </code>
+                        </pre>
+
+                            </p>
+                            <p>
+                                <strong>For the 'PUT', 'GET' (get_id) or 'DELETE' methods</strong>
+                                It is optional according to the logic of each REST API, you can pass it as
+                                <code>query string</code> , <code>user_id</code>
+                                or <code>id_user</code>, an example would be GET, PUT or DELETE as a method
+                                to the url http://127.0.0.1:8001/api/products/1?user_id=20
+                            </p>
+                            <p>Where it validates that the product ID '1' exists but also that it belongs to the user ID
+                                '20' .
+                            </p>
+
+                        </article>
+
+                        <article id="admin-panel-eng">
+                            <h1>Admin Panel</h1>
+                            <p>
+                                The <code>Admin</code> module allows you to manage an admin panel for your application.
+                                It includes authentication, model management, system metrics, and more. This panel is
+                                highly customizable and integrates easily with your application.
+                            </p>
+                            <p>
+                                The idea is to provide you with a starting point for your admin panel. In
+                                <code>core/admin.py</code>, you can customize everything to your liking, adding
+                                two-factor authentication, different types of security, various model management
+                                options, etc.
+                            </p>
+
+                            <h2>Key Features</h2>
+                            <ul>
+                                <li><strong>Authentication</strong>: Secure login and logout for administrators.</li>
+                                <li><strong>Model Management</strong>: Automatically generates routes and views to
+                                    manage your models.</li>
+                                <li><strong>System Metrics</strong>: Monitors memory and CPU usage for both the
+                                    application and the server.</li>
+                                <li><strong>Password Management</strong>: Allows administrators to change their
+                                    passwords.</li>
+                                <li><strong>Logs</strong>: Enables administrators to view application <code>Logs</code>.
+                                </li>
+                            </ul>
+
+                            <h2>Basic Usage</h2>
+                            <p>
+                                To use the admin panel, you need to import the <code>Admin</code> class and pass it a
+                                list of models you want to manage, URL e.g., <a
+                                    href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a>. You can also
+                                specify the default user with the <code>user_default</code> parameter. Then, integrate
+                                the generated routes into your application.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-python">
+from core.admin import Admin
+from models.user import User
+
+# Create admin routes for the User model
+admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
+
+# Integrate routes into the application
+from core.app import App
+from routes.routes import routes
+from routes.api import routes as api_routes
+import itertools
+
+all_routes = list(itertools.chain(routes, api_routes, admin_routes))
+app = App(debug=True, routes=all_routes)
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>Default Admin User</h2>
+                            <p>
+                                The first time you start the admin panel, a default user is created (which you can
+                                modify using the <code>user_default</code> parameter in the <code>Admin</code> function)
+                                with the following credentials:
+                            </p>
+                            <ul>
+                                <li><strong>Username</strong>: <code>admin</code></li>
+                                <li><strong>Password</strong>: Automatically generated and displayed in the console.
+                                </li>
+                            </ul>
+                            <p>
+                                Example console message:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Console</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-plaintext">
+Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf0c8079863126' and user is 'admin'
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>Generated Routes</h2>
+                            <p>
+                                The admin panel automatically generates the following routes:
+                            </p>
+                            <ul>
+                                <li><strong>Login</strong>: <code>/admin/login</code> (GET/POST)</li>
+                                <li><strong>Logout</strong>: <code>/admin/logout</code> (GET)</li>
+                                <li><strong>Change Password</strong>: <code>/admin/change_password</code> (GET/POST)
+                                </li>
+                                <li><strong>Dashboard</strong>: <code>/admin</code> (GET)</li>
+                                <li><strong>Model Management</strong>: <code>/admin/{model_plural}</code> (GET)</li>
+                            </ul>
+
+                            <h2>Authentication Middleware</h2>
+                            <p>
+                                To protect routes and ensure only authenticated administrators can access them, use the
+                                <code>@admin_required</code> decorator.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Middleware Usage</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                        <code class="language-python">
+@router.route(path="/admin/dashboard", methods=["GET"])
+@admin_required
+async def admin_dashboard(request: Request):
+    return await self.admin_dashboard(request)
+                                        </code>
+                                    </pre>
+                                </div>
+                            </div>
+
+                            <h2>System Metrics</h2>
+                            <p>
+                                The admin panel displays real-time metrics, including:
+                            </p>
+                            <ul>
+                                <li>Lila framework memory usage.</li>
+                                <li>Lila framework CPU usage.</li>
+                                <li>System memory usage.</li>
+                                <li>System CPU usage.</li>
+                            </ul>
+                            <p>
+                                These metrics are updated every 10 seconds.
+                            </p>
+
+                            <h2>Logs</h2>
+                            <p>
+                                In Lila, we use a middleware that you can enable or disable if you want to use
+                                <code>Logs</code> for info, warnings, or errors in your application.
+                            </p>
+                            <p>
+                                The middleware is located in <code>core/middleware.py</code> and is added to the
+                                application with:
+                                <code>app.add_middleware(ErrorHandlerMiddleware)</code>.
+                            </p>
+                            <p>
+                                This helps generate logs that you can view in the admin panel, organized by date (in
+                                folders) and type.
+                            </p>
+                            <p class="container">
+                                <img src="img/admin.png" alt="admin" />
+                            </p>
+                            <br />
+                            <p class="container">
+                                <img src="img/admin_2.png" alt="admin" />
+                            </p>
+                        </article>
+                        <!-- 
+                <article id="helpers-eng">
+
+                </article> -->
+
+
+                    </div>
+
+
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    
+</body>
+
+</html>

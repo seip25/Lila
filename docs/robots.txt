@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://seip25.github.io/Lila/sitemap.xml

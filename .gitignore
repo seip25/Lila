@@ -171,5 +171,4 @@ cython_debug/
 .pypirc
 
 *.sqlite
-*.db
-/docs/
+*.db 
