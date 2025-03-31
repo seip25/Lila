@@ -116,6 +116,7 @@
                             <li><a href="#routes-esp">Rutas</a></li>
                             <li><a href="#static-esp">Static</a></li>
                             <li><a href="#templates-esp">Templates</a></li>
+                            <li><a href="#upload-esp">Upload de archivos</a></li>
                             <li><a href="#markdown-esp">Markdown/HTML</a></li>
                             <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
                             <li><a href="#models-esp">Modelos</a></li>
@@ -650,7 +651,159 @@ async def login(request: Request):
                                 </div>
                             </div>
                         </article>
+                        <article id="upload-esp">
+                            <h1>Helper para Subida de Archivos</h1>
+                            <p><strong>
+                                El helper <code>upload</code> proporciona una solución completa para manejar subidas de archivos en tu aplicación,
+                                incluyendo validación, controles de seguridad y soporte para traducciones.
+                            </strong></p>
+                        
+                            <p>Este helper maneja automáticamente:
+                                <ul>
+                                    <li>Validación del método HTTP (solo POST)</li>
+                                    <li>Validación del Content-Type (multipart/form-data)</li>
+                                    <li>Validación de extensiones de archivo</li>
+                                    <li>Límites de tamaño de archivo</li>
+                                    <li>Detección de archivos vacíos</li>
+                                    <li>Manejo seguro de nombres de archivo</li>
+                                    <li>Creación automática de directorios</li>
+                                    <li>Soporte para traducción de mensajes de error</li>
+                                </ul>
+                            </p>
+                        
+                            <h2>Parámetros</h2>
+                            <p>La función <code>upload</code> acepta estos parámetros:</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Parámetros</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+request: Request          # Objeto request de Starlette
+name_file: str | list     # Nombre del campo para subida (por defecto: 'file')
+UPLOAD_DIR: str           # Directorio para guardar archivos (por defecto: 'uploads')
+ALLOWED_EXTENSIONS: set   # Extensiones permitidas (por defecto: {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'})
+MAX_FILE_SIZE: int        # Tamaño máximo en bytes (por defecto: 10MB)
+                                    </code></pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Ejemplo de Uso</h2>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Implementación en Ruta</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from core.helpers import upload
 
+@router.route("/upload", methods=["POST"])
+async def uploadFile(request: Request):
+    response = await upload(request=request, name_file="file")
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Implementación en Frontend</h2>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">HTML + JavaScript</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-html">
+&lt;form onsubmit="upload(event);"&gt;
+    &lt;fieldset&gt;
+        &lt;input type="file" name="file" required&gt;
+    &lt;/fieldset&gt;
+    &lt;button type="submit"&gt;
+        &lt;i class="icon-check-circle"&gt;&lt;/i&gt;
+        Subir Archivos
+    &lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+    async function upload(event) {
+        event.preventDefault();
+        const formElement = event.target;
+        const formData = new FormData(formElement);
+        
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+            
+            alert('¡Archivo subido correctamente!');
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+&lt;/script&gt;
+                                    </code></pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Formato de Respuesta</h2>
+                            <p>El helper retorna un JSONResponse con esta estructura:</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Respuesta Exitosa</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-json">
+{
+    "file": "/uploads/nombre_archivo.ext",
+    "success": true,
+    "message": "Archivo subido correctamente"
+}
+                                    </code></pre>
+                                </div>
+                            </div>
+                        
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Respuesta de Error</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-json">
+{
+    "error": true,
+    "success": false,
+    "message": "Mensaje de error en el idioma del usuario"
+}
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
 
                         <article id="markdown-esp">
                             <h1>Markdown /HTML</h1>

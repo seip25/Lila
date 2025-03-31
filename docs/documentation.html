@@ -117,6 +117,7 @@
                             <li><a href="#routes-eng">Routes</a></li>
                             <li><a href="#static-eng">Static</a></li>
                             <li><a href="#templates-eng">Templates</a></li>
+                            <li><a href="#upload-eng">Uploads Files</a></li>
                             <li><a href="#markdown-eng">Markdown/HTML</a></li>
                             <li><a href="#locales-eng">Internationalization (Translations)</a></li>
                             <li><a href="#models-eng">Models</a></li>
@@ -649,7 +650,160 @@ async def login(request: Request):
 
 
                         </article>
+                        <article id="upload-eng">
+                            <h1>File Upload Helper</h1>
+                            <p><strong>
+                                    The <code>upload</code> helper provides a complete solution for handling file
+                                    uploads in your application,
+                                    including validation, security checks, and translation support.
+                                </strong></p>
 
+                            <p>This helper automatically handles:
+                            <ul>
+                                <li>HTTP method validation (POST only)</li>
+                                <li>Content-Type validation (multipart/form-data)</li>
+                                <li>File extension validation</li>
+                                <li>File size limits</li>
+                                <li>Empty file detection</li>
+                                <li>Secure filename handling</li>
+                                <li>Automatic directory creation</li>
+                                <li>Translation support for error messages</li>
+                            </ul>
+                            </p>
+
+                            <h2>Parameters</h2>
+                            <p>The <code>upload</code> function accepts these parameters:</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Parameters</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+request: Request          # Starlette request object
+name_file: str | list     # Field name for file upload (default: 'file')
+UPLOAD_DIR: str           # Directory to save files (default: 'uploads')
+ALLOWED_EXTENSIONS: set   # Allowed file extensions (default: {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'})
+MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Usage Example</h2>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Route Implementation</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from core.helpers import upload
+
+@router.route("/upload", methods=["POST"])
+async def uploadFile(request: Request):
+    response = await upload(request=request, name_file="file")
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Frontend Implementation</h2>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">HTML + JavaScript</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-html">
+&lt;form onsubmit="upload(event);"&gt;
+    &lt;fieldset&gt;
+        &lt;input type="file" name="file" required&gt;
+    &lt;/fieldset&gt;
+    &lt;button type="submit"&gt;
+        &lt;i class="icon-check-circle"&gt;&lt;/i&gt;
+        Upload Files
+    &lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+    async function upload(event) {
+        event.preventDefault();
+        const formElement = event.target;
+        const formData = new FormData(formElement);
+        
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+            
+            alert('File uploaded successfully!');
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+&lt;/script&gt;
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Response Format</h2>
+                            <p>The helper returns a JSONResponse with this structure:</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Success Response</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-json">
+{
+    "file": "/uploads/filename.ext",
+    "success": true,
+    "message": "File uploaded successfully"
+}
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Error Response</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-json">
+{
+    "error": true,
+    "success": false,
+    "message": "Error message in user's language"
+}
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
                         <article id="markdown-eng">
                             <h1>Markdown /HTML</h1>
                             <p>To render <code>markdown</code> files, the
@@ -1941,7 +2095,7 @@ async def admin_dashboard(request: Request):
         </div>
     </main>
 
-    
+
 </body>
 
 </html>
