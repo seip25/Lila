@@ -132,7 +132,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 }
                 save_blocked_data(self.blocked_ips_file, self.blocked_ips)
                 return HTMLResponse(
-                    content="<h1>Access Denied</h1><p>Malicious query parameters detected.</p>",
+                    content="<h1>Access Denied</h1>",
                     status_code=403,
                 )
 
@@ -146,7 +146,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 }
                 save_blocked_data(self.blocked_ips_file, self.blocked_ips)
                 return HTMLResponse(
-                    content="<h1>Access Denied</h1><p>Sensitive path detected.</p>",
+                    content="<h1>Access Denied</h1>",
                     status_code=403,
                 )
             

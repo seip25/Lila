@@ -82,5 +82,37 @@
   "and_more": {
     "es": "y mucho más",
     "en": "and much more"
+  },
+  "invalid_method": {
+    "es": "Método no permitido",
+    "en": "Method not allowed"
+  },
+  "invalid_content_type": {
+    "es": "Content-Type debe ser multipart/form-data",
+    "en": "Content-Type must be multipart/form-data"
+  },
+  "file_not_found": {
+    "es": "No se encontró archivo en el campo especificado",
+    "en": "No file found in specified field"
+  },
+  "invalid_extension": {
+    "es": "Extensión de archivo no permitida",
+    "en": "File extension not allowed"
+  },
+  "file_too_large": {
+    "es": "Archivo demasiado grande. Tamaño máximo: ",
+    "en": "File too large. Maximum size: "
+  },
+  "upload_success": {
+    "es": "Archivo(s) subido(s) correctamente",
+    "en": "File(s) uploaded successfully"
+  },
+  "server_error": {
+    "es": "Error en el servidor",
+    "en": "Server error"
+  },
+  "empty_file": {
+    "es": "El archivo está vacío",
+    "en": "File is empty"
   }
 }
