@@ -53,6 +53,10 @@ async def set_language(request: Request):
     Session.setSession(name_cookie="lang", new_val=lang, response=response)
     return response
 
+@router.route(path="/reactive", methods=["GET"])
+async def test(request: Request):
+    response= render(request=request, template="reactive")
+    return response
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas

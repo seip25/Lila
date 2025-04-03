@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{title}}</title>
+    <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
+    <!--CSS-->
+    <link rel="stylesheet" href="/public/css/pico.min.css">
+    <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
+    <!--CSS-->
+
+    <!-- JS-->
+    <script src="/public/js/utils_example.js"></script>
+
+    <!--JS -->
+</head>
+
+<body>
+    <header class="container">
+        <nav>
+            <a href="/" data-link>Inicio</a>
+            <a href="/about" data-link>Acerca de</a>
+            <a href="/counter" data-link>Contador</a>
+        </nav>
+    </header>
+
+    <main id="app-lila" class="container"></main>
+
+    <footer>
+
+    </footer>
+
+    <div class="container">
+
+        <template data-template="home-template">
+            <h1>¡Bienvenido a la página de inicio!</h1>
+           
+            <form data-action="submit">
+                <input type="text" name="greet" data-bind="greet" placeholder="Ingresa tu saludo" class="w-full" />
+                <button type="submit" class="contrast">
+                    <i class="icon-send"></i>Enviar
+                </button>
+                <br />
+            </form>
+            <br />
+            <div >
+                <p>Tu saludo es: <span data-bind="greet"></span></p>
+            </div>
+            <div class="input-icon">
+                <i class="icon-edit"></i>
+                <input type="text" data-model="greet" placeholder="Cambiar saludo" value="">
+            </div>
+            <button data-action="changeGreeting" class="w-full">
+                <i class="icon-check-circle"></i>Cambiar Saludo
+            </button>
+            <br />
+            <div data-component="Counter"></div>
+        </template>
+
+        <template data-template="about-template">
+            <h1>Acerca de</h1>
+            <p>Esta es la página acerca de nosotros.</p>
+        </template>
+
+        <template data-template="counter-template">
+            <h1>Contador</h1>
+            <p>Conteo actual: <span data-bind="count"></span></p>
+            <div class="flex between gap-2">
+                <button data-action="increment" class="secondary">Incrementar</button>
+                <button data-action="decrement" class="secondary">Disminuir</button>
+                <button data-action="reset" class="secondary">Reiniciar</button>
+            </div>
+        </template>
+
+        <template data-template="not-found-template">
+            <h1>404 No Encontrado</h1>
+            <p>La página que buscas no existe.</p>
+            <button data-action="goHome">Ir al Inicio</button>
+        </template>
+    </div>
+
+    <script src="/public/js/lila.js"></script>
+
+    <script>
+        const templateHome = ({ greet }) => `
+        
+            
+           `;
+        App.createComponent('Home', {
+            template: 'home-template',
+            state: () => ({
+                greet: null
+            }),
+            actions: {
+                changeGreeting: ({ state }) => {
+                    state.greet = state.greet === "Hello World!"
+                        ? "Hola Mundo!"
+                        : "Hello World!";
+                    console.log(state.greet);
+                },
+                submit: ({ state, event }) => {
+                    event.preventDefault();
+                    const formData = Object.fromEntries(new FormData(event.target));
+                    console.log('Form submitted:', formData);
+                    alert(JSON.stringify(formData));
+                }
+            }
+        });
+
+        App.createComponent('About', {
+            template: 'about-template'
+        });
+
+        App.createComponent('Counter', {
+            template: 'counter-template',
+            state: () => ({
+                count: 0,
+                interval: null
+            }),
+            actions: {
+                increment: ({ state }) => { state.count++ },
+                decrement: ({ state }) => { state.count-- },
+                reset: ({ state }) => { state.count = 0 }
+            },
+            onMount: (state) => {
+                console.log('Counter mounted');
+                state.interval = setInterval(() => {
+                    console.log('Interval tick', state.count);
+                    state.count++;
+                }, 1000);
+            },
+            onDestroy: (state) => {
+                console.log('Counter destroyed');
+                if (state.interval) {
+                    clearInterval(state.interval);
+                    state.interval = null;
+                }
+            }
+        });
+
+        App.createComponent('NotFound', {
+            template: 'not-found-template',
+            actions: {
+                goHome: () => {
+                    App.navigateTo('#/');
+                }
+            }
+        });
+
+        App.addRoute('/', 'Home');
+        App.addRoute('/about', 'About');
+        App.addRoute('/counter', 'Counter');
+        App.addRoute('*', 'NotFound');
+
+        handleRouting();
+    </script>
+</body>
+
+</html>
