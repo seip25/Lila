@@ -53,6 +53,9 @@ async def set_language(request: Request):
     Session.setSession(name_cookie="lang", new_val=lang, response=response)
     return response
 
+
+# English: Example route for testing reactive features in HTML
+# Español: Ejemplo de ruta para probar características reactivas en HTML
 @router.route(path="/reactive", methods=["GET"])
 async def test(request: Request):
     response= render(request=request, template="reactive")
