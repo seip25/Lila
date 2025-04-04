@@ -518,138 +518,440 @@ router.mount()
                         </article>
 
                         <article id="templates-eng">
-                            <h1>Templates Render (Jinja2)</h1>
+                            <h1>Templates Render (Jinja2 + Lila JS)</h1>
                             <p><strong>
-                                    In Lila, we use Jinja2 by default to render HTML templates and send them to the
-                                    client.
-                                    With <code>context</code>, you can pass information such as translations, data,
-                                    values, lists,dicts or you need.
-                                </strong>
-                            </p>
-                            <p>By default, translations from the <code>translations.json</code> file are always loaded,
-                                <code>theme</code> in case you want to use themes,
-                                <code>lang</code> by default, constants from the <code>.env</code> file or session,
-                                <code>title</code> for the project title or name,
-                                and <code>version</code> to version or avoid cache issues when rendering the HTML for
-                                the
-                                client.
-                            </p>
-                            <p>
-                                <strong>The advantages of using this rendering system, whether with translations or data
-                                    passed
-                                    with
-                                    Jinja2,
-                                    include improved SEO for your web application.</strong>
-                            </p>
+                                    In Lila, you can use Jinja2 to render HTML with server-side data or Lila JS
+                                    to create reactive client-side components,
+                                    or even combine both approaches according to your needs.
+                                </strong></p>
 
-                            <p>The parameters that the <code>render</code> function from <code>core.templates</code> can
-                                receive
-                                are the following:
-                                <strong>
-                                    <code>
-                            request:Request, template: str, context: dict = {}, theme_: bool = True,
-                            translate: bool = True, files_translate: list = []
-                            </code>
-                                </strong>
-                            </p>
-                            <p>
-                                <code>template</code> is for the file name, starting from the <code>path</code>
-                                of the directory located in <code>templates/html/</code>, for example:
-                                <code>index.html</code>.
-                                It will look for a file <code>index.html</code> in the HTML directory within the
-                                templates
-                                folder
-                                (templates/html/index.html).
-                            </p>
-                            <p>
-                                <code>context</code> receives a dictionary with the
-                                values you want to pass to the template.
-                            </p>
-                            <p>
-                                <code>translate</code> and <code>files_translate</code> are for translations. You can
-                                choose
-                                whether
-                                to translate the template or not,
-                                and specify one or multiple files (a <code>list</code> passed to the function) to
-                                translate in
-                                addition
-                                to <code>translations.json</code>.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Templates</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
+                            <section>
+                                <h2>Rendering Options</h2>
+                                <p>Lila offers three approaches to build your application:</p>
+
+                                <div class="feature-cards">
+                                    <div class="card">
+                                        <h3>1. Traditional Jinja2</h3>
+                                        <p>Full server-side rendering using Jinja2 templates with context data.</p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-html">
+&lt;p&gt;{{ translate['Welcome'] }} {{ user.name }}&lt;/p&gt;
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                        <p><strong>Advantages:</strong> Perfect SEO, fast initial load, simple.</p>
+                                    </div>
+
+                                    <div class="card">
+                                        <h3>2. Lila JS (SPA)</h3>
+                                        <p>Fully reactive single-page application on the client side.</p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-html">
+&lt;span data-bind="message"&gt;&lt;/span&gt;
+&lt;input data-model="username"&gt;
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                        <p><strong>Advantages:</strong> Fluid user experience, no page reloads.</p>
+                                    </div>
+
+                                    <div class="card">
+                                        <h3>3. Hybrid Approach</h3>
+                                        <p>Combine Jinja2 for base structure and Lila JS for interactive parts.</p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-html">
+&lt;div data-component="InteractivePart"&gt;&lt;/div&gt;
+&lt;p&gt;{{ static_content }}&lt;/p&gt;
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                        <p><strong>Advantages:</strong> The best of both worlds.</p>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-                                <code class="language-python">
-# Example of rendering an HTML file with Jinja2, passing translation parameters in the context
-@router.route(path='/', methods=['GET'])  
-async def home(request: Request): 
-    response = render(request=request, template='index')  # Renders the 'index.html' template with translations 
-    return response  
+                            </section>
 
-# Example of rendering an HTML file with Jinja2, passing translation parameters in the context
-@router.route(path='/login', methods=['GET'])  
-@session_active  
-async def login(request: Request):  
-# Template login.html inside the 'auth' folder (templates/html/auth/login.html).
-# files_translate is a list of files to translate, in this case, the 'guest.json' file in the locales folder.
-# context is a dictionary with the values to pass to the template.
-    response = render(request=request, template='auth/login', files_translate=['guest'], context={'example_context': 'Hi!', 'example_array': [1,2,3]})  
-    return response  
-                                </code>
-                            </pre>
-                                </div>
-                            </div>
-                            <br />
-                            <p>
-                                Then, in your HTML file, you can use the variables, includes, extends, for loops, if
-                                statements,
-                                etc., from Jinja2 to render the content.
-                                Here is the documentation for
-                                <a href="https://jinja.palletsprojects.com/en/stable/">Jinja2</a>.
-                                This allows you to use what you passed in the context and translations with
-                                <code>translate</code>,
-                                as shown in the following example:
-                            </p>
+                            <section>
+                                <h2>Render with Jinja2</h2>
+                                <p><strong>
+                                        In Lila, Jinja2 is used by default to render HTML templates and send them to the
+                                        client.
+                                        With <code>context</code>, you can pass information such as translations, data,
+                                        values, lists, dictionaries or whatever you need.
+                                    </strong></p>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">templates/html/index.html</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
+                                <p>The parameters that the <code>render</code> function from <code>core.templates</code>
+                                    can receive are:</p>
+                                <div class="code-editor">
+                                    <div class="editor-content">
+                                        <pre><code class="language-python">
+request: Request, 
+template: str, 
+context: dict = {}, 
+theme_: bool = True,
+translate: bool = True, 
+files_translate: list = []
+                                        </code></pre>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-                                <code class="language-html">
- 
-<p>title : {{title}}</p>
-<p>version : {{version}}</p>
-<p>lang :{{lang}}</p>
-<p>Context: {{example_context}}</p>
+                            </section>
 
-<label>
-    {{ translate['Password'] }} # Password in English | Contraseña en español
- #'translate' is a dictionary containing all the translations from the translations.json file or files you've uploaded.
+                            <section>
+                                <h2>Lila JS: Reactive System</h2>
+                                <p>Lila JS is a minimalist library to create reactive interfaces with vanilla
+                                    JavaScript.</p>
+                                <p><a href="https://github.com/seip25/Lila_js" target="_blank">Documentation</a></p>
 
-</label>
-<input type="password" name="password" required id="password" minlength="6" maxlength="50"/>
+                                <h3>Key Concepts</h3>
+                                <div class="concept-grid">
+                                    <div class="concept">
+                                        <h4>Reactive State</h4>
+                                        <p>State is a special object that automatically updates the UI when it changes.
+                                        </p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-javascript">
+state: () => ({
+    email: '',
+    password: ''
+})
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                </code>
-                            </pre>
+                                    <div class="concept">
+                                        <h4>Two-Way Data Binding</h4>
+                                        <p>Bidirectional binding between inputs and state using <code>data-model</code>.
+                                        </p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-html">
+&lt;input data-model="email"&gt;
+&lt;span data-bind="email"&gt;&lt;/span&gt;
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="concept">
+                                        <h4>Components</h4>
+                                        <p>Reusable units with their own state, template and actions.</p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-javascript">
+App.createComponent('Login', {
+    template: 'login-template',
+    state: () => ({...}),
+    actions: {...}
+});
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="concept">
+                                        <h4>Routing</h4>
+                                        <p>Client-side navigation between components.</p>
+                                        <div class="code-editor small">
+                                            <div class="editor-content">
+                                                <pre><code class="language-javascript">
+App.addRoute('/login', 'Login');
+handleRouting();
+                                                </code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </section>
 
+                            <section>
+                                <h2>Complete Example: Authentication System</h2>
+                                <p>This example shows how to combine Jinja2 for the base structure and Lila JS for
+                                    interactivity.</p>
 
+                                <h3>auth.html - Base Structure</h3>
+                                <div class="code-editor">
+                                    <div class="editor-header">
+                                        <span class="editor-title">templates/html/auth.html</span>
+                                    </div>
+                                    <div class="editor-content">
+                                        <pre><code class="language-html">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="{{lang}}"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;{{title}}&lt;/title&gt;
+    &lt;link rel="stylesheet" href="/public/css/styles.css" /&gt;
+    &lt;script src="/public/js/lila.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;main id="app-lila" class="container"&gt;&lt;/main&gt;
+    {% include 'auth/login.html' with context %}
+    {% include 'auth/register.html' with context %}
+    {% include 'auth/footer.html' with context %}
+    &lt;script&gt;
+        handleRouting();
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                                        </code></pre>
+                                    </div>
+                                </div>
+                                <p><strong>Explanation:</strong> This file serves as the base layout using Jinja2. It
+                                    includes:</p>
+                                <ul>
+                                    <li>Translations from context with <code>{{lang}}</code> and <code>{{title}}</code>
+                                    </li>
+                                    <li>A main container <code>app-lila</code> where components will be mounted</li>
+                                    <li>Inclusion of partial templates for login, register and footer</li>
+                                    <li>Router initialization with <code>handleRouting()</code></li>
+                                </ul>
+
+                                <h3>login.html - Reactive Component</h3>
+                                <div class="code-editor">
+                                    <div class="editor-header">
+                                        <span class="editor-title">templates/html/auth/login.html</span>
+                                    </div>
+                                    <div class="editor-content">
+                                        <pre><code class="language-html">
+&lt;template data-template="login-template"&gt;
+    &lt;div class="flex center"&gt;
+        &lt;article class="shadow rounded mx-m"&gt;
+            &lt;h1 class="flex center"&gt;{{translate['login']}}&lt;/h1&gt;
+            &lt;form data-action="loginFetch"&gt;
+                &lt;div class="input-icon"&gt;
+                    &lt;i class="icon-email"&gt;&lt;/i&gt;
+                    &lt;input type="email" data-model="email" placeholder="Email" required /&gt;
+                &lt;/div&gt;
+                &lt;div class="input-icon"&gt;
+                    &lt;i class="icon-lock"&gt;&lt;/i&gt;
+                    &lt;input type="password" data-model="password" 
+                            placeholder="{{translate['password']}}" required /&gt;
+                &lt;/div&gt;
+                &lt;button type="submit"&gt;{{translate['login']}}&lt;/button&gt;
+            &lt;/form&gt;
+            &lt;a href="/register" data-link&gt;{{translate['register']}}&lt;/a&gt;
+        &lt;/article&gt;
+    &lt;/div&gt;
+    &lt;div data-component="Footer"&gt;&lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+    App.createComponent('Login', {
+        template: 'login-template',
+        state: () => ({
+            email: '',
+            password: ''
+        }),
+        actions: {
+            loginFetch: async ({ state, event }) => {
+                event.preventDefault();
+                const data = { email: state.email, password: state.password };
+                alert('Login: ' + JSON.stringify(data));
+            }
+        }
+    });
+    
+    App.addRoute('/login', 'Login');
+    App.addRoute('*', 'Login'); // Default route
+&lt;/script&gt;
+                                        </code></pre>
+                                    </div>
+                                </div>
+                                <p><strong>Key Features:</strong></p>
+                                <ul>
+                                    <li><strong>Two-way data binding:</strong> Inputs with <code>data-model</code>
+                                        automatically sync with state.</li>
+                                    <li><strong>Actions:</strong> <code>data-action</code> binds the form to the
+                                        <code>loginFetch</code> method.</li>
+                                    <li><strong>Nested component:</strong> Footer is included with
+                                        <code>data-component="Footer"</code>.</li>
+                                    <li><strong>Routing:</strong> Links with <code>data-link</code> navigate without
+                                        page reload.</li>
+                                    <li><strong>Combination with Jinja2:</strong> Use of <code>{{translate}}</code> for
+                                        internationalized texts.</li>
+                                </ul>
+
+                                <h3>register.html - Component with Validation</h3>
+                                <div class="code-editor">
+                                    <div class="editor-header">
+                                        <span class="editor-title">templates/html/auth/register.html</span>
+                                    </div>
+                                    <div class="editor-content">
+                                        <pre><code class="language-html">
+&lt;template data-template="register-template"&gt;
+    &lt;div class="flex center container"&gt;
+        &lt;article class="shadow rounded mx-m"&gt;
+            &lt;h1&gt;{{translate['register']}}&lt;/h1&gt;
+            &lt;form data-action="registerFetch"&gt;
+                &lt;input type="text" data-model="name" placeholder="{{translate['name']}}"&gt;
+                &lt;input type="email" data-model="email" placeholder="Email"&gt;
+                &lt;input type="password" data-model="password" placeholder="{{translate['password']}}"&gt;
+                &lt;input type="password" data-model="password_2" placeholder="{{translate['confirm_password']}}"&gt;
+                &lt;button type="submit"&gt;{{translate['register']}}&lt;/button&gt;
+            &lt;/form&gt;
+            &lt;div&gt;
+                &lt;p&gt;Current values:&lt;/p&gt;
+                &lt;p&gt;Name: &lt;span data-bind="name"&gt;&lt;/span&gt;&lt;/p&gt;
+                &lt;p&gt;Email: &lt;span data-bind="email"&gt;&lt;/span&gt;&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;a href="/login" data-link&gt;{{translate['login']}}&lt;/a&gt;
+        &lt;/article&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+    App.createComponent('Register', {
+        template: 'register-template',
+        state: () => ({
+            name: '',
+            email: '',
+            password: '',
+            password_2: ''
+        }),
+        actions: {
+            registerFetch: async ({ state, event }) => {
+                event.preventDefault();
+                if (state.password !== state.password_2) {
+                    alert("{{translate['passwords_dont_match']}}");
+                    return;
+                }
+                const data = { 
+                    name: state.name, 
+                    email: state.email, 
+                    password: state.password 
+                };
+                // Send data to server...
+            }
+        }
+    });
+    
+    App.addRoute('/register', 'Register');
+&lt;/script&gt;
+                                        </code></pre>
+                                    </div>
+                                </div>
+                                <p><strong>Key Points:</strong></p>
+                                <ul>
+                                    <li>Shows real-time state values with <code>data-bind</code></li>
+                                    <li>Basic validation directly in the action</li>
+                                    <li>Combined use of reactive data and static translations</li>
+                                </ul>
+
+                                <h3>footer.html - Simple Component</h3>
+                                <div class="code-editor">
+                                    <div class="editor-header">
+                                        <span class="editor-title">templates/html/auth/footer.html</span>
+                                    </div>
+                                    <div class="editor-content">
+                                        <pre><code class="language-html">
+&lt;template data-template="footer-template"&gt;
+    &lt;footer class="mt-4 container"&gt;
+        &lt;div class="flex between"&gt;
+            &lt;a href="/set-language/es"&gt;Español&lt;/a&gt;
+            &lt;a href="/set-language/en"&gt;English&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/footer&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+    App.createComponent('Footer', {
+        template: 'footer-template'
+    }); 
+&lt;/script&gt;
+                                        </code></pre>
+                                    </div>
+                                </div>
+                                <p><strong>Notes:</strong></p>
+                                <ul>
+                                    <li>Stateless component</li>
+                                    <li>Reusable in any part of the application</li>
+                                    <li>Doesn't require complex JavaScript logic</li>
+                                </ul>
+                            </section>
+
+                            <section>
+                                <h2>Advantages of This Approach</h2>
+                                <div class="advantages">
+                                    <div class="advantage">
+                                        <h3>🚀 Performance</h3>
+                                        <p>Combines Jinja2's initial speed with SPA fluidity.</p>
+                                    </div>
+                                    <div class="advantage">
+                                        <h3>🔍 Optimized SEO</h3>
+                                        <p>Critical content is server-rendered for search engine bots.</p>
+                                    </div>
+                                    <div class="advantage">
+                                        <h3>💡 Progressive</h3>
+                                        <p>Start with Jinja2 and add interactivity where needed.</p>
+                                    </div>
+                                    <div class="advantage">
+                                        <h3>🛠️ Simple</h3>
+                                        <p>No complex configuration or heavy dependencies.</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section>
+                                <h2>Lila JS Quick Reference</h2>
+                                <table class="reference-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Attribute/Function</th>
+                                            <th>Description</th>
+                                            <th>Example</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>data-component</code></td>
+                                            <td>Mounts a component inside another</td>
+                                            <td><code>&lt;div data-component="Footer"&gt;&lt;/div&gt;</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>data-bind</code></td>
+                                            <td>Displays a state property value</td>
+                                            <td><code>&lt;span data-bind="email"&gt;&lt;/span&gt;</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>data-model</code></td>
+                                            <td>Two-way binding for inputs</td>
+                                            <td><code>&lt;input data-model="username"&gt;</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>data-action</code></td>
+                                            <td>Binds an action to an event</td>
+                                            <td><code>&lt;button data-action="submit"&gt;</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>data-link</code></td>
+                                            <td>Navigation between routes without reload</td>
+                                            <td><code>&lt;a href="/about" data-link&gt;</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>App.createComponent</code></td>
+                                            <td>Creates a new component</td>
+                                            <td><code>App.createComponent('Login', {...});</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>App.addRoute</code></td>
+                                            <td>Defines a route for a component</td>
+                                            <td><code>App.addRoute('/login', 'Login');</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>handleRouting()</code></td>
+                                            <td>Initializes the routing system</td>
+                                            <td><code>&lt;script&gt;handleRouting();&lt;/script&gt;</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </section>
                         </article>
+
+
                         <article id="upload-eng">
                             <h1>File Upload Helper</h1>
                             <p><strong>
