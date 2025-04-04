@@ -1,0 +1,71 @@
+<template data-template="register-template">
+    <div class="flex center container">
+        <article class="shadow rounded mx-m ">
+            <h1 class="flex center">{{translate['register']}}</h1>
+            <form data-action="registerFetch">
+
+                <div class="input-icon">
+                    <i class="icon-person"></i>
+                    <input type="text" name="name" data-model="name" required placeholder="{{translate['name']}}">
+                </div>
+
+                <div class="input-icon">
+                    <i class="icon-email"></i>
+                    <input type="email" name="email" data-model="email" placeholder="Email" required />
+                </div>
+                <div class="input-icon">
+                    <i class="icon-lock"></i>
+                    <input type="password" name="password" data-model="password" placeholder="{{translate['password']}}"
+                        required />
+                </div>
+
+                <div class="input-icon">
+                    <i class="icon-lock"></i>
+                    <input type="password" name="password_2" data-model="password_2"
+                        placeholder="{{translate['confirm_password']}}" required />
+                </div>
+
+                <button type="submit" class="contrast"><i class="icon-add-person"></i>{{translate['register']}}</button>
+            </form>
+            <div class="mt-4">
+                <p>Name Bind: <span data-bind="name"></span></p>
+                <p>Email Data Bind: <span data-bind="email"></span></p>
+                <p>Password Bind: <span data-bind="password"></span></p>
+                <p>Password 2 Data Bind: <span data-bind="password_2"></span></p>
+            </div>
+
+            <footer>
+                 <div class="mt-4 flex center">
+                   <strong>
+                    <a href="/login" data-link class="underline-none flex center secondary ">
+                        
+                        {{translate['login']}}
+                    </a>
+                   </strong>
+                 </div>
+                
+            </footer>
+        </article>
+    </div>
+  
+</template>
+
+<script>
+    App.createComponent('Register', {
+        template: 'register-template',
+        state: () => ({
+            name:'',
+            email: '',
+            password: '',
+            password_2: ''
+        }),
+        actions: {
+            registerFetch: async ({ state, event }) => {
+                event.preventDefault();
+                const data = {name:state.name, email: state.email, password: state.password, password_2: state.password_2 };
+                alert('Register: ' + JSON.stringify(data));
+            }
+        }
+    });
+    App.addRoute('/register', 'Register');
+</script>

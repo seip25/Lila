@@ -58,7 +58,14 @@ async def set_language(request: Request):
 # Español: Ejemplo de ruta para probar características reactivas en HTML
 @router.route(path="/reactive", methods=["GET"])
 async def test(request: Request):
-    response= render(request=request, template="reactive")
+    response= render(request=request, template="reactive/reactive")
+    return response
+
+#Englihs : Example route for testing reactive features in HTML with a different template (Login,Register)
+#Español: Ejemplo de ruta para probar características reactivas en HTML con una plantilla diferente (Login,Register)
+@router.route(path="/auth", methods=["GET"])
+async def auth(request: Request):
+    response= render(request=request, template="auth/auth")
     return response
 
 # English: Get all the defined routes

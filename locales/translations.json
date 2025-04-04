@@ -114,5 +114,29 @@
   "empty_file": {
     "es": "El archivo está vacío",
     "en": "File is empty"
+  },
+  "login":{
+    "es": "Iniciar sesión",
+    "en": "Login"
+  },
+  "register":{
+    "es": "Registrarse",
+    "en": "Register"
+  },
+  "password":{
+    "es": "Contraseña",
+    "en": "Password"
+  },
+  "confirm_password":{
+    "es": "Confirmar contraseña",
+    "en": "Confirm password"
+  },
+  "name":{
+    "es": "Nombre",
+    "en": "Name"
+  },
+  "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)": {
+    "es": "Documentación de Lila Js (Templates Reactivos con Vanilla Js Javascript)",
+    "en": "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)"
   }
 }

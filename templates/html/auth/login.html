@@ -1,0 +1,64 @@
+<template data-template="login-template">
+
+    <div class="flex center">
+        <article class="shadow rounded mx-m">
+            <h1 class="flex center">{{translate['login']}}</h1>
+            <form data-action="loginFetch">
+                <fieldset>
+                    <div class="input-icon">
+                        <i class="icon-email"></i>
+                        <input type="email" name="email" data-model="email" placeholder="Email" required />
+                    </div>
+                    <div class="input-icon">
+                        <i class="icon-lock"></i>
+                        <input type="password" name="password" data-model="password"
+                            placeholder="{{translate['password']}}" required />
+                    </div>
+                </fieldset>
+                <button type="submit" class="contrast"><i class="icon-login"></i>{{translate['login']}}</button>
+            </form>
+            <p>
+                Email Data Bind: <span data-bind="email"></span>
+
+            </p>
+
+            <p>
+                Password Data Bind: <span data-bind="password"></span>
+
+            </p>
+            <footer class="flex center gap-1 mt-4">
+                <strong>
+                    <a href="/register" data-link class="underline-none flex center secondary">
+                        {{translate['register']}}
+                    </a>
+
+                </strong>
+            </footer>
+        </article>
+    </div>
+    <div data-component="Footer"></div> <!-- auth/footer.html component  -->
+
+</template>
+
+<script>
+    const submitLogin = async ({ state, event }) => {
+        event.preventDefault();
+        const data = { email: state.email, password: state.password };
+        alert('Login: ' + JSON.stringify(data));
+    };
+
+    App.createComponent('Login', {
+        template: 'login-template',
+        state: () => ({
+            email: '',
+            password: ''
+        }),
+        actions: {
+            loginFetch: submitLogin
+        }
+    });
+
+    App.addRoute('/login', 'Login');
+    App.addRoute('*', 'Login');
+
+</script>

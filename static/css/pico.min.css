@@ -3162,6 +3162,10 @@ button.secondary {
     max-width: 400px !important;
 }
 
+.mx-m {
+    max-width: 600px !important;
+}
+
 .mx-img-card {
     max-width: 300px !important;
     max-height: 350px !important;

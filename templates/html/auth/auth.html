@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{title}}</title>
+    <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
+    <!--CSS-->
+    <link rel="stylesheet" href="/public/css/pico.min.css">
+    <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
+    <!--CSS-->
+
+    <!-- JS-->
+    <script src="/public/js/lila.js"></script>
+    <!--JS -->
+</head>
+
+<body>
+
+    <main id="app-lila" class="container"></main>
+    {% include 'auth/login.html' with context %}
+    {% include 'auth/register.html' with context %}
+    {% include 'auth/footer.html' with context %}
+    <script>
+        handleRouting();
+    </script>
+</body>
+</html>
