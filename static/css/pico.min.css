@@ -3129,7 +3129,8 @@ article footer {
 }
 
 button:not([role="search"]) {
-    border-radius: 0.9rem !important;
+    padding: 0.45rem !important;
+    border-radius: 1.5rem !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -3142,7 +3143,8 @@ button.secondary {
 }
 
 button {
-    border-radius: 0.9rem !important;
+    padding: 0.45rem !important;
+    border-radius: 1.5rem !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
