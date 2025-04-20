@@ -50,11 +50,11 @@
 </head>
 
 <body>
-    <header class="container">
-        <nav>
+    <header >
+        <nav class="container">
             <ul>
                 <li>
-                    <a href="index.html">
+                    <a href="index.html" class="underline-none">
                         <h1 class="text-lila">Lila Framework</h1>
                     </a>
                 </li>
@@ -63,20 +63,14 @@
                 <li>
                     <a href="documentation.html" class="eng">Documentation</a>
                 </li>
-                <li>
-                    <details class="dropdown">
-                        <summary>🌐</summary>
-                        <ul dir="rtl">
-                            <li><a href="esp/">Español</a></li>
-                            <li><a href="index.html">English</a></li>
-                        </ul>
-                    </details>
-                </li>
+              
+                    <li><a href="esp/">Español</a></li>
+                    <li><a href="https://github.com/seip25/Lila">Github</a></li> 
             </ul>
         </nav>
     </header>
     <main class="container">
-        <div class="grid gap-1">
+        <div class="grid cols-auto gap-1">
             <div>
                 <div class="mx-m">
                     <span class="flex column">
@@ -99,19 +93,19 @@
                 </div>
             </div>
             <div>
-                <p class="mt-4">Lila is a <strong>minimalist Python framework</strong> based on <a
-                        href="https://www.starlette.io/">Starlette</a> and <a
-                        href="https://docs.pydantic.dev/latest/">Pydantic</a>. Designed for developers seeking
-                    simplicity, flexibility, and robustness, it enables efficient and customizable web or API
-                    application development. Its modular structure and support for advanced configurations make it
-                    ideal for both beginners and experienced developers.
-                </p>
+                <p class="mt-4">Lila is a <strong>minimalist Python web framework</strong> built on <a  
+                    href="https://www.starlette.io/">Starlette</a> and <a  
+                    href="https://docs.pydantic.dev/latest/">Pydantic</a>. Designed for developers who value  
+                simplicity, flexibility, and performance, it empowers you to build <strong>modern web applications</strong>  
+                and <strong>RESTful APIs</strong> efficiently. With its modular architecture, intuitive design,  
+                and built-in API tools, Lila is perfect for both beginners and seasoned developers.  
+            </p>  
             </div>
         </div>
 
         <section id="features" class="mt-2">
             <h2 class="flex center">✨ Key Features</h2>
-            <div class="grid">
+            <div class="grid cols-auto">
                 <article>
                     <h3>🎯 Simplicity</h3>
                     <p>Intuitive and minimalist design. Lila is built to be easy to use, with a clean and
@@ -130,7 +124,7 @@
                         real-time APIs and high-traffic websites.</p>
                 </article>
             </div>
-            <div class="grid">
+            <div class="grid cols-auto">
                 <article>
                     <h3>🛡️ Robust Validation</h3>
                     <p>Uses Pydantic to ensure consistent and validated data. Define your data models with confidence
@@ -150,7 +144,7 @@
                         ease.</p>
                 </article>
             </div>
-            <div class="grid">
+            <div class="grid cols-auto">
                 <article>
                     <h3>🚀 Easy Migrations</h3>
                     <p>Quick and straightforward database configuration. Migrate your data without hassle.</p>
@@ -175,8 +169,8 @@
         </section>
     </main>
 
-    <footer class="container mt-4">
-        <div class="grid">
+    <footer class="container flex column center mt-4">
+        <div class="grid   cols-auto">
             <div>
                 <h3>Links</h3>
                 <ul>
