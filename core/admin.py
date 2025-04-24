@@ -288,31 +288,32 @@ class AdminClass:
             <link rel="stylesheet" href="/public/css/material.css" />
         </head>
         <body>
-            <main class="container">
-                <div class="flex center">
-                    <article class="shadow mx-sm">
-                        <header>
+            <main class="container mx-m">
+                
+                    <article class="shadow  ">
+                       
                             <h4 class="flex center">{html_login}</h4>
-                        </header>
+                         
                         <form id="loginForm">
-                            <fieldset class="flex center column">
-                               <div class="input-icon">
-                                    <i class="icon-person"></i> 
-                                    <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="{html_user}" />
+                            
+                               <div class="mt-2">
+                                    <i class="icon icon-person"></i> 
+                                    <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="" />
+                                    <label>{html_user}</label>
                                </div>
-                                 <div class="input-icon">
-                                    <i class="icon-lock"></i> 
-                                     <input type="password" name="password" id="password" required minlength="2" maxlength="255" placeholder="{html_password}" />
+                                 <div class="mt-2">
+                                    <i class="icon icon-lock"></i> 
+                                     <input type="password" name="password" id="password" required minlength="2" maxlength="255" placeholder="" />
+                                     <label>{html_password}</label>
                              
                                </div>
-                                 <button type="submit" class="contrast">
-                                    <i class="icon-login"></i> 
+                                 <button type="submit" class="w-full">
+                                    <i class="icon icon-login"></i> 
                                     {html_send}
                                 </button>
-                            </fieldset>
+                            
                         </form>
-                    </article>
-                </div>
+                    </article> 
             </main>
             <script>
                 document.getElementById("loginForm").addEventListener("submit", async function (event) {{
@@ -348,16 +349,17 @@ class AdminClass:
                 <article class="shadow">
                     <h4>Change Password</h4>
                     <form id="changePasswordForm">
-                    <fieldset class="flex center column">
-                        <div class="input-icon">
-                            <i class="icon icon-lock"></i>
-                            <input type="password" name="new_password" id="new_password" required minlength="2" maxlength="255" placeholder="New Password" />
+                    
+                        <div class="mt-2">
+                            <i class="icon icon icon-lock"></i>
+                            <input type="password" name="new_password" id="new_password" required minlength="2" maxlength="255" placeholder="" />
+                            <label>New Password</label>
                         </div>
-                        <button type="submit" class="contrast">
-                           <i class="icon-check-circle"></i>
+                        <button type="submit" class="w-full">
+                           <i class="icon icon-check-circle"></i>
                         Change Password
                         </button>
-                    </fieldset>
+                    
                     </form>
                 </article>
                 <script>
@@ -395,35 +397,29 @@ class AdminClass:
         for model in self.models:
             model_name = model.__name__.lower()
             model_plural = f"{model_name}s"
-            m+=f"<li><a href='/admin/{model_plural}'>{model_name.capitalize()}</a></li>"
+            m+=f"<li><a href='/admin/{model_plural}' class='underline-none'>{model_name.capitalize()}</a></li>"
             
             menu_=f"""
-            <details class="dropdown">
+            <details>
                 <summary>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M0 0h24v24H0z" fill="none"/>
                     <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
                 </svg>
                 </summary>
-                <ul dir="rtl">
+                <ul >
                 {m}
-                <li><a href="/admin/change_password">Change Password</a></li>
-                <li><a href="/admin/logout">Logout</a></li>
+                <li><a href="/admin/change_password" class="underline-none">Change Password</a></li>
+                <li><a href="/admin/logout" class="underline-none">Logout</a></li>
                 </ul>
             </details>
         """
         return  f"""
       <header class=" shadow">
                 <nav class="container">
-                    <ul>
-                        <li><strong>Admin Dashboard</strong></li>
-                    </ul>
-                    <ul>
-                    <li><a href="/admin/">Dashboard</a></li>
-                        <li>
-                       {menu_}
-                        </li>
-                    </ul>
+                  <h1>Admin Dashboard</h1>
+                   <a href="/admin/" class='underline-none'>Dashboard</a> 
+                       {menu_} 
                 </nav>
             </header>
 
@@ -702,7 +698,7 @@ class AdminClass:
              {self.menu()}
             <main class="container">
                 <article>
-                    <h2>{model_name.capitalize()}</h2>
+                    <h2 class='flex center'>{model_name.capitalize()}</h2>
                     <div id="tabulator-table"></div>
                 </article>
             </main>
