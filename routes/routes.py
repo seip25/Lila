@@ -24,6 +24,24 @@ async def home(request: Request):
     return response
 
 
+# English: Example default lang in the path
+# Español : Ejemplo de dejar el idioma por defecto en la ruta
+@router.route(path="/es", methods=["GET"])
+async def home(request: Request):
+    response = render(
+        request=request, template="index",lang_default="es"
+    )  
+    return response
+
+# English: Example default lang in the path
+# Español : Ejemplo de dejar el idioma por defecto en la ruta
+@router.route(path="/en", methods=["GET"])
+async def home(request: Request):
+    response = render(
+        request=request, template="index",lang_default="en"
+    )  
+    return response
+
 # English : Example for render 'markdown' file
 # Español : Ejemplo para renderizar un archivo 'markdown'
 @router.route(path="/markdown", methods=["GET"])

@@ -31,8 +31,8 @@ def lang(request: Request) -> str:
     return l
 
 
-def translate(file_name: str, request: Request) -> dict:
-    current_lang = lang(request)
+def translate(file_name: str, request: Request,lang_default:str=None) -> dict:
+    current_lang = lang(request) if not lang_default else lang_default
     translations = {}
     file_path = LOCALES_PATH / f"{file_name}.json"
  
@@ -53,8 +53,8 @@ def translate(file_name: str, request: Request) -> dict:
     return translations
 
 
-def translate_(key: str, request: Request, file_name: str = "translations") -> str:
-    t = translate(file_name=file_name, request=request)
+def translate_(key: str, request: Request, file_name: str = "translations",lang_default:str=None) -> str:
+    t = translate(file_name=file_name, request=request,lang_default=lang_default)
     if key in t:
         msg = t[key]
         return msg if msg not in [None, ""] else key
