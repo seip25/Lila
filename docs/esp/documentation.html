@@ -1176,35 +1176,54 @@ return response
 
                         <article id="locales-esp">
                             <h1>Internalización (Traducciones)</h1>
-                            <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en
-                                diferentes
-                                idiomas.
-                                En Lila, las traducciones se almacenan en el directorio <code>locales</code> y se pueden
-                                cargar
-                                dinámicamente en la aplicación.
-                            </p>
-                            <p>Para cargar un archivo de locales, utiliza la función <code>translate</code> desde
-                                <code>core.helpers</code>. Luego, puedes acceder a las traducciones utilizando la
-                                función
-                                <code>translate</code> que devolvera un diccionario con todas las traducciones o
-                                utilizar
-                                <code>translate_</code> ,para un texto o traducción en especifico, que devolvera la
-                                traducción
-                                que
-                                necesita (en caso de no encontrarla
-                                ,devuelve el texto pasado).
+                            <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en diferentes idiomas. En Lila, las traducciones se almacenan en el directorio <code>locales</code> y se pueden cargar dinámicamente en la aplicación.</p>
+                            
+                            <h2>Forzar idioma por defecto en rutas</h2>
+                            <p>El método <code>render</code> acepta un parámetro <code>lang_default</code> para forzar un idioma específico en la plantilla renderizada:</p>
+                            
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">routes.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+# Forzar idioma español
+@router.route(path="/es", methods=["GET"])
+async def home(request: Request):
+    response = render(
+        request=request,
+        template="index",
+        lang_default="es"  # Fuerza traducciones en español
+    )
+    return response
 
-                            </p>
-                            <p>También puedes utilizar el helper <code>lang</code> para que te devuelva por sessión o
-                                configuración
-                                de la aplicación en que idioma se esta ejecutando para dicho usuario que realizo la
-                                solicitud.
-                            </p>
-
-                            <p>El siguiente ejemplo muestra cómo crear y cargar un archivo de locales y traducir una
-                                cadena de
-                                texto.</p>
-
+# Forzar idioma inglés
+@router.route(path="/en", methods=["GET"])
+async def home(request: Request):
+    response = render(
+        request=request,
+        template="index",
+        lang_default="en"  # Fuerza traducciones en inglés
+    )
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Archivos de traducción</h2>
+                            <p>Para cargar un archivo de locales, usa la función <code>translate</code> desde <code>core.helpers</code>. Puedes acceder a las traducciones usando:</p>
+                            <ul>
+                                <li><code>translate</code> - devuelve un diccionario con todas las traducciones</li>
+                                <li><code>translate_</code> - devuelve una traducción específica (devuelve el texto original si no se encuentra)</li>
+                            </ul>
+                        
+                            <p>Ejemplo de archivo de traducción (<code>locales/translations.json</code>):</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">locales/translations.json</span>
@@ -1215,8 +1234,7 @@ return response
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                            <code class="language-json">
+                                    <pre><code class="language-json">
 {
     "Send": {
         "es": "Enviar",
@@ -1247,27 +1265,16 @@ return response
         "en": "Hi"
     }
 }
-</code>
-                        </pre>
+                                    </code></pre>
                                 </div>
                             </div>
-
-                            <br />
-                            <p>Aquí te mostramos como utilizar dichos helpers para obtener las traducciones que dejas en
-                                el
-                                directorio <code>locales</code></p>
-                            <p>Con el parametro <code>file_name</code> indicas que archivo dentro de locales quieres
-                                cargar, por
-                                defecto siempre se caarga translations.json</p>
-                            <p>Luego con <code>key</code> le dices que clave quieres buscar dentro de tus traducciones,
-                                despues
-                                el
-                                framework buscará solo según tengas configurado en tu archivo .env o por sesión del
-                                usuario</p>
-
+                        
+                            <h2>Usando traducciones</h2>
+                            <p>Obtener una traducción específica:</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">translations</span>
+                                    <span class="editor-title">example.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1275,22 +1282,23 @@ return response
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                                <code class="language-python">
-from core.helpers import translate_ 
-msg_error_login =translate_(key="Incorrect email or password",request=request,file_name="guest")
-#Por defecto siempre se carga translations.json , si no se pasa el parametro file_name
-                                    </code>
-                                    </pre>
+                                    <pre><code class="language-python">
+from core.helpers import translate_
+
+msg_error_login = translate_(
+    key="Incorrect email or password", 
+    request=request, 
+    file_name="guest"
+)
+                                    </code></pre>
                                 </div>
                             </div>
-
-                            <br />
-                            <p>También con <code>translate</code> puedes obtener todas las traducciones del archivo .
-                            </p>
+                        
+                            <p>Obtener todas las traducciones de un archivo:</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">translations</span>
+                                    <span class="editor-title">example.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1298,16 +1306,37 @@ msg_error_login =translate_(key="Incorrect email or password",request=request,fi
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                                <code class="language-python">
+                                    <pre><code class="language-python">
 from core.helpers import translate
-msg =translate(request=request,file_name="guest") 
-#Por defecto siempre se carga translations.json , si no se pasa el parametro file_name
-                                    </code>
-                                    </pre>
+
+all_translations = translate(
+    request=request, 
+    file_name="guest"
+)
+                                    </code></pre>
                                 </div>
                             </div>
-
+                            
+                            <h2>Configuración adicional</h2>
+                            <p>También puedes utilizar el helper <code>lang</code> para obtener el idioma actual basado en la sesión o configuración de la aplicación:</p>
+                            
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">example.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+                        from core.helpers import lang
+                        
+                        current_language = lang(request)
+                                    </code></pre>
+                                </div>
+                            </div>
                         </article>
 
                         <article id="models-esp">

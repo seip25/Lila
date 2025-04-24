@@ -1167,29 +1167,54 @@ async def home(request: Request):
 
                         <article id="locales-eng">
                             <h1>Internationalization (Translations)</h1>
-                            <p>Translations are used to internationalize an application and display content in different
-                                languages.
-                                In Lila, translations are stored in the <code>locales</code> directory and can be
-                                dynamically
-                                loaded into the application.
-                            </p>
-                            <p>To load a locale file, use the <code>translate</code> function from
-                                <code>core.helpers</code>.
-                                Then, you can access translations using the <code>translate</code> function, which
-                                returns a
-                                dictionary with all translations,
-                                or use <code>translate_</code> for a specific text or translation, which will return the
-                                required translation
-                                (if not found, it returns the provided text).
-                            </p>
-                            <p>You can also use the <code>lang</code> helper to retrieve the language in which the
-                                application
-                                is running for the user
-                                making the request, either based on session settings or application configuration.</p>
+                            <p>Translations are used to internationalize an application and display content in different languages. In Lila, translations are stored in the <code>locales</code> directory and can be dynamically loaded into the application.</p>
+                            
+                            <h2>Forcing Default Language in Routes</h2>
+                            <p>The <code>render</code> method accepts a <code>lang_default</code> parameter to force a specific language for the rendered template:</p>
+                            
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">routes.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+# Force Spanish language
+@router.route(path="/es", methods=["GET"])
+async def home(request: Request):
+    response = render(
+        request=request,
+        template="index",
+        lang_default="es"  # Forces Spanish translations
+    )
+    return response
 
-                            <p>The following example shows how to create and load a locale file and translate a text
-                                string.</p>
-
+# Force English language
+@router.route(path="/en", methods=["GET"])
+async def home(request: Request):
+    response = render(
+        request=request,
+        template="index",
+        lang_default="en"  # Forces English translations
+    )
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+                        
+                            <h2>Translation Files</h2>
+                            <p>To load a locale file, use the <code>translate</code> function from <code>core.helpers</code>. You can access translations using:</p>
+                            <ul>
+                                <li><code>translate</code> - returns a dictionary with all translations</li>
+                                <li><code>translate_</code> - returns a specific translation (returns original text if not found)</li>
+                            </ul>
+                        
+                            <p>Example translation file (<code>locales/translations.json</code>):</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">locales/translations.json</span>
@@ -1200,8 +1225,7 @@ async def home(request: Request):
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                                <code class="language-json">
+                                    <pre><code class="language-json">
 {
     "Send": {
         "es": "Enviar",
@@ -1232,27 +1256,16 @@ async def home(request: Request):
         "en": "Hi"
     }
 }
-                </code>
-                            </pre>
+                                    </code></pre>
                                 </div>
                             </div>
-
-                            <br />
-                            <p>Here we show you how to use these helpers to retrieve translations stored in the
-                                <code>locales</code> directory.
-                            </p>
-                            <p>With the <code>file_name</code> parameter, you specify which file within the locales
-                                directory
-                                you want to load.
-                                By default, <code>translations.json</code> is always loaded.</p>
-                            <p>Then, using <code>key</code>, you specify which key to look for within your translations.
-                                The framework will automatically search based on your <code>.env</code> configuration or
-                                the
-                                user's session settings.</p>
-
+                        
+                            <h2>Using Translations</h2>
+                            <p>Get a specific translation:</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">translations</span>
+                                    <span class="editor-title">example.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1260,22 +1273,23 @@ async def home(request: Request):
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                                <code class="language-python">
+                                    <pre><code class="language-python">
 from core.helpers import translate_
 
-msg_error_login = translate_(key="Incorrect email or password", request=request, file_name="guest")
-# By default, translations.json is always loaded if the file_name parameter is not provided.
-                                </code>
-                            </pre>
+msg_error_login = translate_(
+    key="Incorrect email or password", 
+    request=request, 
+    file_name="guest"
+)
+                                    </code></pre>
                                 </div>
                             </div>
-
-                            <br />
-                            <p>You can also use <code>translate</code> to retrieve all translations from the file.</p>
+                        
+                            <p>Get all translations from a file:</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">translations</span>
+                                    <span class="editor-title">example.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1283,14 +1297,14 @@ msg_error_login = translate_(key="Incorrect email or password", request=request,
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre>
-                                <code class="language-python">
+                                    <pre><code class="language-python">
 from core.helpers import translate
 
-msg = translate(request=request, file_name="guest")
-# By default, translations.json is always loaded if the file_name parameter is not provided.
-                                </code>
-                            </pre>
+all_translations = translate(
+    request=request, 
+    file_name="guest"
+)
+                                    </code></pre>
                                 </div>
                             </div>
                         </article>
