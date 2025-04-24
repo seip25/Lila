@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{lang}}">
+<html lang="{{lang}}" data-theme="light">
 
 <head>
   <meta charset="UTF-8">
@@ -9,7 +9,7 @@
   <title>{{title}}</title>
   <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
   <!--CSS-->
-  <link rel="stylesheet" href="/public/css/pico.min.css">
+  <link rel="stylesheet" href="https://seip25.github.io/material-lite-design/material.css">
   <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
   <!--CSS-->
 
@@ -21,15 +21,13 @@
 
 <body>
   <header class="container">
-    <nav>
-      <ul>
-        <li><a href="/auth">{{translate['login']}}</a></li>
-        <li><a href="/auth#/register">{{translate['register']}}</a></li>
-      </ul>
+    <nav> <a href="/auth" class="underline-none">{{translate['login']}}</a>
+      <a href="/auth#/register" class="underline-none">{{translate['register']}}</a>
+
     </nav>
   </header>
 
-  <main class="container mt-sm   ">
+  <main class="container     ">
     <div class="flex  center">
       <article>
         <h5>
@@ -72,21 +70,30 @@
               <li>
                 <h6>English</h6>
               </li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#install-eng" target="_blank">Installation</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#install-eng"
+                  target="_blank">Installation</a></li>
               <li><a href="https://seip25.github.io/Lila/documentation.html#routes-eng" target="_blank">Routes</a></li>
               <li><a href="https://seip25.github.io/Lila/documentation.html#static-eng" target="_blank">Static</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#templates-eng" target="_blank">Templates</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#templates-eng" target="_blank">Templates</a>
+              </li>
               <li><a href="https://seip25.github.io/Lila/documentation.html#upload-eng">Uploads Files</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#markdown-eng" target="_blank">Markdown/HTML</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#locales-eng" target="_blank">Internationalization
+              <li><a href="https://seip25.github.io/Lila/documentation.html#markdown-eng"
+                  target="_blank">Markdown/HTML</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#locales-eng"
+                  target="_blank">Internationalization
                   (Translations)</a></li>
               <li><a href="https://seip25.github.io/Lila/documentation.html#models-eng" target="_blank">Models</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#middlewares-eng" target="_blank">Middlewares</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#connections-eng" target="_blank">Connections</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#migrations-eng" target="_blank">Migrations</a></li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#rest_api_crud-eng" target="_blank">API Rest crud generate</a>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#middlewares-eng"
+                  target="_blank">Middlewares</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#connections-eng"
+                  target="_blank">Connections</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#migrations-eng"
+                  target="_blank">Migrations</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#rest_api_crud-eng" target="_blank">API Rest
+                  crud generate</a>
               </li>
-              <li><a href="https://seip25.github.io/Lila/documentation.html#admin-panel-eng" target="_blank">Admin Panel</a></li>
+              <li><a href="https://seip25.github.io/Lila/documentation.html#admin-panel-eng" target="_blank">Admin
+                  Panel</a></li>
 
             </ul>
           </div>
@@ -97,22 +104,34 @@
               <li>
                 <h6>Español</h6>
               </li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#install-esp" target="_blank">Instalación</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#routes-esp" target="_blank">Rutas</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#static-esp" target="_blank">Archivos estáticos</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#templates-esp" target="_blank">Templates</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#install-esp"
+                  target="_blank">Instalación</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#routes-esp" target="_blank">Rutas</a>
+              </li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#static-esp" target="_blank">Archivos
+                  estáticos</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#templates-esp"
+                  target="_blank">Templates</a></li>
               <li><a href="https://seip25.github.io/Lila/documentation.html#upload-esp">Uploads de archivos</a></li>
-              
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#markdown-esp" target="_blank">Markdown/HTML</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#locales-esp" target="_blank">Internalización
+
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#markdown-esp"
+                  target="_blank">Markdown/HTML</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#locales-esp"
+                  target="_blank">Internalización
                   (Traducciones)</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#models-esp" target="_blank">Modelos</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#middlewares-esp" target="_blank">Middlewares</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#connections-esp" target="_blank">Connections</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#migrations-esp" target="_blank">Migraciones</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#rest_api_crud-esp" target="_blank">Generación sencilla de CRUD
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#models-esp" target="_blank">Modelos</a>
+              </li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#middlewares-esp"
+                  target="_blank">Middlewares</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#connections-esp"
+                  target="_blank">Connections</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#migrations-esp"
+                  target="_blank">Migraciones</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#rest_api_crud-esp"
+                  target="_blank">Generación sencilla de CRUD
                   de API Rest</a></li>
-              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#admin-panel-esp" target="_blank">Panel de Admin</a></li>
+              <li><a href="https://seip25.github.io/Lila/esp/documentation.html#admin-panel-esp" target="_blank">Panel
+                  de Admin</a></li>
 
             </ul>
           </div>
@@ -120,8 +139,12 @@
         </p>
         <footer>
           <p>{{translate['Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)']}}
-            <a href="https://github.com/seip25/Lila_js" target="_blank">link</a> 
-           
+            <a href="https://seip25.github.io/Lila_js/" target="_blank">link</a>
+
+          </p>
+          <p>Material Lite Desing (Lila CSS)
+            <a href="https://seip25.github.io/material-lite-design" target="_blank">link</a>
+
           </p>
         </footer>
       </article>
@@ -130,8 +153,8 @@
 
   <footer class="container  ">
     <div class="flex  between items-center">
-      <a href="/set-language/es" class="underline left-align   small">Español(Esp)</a>
-      <a href="/set-language/en" class="underline left-align   small">English(US)</a>
+      <a href="/set-language/es" class="underline-none left-align text-secondary  small">Español(Esp)</a>
+      <a href="/set-language/en" class="underline-none left-align  text-secondary  small">English(US)</a>
     </div>
   </footer>
 </body>

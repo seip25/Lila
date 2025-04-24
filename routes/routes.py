@@ -31,10 +31,10 @@ async def home(request: Request):
     # English: Define a list of CSS files to include in the response
     # Español: Define una lista de archivos CSS para incluir en la respuesta
     css = ["/public/css/styles.css"]
-    # English: Renders a markdown file with PicoCSS styling
-    # Español: Renderiza un archivo markdown con el estilo PicoCSS
+    # English: Renders a markdown file with materialcss styling
+    # Español: Renderiza un archivo markdown con el estilo materialcss
     response = renderMarkdown(
-        request=request, file="example", css_files=css, picocss=True
+        request=request, file="example", css_files=css, materialcss=True
     )
     return response
 

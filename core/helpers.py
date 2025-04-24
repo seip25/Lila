@@ -35,7 +35,7 @@ def translate(file_name: str, request: Request) -> dict:
     current_lang = lang(request)
     translations = {}
     file_path = LOCALES_PATH / f"{file_name}.json"
-
+ 
     try:
         with open(file=file_path, mode="r", encoding="utf-8") as f:
             data = json.load(f)
