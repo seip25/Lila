@@ -1,22 +1,21 @@
 <template data-template="login-template">
-
-    <div class="flex center">
-        <article class="shadow rounded mx-m">
+ 
+        <article class="shadow  ">
             <h1 class="flex center">{{translate['login']}}</h1>
             <form data-action="loginFetch">
-                <fieldset>
-                    <div class="input-icon">
-                        <i class="icon-email"></i>
-                        <input type="email" name="email" data-model="email" placeholder="Email" required />
-                    </div>
-                    <div class="input-icon">
-                        <i class="icon-lock"></i>
-                        <input type="password" name="password" data-model="password"
-                            placeholder="{{translate['password']}}" required />
-                    </div>
-                </fieldset>
-                <button type="submit" class="contrast"><i class="icon-login"></i>{{translate['login']}}</button>
+                <div class="mt-2">
+                    <i class="icon icon-email"></i>
+                    <input type="email" name="email" data-model="email" placeholder="" required />
+                    <label>Email</label>
+                </div>
+                <div class="mt-2">
+                    <i class="icon icon-lock"></i>
+                    <input type="password" name="password" data-model="password" placeholder="" required />
+                    <label>{{translate['password']}}</label>
+                </div>
+                <button type="submit" class="w-full"><i class="icon icon-login"></i>{{translate['login']}}</button>
             </form>
+         <div class="mt-4">
             <p>
                 Email Data Bind: <span data-bind="email"></span>
 
@@ -26,16 +25,16 @@
                 Password Data Bind: <span data-bind="password"></span>
 
             </p>
+         </div>
             <footer class="flex center gap-1 mt-4">
                 <strong>
-                    <a href="/register" data-link class="underline-none flex center secondary">
+                    <a href="/register" data-link class="underline-none flex center ">
                         {{translate['register']}}
                     </a>
 
                 </strong>
             </footer>
-        </article>
-    </div>
+        </article> 
     <div data-component="Footer"></div> <!-- auth/footer.html component  -->
 
 </template>

@@ -1,4 +1,3 @@
-
 const stores = new Map();
 const components = new Map();
 const currentInstances = new Set();
@@ -31,9 +30,9 @@ function reactive(obj) {
 }
 
 function createComponent(name, { template, state, actions, onMount, onDestroy }) {
-    const templateFn = typeof template === 'string' 
-    ? compileTemplate(template)
-    : template;
+    const templateFn = typeof template === 'string'
+        ? compileTemplate(template)
+        : template;
     components.set(name, {
         template: templateFn,
         state: state || (() => ({})),
@@ -41,6 +40,15 @@ function createComponent(name, { template, state, actions, onMount, onDestroy })
         onMount,
         onDestroy
     });
+}
+
+function evalInContext(expr, context) {
+    try {
+        return Function(...Object.keys(context), `return ${expr}`)(...Object.values(context));
+    } catch (e) {
+        console.error(`Error evaluating expression: ${expr}`, e);
+        return false;
+    }
 }
 
 function mountComponent(name, targetId, props = {}) {
@@ -76,6 +84,12 @@ function mountComponent(name, targetId, props = {}) {
                 const html = componentDef.template({ ...state, ...componentDef.actions });
                 if (typeof html === 'string') {
                     target.innerHTML = html;
+ 
+                    target.querySelectorAll('[data-if]').forEach(el => {
+                        const condition = el.getAttribute('data-if');
+                        const shouldShow = evalInContext(condition, { ...state, ...componentDef.actions });
+                        el.style.display = shouldShow ? '' : 'none';
+                    });
 
                     target.querySelectorAll('[data-component]').forEach(el => {
                         const componentName = el.dataset.component;
@@ -84,7 +98,6 @@ function mountComponent(name, targetId, props = {}) {
                             nestedComponents.set(el, nestedComponent);
                         }
                     });
-
 
                     target.querySelectorAll('[data-action]').forEach(el => {
                         const actionName = el.dataset.action;
@@ -118,6 +131,13 @@ function mountComponent(name, targetId, props = {}) {
                             boundElements.set(input, { property, listener });
                         }
                     });
+
+                    target.querySelectorAll('[data-bind]').forEach(el => {
+                        const property = el.getAttribute('data-bind');
+                        if (state[property] !== undefined) {
+                            el.textContent = state[property];
+                        }
+                    });
                 }
             } else {
                 onlyTheseProps.forEach(prop => {
@@ -130,6 +150,15 @@ function mountComponent(name, targetId, props = {}) {
                             input.value = state[prop];
                         }
                     });
+ 
+                    target.querySelectorAll('[data-if]').forEach(el => {
+                        const condition = el.getAttribute('data-if');
+                        const dependencies = getDependencies(condition);
+                        if (dependencies.includes(prop)) {
+                            const shouldShow = evalInContext(condition, { ...state, ...componentDef.actions });
+                            el.style.display = shouldShow ? '' : 'none';
+                        }
+                    });
                 });
             }
         } catch (error) {
@@ -137,6 +166,11 @@ function mountComponent(name, targetId, props = {}) {
         } finally {
             isUpdating = false;
         }
+    }
+
+    function getDependencies(expr) {
+        const matches = expr.match(/\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g) || [];
+        return matches.filter(m => !['true', 'false', 'null', 'undefined'].includes(m));
     }
 
     const unsubscribe = state.subscribe((prop) => {
@@ -148,7 +182,12 @@ function mountComponent(name, targetId, props = {}) {
     if (componentDef.onMount) {
         setTimeout(() => {
             try {
-                componentDef.onMount(state);
+                const result = componentDef.onMount(state);
+                if (result && typeof result.then === 'function') {
+                    result.then(() => update());
+                } else {
+                    update();
+                }
             } catch (error) {
                 console.error('Error in onMount:', error);
             }
@@ -189,7 +228,8 @@ function mountComponent(name, targetId, props = {}) {
                 target.innerHTML = '';
             }
         },
-        state
+        state,
+        forceUpdate: () => update()
     };
 
     currentInstances.add(componentInstance);
@@ -231,15 +271,16 @@ function addRoute(path, componentName, props = {}) {
 function navigateTo(path) {
     window.location.hash = path;
 }
+
 function compileTemplate(templateId) {
     const templateElement = document.querySelector(`[data-template="${templateId}"]`);
     if (!templateElement) {
         console.error(`Template with ID "${templateId}" not found`);
         return () => '';
     }
-    
+
     const html = templateElement.innerHTML;
-    
+
     return (data) => {
         return html.replace(/\${([^}]+)}/g, (match, prop) => {
             return data[prop.trim()] || '';
@@ -263,4 +304,3 @@ window.App = {
     mountComponent,
     getComponents
 };
-

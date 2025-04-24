@@ -9,8 +9,8 @@
     <title>{{title}}</title>
     <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
     <!--CSS-->
-    <link rel="stylesheet" href="/public/css/pico.min.css">
-    <link rel="stylesheet" type="text/css" href="/public/css/styles.css" />
+    <link rel="stylesheet" href="https://seip25.github.io/material-lite-design/material.css">
+ 
     <!--CSS-->
 
     <!-- JS-->
@@ -22,9 +22,9 @@
 <body>
     <header class="container">
         <nav>
-            <a href="/" data-link>Inicio</a>
-            <a href="/about" data-link>Acerca de</a>
-            <a href="/counter" data-link>Contador</a>
+            <a href="/" data-link class="underline-none">Inicio</a>
+            <a href="/about" data-link class="underline-none">Acerca de</a>
+            <a href="/counter" data-link class="underline-none">Contador</a>
         </nav>
     </header>
 
@@ -40,7 +40,10 @@
             <h1>¡Bienvenido a la página de inicio!</h1>
            
             <form data-action="submit">
-                <input type="text" name="greet" data-bind="greet" placeholder="Ingresa tu saludo" class="w-full" />
+                <div>
+                    <input type="text" name="greet" data-bind="greet" placeholder="" class="w-full" />
+                    <label>Ingresa tu saludo</label>
+                </div>
                 <button type="submit" class="contrast">
                     <i class="icon-send"></i>Enviar
                 </button>
@@ -50,9 +53,10 @@
             <div >
                 <p>Tu saludo es: <span data-bind="greet"></span></p>
             </div>
-            <div class="input-icon">
-                <i class="icon-edit"></i>
-                <input type="text" data-model="greet" placeholder="Cambiar saludo" value="">
+            <div class="mt-4">
+                <i class="icon icon-edit"></i>
+                <input type="text" data-model="greet" placeholder="" value="">
+                <label>Cambiar saludo</label>
             </div>
             <button data-action="changeGreeting" class="w-full">
                 <i class="icon-check-circle"></i>Cambiar Saludo
@@ -61,18 +65,31 @@
             <div data-component="Counter"></div>
         </template>
 
-        <template data-template="about-template">
+        <template data-template="about-template" class="container mx-sm">
             <h1>Acerca de</h1>
-            <p>Esta es la página acerca de nosotros.</p>
+            <p> <span data-bind="message"></span></p>
+            <div class="mt-4">
+                <h5>Check DATA-IF</h5>
+                <article class="mt-4" data-if="check_if" success>
+                    <p>El check_if es verdadero</p>
+                </article>
+                <article class="mt-4" data-if="check_if == false" error>
+                    <p>El check_if es falso</p>
+                </article>
+
+                <button data-action="change_check" class="w-full">
+                    <i class="icon icon-check-circle"></i>Cambiar check_if
+                </button>
+            </div>
         </template>
 
         <template data-template="counter-template">
             <h1>Contador</h1>
             <p>Conteo actual: <span data-bind="count"></span></p>
             <div class="flex between gap-2">
-                <button data-action="increment" class="secondary">Incrementar</button>
-                <button data-action="decrement" class="secondary">Disminuir</button>
-                <button data-action="reset" class="secondary">Reiniciar</button>
+                <button data-action="increment" class="fill">Incrementar</button>
+                <button data-action="decrement" class="fill">Disminuir</button>
+                <button data-action="reset" class="fill">Reiniciar</button>
             </div>
         </template>
 
@@ -112,7 +129,18 @@
         });
 
         App.createComponent('About', {
-            template: 'about-template'
+            template: 'about-template',
+            state: () => ({
+                message: 'Esta es la página acerca de nosotros.',
+                check_if:false
+            }),
+            actions: {
+                
+                change_check:({state})=>{
+                    state.check_if = !state.check_if;
+                    console.log('check_if:',state.check_if);
+                }   
+            }
         });
 
         App.createComponent('Counter', {
