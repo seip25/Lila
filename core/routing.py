@@ -315,9 +315,10 @@ class Router:
             )
             try:
                 result = connection.query(query=query, params=params)
+                id = result.lastrowid if result else 0
                 result = True if result else False
                 status_code = 201 if result else 200
-                return JSONResponse({"success": result}, status_code=status_code)
+                return JSONResponse({"success": result,"id":id}, status_code=status_code)
             except Exception as e:
                 print(e)
                 Logger.error(f"Error rest_crud_generate , POST: {str(e)}")
