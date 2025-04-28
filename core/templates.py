@@ -27,7 +27,7 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
         
         if len(files_translate) > 0:
             for file_name in files_translate:
-                add_translations=t(file_name=file_name,request=request)
+                add_translations=t(file_name=file_name,request=request,lang_default=lang_default)
                 default_context['translate'].update(add_translations)
     context.update(default_context)
     return templates.TemplateResponse(request=request,name=template,context=context)
