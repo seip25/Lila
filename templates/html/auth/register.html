@@ -5,25 +5,24 @@
             <form data-action="registerFetch">
                 <div class="mt-2">
                     <i class="icon icon-person"></i>
-                    <input type="text" name="name" data-model="name" required placeholder="">
-                    <label>{{translate['name']}}</label>
+                    <input type="text" name="name" data-model="name" required placeholder="{{translate['name']}}">
+                     
                 </div>
                 <div class="mt-2">
                     <i class="icon icon-email"></i>
-                    <input type="email" name="email" data-model="email" placeholder="" required />
-                    <label>Email</label>
+                    <input type="email" name="email" data-model="email" placeholder="Email" required />
+                    
                 </div>
                 <div class="mt-2">
                     <i class="icon icon-lock"></i>
-                    <input type="password" name="password" data-model="password" placeholder=""
+                    <input type="password" name="password" data-model="password" placeholder="{{translate['password']}}"
                         required />
-                        <label>{{translate['password']}}</label>
+                       
                 </div>
                 <div class="mt-2">
                     <i class="icon icon-lock"></i>
                     <input type="password" name="password_2" data-model="password_2"
-                        placeholder="" required />
-                        <label>{{translate['confirm_password']}}</label>
+                        placeholder="{{translate['confirm_password']}}" required /> 
                 </div>
                 <button type="submit" class="w-full"><i class="icon icon-add-person"></i>{{translate['register']}}</button>
             </form>
