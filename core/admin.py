@@ -226,7 +226,7 @@ class AdminClass:
             
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin Dashboard</title>
-            <link rel="stylesheet" href="/public/css/material.css">
+            <link rel="stylesheet" href="/public/css/pico.css">
         </head>
         <body>
            {self.menu()}
@@ -285,7 +285,7 @@ class AdminClass:
             <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin Login</title>
-            <link rel="stylesheet" href="/public/css/material.css" />
+            <link rel="stylesheet" href="/public/css/pico.css" />
         </head>
         <body>
             <main class="container mx-m">
@@ -486,7 +486,7 @@ class AdminClass:
             <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin Dashboard</title>
-            <link rel="stylesheet" href="/public/css/material.css">
+            <link rel="stylesheet" href="/public/css/pico.css">
             <script src="/public/js/chart.js"></script>
             <style>
             li {{
@@ -679,7 +679,7 @@ class AdminClass:
             
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin - {model_name.capitalize()}</title>
-            <link rel="stylesheet" href="/public/css/material.css">
+            <link rel="stylesheet" href="/public/css/pico.css">
         
             <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
             <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>

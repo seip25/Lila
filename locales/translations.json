@@ -39,7 +39,7 @@
     "es": "aquí",
     "en": "here"
   },
-  "go_to_docs": {
+  "Go to docs": {
     "es": "Puedes dirigirte a",
     "en": "You can go to"
   },
@@ -138,5 +138,5 @@
   "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)": {
     "es": "Documentación de Lila Js (Templates Reactivos con Vanilla Js Javascript)",
     "en": "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)"
-  }
+  } 
 }

@@ -32,7 +32,7 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
     context.update(default_context)
     return templates.TemplateResponse(request=request,name=template,context=context)
 
-def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],materialcss : bool =False):
+def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False):
     file_path=os.path.join(base_path,f"{file}.md")
     if not os.path.exists(file_path):
         return HTMLResponse('<h5>404</h5><br/><p>Not found</p>')
@@ -52,8 +52,8 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     head+='<meta name="color-scheme" content="light dark">\n'
     head+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
     head+=f"<title>{title}</title>\n"
-    if  materialcss:
-       head+= '<link rel="stylesheet" href="/public/css/material.css">'
+    if  picocss:
+       head+= '<link rel="stylesheet" href="/public/css/pico.css">'
     if css_files :
         for css in css_files:
             head+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
