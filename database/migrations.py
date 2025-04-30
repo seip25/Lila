@@ -2,7 +2,11 @@ from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
 from database.connections import connection
 from core.database import Base #Import Base  for migrations in models
 from models.user import User #Import models for migrations in models
+import typer
+import asyncio
 
+
+app = typer.Typer()
 
 #English:Example of creating migrations for 'users'
 #Español: Ejemplo de creación de migraciones para 'users'
@@ -17,7 +21,7 @@ from models.user import User #Import models for migrations in models
 #     Column('created_at', TIMESTAMP), 
 # )
 
-async def migrate(connection,refresh:bool=False)->bool:
+async def migrate_async(connection,refresh:bool=False)->bool:
     
     try:
         if refresh:
@@ -32,3 +36,12 @@ async def migrate(connection,refresh:bool=False)->bool:
         print(e)
     
     
+@app.command()
+def migrate(refresh: bool = False):
+    """Run database migrations"""
+    success = asyncio.run(migrate_async(connection, refresh))
+    if not success:
+        raise typer.Exit(code=1)
+
+if __name__ == "__main__":
+    app()
