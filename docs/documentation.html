@@ -1815,23 +1815,21 @@ mysql_connection = connection
 
                         <article id="migrations-eng">
                             <h1>Migrations</h1>
-                            <p>In Lila Framework, database migrations can be managed using SQLAlchemy and Lila's
-                                configuration
-                                to make migrations as easy as possible, using only the framework's code, thanks to its
-                                <code>Database</code> class. There are two main ways to define database tables: using
-                                "Table"
-                                directly or using Models with "Base". Explanations and examples of both methods are
-                                included
-                                below.
+                            <p>In Lila Framework, database migrations can be managed using SQLAlchemy and Lila's configuration
+                                to make migrations as easy as possible. The framework now supports command-line migrations through Typer,
+                                providing a more intuitive and flexible way to manage your database schema.
                             </p>
                             <br />
-                            <p><strong>Using Table:</strong> This method manually defines the table structure using
-                                SQLAlchemy's
-                                Table object.</p>
-
+                            
+                            <h2>Migration Methods</h2>
+                            <p>There are two main ways to define database tables:</p>
+                            
+                            <h3>1. Using Table</h3>
+                            <p>This method manually defines the table structure using SQLAlchemy's Table object.</p>
+                        
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">mgirations/mgirations.py</span>
+                                    <span class="editor-title">migrations/migrations.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1842,6 +1840,10 @@ mysql_connection = connection
                                     <pre><code class="language-python">
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
 from database.connections import connection
+import typer
+import asyncio
+
+app = typer.Typer()
 
 # Example of creating migrations for 'users'
 table_users = Table(
@@ -1855,28 +1857,35 @@ table_users = Table(
     Column('created_at', TIMESTAMP),
 )
 
-async def migrate(connection,refresh:bool=False)->bool:
+async def migrate_async(connection, refresh: bool = False) -> bool:
+    try:
+        if refresh:
+            connection.metadata.drop_all(connection.engine)
+        connection.prepare_migrate([table_users])  # for tables
+        connection.migrate()
+        print("Migrations completed")
+        return True
+    except RuntimeError as e:
+        print(e)
+        return False
 
-try:
-    if refresh:
-        connection.metadata.drop_all(connection.engine)
-    connection.prepare_migrate([table_users])#for tables
-    connection.migrate() 
-    print("Migrations completed")
-    
-    return True
-except RuntimeError as e:
-    print(e)
-        </code></pre>
+@app.command()
+def migrate(refresh: bool = False):
+    """Run database migrations"""
+    success = asyncio.run(migrate_async(connection, refresh))
+    if not success:
+        raise typer.Exit(code=1)
+
+if __name__ == "__main__":
+    app()
+                                    </code></pre>
                                 </div>
                             </div>
-                            <br />
-                            <p><strong>Using Models:</strong> This approach defines database tables as Python classes
-                                that
-                                inherit from "Base". This is the recommended method as it provides more structure and
-                                ORM
-                                capabilities.</p>
-
+                            
+                            <h3>2. Using Models (Recommended)</h3>
+                            <p>This approach defines database tables as Python classes that inherit from "Base". 
+                               This is the recommended method as it provides more structure and ORM capabilities.</p>
+                        
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">models/user.py</span>
@@ -1900,19 +1909,13 @@ class User(Base):
     token = Column(String(length=150), nullable=False)
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP)
-
-
-        </code></pre>
+                                    </code></pre>
                                 </div>
                             </div>
-
-                            <p><strong>Running Migrations:</strong> To apply migrations, import the models and execute
-                                the
-                                migration script.</p>
-
+                        
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">migrations/migrations.py</span>
+                                    <span class="editor-title">migrations/migrations.py (Models version)</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1921,31 +1924,44 @@ class User(Base):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from models.user import User # Import models for migrations
+from database.connections import connection
+from core.database import Base  # Import Base for migrations in models
+from models.user import User  # Import models for migrations
+import typer
+import asyncio
 
-async def migrate(connection, refresh: bool = False) -> bool:
+app = typer.Typer()
+
+async def migrate_async(connection, refresh: bool = False) -> bool:
     try:
         if refresh:
             connection.metadata.drop_all(connection.engine)
-
-        connection.migrate(use_base=True) # For models, always import models in the file
+        connection.migrate(use_base=True)  # for models
         print("Migrations completed")
         return True
     except RuntimeError as e:
         print(e)
-        </code></pre>
+        return False
+
+@app.command()
+def migrate(refresh: bool = False):
+    """Run database migrations"""
+    success = asyncio.run(migrate_async(connection, refresh))
+    if not success:
+        raise typer.Exit(code=1)
+
+if __name__ == "__main__":
+    app()
+                                    </code></pre>
                                 </div>
                             </div>
-                            <br />
-
-                            <p><strong>Execute:</strong>Finally, for both Models and Table (you can use both if you
-                                want), run
-                                the migration function in
-                                the application's startup file:</p>
-                            <p>You can pass the parameter <code>refresh</code>, to delete and recreate the tables </p>
+                        
+                            <h2>Running Migrations</h2>
+                            <p>To execute migrations, use the following command in your terminal:</p>
+                            
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">app.py</span>
+                                    <span class="editor-title">Terminal Command</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1953,26 +1969,27 @@ async def migrate(connection, refresh: bool = False) -> bool:
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre><code class="language-python">
-from database.migrations import migrate
-from database.connections import connection
-import asyncio
-import uvicorn
+                                    <pre><code class="language-bash">
+# Basic migration
+python -m database.migrations migrate
 
-async def main():
-    migrations = await migrate(connection,refresh=False) # Execute migrations for the app
-    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-        </code></pre>
+# Refresh all tables (drop and recreate)
+python -m database.migrations migrate --refresh
+                                    </code></pre>
                                 </div>
                             </div>
-
-
-
+                        
+                            <h3>Command Options</h3>
+                            <ul>
+                                <li><code>migrate</code>: Run the database migrations</li>
+                                <li><code>--refresh</code>: Optional flag to drop and recreate all tables</li>
+                            </ul>
+                        
+                            <div class="note">
+                                <p><strong>Note:</strong> When using Models, make sure to import all your model classes in the migrations file
+                                so SQLAlchemy can detect them for migrations.</p>
+                            </div>
                         </article>
-
                         <article id="rest_api_crud-eng">
                             <h1>Simple Generation of REST API CRUD</h1>
                             <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing
