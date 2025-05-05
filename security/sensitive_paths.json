@@ -1,5 +1,9 @@
 [
-    "/etc/passwd",
+  "/RDWeb/Pages/",
+  "/Remote/",
+  "/wp-content/plugins/wp-statistics/readme.txt",
+   "/goanywhere/lic/accept", 
+   "/etc/passwd",
     ".env",
     "wp-content",
     "docker/.env",
@@ -14,5 +18,19 @@
     "var/www/html/.env",
     "home/user/.muttrc",
     "usr/local/spool/mail/root",
-    "etc/postfix/master.cf"
+    "etc/postfix/master.cf",
+    ".git",
+    "scripts/.git/config",
+    ".git/config",
+    "modules/utils/.git/config",
+    "/.git/config",
+   "cgi-bin/luci/;stok=/locale",
+   "//wp-includes/wlwmanifest.xml",
+   "/wp-includes/wlwmanifest.xml",
+   "/_profiler/phpinfo",
+   "/etc/",
+   "/vicidial/help_documentation.txt",
+  "/sito/wp-includes/wlwmanifest.xml"
 ]
+
+
