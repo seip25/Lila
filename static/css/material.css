@@ -1287,3 +1287,5 @@ dialog{
   border:none !important;
   border-radius: var(--border-radius-md) !important;
 }
+
+.mt-6 { margin-top: 3rem; } .page { display: none; } .page.active { display: block; } .fixed-bottom{ position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 1030 !important; } .main-footer{ padding-bottom: 35%!important; } .d-none { display: none !important; } .text-capitalize { te
