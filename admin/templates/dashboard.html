@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image"
+      href="/public/img/lila.png"
+      alt="Admin Lila Framework"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+     <link rel="stylesheet" href="/public/css/lila.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      li {
+        list-style: none !important;
+      }
+      :root {
+        --logs-container-bg: #f9f9f9;
+        --logs-container-border: #e0e0e0;
+        --logs-summary-bg: #e0e0e0;
+        --logs-summary-color: #333;
+        --log-file-bg: #ffffff;
+        --log-file-border: #d0d0d0;
+        --log-summary-color: #333;
+        --log-content-bg: #000;
+        --log-content-color: #36f936;
+        --log-content-border: #e0e0e0;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --logs-container-bg: #2d2d2d;
+          --logs-container-border: #444;
+          --logs-summary-bg: #444;
+          --logs-summary-color: #f5f5f5;
+          --log-file-bg: #1e1e1e;
+          --log-file-border: #444;
+          --log-summary-color: #f5f5f5;
+          --log-content-bg: #000;
+          --log-content-color: #36f936;
+          --log-content-border: #444;
+        }
+      }
+
+      .logs-container {
+        margin-top: 1rem;
+        border: 1px solid var(--logs-container-border);
+        border-radius: 8px;
+        padding: 0.5rem;
+        background-color: var(--logs-container-bg);
+      }
+
+      .logs-summary {
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0.5rem;
+        background-color: var(--logs-summary-bg);
+        border-radius: 4px;
+        color: var(--logs-summary-color);
+      }
+
+      .logs-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-top: 0.5rem;
+      }
+
+      .log-item {
+        margin-bottom: 0.5rem;
+      }
+
+      .log-file {
+        border: 1px solid var(--log-file-border);
+        border-radius: 4px;
+        padding: 0.5rem;
+        background-color: var(--log-file-bg);
+      }
+
+      .log-summary {
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--log-summary-color);
+      }
+
+      .log-content {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border: 1px solid var(--log-content-border);
+        border-radius: 4px;
+        max-height: 600px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: var(--log-content-color);
+        background-color: var(--log-content-bg);
+      }
+    </style>
+  </head>
+  <body>
+    {{ menu | safe }}
+    <main class="container">
+      <article class="shadow">
+        <h4>Server Metrics</h4>
+        <div class="flex between">
+          <div>
+            <p>
+              Lila Framework Memory Used:
+              <span id="lilaMemory">{{ lila_memory|round(0) }}</span> MB
+            </p>
+            <p>
+              Lila Framework CPU Used:
+              <span id="lilaCpuUsage">{{ lila_cpu_usage|round(0) }}</span> %
+            </p>
+            <p>
+              Server Memory Used:
+              <span id="systemUsedMemory"
+                >{{ system_used_memory|round(0) }}</span
+              >
+              MB /
+              <span id="systemTotalMemory"
+                >{{ system_total_memory|round(0) }}</span
+              >
+              MB
+            </p>
+            <p>
+              Server CPU Used:
+              <span id="cpuUsage">{{ cpu_usage|round(0) }}</span> %
+            </p>
+          </div>
+        </div>
+        <div class="flex between">
+          <div style="width: 25%">
+            <canvas id="memoryDoughnutChart"></canvas>
+          </div>
+          <div style="width: 25%">
+            <canvas id="cpuDoughnutChart"></canvas>
+          </div>
+        </div>
+      </article>
+      <br />
+
+      <article class="shadow">
+        <h4>Logs</h4>
+        {% if logs_html %} {{ logs_html | safe }} {% else %}
+        <p>No logs available</p>
+        {% endif %}
+      </article>
+    </main>
+
+    <script>
+      let memoryChart, cpuChart;
+
+      function updateCharts() {
+          fetch('/admin/metrics')
+              .then(response => response.json())
+              .then(data => {
+                  document.getElementById('lilaMemory').textContent = data.lila_memory.toFixed(0);
+                  document.getElementById('lilaCpuUsage').textContent = data.lila_cpu_usage.toFixed(0);
+                  document.getElementById('systemUsedMemory').textContent = data.system_used_memory.toFixed(0);
+                  document.getElementById('systemTotalMemory').textContent = data.system_total_memory.toFixed(0);
+                  document.getElementById('cpuUsage').textContent = data.cpu_usage.toFixed(0);
+
+                  memoryChart.data.datasets[0].data = [data.system_used_memory, data.system_total_memory - data.system_used_memory];
+                  cpuChart.data.datasets[0].data = [data.cpu_usage, 100 - data.cpu_usage];
+
+                  memoryChart.update();
+                  cpuChart.update();
+              });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+          const memoryCtx = document.getElementById('memoryDoughnutChart').getContext('2d');
+          const cpuCtx = document.getElementById('cpuDoughnutChart').getContext('2d');
+
+          memoryChart = new Chart(memoryCtx, {
+              type: 'doughnut',
+              data: {
+                  labels: ['Used Memory', 'Free Memory'],
+                  datasets: [{
+                      label: 'Memory Usage',
+                      data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
+                      backgroundColor: ['#FF6384', '#36A2EB']
+                  }]
+              }
+          });
+
+          cpuChart = new Chart(cpuCtx, {
+              type: 'doughnut',
+              data: {
+                  labels: ['CPU Used', 'CPU Free'],
+                  datasets: [{
+                      label: 'CPU Usage',
+                      data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
+                      backgroundColor: ['#FFCE56', '#4BC0C0']
+                  }]
+              }
+          });
+
+
+          setInterval(updateCharts, 10000);
+      });
+    </script>
+  </body>
+</html>

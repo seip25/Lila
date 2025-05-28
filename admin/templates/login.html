@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/public/css/lila.css" />
+</head>
+
+<body>
+    <main class="container mx-m">
+        <article class="shadow  ">
+            <h4 class="flex center">{{Login}}</h4>
+            <form id="loginForm">
+                <div class="mt-2">
+                    <i class="icon icon-person"></i>
+                    <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="User" />
+                     
+                </div>
+                <div class="mt-2">
+                    <i class="icon icon-lock"></i>
+                    <input type="password" name="password" id="password" required minlength="2" maxlength="255"
+                        placeholder="Password" /> 
+
+                </div>
+                <button type="submit" class="w-full ">
+                    <i class="icon icon-login"></i>
+                    Send
+                </button>
+
+            </form>
+        </article>
+    </main>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const formData = Object.fromEntries(new FormData(event.target));
+            try {
+                const r = await fetch("/admin/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                });
+                const response = await r.json();
+                if (response.success) {
+                    window.location.href = response.redirect;
+                } else {
+                    document.getElementById('password').value = '';
+                    alert(response.message || "Error");
+                }
+            } catch (error) {
+                alert("Error");
+                console.error("Error:", error);
+            }
+        });
+    </script>
+</body>
+
+</html>

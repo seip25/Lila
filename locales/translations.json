@@ -123,6 +123,10 @@
     "es": "Registrarse",
     "en": "Register"
   },
+  "user":{
+    "es": "Usuario",
+    "en": "User"
+  },
   "password":{
     "es": "Contraseña",
     "en": "Password"

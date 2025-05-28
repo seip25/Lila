@@ -137,7 +137,12 @@ function CerrarModal(modalId) {
   if (modalElement) modal.closeModal(modalElement);
 }
 
- 
+function ShowModal(modalId) {
+AbrirModal(modalId);
+}
+function CloseModal(modalId) {
+CerrarModal(modalId);
+}
  
 function success(mensaje = false, titulo = 'Ok') {
   modal.modalAlert(mensaje || (lang() ? "Operación exitosa" : "Operation successful"), 'success', 3000);

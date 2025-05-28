@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - {{ model_name.capitalize() }}</title>
+    <link rel="stylesheet" href="/public/css/lila.css">
+    <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
+    <style>
+    #tabulator-table button {
+        all: unset;  
+    }
+    .tabulator-paginator {
+        display:flex !important;
+        justify-content: space-between !important;
+    }
+    </style>
+</head>
+<body>
+    {{ menu | safe }}
+    <main class="container">
+        <article>
+            <h2 class='flex center'>{{ model_name.capitalize() }}</h2>
+            <div id="tabulator-table"></div>
+        </article>
+    </main>
+    <script>
+        let table = new Tabulator("#tabulator-table", {
+            data: {{ items_json | safe }}, 
+            layout: "fitColumns", 
+            columns: [
+                {
+                    title: "ID",
+                    field: "id",
+                    visible: false 
+                },
+                {% for header in headers %}
+                {
+                    title: "{{ header.capitalize() }}",
+                    field: "{{ header }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+            pagination: "local", 
+            paginationSize: 10, 
+            paginationSizeSelector: [10, 20, 50, 100], 
+            movableColumns: true, 
+            responsiveLayout: "hide", 
+        });
+    </script>
+</body>
+</html>
