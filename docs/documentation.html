@@ -766,9 +766,11 @@ handleRouting();
                                     <li><strong>Two-way data binding:</strong> Inputs with <code>data-model</code>
                                         automatically sync with state.</li>
                                     <li><strong>Actions:</strong> <code>data-action</code> binds the form to the
-                                        <code>loginFetch</code> method.</li>
+                                        <code>loginFetch</code> method.
+                                    </li>
                                     <li><strong>Nested component:</strong> Footer is included with
-                                        <code>data-component="Footer"</code>.</li>
+                                        <code>data-component="Footer"</code>.
+                                    </li>
                                     <li><strong>Routing:</strong> Links with <code>data-link</code> navigate without
                                         page reload.</li>
                                     <li><strong>Combination with Jinja2:</strong> Use of <code>{{translate}}</code> for
@@ -1167,11 +1169,14 @@ async def home(request: Request):
 
                         <article id="locales-eng">
                             <h1>Internationalization (Translations)</h1>
-                            <p>Translations are used to internationalize an application and display content in different languages. In Lila, translations are stored in the <code>locales</code> directory and can be dynamically loaded into the application.</p>
-                            
+                            <p>Translations are used to internationalize an application and display content in different
+                                languages. In Lila, translations are stored in the <code>locales</code> directory and
+                                can be dynamically loaded into the application.</p>
+
                             <h2>Forcing Default Language in Routes</h2>
-                            <p>The <code>render</code> method accepts a <code>lang_default</code> parameter to force a specific language for the rendered template:</p>
-                            
+                            <p>The <code>render</code> method accepts a <code>lang_default</code> parameter to force a
+                                specific language for the rendered template:</p>
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">routes.py</span>
@@ -1205,16 +1210,18 @@ async def home(request: Request):
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h2>Translation Files</h2>
-                            <p>To load a locale file, use the <code>translate</code> function from <code>core.helpers</code>. You can access translations using:</p>
+                            <p>To load a locale file, use the <code>translate</code> function from
+                                <code>core.helpers</code>. You can access translations using:</p>
                             <ul>
                                 <li><code>translate</code> - returns a dictionary with all translations</li>
-                                <li><code>translate_</code> - returns a specific translation (returns original text if not found)</li>
+                                <li><code>translate_</code> - returns a specific translation (returns original text if
+                                    not found)</li>
                             </ul>
-                        
+
                             <p>Example translation file (<code>locales/translations.json</code>):</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">locales/translations.json</span>
@@ -1259,10 +1266,10 @@ async def home(request: Request):
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h2>Using Translations</h2>
                             <p>Get a specific translation:</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
@@ -1284,9 +1291,9 @@ msg_error_login = translate_(
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <p>Get all translations from a file:</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
@@ -1815,18 +1822,20 @@ mysql_connection = connection
 
                         <article id="migrations-eng">
                             <h1>Migrations</h1>
-                            <p>In Lila Framework, database migrations can be managed using SQLAlchemy and Lila's configuration
-                                to make migrations as easy as possible. The framework now supports command-line migrations through Typer,
+                            <p>In Lila Framework, database migrations can be managed using SQLAlchemy and Lila's
+                                configuration
+                                to make migrations as easy as possible. The framework now supports command-line
+                                migrations through Typer,
                                 providing a more intuitive and flexible way to manage your database schema.
                             </p>
                             <br />
-                            
+
                             <h2>Migration Methods</h2>
                             <p>There are two main ways to define database tables:</p>
-                            
+
                             <h3>1. Using Table</h3>
                             <p>This method manually defines the table structure using SQLAlchemy's Table object.</p>
-                        
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">migrations/migrations.py</span>
@@ -1881,11 +1890,11 @@ if __name__ == "__main__":
                                     </code></pre>
                                 </div>
                             </div>
-                            
+
                             <h3>2. Using Models (Recommended)</h3>
-                            <p>This approach defines database tables as Python classes that inherit from "Base". 
-                               This is the recommended method as it provides more structure and ORM capabilities.</p>
-                        
+                            <p>This approach defines database tables as Python classes that inherit from "Base".
+                                This is the recommended method as it provides more structure and ORM capabilities.</p>
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">models/user.py</span>
@@ -1912,7 +1921,7 @@ class User(Base):
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">migrations/migrations.py (Models version)</span>
@@ -1955,10 +1964,10 @@ if __name__ == "__main__":
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h2>Running Migrations</h2>
                             <p>To execute migrations, use the following command in your terminal:</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal Command</span>
@@ -1978,16 +1987,17 @@ python -m database.migrations --refresh
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h3>Command Options</h3>
                             <ul>
                                 <li><code>migrate</code>: Run the database migrations</li>
                                 <li><code>--refresh</code>: Optional flag to drop and recreate all tables</li>
                             </ul>
-                        
+
                             <div class="note">
-                                <p><strong>Note:</strong> When using Models, make sure to import all your model classes in the migrations file
-                                so SQLAlchemy can detect them for migrations.</p>
+                                <p><strong>Note:</strong> When using Models, make sure to import all your model classes
+                                    in the migrations file
+                                    so SQLAlchemy can detect them for migrations.</p>
                             </div>
                         </article>
                         <article id="rest_api_crud-eng">
@@ -2246,10 +2256,9 @@ def rest_crud_generate(
                                 highly customizable and integrates easily with your application.
                             </p>
                             <p>
-                                The idea is to provide you with a starting point for your admin panel. In
-                                <code>core/admin.py</code>, you can customize everything to your liking, adding
-                                two-factor authentication, different types of security, various model management
-                                options, etc.
+                                The admin panel is now more modular and flexible. All admin-related components
+                                (templates, routes, and configuration)
+                                are located in the <code>admin</code> folder, making it easier to customize and extend.
                             </p>
 
                             <h2>Key Features</h2>
@@ -2267,11 +2276,10 @@ def rest_crud_generate(
 
                             <h2>Basic Usage</h2>
                             <p>
-                                To use the admin panel, you need to import the <code>Admin</code> class and pass it a
-                                list of models you want to manage, URL e.g., <a
-                                    href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a>. You can also
-                                specify the default user with the <code>user_default</code> parameter. Then, integrate
-                                the generated routes into your application.
+                                To use the admin panel, you need to import the <code>Admin</code> class from
+                                <code>admin.routes</code> and pass it
+                                an optional list of models you want to manage. Each model must implement a
+                                <code>get_all</code> method to be displayed in the admin panel.
                             </p>
 
                             <div class="code-editor">
@@ -2285,43 +2293,25 @@ def rest_crud_generate(
                                 </div>
                                 <div class="editor-content">
                                     <pre>
-                                        <code class="language-python">
-from core.admin import Admin
+                <code class="language-python">
+# English: Here we activate the admin panel with default settings.
+# Español: Aquí activamos el panel de administrador con configuraciones predeterminadas.
+from admin.routes import Admin
 from models.user import User
-
-# Create admin routes for the User model
-admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
-
-# Integrate routes into the application
-from core.app import App
-from routes.routes import routes
-from routes.api import routes as api_routes
-import itertools
-
-all_routes = list(itertools.chain(routes, api_routes, admin_routes))
-app = App(debug=True, routes=all_routes)
-                                        </code>
-                                    </pre>
+admin_routes=Admin(models=[User])
+all_routes = list(itertools.chain(routes, api_routes,admin_routes))
+                </code>
+            </pre>
                                 </div>
                             </div>
 
-                            <h2>Default Admin User</h2>
+                            <h2>Setup and Migrations</h2>
                             <p>
-                                The first time you start the admin panel, a default user is created (which you can
-                                modify using the <code>user_default</code> parameter in the <code>Admin</code> function)
-                                with the following credentials:
-                            </p>
-                            <ul>
-                                <li><strong>Username</strong>: <code>admin</code></li>
-                                <li><strong>Password</strong>: Automatically generated and displayed in the console.
-                                </li>
-                            </ul>
-                            <p>
-                                Example console message:
+                                Before using the admin panel, you need to run the migrations:
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">Console</span>
+                                    <span class="editor-title">Terminal</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2330,10 +2320,36 @@ app = App(debug=True, routes=all_routes)
                                 </div>
                                 <div class="editor-content">
                                     <pre>
-                                        <code class="language-plaintext">
-Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf0c8079863126' and user is 'admin'
-                                        </code>
-                                    </pre>
+                <code class="language-bash">
+python -m database.migrations
+                </code>
+            </pre>
+                                </div>
+                            </div>
+
+                            <h2>Creating Admin Users</h2>
+                            <p>
+                                Admin users can be created via command line with customizable parameters:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                <code class="language-bash">
+# Default usage (random password generated)
+python -m admin.create_admin
+
+# With custom username and password
+python -m admin.create_admin --user myadmin --password mysecurepassword
+                </code>
+            </pre>
                                 </div>
                             </div>
 
@@ -2344,7 +2360,6 @@ Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf
                             <ul>
                                 <li><strong>Login</strong>: <code>/admin/login</code> (GET/POST)</li>
                                 <li><strong>Logout</strong>: <code>/admin/logout</code> (GET)</li>
-                                <li><strong>Change Password</strong>: <code>/admin/change_password</code> (GET/POST)
                                 </li>
                                 <li><strong>Dashboard</strong>: <code>/admin</code> (GET)</li>
                                 <li><strong>Model Management</strong>: <code>/admin/{model_plural}</code> (GET)</li>
@@ -2353,7 +2368,7 @@ Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf
                             <h2>Authentication Middleware</h2>
                             <p>
                                 To protect routes and ensure only authenticated administrators can access them, use the
-                                <code>@admin_required</code> decorator.
+                                <code>@admin_required</code> decorator from <code>core/admin.py</code>.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -2366,13 +2381,16 @@ Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf
                                 </div>
                                 <div class="editor-content">
                                     <pre>
-                                        <code class="language-python">
-@router.route(path="/admin/dashboard", methods=["GET"])
+                <code class="language-python">
+from core.admin import admin_required
+
+@router.route(path="/admin", methods=["GET"])
 @admin_required
-async def admin_dashboard(request: Request):
-    return await self.admin_dashboard(request)
-                                        </code>
-                                    </pre>
+async def admin_route(request: Request):
+    menu_html = menu(models=models)
+    return await admin_dashboard(request=request, menu=menu_html)
+                </code>
+            </pre>
                                 </div>
                             </div>
 

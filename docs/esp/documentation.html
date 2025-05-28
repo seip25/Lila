@@ -774,7 +774,8 @@ handleRouting();
                                     <li><strong>Acciones:</strong> <code>data-action</code> vincula el formulario al
                                         método <code>loginFetch</code>.</li>
                                     <li><strong>Componente anidado:</strong> El footer se incluye con
-                                        <code>data-component="Footer"</code>.</li>
+                                        <code>data-component="Footer"</code>.
+                                    </li>
                                     <li><strong>Enrutamiento:</strong> Los links con <code>data-link</code> navegan sin
                                         recargar la página.</li>
                                     <li><strong>Combinación con Jinja2:</strong> Uso de <code>{{translate}}</code> para
@@ -1176,11 +1177,14 @@ return response
 
                         <article id="locales-esp">
                             <h1>Internalización (Traducciones)</h1>
-                            <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en diferentes idiomas. En Lila, las traducciones se almacenan en el directorio <code>locales</code> y se pueden cargar dinámicamente en la aplicación.</p>
-                            
+                            <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en
+                                diferentes idiomas. En Lila, las traducciones se almacenan en el directorio
+                                <code>locales</code> y se pueden cargar dinámicamente en la aplicación.</p>
+
                             <h2>Forzar idioma por defecto en rutas</h2>
-                            <p>El método <code>render</code> acepta un parámetro <code>lang_default</code> para forzar un idioma específico en la plantilla renderizada:</p>
-                            
+                            <p>El método <code>render</code> acepta un parámetro <code>lang_default</code> para forzar
+                                un idioma específico en la plantilla renderizada:</p>
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">routes.py</span>
@@ -1214,16 +1218,18 @@ async def home(request: Request):
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h2>Archivos de traducción</h2>
-                            <p>Para cargar un archivo de locales, usa la función <code>translate</code> desde <code>core.helpers</code>. Puedes acceder a las traducciones usando:</p>
+                            <p>Para cargar un archivo de locales, usa la función <code>translate</code> desde
+                                <code>core.helpers</code>. Puedes acceder a las traducciones usando:</p>
                             <ul>
                                 <li><code>translate</code> - devuelve un diccionario con todas las traducciones</li>
-                                <li><code>translate_</code> - devuelve una traducción específica (devuelve el texto original si no se encuentra)</li>
+                                <li><code>translate_</code> - devuelve una traducción específica (devuelve el texto
+                                    original si no se encuentra)</li>
                             </ul>
-                        
+
                             <p>Ejemplo de archivo de traducción (<code>locales/translations.json</code>):</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">locales/translations.json</span>
@@ -1268,10 +1274,10 @@ async def home(request: Request):
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h2>Usando traducciones</h2>
                             <p>Obtener una traducción específica:</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
@@ -1293,9 +1299,9 @@ msg_error_login = translate_(
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <p>Obtener todas las traducciones de un archivo:</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
@@ -1316,10 +1322,11 @@ all_translations = translate(
                                     </code></pre>
                                 </div>
                             </div>
-                            
+
                             <h2>Configuración adicional</h2>
-                            <p>También puedes utilizar el helper <code>lang</code> para obtener el idioma actual basado en la sesión o configuración de la aplicación:</p>
-                            
+                            <p>También puedes utilizar el helper <code>lang</code> para obtener el idioma actual basado
+                                en la sesión o configuración de la aplicación:</p>
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
@@ -1849,18 +1856,22 @@ mysql_connection = connection
 
                         <article id="migrations-esp">
                             <h1>Migraciones</h1>
-                            <p>En Lila Framework, las migraciones de base de datos se pueden gestionar usando SQLAlchemy y la configuración de Lila
-                                para hacer las migraciones lo más sencillas posible. El framework ahora soporta migraciones por línea de comandos a través de Typer,
-                                proporcionando una forma más intuitiva y flexible de gestionar el esquema de tu base de datos.
+                            <p>En Lila Framework, las migraciones de base de datos se pueden gestionar usando SQLAlchemy
+                                y la configuración de Lila
+                                para hacer las migraciones lo más sencillas posible. El framework ahora soporta
+                                migraciones por línea de comandos a través de Typer,
+                                proporcionando una forma más intuitiva y flexible de gestionar el esquema de tu base de
+                                datos.
                             </p>
                             <br />
-                            
+
                             <h2>Métodos de Migración</h2>
                             <p>Existen dos formas principales de definir tablas de base de datos:</p>
-                            
+
                             <h3>1. Usando Table</h3>
-                            <p>Este método define manualmente la estructura de la tabla usando el objeto Table de SQLAlchemy.</p>
-                        
+                            <p>Este método define manualmente la estructura de la tabla usando el objeto Table de
+                                SQLAlchemy.</p>
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">migrations/migrations.py</span>
@@ -1915,11 +1926,12 @@ if __name__ == "__main__":
                                     </code></pre>
                                 </div>
                             </div>
-                            
+
                             <h3>2. Usando Models (Recomendado)</h3>
-                            <p>Este enfoque define las tablas de la base de datos como clases Python que heredan de "Base". 
-                               Este es el método recomendado ya que proporciona más estructura y capacidades ORM.</p>
-                        
+                            <p>Este enfoque define las tablas de la base de datos como clases Python que heredan de
+                                "Base".
+                                Este es el método recomendado ya que proporciona más estructura y capacidades ORM.</p>
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">models/user.py</span>
@@ -1946,7 +1958,7 @@ class User(Base):
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">migrations/migrations.py (versión con Models)</span>
@@ -1989,10 +2001,10 @@ if __name__ == "__main__":
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h2>Ejecutando Migraciones</h2>
                             <p>Para ejecutar las migraciones, usa el siguiente comando en tu terminal:</p>
-                            
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">Comando de Terminal</span>
@@ -2012,16 +2024,17 @@ python -m database.migrations --refresh
                                     </code></pre>
                                 </div>
                             </div>
-                        
+
                             <h3>Opciones del Comando</h3>
                             <ul>
                                 <li><code>migrate</code>: Ejecuta las migraciones de la base de datos</li>
                                 <li><code>--refresh</code>: Opcional, elimina y recrea todas las tablas</li>
                             </ul>
-                        
+
                             <div class="note">
-                                <p><strong>Nota:</strong> Cuando uses Models, asegúrate de importar todas tus clases de modelo en el archivo de migraciones
-                                para que SQLAlchemy pueda detectarlas para las migraciones.</p>
+                                <p><strong>Nota:</strong> Cuando uses Models, asegúrate de importar todas tus clases de
+                                    modelo en el archivo de migraciones
+                                    para que SQLAlchemy pueda detectarlas para las migraciones.</p>
                             </div>
                         </article>
 
@@ -2279,41 +2292,38 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
                         <article id="admin-panel-esp">
                             <h1>Panel de Administración</h1>
                             <p>
-                                El módulo <code>Admin</code> permite gestionar un panel de administración para tu
-                                aplicación. Incluye autenticación, gestión de modelos, métricas del sistema y más. Este
-                                panel es altamente personalizable y se integra fácilmente con tu aplicación.
+                                El módulo <code>Admin</code> te permite gestionar un panel de administración para tu
+                                aplicación.
+                                Incluye autenticación, gestión de modelos, métricas del sistema y más. Este panel es
+                                altamente personalizable y se integra fácilmente con tu aplicación.
                             </p>
                             <p>
-                                La idea es darte una ayuda para ir comenzando con tu panel de administración, en
-                                <code>core/admin.py</code>, ahí puedes personalizar todo a tu gusto, agregando doble
-                                autenticación,distintos tipos de seguridad,diferentes gestiones de modelos,etc
+                                El panel de administración ahora es más modular y flexible. Todos los componentes
+                                relacionados (plantillas,
+                                rutas y configuración) se encuentran en la carpeta <code>admin</code>, lo que facilita
+                                su personalización
+                                y extensión.
                             </p>
 
                             <h2>Características Principales</h2>
                             <ul>
-                                <li><strong>Autenticación</strong>: Inicio y cierre de sesión seguros para
-                                    administradores.</li>
+                                <li><strong>Autenticación</strong>: Login y logout seguro para administradores.</li>
                                 <li><strong>Gestión de Modelos</strong>: Genera automáticamente rutas y vistas para
                                     administrar tus modelos.</li>
-                                <li><strong>Métricas del Sistema</strong>: Monitorea el uso de memoria y CPU de la
-                                    aplicación y del servidor.</li>
-                                <li><strong>Cambio de Contraseña</strong>: Permite a los administradores cambiar su
-                                    contraseña.</li>
-
-                                <li><strong>Logs</strong>: Permite a los administradores ver los <code>Logs</code>, de
-                                    tu aplicación.</li>
+                                <li><strong>Métricas del Sistema</strong>: Monitorea el uso de memoria y CPU tanto de la
+                                    aplicación como del servidor.</li>
+                                <li><strong>Gestión de Contraseñas</strong>: Permite a los administradores cambiar sus
+                                    contraseñas.</li>
+                                <li><strong>Registros</strong>: Permite a los administradores ver los <code>Logs</code>
+                                    de la aplicación.</li>
                             </ul>
 
                             <h2>Uso Básico</h2>
                             <p>
-                                Para usar el panel de administración, debes importar la clase <code>Admin</code> y
-                                pasarle una lista de modelos que deseas gestionar, el <code>prefix</code> que sera
-                                utilizado para la url ejemplo <a
-                                    href="http://127.0.0.1:8001/admin/">http://127.0.0.1:8001/admin/</a> , también
-                                puedes
-                                pasarle el usuario que utilizara por defecto con <code>user_default</code>. Luego,
-                                integra las rutas generadas en
-                                tu aplicación.
+                                Para usar el panel de administración, debes importar la clase <code>Admin</code> desde
+                                <code>admin.routes</code> y pasarle una lista opcional de modelos que quieras
+                                administrar.
+                                Cada modelo debe implementar un método <code>get_all</code> para mostrarse en el panel.
                             </p>
 
                             <div class="code-editor">
@@ -2327,42 +2337,25 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
                                 </div>
                                 <div class="editor-content">
                                     <pre>
-                                        <code class="language-python">
-from core.admin import Admin
+                <code class="language-python">
+# English: Here we activate the admin panel with default settings.
+# Español: Aquí activamos el panel de administrador con configuraciones predeterminadas.
+from admin.routes import Admin
 from models.user import User
-
-# Crear rutas de administración para el modelo User
-admin_routes=Admin(models=[User],prefix="admin",user_default="admin")
-
-# Integrar las rutas en la aplicación
-from core.app import App
-from routes.routes import routes
-from routes.api import routes as api_routes
-import itertools
-
-all_routes = list(itertools.chain(routes, api_routes, admin_routes))
-app = App(debug=True, routes=all_routes)
-                                        </code>
-                                    </pre>
+admin_routes=Admin(models=[User])
+all_routes = list(itertools.chain(routes, api_routes,admin_routes))
+                </code>
+            </pre>
                                 </div>
                             </div>
 
-                            <h2>Usuario Administrador Predeterminado</h2>
+                            <h2>Configuración y Migraciones</h2>
                             <p>
-                                La primera vez que inicias el panel de administración, se crea un usuario predeterminado
-                                ,que puedes modificar con el parametro <code>user_default</code>, en la función
-                                <code>Admin</code>con las siguientes credenciales:
-                            </p>
-                            <ul>
-                                <li><strong>Usuario</strong>: <code>admin</code></li>
-                                <li><strong>Contraseña</strong>: Generada automáticamente y mostrada en la consola.</li>
-                            </ul>
-                            <p>
-                                Ejemplo de mensaje en la consola:
+                                Antes de usar el panel de administración, debes ejecutar las migraciones:
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">Consola</span>
+                                    <span class="editor-title">Terminal</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2371,10 +2364,37 @@ app = App(debug=True, routes=all_routes)
                                 </div>
                                 <div class="editor-content">
                                     <pre>
-                                        <code class="language-plaintext">
-Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf0c8079863126' and user is 'admin'
-                                        </code>
-                                    </pre>
+                <code class="language-bash">
+python -m database.migrations
+                </code>
+            </pre>
+                                </div>
+                            </div>
+
+                            <h2>Creación de Usuarios Admin</h2>
+                            <p>
+                                Los usuarios administradores se pueden crear mediante línea de comandos con parámetros
+                                personalizables:
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                <code class="language-bash">
+# Uso por defecto (contraseña aleatoria generada)
+python -m admin.create_admin
+
+# Con nombre de usuario y contraseña personalizados
+python -m admin.create_admin --user miadmin --password micontraseñasegura
+                </code>
+            </pre>
                                 </div>
                             </div>
 
@@ -2383,18 +2403,19 @@ Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf
                                 El panel de administración genera automáticamente las siguientes rutas:
                             </p>
                             <ul>
-                                <li><strong>Inicio de Sesión</strong>: <code>/admin/login</code> (GET/POST)</li>
-                                <li><strong>Cierre de Sesión</strong>: <code>/admin/logout</code> (GET)</li>
-                                <li><strong>Cambio de Contraseña</strong>: <code>/admin/change_password</code>
-                                    (GET/POST)</li>
-                                <li><strong>Panel de Control</strong>: <code>/admin</code> (GET)</li>
+                                <li><strong>Login</strong>: <code>/admin/login</code> (GET/POST)</li>
+                                <li><strong>Logout</strong>: <code>/admin/logout</code> (GET)</li>
+                                <li><strong>Cambiar Contraseña</strong>: <code>/admin/change_password</code> (GET/POST)
+                                </li>
+                                <li><strong>Dashboard</strong>: <code>/admin</code> (GET)</li>
                                 <li><strong>Gestión de Modelos</strong>: <code>/admin/{model_plural}</code> (GET)</li>
                             </ul>
 
                             <h2>Middleware de Autenticación</h2>
                             <p>
-                                Para proteger rutas y asegurar que solo los administradores autenticados puedan acceder,
-                                se utiliza el decorador <code>@admin_required</code>.
+                                Para proteger rutas y asegurar que solo administradores autenticados puedan acceder, usa
+                                el
+                                decorador <code>@admin_required</code> de <code>core/admin.py</code>.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -2407,13 +2428,16 @@ Default admin password: '9302a967cce443780477212553ae3d74625dd165a096a4ee8299dcf
                                 </div>
                                 <div class="editor-content">
                                     <pre>
-                                        <code class="language-python">
-@router.route(path="/admin/dashboard", methods=["GET"])
+                <code class="language-python">
+from core.admin import admin_required
+
+@router.route(path="/admin", methods=["GET"])
 @admin_required
-async def admin_dashboard(request: Request):
-return await self.admin_dashboard(request)
-                                        </code>
-                                    </pre>
+async def admin_route(request: Request):
+    menu_html = menu(models=models)
+    return await admin_dashboard(request=request, menu=menu_html)
+                </code>
+            </pre>
                                 </div>
                             </div>
 
@@ -2431,20 +2455,20 @@ return await self.admin_dashboard(request)
                                 Estas métricas se actualizan cada 10 segundos.
                             </p>
 
-                            <h2>Logs</h2>
+                            <h2>Registros (Logs)</h2>
                             <p>
-                                En Lila utilizamos un middleware que puedes desactivar o no, por si quieres utilizar
-                                <code>Logs</code> de info,warnings o errores de tu aplicación.
+                                En Lila, usamos un middleware que puedes activar o desactivar si deseas utilizar
+                                <code>Logs</code> para información, advertencias o errores en tu aplicación.
                             </p>
                             <p>
-                                El middleware se encuentra en <code>core/middleware.py</code> y lo agregamos a la
-                                aplicación en <code>
-                                    app.add_middleware(ErrorHandlerMiddleware)
-                                </code>
+                                El middleware se encuentra en <code>core/middleware.py</code> y se añade a la
+                                aplicación con:
+                                <code>app.add_middleware(ErrorHandlerMiddleware)</code>.
                             </p>
                             <p>
-                                Esto ayuda a generar los logs que los puedes ver en el panel de administrador ,
-                                ordenados por fecha (en carpetas) y tipo
+                                Esto ayuda a generar registros que puedes ver en el panel de administración, organizados
+                                por fecha
+                                (en carpetas) y tipo.
                             </p>
                             <p class="container">
                                 <img src="../img/admin.png" alt="admin" />
