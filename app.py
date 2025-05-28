@@ -17,10 +17,10 @@ all_routes = list(itertools.chain(routes, api_routes))
 
 # English: Here we activate the admin panel with default settings.
 # Español: Aquí activamos el panel de administrador con configuraciones predeterminadas.
-from admin.routes import Admin
-from models.user import User
-admin_routes=Admin(models=[User])
-all_routes = list(itertools.chain(routes, api_routes,admin_routes))
+# from admin.routes import Admin
+# from models.user import User
+# admin_routes=Admin(models=[User])
+# all_routes = list(itertools.chain(routes, api_routes,admin_routes))
 
 
 # English: Initializing the application with debugging enabled and the combined routes.
