@@ -40,9 +40,6 @@ app = App(debug=True, routes=all_routes)
 # English: Asynchronous main function to run the application server.
 # Español: Función principal asíncrona para ejecutar el servidor de la aplicación.
 async def main():
-
- 
-
     # English: Starting the Uvicorn server with the application instance.
     # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
     uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
