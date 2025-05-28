@@ -173,3 +173,5 @@ cython_debug/
 *.sqlite
 *.db
 /docs/
+
+.log
