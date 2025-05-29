@@ -156,13 +156,12 @@
                                     </div>
                                 </div>
                                 <div class="terminal-contenido">
-                                    <span class="comando">$ git clone https://github.com/seip25/Lila.git</span><br>
-                                    <span class="comando">$ cd Lila</span><br>
-                                    <span class="comando">$ python3 -m venv venv</span><br>
-                                    <span class="comando">$ source venv/bin/activate # En Windows usa
+                                    <span class="comando">$python -m venv venv # O python3 -m venv venv</span><br>
+                                    <span class="comando">$ source venv/bin/activate # En Windows puedes usar
                                         `venv\Scripts\activate`</span><br>
-                                    <span class="comando">$ pip install -r requeriments.txt</span><br>
-                                    <span class="comando">$ python3 app.py # O python app.py</span>
+                                    <span class="comando">$ pip install lila-framework</span><br>
+                                    <span class="comando">$ lila-init</span><br>
+                                    <span class="comando">$ python app.py #O python3 app.py</span><br>
                                     <span class="cursor"></span>
                                 </div>
                             </div>
@@ -1179,7 +1178,8 @@ return response
                             <h1>Internalización (Traducciones)</h1>
                             <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en
                                 diferentes idiomas. En Lila, las traducciones se almacenan en el directorio
-                                <code>locales</code> y se pueden cargar dinámicamente en la aplicación.</p>
+                                <code>locales</code> y se pueden cargar dinámicamente en la aplicación.
+                            </p>
 
                             <h2>Forzar idioma por defecto en rutas</h2>
                             <p>El método <code>render</code> acepta un parámetro <code>lang_default</code> para forzar
@@ -1221,7 +1221,8 @@ async def home(request: Request):
 
                             <h2>Archivos de traducción</h2>
                             <p>Para cargar un archivo de locales, usa la función <code>translate</code> desde
-                                <code>core.helpers</code>. Puedes acceder a las traducciones usando:</p>
+                                <code>core.helpers</code>. Puedes acceder a las traducciones usando:
+                            </p>
                             <ul>
                                 <li><code>translate</code> - devuelve un diccionario con todas las traducciones</li>
                                 <li><code>translate_</code> - devuelve una traducción específica (devuelve el texto

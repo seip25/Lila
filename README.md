@@ -53,77 +53,47 @@ https://seip25.github.io/Lila
 ---
 
 ## Installation (Instalación)
+## Installation
 
 ### English
 
-1. Clone the repository:
+1. Install Lila Framework using pip:
 
-   ```bash
-   git clone https://github.com/seip25/Lila.git
-   ```
+```bash
+   pip install lila-framework
+    
+```
+2. Initialize your Lila project:
+ ```bash
+  lila-init
+    
+```
+3. Run application:
 
-2. Navigate to the project directory:
-
-   ```bash
-   cd Lila
-   ```
-
-3. Create a virtual environment and activate it:
-
-   ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-4. Install dependencies:
-
-   ```bash
-   pip install -r requeriments.txt
-   ```
-
-5. Run application:
-
-   ```bash
-   python3 app.py #Or python app.py
-   ```
+```bash
+   python app.py #Or python3 app.py
+```
 
 ---
 
 ### Español
 
-1. Clona el repositorio:
+1. Instala Lila Framework usando pip:
 
-   ```bash
-   git clone https://github.com/seip25/Lila.git
-   ```
+```bash
+   pip install lila-framework
+    
+```
+2. Inicializa tu proyecto Lila:
+ ```bash
+  lila-init
+    
+```
+3. Ejecutar aplicación:
 
-2. Navega al directorio del proyecto:
-
-   ```bash
-   cd Lila
-   ```
-
-3. Crea un entorno virtual y actívalo:
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # En Windows usa `venv\Scripts\activate`
-   ```
-
-4. Instala las dependencias:
-
-   ```bash
-   pip install -r requeriments.txt
-   ```
-
-5. Ejecutar la aplicación:
-
-   ```bash
-   python3 app.py #O python app.py
-   ```
-
- 
-
+```bash
+   python app.py #Or python3 app.py
+```
 ---
 
 ## Contributions (Contribuciones)

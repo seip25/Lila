@@ -155,13 +155,12 @@
                                     </div>
                                 </div>
                                 <div class="terminal-contenido">
-                                    <span class="comando">$ git clone https://github.com/seip25/Lila.git</span><br>
-                                    <span class="comando">$ cd Lila</span><br>
-                                    <span class="comando">$ python3 -m venv venv</span><br>
+                                    <span class="comando">$python -m venv venv # Or python3 -m venv venv</span><br>
                                     <span class="comando">$ source venv/bin/activate # On Windows use
                                         `venv\Scripts\activate`</span><br>
-                                    <span class="comando">$ pip install -r requeriments.txt</span><br>
-                                    <span class="comando">$ python3 app.py # Or python app.py</span>
+                                    <span class="comando">$ pip install lila-framework</span><br>
+                                    <span class="comando">$ lila-init</span><br>
+                                    <span class="comando">$ python app.py #Or python3 app.py</span><br>
                                     <span class="cursor"></span>
                                 </div>
                             </div>
@@ -1213,7 +1212,8 @@ async def home(request: Request):
 
                             <h2>Translation Files</h2>
                             <p>To load a locale file, use the <code>translate</code> function from
-                                <code>core.helpers</code>. You can access translations using:</p>
+                                <code>core.helpers</code>. You can access translations using:
+                            </p>
                             <ul>
                                 <li><code>translate</code> - returns a dictionary with all translations</li>
                                 <li><code>translate_</code> - returns a specific translation (returns original text if
