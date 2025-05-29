@@ -57,7 +57,7 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     head+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
     head+=f"<title>{title}</title>\n"
     if  materialcss:
-       head+= '<link rel="stylesheet" href="/public/css/material.css">'
+       head+= '<link rel="stylesheet" href="/public/css/lila.css">'
     if css_files :
         for css in css_files:
             head+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
