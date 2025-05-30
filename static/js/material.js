@@ -15,7 +15,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
   theme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 })
 
-
+function lang() {
+  return document.querySelector('html').lang == "es";
+}
 const modal = {
 
   animationDuration: 200,
