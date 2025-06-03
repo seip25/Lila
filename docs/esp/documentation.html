@@ -125,6 +125,7 @@
                             <li><a href="#migrations-esp">Migraciones</a></li>
                             <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
                             <li><a href="#admin-panel-esp">Panel de Admin</a></li>
+                             <li><a href="#minify-esp">Minificar archivos para producción</a></li>
                             <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
                         </ul>
                     </nav>
@@ -2480,7 +2481,29 @@ async def admin_route(request: Request):
                             </p>
                         </article>
 
+ <article id="minify-esp">
+                            <h1>Minificar archivos para producción</h1>
+                            <p>
+                                Con el comando <code>lila-minify</code> puedes minificar tus archivos js,css y html, que esten en las carpetas <code>public</code> y <code>templates</code>
+                            </p>
 
+     
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Comando de Terminal</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+lila-minify
+                                    </code></pre>
+                                </div>
+                            </div>
+ </article>
 
                         <!-- <article id="helpers-esp">
 
