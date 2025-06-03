@@ -13,6 +13,10 @@ https://seip25.github.io/Lila
 # Documentación de Lila
 https://seip25.github.io/Lila
 
+
+https://pypi.org/project/lila-framework/   
+ 
+
 ## Key Features
 
 - **Simplicity**: Intuitive and minimalist design.
