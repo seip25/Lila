@@ -1,7 +1,7 @@
-starlette==0.30.0
-jinja2==3.1.2
-uvicorn==0.23.1
-pydantic==1.10.9
+starlette==0.47.0
+jinja2==3.1.6
+uvicorn==0.34.3
+pydantic==2.11.5
 pydantic[email]
 python-dotenv==1.0.1
 itsdangerous==2.2.0
@@ -13,3 +13,6 @@ PyJWT==2.10.1
 psutil==7.0.0
 python-multipart==0.0.20
 typer==0.15.3
+jsmin==3.0.1
+cssmin==0.2.0
+htmlmin==0.1.12
