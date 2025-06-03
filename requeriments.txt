@@ -15,4 +15,4 @@ python-multipart==0.0.20
 typer==0.15.3
 jsmin==3.0.1
 cssmin==0.2.0
-htmlmin==0.1.12
+htmlmin2==0.1.13
