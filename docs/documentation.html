@@ -185,12 +185,12 @@
 
                                     <pre><code class="language-python"> 
 # Import necessary modules and routes
-from core.app import App 
+from lila.core.app import App 
 from routes.routes import routes
 from routes.api import routes as api_routes
 
 # Import environment variables for host and port
-from core.env import PORT, HOST
+from lila.core.env import PORT, HOST
 import itertools
 import uvicorn
 import asyncio
@@ -270,10 +270,10 @@ asyncio.run(main())
                                     <pre>
                             <code class="language-python">
 #Import from core JSONResponse .
-from core.responses import JSONResponse 
+from lila.core.responses import JSONResponse 
 
 # Manages routes for API endpoints.
-from core.routing import Router  
+from lila.core.routing import Router  
 # Initializes the router instance to handle API routes.
 router = Router()
 
@@ -356,11 +356,11 @@ async def query_param(request: Request):
                                 <div class="editor-content">
                                     <pre>
         <code class="language-python">
-from core.responses import JSONResponse  # Simplifies sending JSON responses.
-from core.routing import Router  # Manages API routes.
-from core.request import Request  # Handles HTTP requests in the application.
+from lila.core.responses import JSONResponse  # Simplifies sending JSON responses.
+from lila.core.routing import Router  # Manages API routes.
+from lila.core.request import Request  # Handles HTTP requests in the application.
 from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
-from core.helpers import get_user_by_id_and_token
+from lila.core.helpers import get_user_by_id_and_token
 from middlewares.middlewares import validate_token
 
 router = Router()
@@ -505,7 +505,7 @@ routes = router.get_routes()  # Retrieves all defined routes.
                                 <div class="editor-content">
                                     <pre>
 <code class="language-python">
-from core.routing import Router
+from lila.core.routing import Router
 # Creating an instance of the Router to define the routes, if it was not previously created in the file
 router = Router()
 # Mounting the static files in the 'static' folder, url ='/public' by default
@@ -581,7 +581,7 @@ router.mount()
                                         values, lists, dictionaries or whatever you need.
                                     </strong></p>
 
-                                <p>The parameters that the <code>render</code> function from <code>core.templates</code>
+                                <p>The parameters that the <code>render</code> function from <code>lila.core.templates</code>
                                     can receive are:</p>
                                 <div class="code-editor">
                                     <div class="editor-content">
@@ -1008,7 +1008,7 @@ MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from core.helpers import upload
+from lila.core.helpers import upload
 
 @router.route("/upload", methods=["POST"])
 async def uploadFile(request: Request):
@@ -1149,7 +1149,7 @@ async def uploadFile(request: Request):
                                 <div class="editor-content">
                                     <pre>
                      <code class="language-python">
-from core.templates import renderMarkdown
+from lila.core.templates import renderMarkdown
 
 @router.route(path='/markdown', methods=['GET'])
 async def home(request: Request):
@@ -1212,7 +1212,7 @@ async def home(request: Request):
 
                             <h2>Translation Files</h2>
                             <p>To load a locale file, use the <code>translate</code> function from
-                                <code>core.helpers</code>. You can access translations using:
+                                <code>lila.core.helpers</code>. You can access translations using:
                             </p>
                             <ul>
                                 <li><code>translate</code> - returns a dictionary with all translations</li>
@@ -1281,7 +1281,7 @@ async def home(request: Request):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from core.helpers import translate_
+from lila.core.helpers import translate_
 
 msg_error_login = translate_(
     key="Incorrect email or password", 
@@ -1305,7 +1305,7 @@ msg_error_login = translate_(
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from core.helpers import translate
+from lila.core.helpers import translate
 
 all_translations = translate(
     request=request, 
@@ -1333,7 +1333,7 @@ all_translations = translate(
 
                             <h2>Using Models </h2>
                             <p>
-                                The `Base` class, imported from `core.database`, serves as the foundation for
+                                The `Base` class, imported from `lila.core.database`, serves as the foundation for
                                 all models .
                                 Models inherit from `Base` to define database tables with SQLAlchemy.
                             </p>
@@ -1358,7 +1358,7 @@ all_translations = translate(
 
         <code class="language-python">
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
-from core.database import Base
+from lila.core.database import Base
 from database.connections import connection 
 
 class User(Base):
@@ -1435,7 +1435,7 @@ user = User.get_by_id(1)
                             <p>
                                 The third is <code>validate_token</code>, which is used to validate a JWT token thanks
                                 to the <code>get_token</code> helpers imported in
-                                <code>from core.helpers import get_token</code>.
+                                <code>from lila.core.helpers import get_token</code>.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1450,11 +1450,11 @@ user = User.get_by_id(1)
                                     <pre>
 
             <code class="language-python">
-from core.session import Session
-from core.responses import RedirectResponse,JSONResponse
-from core.request import Request
+from lila.core.session import Session
+from lila.core.responses import RedirectResponse,JSONResponse
+from lila.core.request import Request
 from functools import wraps 
-from core.helpers import get_token
+from lila.core.helpers import get_token
 
 def login_required(func,key:str='auth',url_return='/login'):
     @wraps(func)
@@ -1640,9 +1640,9 @@ async def login(request: Request):
                                 <div class="editor-content">
                                     <pre><code class="language-python">
 from starlette.middleware.base import BaseHTTPMiddleware
-from core.responses import JSONResponse, HTMLResponse
-from core.request import Request
-from core.logger import Logger
+from lila.core.responses import JSONResponse, HTMLResponse
+from lila.core.request import Request
+from lila.core.logger import Logger
 from datetime import datetime, timedelta
 import json
 import os
@@ -1774,7 +1774,7 @@ except Exception as e:
                             <h1>Connections to database</h1>
                             <p>
                                 To use connections, you need to import the <code>Database</code> class from
-                                core.database. With
+                                lila.core.database. With
                                 that you can connect to your database, which can be SQLite, MySLQ, PostgreSQL or
                                 whatever you
                                 want to configure.
@@ -1795,7 +1795,7 @@ except Exception as e:
                                     <pre>
 
             <code class="language-python">
-from core.database import Database
+from lila.core.database import Database
 
 #SQLite
 
@@ -1906,7 +1906,7 @@ if __name__ == "__main__":
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from core.database import Base
+from lila.core.database import Base
 from sqlalchemy import Column, Integer, String, TIMESTAMP
 
 class User(Base):
@@ -1934,7 +1934,7 @@ class User(Base):
                                 <div class="editor-content">
                                     <pre><code class="language-python">
 from database.connections import connection
-from core.database import Base  # Import Base for migrations in models
+from lila.core.database import Base  # Import Base for migrations in models
 from models.user import User  # Import models for migrations
 import typer
 import asyncio
@@ -2063,9 +2063,9 @@ asyncio.run(main())
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from core.request import Request
-from core.responses import JSONResponse
-from core.routing import Router
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+from lila.core.routing import Router
 from pydantic import EmailStr, BaseModel
 from middlewares.middlewares import validate_token, check_token, check_session
 from database.connections import connection  # Database connection with SQLAlchemy
@@ -2382,7 +2382,7 @@ python -m admin.create_admin --user myadmin --password mysecurepassword
                                 <div class="editor-content">
                                     <pre>
                 <code class="language-python">
-from core.admin import admin_required
+from lila.core.admin import admin_required
 
 @router.route(path="/admin", methods=["GET"])
 @admin_required
