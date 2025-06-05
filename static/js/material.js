@@ -339,3 +339,262 @@ window.warning = warning;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 window.Confirm = Confirm;
+
+
+
+class ResponsiveDataTable {
+    constructor(containerId, options = {}) {
+        this.container = document.getElementById(containerId);
+        if (!this.container) {
+            console.error(`No se encontró el contenedor con ID: ${containerId}`);
+            return;
+        }
+
+        this.defaults = {
+            data: [],
+            columns: [],
+            rowsPerPage: 5,
+            search: true,
+            pagination: true,
+            responsive: true,
+            headerTitles: {},
+            summaryFields: ['id', 'fecha']
+        };
+
+        this.options = { ...this.defaults, ...options };
+
+        this.currentPage = 1;
+        this.filteredData = [...this.options.data];
+
+        this.init();
+    }
+
+    init() {
+        this.renderContainer();
+        this.renderTable();
+        if (this.options.search) this.setupSearch();
+        if (this.options.pagination) this.renderPagination();
+    }
+
+    renderContainer() {
+        this.container.innerHTML = `
+                    <div class="datatable-container">
+                        ${this.options.search ? `
+                        <div class="datatable-search">
+                            <i class="icon icon-search"></i>
+                            <input type="text" class="datatable-search-input" placeholder="">
+                        </div>
+                        ` : ''}
+                        
+                        <div class="datatable-responsive">
+                            <table class="datatable-table">
+                                <thead class="datatable-header"></thead>
+                                <tbody class="datatable-body"></tbody>
+                            </table>
+                            
+                            <div class="datatable-mobile"></div>
+                        </div>
+                        
+                        ${this.options.pagination ? `
+                        <div class="datatable-pagination container mx-sm"></div>
+                        ` : ''}
+                    </div>
+                `;
+    }
+
+    renderTable() {
+        this.renderTableHeaders();
+        this.renderTableBody();
+        if (this.options.responsive) {
+            this.renderMobileView();
+        }
+    }
+
+    renderTableHeaders() {
+        const headerRow = this.container.querySelector('.datatable-header');
+        headerRow.innerHTML = '';
+
+        this.options.columns.forEach(column => {
+            const th = document.createElement('th');
+            th.textContent = this.options.headerTitles[column.key] || column.title || column.key;
+            headerRow.appendChild(th);
+        });
+    }
+
+    renderTableBody() {
+        const tbody = this.container.querySelector('.datatable-body');
+        tbody.innerHTML = '';
+
+        const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
+        const endIndex = startIndex + this.options.rowsPerPage;
+        const paginatedData = this.filteredData.slice(startIndex, endIndex);
+
+        paginatedData.forEach(item => {
+            const tr = document.createElement('tr');
+
+            this.options.columns.forEach(column => {
+                const td = document.createElement('td');
+                td.innerHTML = item[column.key] || '-';
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    renderMobileView() {
+        const mobileView = this.container.querySelector('.datatable-mobile');
+        mobileView.innerHTML = '';
+
+        const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
+        const endIndex = startIndex + this.options.rowsPerPage;
+        const paginatedData = this.filteredData.slice(startIndex, endIndex);
+
+        paginatedData.forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'datatable-mobile-item shadow mt-2';
+
+            const summary = document.createElement('b'); 
+            summary.classList.add('text-fill')
+            const summaryText = this.options.summaryFields
+                .map(field => `${this.getHeaderTitle(field)}: ${item[field] || '-'}`)
+                .join(' | ');
+            summary.innerHTML = `
+                        <span  >${summaryText}</span>
+                    `;
+
+            const details = document.createElement('div');
+            details.className = 'details';
+
+            this.options.columns.forEach(column => {
+                if (this.options.summaryFields.includes(column.key)) return;
+
+                const row = document.createElement('div');
+                row.className = 'row';
+
+                const label = document.createElement('span');
+                label.className = 'label';
+                label.textContent = `${this.getHeaderTitle(column.key)}:`;
+
+                const value = document.createElement('span');
+                value.className = 'value';
+                value.innerHTML = item[column.key] || '-';
+
+                row.appendChild(label);
+                row.appendChild(value);
+                details.appendChild(row);
+            });
+
+            itemElement.appendChild(summary);
+            itemElement.appendChild(details);
+            mobileView.appendChild(itemElement);
+        });
+    }
+
+    getHeaderTitle(key) {
+        return this.options.headerTitles[key] ||
+            this.options.columns.find(c => c.key === key)?.title ||
+            key;
+    }
+
+    renderPagination() {
+        const paginationContainer = this.container.querySelector('.datatable-pagination');
+        if (!paginationContainer) return;
+
+        paginationContainer.innerHTML = '';
+        const pageCount = Math.ceil(this.filteredData.length / this.options.rowsPerPage);
+
+        if (pageCount > 1) {
+            const prevButton = this.createPaginationButton('«', 'prev ');
+            prevButton.addEventListener('click', () => {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.updateTable();
+                }
+            });
+            paginationContainer.appendChild(prevButton);
+        }
+
+        for (let i = 1; i <= pageCount; i++) {
+            const pageButton = this.createPaginationButton(i, i);
+            if (i === this.currentPage) {
+                pageButton.classList.add('active'); 
+            }
+
+            pageButton.addEventListener('click', () => {
+                this.currentPage = i;
+                this.updateTable();
+            });
+
+            paginationContainer.appendChild(pageButton);
+        }
+
+        if (pageCount > 1) {
+            const nextButton = this.createPaginationButton('»', 'next');
+            nextButton.addEventListener('click', () => {
+                if (this.currentPage < pageCount) {
+                    this.currentPage++;
+                    this.updateTable();
+                }
+            });
+            paginationContainer.appendChild(nextButton);
+        }
+    }
+
+    createPaginationButton(text, className) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.className = className + ' fill dark';
+        button.setAttribute('type', 'button');
+        return button;
+    }
+
+    setupSearch() {
+        const searchInput = this.container.querySelector('.datatable-search-input');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+
+            if (searchTerm === '') {
+                this.filteredData = [...this.options.data];
+            } else {
+                this.filteredData = this.options.data.filter(item => {
+                    return Object.values(item).some(value =>
+                        String(value).toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+
+            this.currentPage = 1;
+            this.updateTable();
+        });
+    }
+
+    updateTable() {
+        this.renderTableBody();
+        if (this.options.responsive) {
+            this.renderMobileView();
+        }
+        if (this.options.pagination) {
+            this.renderPagination();
+        }
+    }
+
+    updateData(newData) {
+        this.options.data = newData;
+        this.filteredData = [...newData];
+        this.currentPage = 1;
+        this.updateTable();
+    }
+
+    updateColumns(newColumns) {
+        this.options.columns = newColumns;
+        this.updateTable();
+    }
+
+    updateOptions(newOptions) {
+        this.options = { ...this.options, ...newOptions };
+        this.updateTable();
+    }
+}
