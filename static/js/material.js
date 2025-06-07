@@ -1,3 +1,4 @@
+
 function theme(theme_ = false) {
   let theme = theme_ ? theme_ : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 
@@ -157,24 +158,24 @@ function CerrarModal(modalId) {
 }
 
 function ShowModal(modalId) {
-AbrirModal(modalId);
+  AbrirModal(modalId);
 }
 function CloseModal(modalId) {
-CerrarModal(modalId);
+  CerrarModal(modalId);
 }
- 
+
 function success(mensaje = false, titulo = 'Ok') {
   modal.modalAlert(mensaje || (lang() ? "Operación exitosa" : "Operation successful"), 'success', 3000);
 }
- 
+
 function error(mensaje = '', titulo = 'Error', showConfirmButton = true) {
   modal.modalAlert(mensaje || (lang() ? "Ha ocurrido un error" : "An error occurred"), 'error', showConfirmButton ? 0 : 3000);
 }
- 
+
 function warning(mensaje = false, titulo = '') {
   modal.modalAlert(mensaje || (lang() ? "Advertencia" : "Warning"), 'warning', 3000);
 }
- 
+
 let loadingModal;
 function showLoading(title = lang() ? "Cargando..." : "Loading...") {
   if (!loadingModal) {
@@ -198,7 +199,7 @@ function hideLoading() {
     loadingModal = null;
   }
 }
- 
+
 function Confirm(
   title = '',
   mensaje = '',
@@ -210,14 +211,14 @@ function Confirm(
   return new Promise((resolve) => {
     const confirmModal = document.createElement('dialog');
     confirmModal.id = 'confirm-modal';
-    
+
     const btnCancel = lang() ? "Cancelar" : "Cancel";
     const btnConfirm = lang() ? "Confirmar" : "Confirm";
-    
+
     if (!title) {
       title = lang() ? "¿Estás seguro?" : "Are you sure?";
     }
-    
+
     let inputField = '';
     if (input) {
       inputField = `
@@ -227,7 +228,7 @@ function Confirm(
         </label>
       `;
     }
-    
+
     confirmModal.innerHTML = `
       <article class="container">
         <header>
@@ -239,36 +240,35 @@ function Confirm(
          
           <button class="btn-error" id="confirm-ok">${btnConfirm}</button>
 
-           ${ShowBtnCancel ? 
-            `<button class="mt-2 btn-secondary" id="confirm-cancel">${btnCancel}</button>` 
-            : ''}
+           ${ShowBtnCancel ?
+        `<button class="mt-2 btn-secondary" id="confirm-cancel">${btnCancel}</button>`
+        : ''}
         </footer>
       </article>
     `;
-    
+
     document.body.appendChild(confirmModal);
     modal.openModal(confirmModal);
-    
-    // Agregar event listeners correctamente
+ 
     const handleConfirm = () => {
       const inputValue = input ? document.getElementById('confirm-input').value : true;
       modal.closeModal(confirmModal);
       setTimeout(() => confirmModal.remove(), modal.animationDuration);
       resolve(inputValue);
     };
-    
+
     const handleCancel = () => {
       modal.closeModal(confirmModal);
       setTimeout(() => confirmModal.remove(), modal.animationDuration);
       resolve(false);
     };
-    
+
     document.getElementById('confirm-ok').addEventListener('click', handleConfirm);
-    
+
     if (ShowBtnCancel) {
       document.getElementById('confirm-cancel').addEventListener('click', handleCancel);
     }
-     
+
     confirmModal.addEventListener('click', (e) => {
       if (e.target === confirmModal) {
         handleCancel();
@@ -276,7 +276,7 @@ function Confirm(
     });
   });
 }
- 
+
 const style = document.createElement('style');
 style.textContent = `
   .modal-loading {
@@ -317,7 +317,7 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
- 
+
 
 
 window.AbrirModal = AbrirModal;
@@ -328,7 +328,7 @@ window.modalAlert = function (response) {
     response.error ? lang() ? "Error en la operación" : "Error in the operation" :
       response.warning ? lang() ? "Advertencia" : "Warning" :
         lang() ? "Información" : "Information");
-  const tipo = response.success ? 'success': !response.success ? 'error' : response.error ? 'error' : response.warning ? 'warning' : 'info';
+  const tipo = response.success ? 'success' : !response.success ? 'error' : response.error ? 'error' : response.warning ? 'warning' : 'info';
   const tiempoCierre = 3000;
   modal.modalAlert(mensaje, tipo, tiempoCierre);
 };
@@ -343,41 +343,44 @@ window.Confirm = Confirm;
 
 
 class ResponsiveDataTable {
-    constructor(containerId, options = {}) {
-        this.container = document.getElementById(containerId);
-        if (!this.container) {
-            console.error(`No se encontró el contenedor con ID: ${containerId}`);
-            return;
-        }
-
-        this.defaults = {
-            data: [],
-            columns: [],
-            rowsPerPage: 5,
-            search: true,
-            pagination: true,
-            responsive: true,
-            headerTitles: {},
-            summaryFields: ['id', 'fecha']
-        };
-
-        this.options = { ...this.defaults, ...options };
-
-        this.currentPage = 1;
-        this.filteredData = [...this.options.data];
-
-        this.init();
+  constructor(containerId, options = {}) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) {
+      console.error(`No se encontró el contenedor con ID: ${containerId}`);
+      return;
     }
 
-    init() {
-        this.renderContainer();
-        this.renderTable();
-        if (this.options.search) this.setupSearch();
-        if (this.options.pagination) this.renderPagination();
-    }
+    this.defaults = {
+      data: [],
+      columns: [],
+      rowsPerPage: 5,
+      search: true,
+      pagination: true,
+      responsive: true,
+      headerTitles: {},
+      summaryFields: ['id', 'fecha'],
+      edit: false,
+      delete: false
+    };
 
-    renderContainer() {
-        this.container.innerHTML = `
+    this.options = { ...this.defaults, ...options };
+
+    this.currentPage = 1;
+    this.filteredData = [...this.options.data];
+
+    this.init();
+
+  }
+
+  init() {
+    this.renderContainer();
+    this.renderTable();
+    if (this.options.search) this.setupSearch();
+    if (this.options.pagination) this.renderPagination();
+  }
+
+  renderContainer() {
+    this.container.innerHTML = `
                     <div class="datatable-container">
                         ${this.options.search ? `
                         <div class="datatable-search">
@@ -400,201 +403,298 @@ class ResponsiveDataTable {
                         ` : ''}
                     </div>
                 `;
-    }
+  }
 
-    renderTable() {
-        this.renderTableHeaders();
-        this.renderTableBody();
-        if (this.options.responsive) {
-            this.renderMobileView();
+  renderTable() {
+    this.renderTableHeaders();
+    this.renderTableBody();
+    if (this.options.responsive) {
+      this.renderMobileView();
+    }
+  }
+
+  renderTableHeaders() {
+    const headerRow = this.container.querySelector('.datatable-header');
+    headerRow.innerHTML = '';
+
+    this.options.columns.forEach(column => {
+      const th = document.createElement('th');
+      th.textContent = this.options.headerTitles[column.key] || column.title || column.key;
+      headerRow.appendChild(th);
+
+
+    });
+
+    if (this.options.edit) {
+      const th = document.createElement('th');
+      th.textContent = "#";
+      headerRow.appendChild(th);
+    }
+    if (this.options.delete) {
+      const th = document.createElement('th');
+      th.textContent = "#";
+      headerRow.appendChild(th);
+    }
+  }
+
+  renderTableBody() {
+    const tbody = this.container.querySelector('.datatable-body');
+    tbody.innerHTML = '';
+
+    const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
+    const endIndex = startIndex + this.options.rowsPerPage;
+    const paginatedData = this.filteredData.slice(startIndex, endIndex);
+
+    paginatedData.forEach(item => {
+      const tr = document.createElement('tr');
+
+      this.options.columns.forEach(column => {
+        const td = document.createElement('td');
+        let value = item[column.key];
+        if (isDate(value) && lang()) {
+
+          const [anio, mes, dia] = value.split("-").map(Number);
+          const fecha = new Date(anio, mes - 1, dia);
+          const diaFormateado = String(fecha.getDate()).padStart(2, "0");
+          const mesFormateado = String(fecha.getMonth() + 1).padStart(2, "0");
+          const anioFormateado = fecha.getFullYear();
+
+          const formato = `${diaFormateado}/${mesFormateado}/${anioFormateado}`;
+          value = formato;
         }
-    }
+        else if (isDate(value)) {
+          const [anio, mes, dia] = value.split("-").map(Number);
+          const fecha = new Date(anio, mes - 1, dia);
 
-    renderTableHeaders() {
-        const headerRow = this.container.querySelector('.datatable-header');
-        headerRow.innerHTML = '';
+          const diaFormateado = String(fecha.getDate()).padStart(2, "0");
+          const mesFormateado = String(fecha.getMonth() + 1).padStart(2, "0");
+          const anioFormateado = fecha.getFullYear();
 
-        this.options.columns.forEach(column => {
-            const th = document.createElement('th');
-            th.textContent = this.options.headerTitles[column.key] || column.title || column.key;
-            headerRow.appendChild(th);
-        });
-    }
+          const formato = `${anioFormateado}/${mesFormateado}/${diaFormateado}`;
+          value = formato;
+        }
+        td.innerHTML = value || '-';
+        tr.appendChild(td);
 
-    renderTableBody() {
-        const tbody = this.container.querySelector('.datatable-body');
-        tbody.innerHTML = '';
+      });
 
-        const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
-        const endIndex = startIndex + this.options.rowsPerPage;
-        const paginatedData = this.filteredData.slice(startIndex, endIndex);
+      tbody.appendChild(tr);
 
-        paginatedData.forEach(item => {
-            const tr = document.createElement('tr');
+      if (this.options.edit) {
+        const td = document.createElement('td');
+        td.innerHTML = '#';
+        td.innerHTML = `<button onclick='Edit(event,${item.id || 0});' class=' fill success'><i class='icon icon-edit'  ></i></button>`;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
 
-            this.options.columns.forEach(column => {
-                const td = document.createElement('td');
-                td.innerHTML = item[column.key] || '-';
-                tr.appendChild(td);
-            });
+      if (this.options.delete) {
+        const td = document.createElement('td');
+        td.innerHTML = '#';
+        td.innerHTML = `<button onclick='Delete(event,${item.id || 0});' class=' fill error'><i class='icon icon-delete'  ></i></button>`;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
 
-            tbody.appendChild(tr);
-        });
-    }
 
-    renderMobileView() {
-        const mobileView = this.container.querySelector('.datatable-mobile');
-        mobileView.innerHTML = '';
+    });
+  }
 
-        const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
-        const endIndex = startIndex + this.options.rowsPerPage;
-        const paginatedData = this.filteredData.slice(startIndex, endIndex);
+  renderMobileView() {
+    let actions = null;
+    const mobileView = this.container.querySelector('.datatable-mobile');
+    mobileView.innerHTML = '';
 
-        paginatedData.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'datatable-mobile-item shadow mt-2';
+    const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
+    const endIndex = startIndex + this.options.rowsPerPage;
+    const paginatedData = this.filteredData.slice(startIndex, endIndex);
 
-            const summary = document.createElement('b'); 
-            summary.classList.add('text-fill')
-            const summaryText = this.options.summaryFields
-                .map(field => `${this.getHeaderTitle(field)}: ${item[field] || '-'}`)
-                .join(' | ');
-            summary.innerHTML = `
-                        <span  >${summaryText}</span>
-                    `;
+    paginatedData.forEach(item => {
+      const itemElement = document.createElement('div');
+      itemElement.className = 'datatable-mobile-item shadow mt-2';
 
-            const details = document.createElement('div');
-            details.className = 'details';
+      const summary = document.createElement('div');
+      summary.classList.add('text-fill', 'mobile-summary');
+      const summaryText = this.options.summaryFields
+        .map(field => `${this.getHeaderTitle(field)}: ${item[field] || '-'}`)
+        .join(' | ');
+      summary.innerHTML = `<span>${summaryText}</span>`;
 
-            this.options.columns.forEach(column => {
-                if (this.options.summaryFields.includes(column.key)) return;
+      if (this.options.edit || this.options.delete) {
+        actions = document.createElement('div');
+        actions.className = 'mt-4 flex between';
 
-                const row = document.createElement('div');
-                row.className = 'row';
-
-                const label = document.createElement('span');
-                label.className = 'label';
-                label.textContent = `${this.getHeaderTitle(column.key)}:`;
-
-                const value = document.createElement('span');
-                value.className = 'value';
-                value.innerHTML = item[column.key] || '-';
-
-                row.appendChild(label);
-                row.appendChild(value);
-                details.appendChild(row);
-            });
-
-            itemElement.appendChild(summary);
-            itemElement.appendChild(details);
-            mobileView.appendChild(itemElement);
-        });
-    }
-
-    getHeaderTitle(key) {
-        return this.options.headerTitles[key] ||
-            this.options.columns.find(c => c.key === key)?.title ||
-            key;
-    }
-
-    renderPagination() {
-        const paginationContainer = this.container.querySelector('.datatable-pagination');
-        if (!paginationContainer) return;
-
-        paginationContainer.innerHTML = '';
-        const pageCount = Math.ceil(this.filteredData.length / this.options.rowsPerPage);
-
-        if (pageCount > 1) {
-            const prevButton = this.createPaginationButton('«', 'prev ');
-            prevButton.addEventListener('click', () => {
-                if (this.currentPage > 1) {
-                    this.currentPage--;
-                    this.updateTable();
-                }
-            });
-            paginationContainer.appendChild(prevButton);
+        if (this.options.edit) {
+          const editBtn = document.createElement('button');
+          editBtn.className = 'fill success';
+          editBtn.innerHTML = `<i class='icon icon-edit'></i>`;
+          editBtn.onclick = (e) => Edit(e, item.id || 0);
+          actions.appendChild(editBtn);
         }
 
-        for (let i = 1; i <= pageCount; i++) {
-            const pageButton = this.createPaginationButton(i, i);
-            if (i === this.currentPage) {
-                pageButton.classList.add('active'); 
-            }
-
-            pageButton.addEventListener('click', () => {
-                this.currentPage = i;
-                this.updateTable();
-            });
-
-            paginationContainer.appendChild(pageButton);
+        if (this.options.delete) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'fill error';
+          deleteBtn.innerHTML = `<i class='icon icon-delete'></i>`;
+          deleteBtn.onclick = (e) => Delete(e, item.id || 0);
+          actions.appendChild(deleteBtn);
         }
 
-        if (pageCount > 1) {
-            const nextButton = this.createPaginationButton('»', 'next');
-            nextButton.addEventListener('click', () => {
-                if (this.currentPage < pageCount) {
-                    this.currentPage++;
-                    this.updateTable();
-                }
-            });
-            paginationContainer.appendChild(nextButton);
+
+      }
+
+      const details = document.createElement('div');
+      details.className = 'details';
+
+      this.options.columns.forEach(column => {
+        if (this.options.summaryFields.includes(column.key)) return;
+
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = `${this.getHeaderTitle(column.key)}:`;
+
+        const value = document.createElement('span');
+        value.className = 'value';
+        value.innerHTML = item[column.key] || '-';
+
+        row.appendChild(label);
+        row.appendChild(value);
+        details.appendChild(row);
+      });
+
+
+      itemElement.appendChild(summary);
+      itemElement.appendChild(details);
+      mobileView.appendChild(itemElement);
+      if (actions !== null) {
+        details.appendChild(actions);
+      }
+
+    });
+  }
+
+  getHeaderTitle(key) {
+    return this.options.headerTitles[key] ||
+      this.options.columns.find(c => c.key === key)?.title ||
+      key;
+  }
+
+  renderPagination() {
+    const paginationContainer = this.container.querySelector('.datatable-pagination');
+    if (!paginationContainer) return;
+
+    paginationContainer.innerHTML = '';
+    const pageCount = Math.ceil(this.filteredData.length / this.options.rowsPerPage);
+
+    if (pageCount > 1) {
+      const prevButton = this.createPaginationButton('«', 'prev ');
+      prevButton.addEventListener('click', () => {
+        if (this.currentPage > 1) {
+          this.currentPage--;
+          this.updateTable();
         }
+      });
+      paginationContainer.appendChild(prevButton);
     }
 
-    createPaginationButton(text, className) {
-        const button = document.createElement('button');
-        button.textContent = text;
-        button.className = className + ' fill dark';
-        button.setAttribute('type', 'button');
-        return button;
-    }
+    for (let i = 1; i <= pageCount; i++) {
+      const pageButton = this.createPaginationButton(i, i);
+      if (i === this.currentPage) {
+        pageButton.classList.add('active');
+      }
 
-    setupSearch() {
-        const searchInput = this.container.querySelector('.datatable-search-input');
-        if (!searchInput) return;
-
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-
-            if (searchTerm === '') {
-                this.filteredData = [...this.options.data];
-            } else {
-                this.filteredData = this.options.data.filter(item => {
-                    return Object.values(item).some(value =>
-                        String(value).toLowerCase().includes(searchTerm)
-                    );
-                });
-            }
-
-            this.currentPage = 1;
-            this.updateTable();
-        });
-    }
-
-    updateTable() {
-        this.renderTableBody();
-        if (this.options.responsive) {
-            this.renderMobileView();
-        }
-        if (this.options.pagination) {
-            this.renderPagination();
-        }
-    }
-
-    updateData(newData) {
-        this.options.data = newData;
-        this.filteredData = [...newData];
-        this.currentPage = 1;
+      pageButton.addEventListener('click', () => {
+        this.currentPage = i;
         this.updateTable();
+      });
+
+      paginationContainer.appendChild(pageButton);
     }
 
-    updateColumns(newColumns) {
-        this.options.columns = newColumns;
-        this.updateTable();
+    if (pageCount > 1) {
+      const nextButton = this.createPaginationButton('»', 'next');
+      nextButton.addEventListener('click', () => {
+        if (this.currentPage < pageCount) {
+          this.currentPage++;
+          this.updateTable();
+        }
+      });
+      paginationContainer.appendChild(nextButton);
     }
+  }
 
-    updateOptions(newOptions) {
-        this.options = { ...this.options, ...newOptions };
-        this.updateTable();
+  createPaginationButton(text, className) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.className = className + ' fill dark';
+    button.setAttribute('type', 'button');
+    return button;
+  }
+
+  setupSearch() {
+    const searchInput = this.container.querySelector('.datatable-search-input');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+
+      if (searchTerm === '') {
+        this.filteredData = [...this.options.data];
+      } else {
+        this.filteredData = this.options.data.filter(item => {
+          return Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          );
+        });
+      }
+
+      this.currentPage = 1;
+      this.updateTable();
+    });
+  }
+
+  updateTable() {
+    this.renderTableBody();
+    if (this.options.responsive) {
+      this.renderMobileView();
     }
+    if (this.options.pagination) {
+      this.renderPagination();
+    }
+  }
+
+  updateData(newData) {
+    this.options.data = newData;
+    this.filteredData = [...newData];
+    this.currentPage = 1;
+    this.updateTable();
+  }
+
+  updateColumns(newColumns) {
+    this.options.columns = newColumns;
+    this.updateTable();
+  }
+
+  updateOptions(newOptions) {
+    this.options = { ...this.options, ...newOptions };
+    this.updateTable();
+  }
+}
+
+function isDate(value) {
+
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!regex.test(value)) return false;
+
+  const [anio, mes, dia] = value.split("-").map(Number);
+
+  const fecha = new Date(anio, mes - 1, dia);
+
+  return fecha.getFullYear() === anio &&
+    fecha.getMonth() + 1 === mes &&
+    fecha.getDate() === dia;
+
 }
