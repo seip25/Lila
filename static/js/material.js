@@ -436,8 +436,7 @@ class ResponsiveDataTable {
       headerRow.appendChild(th);
     }
   }
-
-  renderTableBody() {
+renderTableBody() {
     const tbody = this.container.querySelector('.datatable-body');
     tbody.innerHTML = '';
 
@@ -445,38 +444,100 @@ class ResponsiveDataTable {
     const endIndex = startIndex + this.options.rowsPerPage;
     const paginatedData = this.filteredData.slice(startIndex, endIndex);
 
+
+    const formatCellContent = (value, columnKey) => {
+      if (!value) return '-';
+      if (typeof value !== 'string') value = String(value);
+      
+      if (value.length > 12) {
+        const shortText = value.substring(0, 12) + '...';
+        const randomId = `accordion-${columnKey}-${Math.random().toString(36).substr(2, 9)}`;
+        return `
+          <div class="accordion-container">
+            <span class="short-text">${shortText}</span>
+            <a href="#" class="accordion-toggle" data-target="${randomId}">...</a>
+            <div id="${randomId}" class="accordion-content hidden">${value}</div>
+          </div>
+        `;
+      }
+      return value;
+    };
+
     paginatedData.forEach(item => {
       const tr = document.createElement('tr');
 
       this.options.columns.forEach(column => {
         const td = document.createElement('td');
         let value = isDate(item[column.key]) ? parseDate(item[column.key]) : item[column.key];
-        td.innerHTML = value || '-';
+        td.innerHTML = formatCellContent(value, column.key);
         tr.appendChild(td);
-
       });
 
-      tbody.appendChild(tr);
-
+      
       if (this.options.edit) {
         const td = document.createElement('td');
-        td.innerHTML = '#';
-        td.innerHTML = `<button onclick='Edit(event,${item.id || 0});' class=' fill success'><i class='icon icon-edit'  ></i></button>`;
+        const edit_btn = lang() ? "Editar" : "Edit";
+        td.innerHTML = `<button onclick='Edit(event,${item.id || 0});' class='fill success'><i class='icon icon-edit'></i>${edit_btn}</button>`;
         tr.appendChild(td);
-        tbody.appendChild(tr);
       }
 
       if (this.options.delete) {
         const td = document.createElement('td');
-        td.innerHTML = '#';
-        td.innerHTML = `<button onclick='Delete(event,${item.id || 0});' class=' fill error'><i class='icon icon-delete'  ></i></button>`;
+        const delete_btn = lang() ? "Eliminar" : "Delete";
+        td.innerHTML = `<button onclick='Delete(event,${item.id || 0});' class='fill error'><i class='icon icon-delete'></i>${delete_btn}</button>`;
         tr.appendChild(td);
-        tbody.appendChild(tr);
       }
 
+      tbody.appendChild(tr);
+    });
 
+    this.setupAccordionListeners();
+  }
+
+  
+  setupAccordionListeners() {
+    const container = this.container; 
+    
+    container.querySelectorAll('.accordion-toggle').forEach(toggle => {
+    
+      toggle.removeEventListener('click', this.handleAccordionClick);
+      
+  
+      toggle.addEventListener('click', this.handleAccordionClick.bind(this));
     });
   }
+
+
+  handleAccordionClick(e) {
+    e.preventDefault();
+    const targetId = this.getAttribute('data-target');
+    const content = document.getElementById(targetId);
+    
+    if (!content) return;
+    
+    if (content.classList.contains('hidden')) {
+      content.classList.remove('hidden');
+      this.textContent = '-';
+    } else {
+      content.classList.add('hidden');
+      this.textContent = '...';
+    }
+    
+   
+    if (this.options.singleOpenAccordion) {
+      const allContents = this.container.querySelectorAll('.accordion-content:not(.hidden)');
+      allContents.forEach(item => {
+        if (item.id !== targetId) {
+          item.classList.add('hidden');
+          const correspondingToggle = this.container.querySelector(`.accordion-toggle[data-target="${item.id}"]`);
+          if (correspondingToggle) {
+            correspondingToggle.textContent = '...';
+          }
+        }
+      });
+    }
+  }
+
   renderMobileView() {
     let actions = null;
     const mobileView = this.container.querySelector('.datatable-mobile');
@@ -506,7 +567,7 @@ class ResponsiveDataTable {
       itemElement.className = 'datatable-mobile-item shadow mt-2';
 
       const summary = document.createElement('h5');
-      summary.classList.add('text-capitalize', 'bold', 'mobile-summary');
+      summary.classList.add('text-capitalize','bold', 'mobile-summary');
       const summaryText = this.options.summaryFields
         .map(field => `${this.getHeaderTitle(field)}: ${item[field] || '-'}`)
         .join(' | ');
@@ -689,6 +750,7 @@ class ResponsiveDataTable {
     this.updateTable();
   }
 }
+
 
 function isDate(value) {
 
