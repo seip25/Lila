@@ -1,7 +1,7 @@
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
-from database.connections import connection
+from app.connections import connection
 from core.database import Base #Import Base  for migrations in models
-from models.user import User #Import models for migrations in models
+from app.models.user import User #Import models for migrations in models
 import typer
 import asyncio
 

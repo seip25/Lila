@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html lang="{{ lang }}">
-  <head>
-    <meta charset="UTF-8" />
-    <link
-      rel="icon"
-      type="image"
-      href="/public/img/lila.png"
-      alt="Admin Lila Framework"
-    />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard</title>
-     <link rel="stylesheet" href="/public/css/lila.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+<!DOCTYPE html><html lang="{{ lang }}"><head><meta charset=UTF-8><link rel=icon type=image href=/public/img/lila.png alt="Admin Lila Framework"><meta name=viewport content="width=device-width, initial-scale=1.0"><title>Admin Dashboard</title><link rel=stylesheet href=/public/css/lila.css><script src=https://cdn.jsdelivr.net/npm/chart.js></script><style>
       li {
         list-style: none !important;
       }
@@ -98,60 +84,7 @@
         color: var(--log-content-color);
         background-color: var(--log-content-bg);
       }
-    </style>
-  </head>
-  <body>
-    {{ menu | safe }}
-    <main class="container">
-      <article class="shadow">
-        <h4>Server Metrics</h4>
-        <div class="flex between">
-          <div>
-            <p>
-              Lila Framework Memory Used:
-              <span id="lilaMemory">{{ lila_memory|round(0) }}</span> MB
-            </p>
-            <p>
-              Lila Framework CPU Used:
-              <span id="lilaCpuUsage">{{ lila_cpu_usage|round(0) }}</span> %
-            </p>
-            <p>
-              Server Memory Used:
-              <span id="systemUsedMemory"
-                >{{ system_used_memory|round(0) }}</span
-              >
-              MB /
-              <span id="systemTotalMemory"
-                >{{ system_total_memory|round(0) }}</span
-              >
-              MB
-            </p>
-            <p>
-              Server CPU Used:
-              <span id="cpuUsage">{{ cpu_usage|round(0) }}</span> %
-            </p>
-          </div>
-        </div>
-        <div class="flex between">
-          <div style="width: 25%">
-            <canvas id="memoryDoughnutChart"></canvas>
-          </div>
-          <div style="width: 25%">
-            <canvas id="cpuDoughnutChart"></canvas>
-          </div>
-        </div>
-      </article>
-      <br />
-
-      <article class="shadow">
-        <h4>Logs</h4>
-        {% if logs_html %} {{ logs_html | safe }} {% else %}
-        <p>No logs available</p>
-        {% endif %}
-      </article>
-    </main>
-
-    <script>
+    </style></head><body> {{ menu | safe }} <main class=container><article class=shadow><h4>Server Metrics</h4><div class="flex between"><div><p> Lila Framework Memory Used: <span id=lilaMemory>{{ lila_memory|round(0) }}</span> MB </p><p> Lila Framework CPU Used: <span id=lilaCpuUsage>{{ lila_cpu_usage|round(0) }}</span> % </p><p> Server Memory Used: <span id=systemUsedMemory>{{ system_used_memory|round(0) }}</span> MB / <span id=systemTotalMemory>{{ system_total_memory|round(0) }}</span> MB </p><p> Server CPU Used: <span id=cpuUsage>{{ cpu_usage|round(0) }}</span> % </p></div></div><div class="flex between"><div style="width: 25%"><canvas id=memoryDoughnutChart></canvas></div><div style="width: 25%"><canvas id=cpuDoughnutChart></canvas></div></div></article><br><article class=shadow><h4>Logs</h4> {% if logs_html %} {{ logs_html | safe }} {% else %} <p>No logs available</p> {% endif %} </article></main><script>
       let memoryChart, cpuChart;
 
       function updateCharts() {
@@ -203,6 +136,4 @@
 
           setInterval(updateCharts, 10000);
       });
-    </script>
-  </body>
-</html>
+    </script></body></html>

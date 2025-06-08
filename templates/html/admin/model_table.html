@@ -1,22 +1,4 @@
-<!DOCTYPE html>
-<html lang="{{ lang }}">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image" href="/public/img/lila.png" alt="Admin Lila Framework" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - {{ model_name.capitalize() }}</title>
-    <link rel="stylesheet" href="/public/css/lila.css">
-    <script src="/public/js/material.js"></script>
-</head>
-<body>
-    {{ menu | safe }}
-    <main class="container">
-        <article>
-            <h2 class='flex center'>{{ model_name.capitalize() }}</h2>
-            <div id="table"></div>
-        </article>
-    </main>
-    <script>
+<!DOCTYPE html><html lang="{{ lang }}"><head><meta charset=UTF-8><link rel=icon type=image href=/public/img/lila.png alt="Admin Lila Framework"><meta name=viewport content="width=device-width, initial-scale=1.0"><title>Admin - {{ model_name.capitalize() }}</title><link rel=stylesheet href=/public/css/lila.css><script src=/public/js/material.js></script></head><body> {{ menu | safe }} <main class=container><article><h2 class="flex center">{{ model_name.capitalize() }}</h2><div id=table></div></article></main><script>
 
   document.addEventListener('DOMContentLoaded', () => {
       const dataTable = new ResponsiveDataTable('table', {
@@ -38,6 +20,4 @@
             });
 
             });
-    </script>
-</body>
-</html>
+    </script></body></html>

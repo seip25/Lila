@@ -453,7 +453,7 @@ renderTableBody() {
         const shortText = value.substring(0, 12) + '...';
         const randomId = `accordion-${columnKey}-${Math.random().toString(36).substr(2, 9)}`;
         return `
-          <div class="accordion-container">
+          <div class="accordion-container container mx-sm">
             <span class="short-text">${shortText}</span>
             <a href="#" class="accordion-toggle" data-target="${randomId}">...</a>
             <div id="${randomId}" class="accordion-content hidden">${value}</div>
@@ -548,8 +548,8 @@ renderTableBody() {
     const paginatedData = this.filteredData.slice(startIndex, endIndex);
 
     const formatMobileContent = (value) => {
-      if (typeof value === 'string' && value.length > 12) {
-        const shortText = value.substring(0, 12) + '...';
+      if (typeof value === 'string' && value.length > 20) {
+        const shortText = value.substring(0, 20) + '...';
         const randomId = 'mobile-accordion-' + Math.random().toString(36).substr(2, 9);
         return `
           <div class="accordion-container">

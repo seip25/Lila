@@ -142,5 +142,9 @@
   "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)": {
     "es": "Documentación de Lila Js (Templates Reactivos con Vanilla Js Javascript)",
     "en": "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)"
-  } 
+  } ,
+  "example_reactive_lila_js": {
+    "es": "Ejemplo de Lila Js Reactivo",
+    "en": "Example of Reactive Lila Js"
+  }
 }
