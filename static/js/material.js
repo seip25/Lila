@@ -100,7 +100,7 @@ const modal = {
             <p class="alert-message flex center"></p>
           </div>
             <footer class="flex center">
-              <button class="btn-secondary " onclick="CerrarModal('alert-material')">${acept}</button>
+              <button class="btn-secondary " onclick="CloseModal('alert-material')">${acept}</button>
             </footer>
           </article>
         `;
@@ -249,7 +249,7 @@ function Confirm(
 
     document.body.appendChild(confirmModal);
     modal.openModal(confirmModal);
- 
+
     const handleConfirm = () => {
       const inputValue = input ? document.getElementById('confirm-input').value : true;
       modal.closeModal(confirmModal);
@@ -450,29 +450,7 @@ class ResponsiveDataTable {
 
       this.options.columns.forEach(column => {
         const td = document.createElement('td');
-        let value = item[column.key];
-        if (isDate(value) && lang()) {
-
-          const [anio, mes, dia] = value.split("-").map(Number);
-          const fecha = new Date(anio, mes - 1, dia);
-          const diaFormateado = String(fecha.getDate()).padStart(2, "0");
-          const mesFormateado = String(fecha.getMonth() + 1).padStart(2, "0");
-          const anioFormateado = fecha.getFullYear();
-
-          const formato = `${diaFormateado}/${mesFormateado}/${anioFormateado}`;
-          value = formato;
-        }
-        else if (isDate(value)) {
-          const [anio, mes, dia] = value.split("-").map(Number);
-          const fecha = new Date(anio, mes - 1, dia);
-
-          const diaFormateado = String(fecha.getDate()).padStart(2, "0");
-          const mesFormateado = String(fecha.getMonth() + 1).padStart(2, "0");
-          const anioFormateado = fecha.getFullYear();
-
-          const formato = `${anioFormateado}/${mesFormateado}/${diaFormateado}`;
-          value = formato;
-        }
+        let value = isDate(item[column.key]) ? parseDate(item[column.key]) : item[column.key];
         td.innerHTML = value || '-';
         tr.appendChild(td);
 
@@ -499,7 +477,6 @@ class ResponsiveDataTable {
 
     });
   }
-
   renderMobileView() {
     let actions = null;
     const mobileView = this.container.querySelector('.datatable-mobile');
@@ -509,12 +486,27 @@ class ResponsiveDataTable {
     const endIndex = startIndex + this.options.rowsPerPage;
     const paginatedData = this.filteredData.slice(startIndex, endIndex);
 
+    const formatMobileContent = (value) => {
+      if (typeof value === 'string' && value.length > 12) {
+        const shortText = value.substring(0, 12) + '...';
+        const randomId = 'mobile-accordion-' + Math.random().toString(36).substr(2, 9);
+        return `
+          <div class="accordion-container">
+            <span class="short-text">${shortText}</span>
+            <a href="#" class="accordion-toggle" data-target="${randomId}">...</a>
+            <div id="${randomId}" class="accordion-content hidden">${value}</div>
+          </div>
+        `;
+      }
+      return value || '-';
+    };
+
     paginatedData.forEach(item => {
       const itemElement = document.createElement('div');
       itemElement.className = 'datatable-mobile-item shadow mt-2';
 
-      const summary = document.createElement('div');
-      summary.classList.add('text-fill', 'mobile-summary');
+      const summary = document.createElement('h5');
+      summary.classList.add('text-capitalize', 'bold', 'mobile-summary');
       const summaryText = this.options.summaryFields
         .map(field => `${this.getHeaderTitle(field)}: ${item[field] || '-'}`)
         .join(' | ');
@@ -527,7 +519,8 @@ class ResponsiveDataTable {
         if (this.options.edit) {
           const editBtn = document.createElement('button');
           editBtn.className = 'fill success';
-          editBtn.innerHTML = `<i class='icon icon-edit'></i>`;
+          const editText = lang() ? "Editar" : "Edit";
+          editBtn.innerHTML = `<i class='icon icon-edit'></i> ${editText}`;
           editBtn.onclick = (e) => Edit(e, item.id || 0);
           actions.appendChild(editBtn);
         }
@@ -535,12 +528,11 @@ class ResponsiveDataTable {
         if (this.options.delete) {
           const deleteBtn = document.createElement('button');
           deleteBtn.className = 'fill error';
-          deleteBtn.innerHTML = `<i class='icon icon-delete'></i>`;
+          const deleteText = lang() ? "Eliminar" : "Delete";
+          deleteBtn.innerHTML = `<i class='icon icon-delete'></i>${deleteText}`;
           deleteBtn.onclick = (e) => Delete(e, item.id || 0);
           actions.appendChild(deleteBtn);
         }
-
-
       }
 
       const details = document.createElement('div');
@@ -557,14 +549,13 @@ class ResponsiveDataTable {
         label.textContent = `${this.getHeaderTitle(column.key)}:`;
 
         const value = document.createElement('span');
+        let item_value = isDate(item[column.key]) ? parseDate(item[column.key]) : item[column.key];
         value.className = 'value';
-        value.innerHTML = item[column.key] || '-';
-
+        value.innerHTML = formatMobileContent(item_value);
         row.appendChild(label);
         row.appendChild(value);
         details.appendChild(row);
       });
-
 
       itemElement.appendChild(summary);
       itemElement.appendChild(details);
@@ -572,7 +563,22 @@ class ResponsiveDataTable {
       if (actions !== null) {
         details.appendChild(actions);
       }
+    });
 
+    document.querySelectorAll('.accordion-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+
+        if (content.classList.contains('hidden')) {
+          content.classList.remove('hidden');
+          this.textContent = '-';
+        } else {
+          content.classList.add('hidden');
+          this.textContent = '...';
+        }
+      });
     });
   }
 
@@ -697,4 +703,31 @@ function isDate(value) {
     fecha.getMonth() + 1 === mes &&
     fecha.getDate() === dia;
 
+}
+
+function parseDate(value) {
+  let val = value;
+  if (isDate(value) && lang()) {
+
+    const [anio, mes, dia] = value.split("-").map(Number);
+    const fecha = new Date(anio, mes - 1, dia);
+    const diaFormateado = String(fecha.getDate()).padStart(2, "0");
+    const mesFormateado = String(fecha.getMonth() + 1).padStart(2, "0");
+    const anioFormateado = fecha.getFullYear();
+
+    const formato = `${diaFormateado}/${mesFormateado}/${anioFormateado}`;
+    value = formato;
+  }
+  else if (isDate(value)) {
+    const [anio, mes, dia] = value.split("-").map(Number);
+    const fecha = new Date(anio, mes - 1, dia);
+
+    const diaFormateado = String(fecha.getDate()).padStart(2, "0");
+    const mesFormateado = String(fecha.getMonth() + 1).padStart(2, "0");
+    const anioFormateado = fecha.getFullYear();
+
+    const formato = `${anioFormateado}/${mesFormateado}/${diaFormateado}`;
+    value = formato;
+  }
+  return val;
 }
