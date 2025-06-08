@@ -122,7 +122,7 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
     system_used_memory, system_total_memory, cpu_usage = get_system_memory_usage()
 
     logs = {}
-    log_base_dir = "system/logs"
+    log_base_dir = "app/logs"
     logs_html = ""
 
     if os.path.exists(log_base_dir):

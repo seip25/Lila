@@ -5,13 +5,13 @@ import traceback
 from core.request import Request
 import re
 
-if not os.path.exists("system/logs/"):
-    os.makedirs("system/logs/")
+if not os.path.exists("app/logs/"):
+    os.makedirs("app/logs/")
 
 
 def folder_logs(type):
     now = datetime.datetime.now().strftime("%d-%m-%Y")
-    path_ = f"system/logs/{now}"
+    path_ = f"app/logs/{now}"
     os.makedirs(path_, exist_ok=True)
     return f"{path_}/{type}.log"
 
@@ -97,8 +97,8 @@ class Logger:
 
 def delete_old_logs(days: int = 30):
     now = datetime.datetime.now()
-    for folder_name in os.listdir("system/logs"):
-        folder_path = os.path.join("system/logs", folder_name)
+    for folder_name in os.listdir("app/logs"):
+        folder_path = os.path.join("app/logs", folder_name)
         try:
             folder_date = datetime.datetime.strptime(folder_name, "%d-%m-%Y")
             if now - folder_date > timedelta(days=days):
