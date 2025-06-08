@@ -995,7 +995,6 @@ i {
   }
 }
 
-/* ========== INPUTS ========== */
 input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="file"]) {
   width: 100%;
   padding: var(--space-sm) var(--space-md);
@@ -1017,7 +1016,6 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type=
   padding: calc(var(--space-sm) - 1px) calc(var(--space-md) - 1px);
 }
 
-/* ========== INPUTS  DIV ========== */
 div:has(> input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="file"])) {
   position: relative;
   margin-bottom: var(--space-md);
@@ -1028,7 +1026,6 @@ div:has(> input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):
   padding-left: var(--space-md);
 }
 
-/* ========== INPUTS ICON ========== */
 div:has(> .icon, > i)>input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="file"]) {
   padding-left: calc(var(--space-md) + 24px + var(--space-input));
 }
@@ -1060,7 +1057,6 @@ div:has(> .icon, > i)>input:focus {
   padding-left: calc(var(--space-md) + 24px + var(--space-input) - 1px);
 }
 
-/* ========== FLOATING LABELS ========== */
 div.floating:has(> input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="file"])) {
   position: relative;
 }
@@ -1096,7 +1092,6 @@ div.floating:has(> .icon, > i)>input:not(:placeholder-shown)~label {
   left: var(--space-md);
 }
 
-/* ========== INPUTS UNDERLINE ========== */
 input.underline,
 div>input.underline {
   border: none;
