@@ -5,23 +5,14 @@ from importlib import resources
 from pathlib import Path
 
 SCAFFOLD_ITEMS = {
-    "app.py": "app.py",
-    "admin": "admin",
-    "database": "database",
-    "locales": "locales",
-    "logs": "logs",
-    "middlewares": "middlewares",
-    "models": "models",
-    "routes": "routes",
-    "security": "security",
+    "main.py": "main.py",
+    "app": "app",
+    "cli": "cli",
     "static": "static",
     "templates": "templates",
     "uploads": "uploads",
-    "env_example": "env_example",
-    ".env_example": ".env_example",
      ".env": ".env",
 }
-
 
 def copy_item(
     source_package_name, item_name_in_package, destination_base_path, item_name_in_dest
