@@ -18,6 +18,8 @@ SCAFFOLD_ITEMS = {
     "templates": "templates",
     "uploads": "uploads",
     "env_example": "env_example",
+    ".env_example": ".env_example",
+     ".env": ".env",
 }
 
 

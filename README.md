@@ -1,17 +1,21 @@
 # About Lila
 
-Lila is a minimalist Python framework based on Starlette and Pydantic. Designed for developers seeking simplicity, flexibility, and robustness, it enables efficient and customizable Web or API application development. Its modular structure and support for advanced configurations make it suitable for both beginners and experienced developers.
+Lila is a  Python framework based on Starlette and Pydantic. Designed for developers seeking simplicity, flexibility, and robustness, it enables efficient and customizable Web or API application development. Its modular structure and support for advanced configurations make it suitable for both beginners and experienced developers.
 
 
 # Acerca de  Lila (Español)
 
-Lila es un framework minimalista de Python basado en Starlette y Pydantic. Diseñado para desarrolladores que buscan simplicidad, flexibilidad y robustez, permite crear aplicaciones Web o APIs de manera eficiente y personalizable. Su estructura modular y soporte para configuraciones avanzadas lo hacen ideal tanto para principiantes como para desarrolladores experimentados.
+Lila es un framework  de Python basado en Starlette y Pydantic. Diseñado para desarrolladores que buscan simplicidad, flexibilidad y robustez, permite crear aplicaciones Web o APIs de manera eficiente y personalizable. Su estructura modular y soporte para configuraciones avanzadas lo hacen ideal tanto para principiantes como para desarrolladores experimentados.
 
 # Learning Lila
 https://seip25.github.io/Lila 
 
 # Documentación de Lila
 https://seip25.github.io/Lila
+
+
+https://pypi.org/project/lila-framework/   
+ 
 
 ## Key Features
 
