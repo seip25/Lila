@@ -1,19 +1,17 @@
 import psutil
 import os
 import json
-from core.helpers import lang, translate_, generate_token_value
-from core.responses import HTMLResponse, RedirectResponse, JSONResponse
+from core.helpers import lang
+from core.responses import  RedirectResponse, JSONResponse
 from core.request import Request
 from core.routing import Router
 from core.session import Session
-from database.connections import connection
+from app.connections import connection
 from argon2 import PasswordHasher
 from functools import wraps
 from core.responses import convert_to_serializable
 from core.templates import render
-from starlette.templating import Jinja2Templates
-
-templates_admin = Jinja2Templates(directory="admin/templates")
+ 
 connection = connection
 ph = PasswordHasher()
 
@@ -115,7 +113,7 @@ async def admin_login(request: Request):
             print(e)
             return JSONResponse({"success": False, "message": "Error"}, status_code=500)
 
-    return render(request=request, template="login", templates=templates_admin)
+    return render(request=request, template="admin/login")
 
 
 async def admin_dashboard(request: Request, menu: str = "") -> str:
@@ -124,7 +122,7 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
     system_used_memory, system_total_memory, cpu_usage = get_system_memory_usage()
 
     logs = {}
-    log_base_dir = "logs"
+    log_base_dir = "system/logs"
     logs_html = ""
 
     if os.path.exists(log_base_dir):
@@ -180,7 +178,7 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
         "menu": menu_html,
     }
 
-    return render(request=request,template="dashboard", templates=templates_admin,context=context)
+    return render(request=request,template="admin/dashboard",context=context)
 
 
 def menu(models: list = []) -> str:
@@ -263,6 +261,6 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
                 "menu": menu(models=models),
             }
 
-            return render(request=request,template="model_table", context=context,templates=templates_admin)
+            return render(request=request,template="admin/model_table", context=context)
 
     return router

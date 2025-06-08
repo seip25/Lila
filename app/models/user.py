@@ -1,7 +1,7 @@
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
 from sqlalchemy.orm import Session
 from core.database import Base
-from database.connections import connection
+from app.connections import connection
 from argon2 import PasswordHasher
 
 ph = PasswordHasher()

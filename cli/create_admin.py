@@ -1,6 +1,6 @@
 import typer
 from core.helpers import generate_token_value
-from database.connections import connection
+from app.connections import connection
 from argon2 import PasswordHasher
 
 ph = PasswordHasher()

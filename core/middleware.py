@@ -71,9 +71,9 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        blocked_ips_file="security/blocked_ips.json",
-        blocked_urls_file="security/blocked_urls.json",
-        sensitive_paths_file="security/sensitive_paths.json",
+        blocked_ips_file="system/security/blocked_ips.json",
+        blocked_urls_file="system/security/blocked_urls.json",
+        sensitive_paths_file="system/security/sensitive_paths.json",
     ):
         super().__init__(app)
         self.blocked_ips_file = blocked_ips_file
