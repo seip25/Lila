@@ -1188,7 +1188,7 @@ return response
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">app.routes.py</span>
+                                    <span class="editor-title">app/routes.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1340,9 +1340,9 @@ all_translations = translate(
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-                        from lila.core.helpers import lang
-                        
-                        current_language = lang(request)
+from lila.core.helpers import lang
+
+current_language = lang(request)
                                     </code></pre>
                                 </div>
                             </div>
@@ -1600,7 +1600,9 @@ async def login(request: Request):
                                 <li>
                                     <strong>Bloqueo de Extensiones Maliciosas</strong>:
                                     Bloquea URLs que contienen extensiones de archivo maliciosas como <code>.php</code>,
-                                    <code>.asp</code>, <code>.jsp</code> y <code>.aspx</code>.
+                                    <code>.asp</code>, <code>.jsp</code> y <code>.aspx</code>. 
+                                    Dado que no ejecutamos dichas extensiones de los lenguajes mencionados, se bloquean para evitar
+                                    posibles ataques.
                                 </li>
                                 <li>
                                     <strong>Detección de HTTP</strong>:
@@ -1825,7 +1827,7 @@ async def dispatch(self, request, call_next):
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">connections/app.connections.py</span>
+                                    <span class="editor-title">app/connections.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2491,6 +2493,9 @@ async def admin_route(request: Request):
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
 lila-minify
+
+#o
+python -m cli.minify
                                     </code></pre>
                                 </div>
                             </div>
