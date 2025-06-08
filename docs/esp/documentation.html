@@ -162,22 +162,22 @@
                                         `venv\Scripts\activate`</span><br>
                                     <span class="comando">$ pip install lila-framework</span><br>
                                     <span class="comando">$ lila-init</span><br>
-                                    <span class="comando">$ python app.py #O python3 app.py</span><br>
+                                    <span class="comando">$ python main.py #O python3 main.py</span><br>
                                     <span class="cursor"></span>
                                 </div>
                             </div>
                         </article>
 
                         <article id="app-py-es">
-                            <h2>Explicación de app.py</h2>
+                            <h2>Explicación de main.py</h2>
                             <h5>
                                 Propósito: Configurar y arrancar la aplicación.
-                                app.py es el punto de entrada principal donde se configura e inicializa la aplicación.
+                                main.py es el punto de entrada principal donde se configura e inicializa la aplicación.
 
                             </h5>
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">Explicación de app.py</span>
+                                    <span class="editor-title">Explicación de main.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -188,8 +188,8 @@
                                     <pre><code class="language-python">
 # Importar los módulos necesarios y las rutas
 from lila.core.app import App 
-from routes.routes import routes
-from routes.api import routes as api_routes
+from app.routes.routes import routes
+from app.routes.api import routes as api_routes
 
 # Importar las variables de entorno para el host y el puerto
 from lila.core.env import PORT, HOST
@@ -200,7 +200,7 @@ import asyncio
 # Opcionalmente, descomentar las siguientes importaciones para migraciones y conexiones de base de datos.
 # Puedes habilitar la migración de la base de datos o la configuración de la conexión si es necesario.
 # from database.migrations import migrate
-# from database.connections import connection
+# from app.connections import connection
 
 # Combinar las rutas de la aplicación y las rutas de la API en una sola lista.
 # Esto combina tanto las rutas regulares de la aplicación como las rutas de la API para su uso fácil.
@@ -234,7 +234,7 @@ uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
 # Punto de entrada del script para ejecutar la función principal asincrónica.
 # Aquí es donde comienza la ejecución de la app.
 if __name__ == "__main__":
-asyncio.run(main())
+    asyncio.run(main())
 </code>
 </pre>
                                 </div>
@@ -247,7 +247,7 @@ asyncio.run(main())
                             <p>Las rutas son los puntos de acceso a la aplicación. En Lila, las rutas se definen en el
                                 directorio
                                 <code>routes</code>(por defecto, pero puede ser donde tu quieras) y se importan en
-                                <code>app.py</code> para su uso. Las rutas pueden ser
+                                <code>main.py</code> para su uso. Las rutas pueden ser
                                 configuradas para manejar solicitudes HTTP, métodos de API, y más.
                             <p>
                                 Además de JSONResponse puedes utilizar HTMLResponse,
@@ -363,7 +363,7 @@ from lila.core.routing import Router  # Administra las rutas de la API.
 from lila.core.request import Request  # Maneja solicitudes HTTP en la aplicación.
 from pydantic import EmailStr, BaseModel  # Valida y analiza modelos de datos para la validación de entradas.
 from lila.core.helpers import get_user_by_id_and_token
-from middlewares.middlewares import validate_token
+from app.middlewares.middlewares import validate_token
 
 router = Router()
                         </code>
@@ -464,9 +464,9 @@ router.openapi_json()  # Genera JSON de OpenAPI para herramientas externas.
                             </div>
 
 
-                            <h5>Importación de Rutas en app.py</h5>
+                            <h5>Importación de Rutas en main.py</h5>
                             <p>Para usar las rutas definidas en el router, es necesario obtenerlas con
-                                <code>router.get_routes()</code> e importarlas en <code>app.py</code>.
+                                <code>router.get_routes()</code> e importarlas en <code>main.py</code>.
                             </p>
 
                             <div class="code-editor">
@@ -1179,7 +1179,7 @@ return response
                             <h1>Internalización (Traducciones)</h1>
                             <p>Las traducciones se utilizan para internacionalizar una aplicación y mostrar contenido en
                                 diferentes idiomas. En Lila, las traducciones se almacenan en el directorio
-                                <code>locales</code> y se pueden cargar dinámicamente en la aplicación.
+                                <code>app/locales</code> y se pueden cargar dinámicamente en la aplicación.
                             </p>
 
                             <h2>Forzar idioma por defecto en rutas</h2>
@@ -1188,7 +1188,7 @@ return response
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">routes.py</span>
+                                    <span class="editor-title">app.routes.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1230,11 +1230,11 @@ async def home(request: Request):
                                     original si no se encuentra)</li>
                             </ul>
 
-                            <p>Ejemplo de archivo de traducción (<code>locales/translations.json</code>):</p>
+                            <p>Ejemplo de archivo de traducción (<code>app/locales/translations.json</code>):</p>
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">locales/translations.json</span>
+                                    <span class="editor-title">app/locales/translations.json</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1380,7 +1380,7 @@ all_translations = translate(
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">models/user.py</span>
+                                    <span class="editor-title">app/models/user.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1393,7 +1393,7 @@ all_translations = translate(
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
 from sqlalchemy.orm import Session
 from lila.core.database import Base
-from database.connections import connection
+from app.connections import connection
 from argon2 import PasswordHasher
 
 ph = PasswordHasher()
@@ -1451,7 +1451,7 @@ class User(Base):
                             <h5>
                                 Las funciones de middleware se utilizan para interceptar solicitudes antes de que
                                 lleguen a la lógica principal de la aplicación.
-                                En Lila, los middlewares se definen en el directorio <code>middlewares</code> (puede
+                                En Lila, los middlewares se definen en el directorio <code>app/middlewares</code> (puede
                                 modificarse a cualquier archivo y/o directorio).
                                 Los middlewares se pueden utilizar para tareas como autenticación, registro y manejo de
                                 errores.
@@ -1480,7 +1480,7 @@ class User(Base):
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">middlewares/middlewares.py</span>
+                                    <span class="editor-title">app/middlewares/middlewares.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1611,7 +1611,7 @@ async def login(request: Request):
                             <h3>Configuración</h3>
                             <p>
                                 El middleware utiliza tres archivos JSON ubicados en el directorio
-                                <code>security</code>:
+                                <code>app/security</code>:
                             </p>
                             <ul>
                                 <li><code>blocked_ips.json</code>: Almacena las IPs bloqueadas con su tiempo de
@@ -1825,7 +1825,7 @@ async def dispatch(self, request, call_next):
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">connections/connections.py</span>
+                                    <span class="editor-title">connections/app.connections.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1876,7 +1876,7 @@ mysql_connection = connection
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">migrations/migrations.py</span>
+                                    <span class="editor-title">cli/migrations.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1886,7 +1886,7 @@ mysql_connection = connection
                                 <div class="editor-content">
                                     <pre><code class="language-python">
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
-from database.connections import connection
+from app.connections import connection
 import typer
 import asyncio
 
@@ -1936,7 +1936,7 @@ if __name__ == "__main__":
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">models/user.py</span>
+                                    <span class="editor-title">app/models/user.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1963,7 +1963,7 @@ class User(Base):
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">migrations/migrations.py (versión con Models)</span>
+                                    <span class="editor-title">cli/migrations.py (versión con Models)</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -1972,9 +1972,9 @@ class User(Base):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from database.connections import connection
+from app.connections import connection
 from lila.core.database import Base  # Importar Base para migraciones con modelos
-from models.user import User  # Importar modelos para las migraciones
+from app.models.user import User  # Importar modelos para las migraciones
 import typer
 import asyncio
 
@@ -2019,10 +2019,10 @@ if __name__ == "__main__":
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
 # Migración básica
-python -m database.migrations
+python -m cli.migrations 
 
 # Refrescar todas las tablas (eliminar y recrear)
-python -m database.migrations --refresh
+python -m cli.migrations  --refresh
                                     </code></pre>
                                 </div>
                             </div>
@@ -2068,7 +2068,7 @@ python -m database.migrations --refresh
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">app.py</span>
+                                    <span class="editor-title">term</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2076,17 +2076,8 @@ python -m database.migrations --refresh
                                     </div>
                                 </div>
                                 <div class="editor-content">
-                                    <pre><code class="language-python">
-from database.migrations import migrate
-from database.connections import connection
-async def main():
- 
-    migrations = await migrate(connection) # execute migrations ,for app
-    
-    uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
- 
-if __name__ == "__main__":
-asyncio.run(main())
+                                    <pre><code class="bash">
+python -m cli.migrations 
                                 
                                     </code>
                                     </pre>
@@ -2109,9 +2100,9 @@ from lila.core.request import Request
 from lila.core.responses import JSONResponse
 from lila.core.routing import Router
 from pydantic import EmailStr, BaseModel
-from middlewares.middlewares import validate_token, check_token, check_session
-from database.connections import connection  # Conexión a la base de datos con SQLAlchemy
-from models.user import User  # Modelo 'User' de SQLAlchemy
+from app.middlewares.middlewares import validate_token, check_token, check_session
+from app.connections import connection  # Conexión a la base de datos con SQLAlchemy
+from app.models.user import User  # Modelo 'User' de SQLAlchemy
 
 router = Router()# Inicializa la instancia del enrutador para manejar rutas de la API.
 
@@ -2330,7 +2321,7 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
 
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">app.py</span>
+                                    <span class="editor-title">main.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2342,8 +2333,8 @@ user_id_session:bool| str=False #Ejemplo para validar en las querys con 'user id
                 <code class="language-python">
 # English: Here we activate the admin panel with default settings.
 # Español: Aquí activamos el panel de administrador con configuraciones predeterminadas.
-from admin.routes import Admin
-from models.user import User
+from app.routes.admin import Admin
+from app.models.user import User
 admin_routes=Admin(models=[User])
 all_routes = list(itertools.chain(routes, api_routes,admin_routes))
                 </code>
@@ -2367,7 +2358,7 @@ all_routes = list(itertools.chain(routes, api_routes,admin_routes))
                                 <div class="editor-content">
                                     <pre>
                 <code class="language-bash">
-python -m database.migrations
+python -m cli.migrations 
                 </code>
             </pre>
                                 </div>
@@ -2391,10 +2382,10 @@ python -m database.migrations
                                     <pre>
                 <code class="language-bash">
 # Uso por defecto (contraseña aleatoria generada)
-python -m admin.create_admin
+python -m cli.create_admin
 
 # Con nombre de usuario y contraseña personalizados
-python -m admin.create_admin --user miadmin --password micontraseñasegura
+python -m cli.create_admin --user miadmin --password micontraseñasegura
                 </code>
             </pre>
                                 </div>
