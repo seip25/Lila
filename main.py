@@ -9,6 +9,7 @@ import itertools
 import uvicorn
 import asyncio
 
+print(PORT)
 
 
 # English: Combining application and API routes into a single list.
