@@ -36,7 +36,7 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
         print(e)
         return JSONResponse({"success": False, "message": "Error"}, status_code=500)
     
-def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],materialcss : bool =False):
+def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =True):
     file_path=os.path.join(base_path,f"{file}.md")
     if not os.path.exists(file_path):
         return HTMLResponse('<h5>404</h5><br/><p>Not found</p>')
@@ -56,8 +56,8 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     head+='<meta name="color-scheme" content="light dark">\n'
     head+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
     head+=f"<title>{title}</title>\n"
-    if  materialcss:
-       head+= '<link rel="stylesheet" href="/public/css/lila.css">'
+    if  picocss:
+       head+= '<link  rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
     if css_files :
         for css in css_files:
             head+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"

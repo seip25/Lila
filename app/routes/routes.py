@@ -52,7 +52,7 @@ async def home(request: Request):
     # English: Renders a markdown file with materialcss styling
     # Español: Renderiza un archivo markdown con el estilo materialcss
     response = renderMarkdown(
-        request=request, file="example", css_files=css, materialcss=True
+        request=request, file="example", css_files=css
     )
     return response
 
@@ -72,19 +72,7 @@ async def set_language(request: Request):
     return response
 
 
-# English: Example route for testing reactive features in HTML
-# Español: Ejemplo de ruta para probar características reactivas en HTML
-@router.route(path="/lila", methods=["GET"])
-async def test(request: Request):
-    response= render(request=request, template="lila/lila")
-    return response
-
-#Englihs : Example route for testing reactive features in HTML with a different template (Login,Register)
-#Español: Ejemplo de ruta para probar características reactivas en HTML con una plantilla diferente (Login,Register)
-@router.route(path="/auth", methods=["GET"])
-async def auth(request: Request):
-    response= render(request=request, template="auth/auth")
-    return response
+ 
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
