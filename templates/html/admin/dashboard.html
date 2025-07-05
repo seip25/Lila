@@ -6,7 +6,7 @@
   <link rel=icon type=image href=/public/img/lila.png alt="Admin Lila Framework">
   <meta name=viewport content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <link rel=stylesheet href=/public/css/lila.css>
+  <link rel=stylesheet href=/public/css/pico.css>
   <script src=https://cdn.jsdelivr.net/npm/chart.js></script>
   <style>
     li {
@@ -98,8 +98,9 @@
   </style>
 </head>
 
-<body> {{ menu | safe }} <main class=container>
-    <article class=shadow>
+<body> {{ menu | safe }} 
+  <main class=container>
+    <article class="shadow">
       <h4>Server Metrics</h4>
       <div class="flex between">
         <div>
@@ -115,7 +116,7 @@
         <div style="width: 25%"><canvas id=cpuDoughnutChart></canvas></div>
       </div>
     </article><br>
-    <article class=shadow>
+    <article class="shadow">
       <h4>Logs</h4> {% if logs_html %} {{ logs_html | safe }} {% else %} <p>No logs available</p> {% endif %}
     </article>
   </main>
@@ -150,8 +151,7 @@
           labels: ['Used Memory', 'Free Memory'],
           datasets: [{
             label: 'Memory Usage',
-            data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }
-      }],
+            data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
         backgroundColor: ['#FF6384', '#36A2EB']
                   }]
               }

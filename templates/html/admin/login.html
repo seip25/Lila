@@ -6,15 +6,16 @@
     Framework">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Login</title>
-    <link rel=stylesheet href=/public/css/lila.css>
+    <link rel=stylesheet href=/public/css/pico.css>
   </head>
 
   <body>
-    <main class="container mx-m">
+    <main class="container mx-sm">
       <article class="shadow">
-        <h4 class="flex center">{{Login}}</h4>
+
+        <h3 class="flex center text-primary">{{translate['login']}}</h3>
         <form id="loginForm">
-          <div class="mt-2">
+          <div class="mt-2 input-icon">
             <i class="icon icon-person"></i>
             <input
               type="text"
@@ -26,7 +27,7 @@
               placeholder="User"
             />
           </div>
-          <div class="mt-2">
+          <div class="mt-2 input-icon">
             <i class="icon icon-lock"></i
             ><input
               type="password"

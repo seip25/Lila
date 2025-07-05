@@ -188,24 +188,30 @@ def menu(models: list = []) -> str:
     for model in models:
         model_name = model.__name__.lower()
         model_plural = f"{model_name}s"
-        m += f"<a href='/admin/{model_plural}' class='mt-2'>{model_name.capitalize()}</a>"
+        m += f"<a href='/admin/{model_plural}' class='secondary mt-2'>{model_name.capitalize()}</a>"
 
     return f"""
-        <header class="shadow p-4 bg-surface">
-        <nav class="container bg-surface">
-         <div class="dropdown">
-            <button class="dropdown-toggle flex center  text-secondary">
-                <i class="icon icon-menu text-dark"></i>
-            </button>
-           
-            <div class='dropdown-content left '>
-            <div class='flex column center container '>
+        <header class="shadow p-4  ">
+        <nav class="container  ">
+        <ul>
+       <li>  <h3> <a href="/admin/" class="secondary" >Admin Dashboard</a> </h3></li>
+</ul>
+       <ul>
+        <li>
+            <details class="dropdown">
+            <summary>Menu</summary>
+            <ul>
                 {m}
-                <a href="/admin/logout" class="mt-2 text-secondary">Logout</a>
-            </div>
-             </div>
-        </div>
-        <h1> <a href="/admin/" >Admin Dashboard</a> </h1>
+                <a href="/admin/logout" class="mt-2 secondary">Logout</a>
+        
+            </ul>
+            </details>
+
+        </li>
+       </ul>
+
+        
+         
        
        
         </nav>

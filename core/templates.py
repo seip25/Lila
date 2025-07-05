@@ -6,6 +6,7 @@ from core.responses import HTMLResponse ,JSONResponse
 from core.helpers import lang
 import markdown
 import os
+import traceback
 
 templates = Jinja2Templates(directory='templates/html')
  
@@ -33,7 +34,7 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
         context.update(default_context)
         return templates.TemplateResponse(request=request,name=template,context=context)
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return JSONResponse({"success": False, "message": "Error"}, status_code=500)
     
 def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =True):
@@ -57,7 +58,7 @@ def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css
     head+='<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
     head+=f"<title>{title}</title>\n"
     if  picocss:
-       head+= '<link  rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">'
+       head+= '<link  rel="stylesheet"  href="/public/css/pico.css">'
     if css_files :
         for css in css_files:
             head+=f"<link rel='stylesheet' type='text/css' href='{css}' />\n"
