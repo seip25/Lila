@@ -24,7 +24,7 @@
     --pico-block-spacing-horizontal: var(--pico-spacing);
     --pico-grid-column-gap: var(--pico-spacing);
     --pico-grid-row-gap: var(--pico-spacing);
-    --pico-form-element-spacing-vertical: 0.75rem;
+    --pico-form-element-spacing-vertical: 0.55rem;
     --pico-form-element-spacing-horizontal: 1rem;
     --pico-group-box-shadow: 0 0 0 rgba(0, 0, 0, 0);
     --pico-group-box-shadow-focus-with-button: 0 0 0 var(--pico-outline-width) var(--pico-primary-focus);
@@ -2972,7 +2972,7 @@ textarea {
     display: inline-block;
     width: 24px;
     height: 24px;
-    background-color: currentColor;
+    background-color:var(--pico-secondary-background);
     mask-repeat: no-repeat;
     mask-position: center;
     margin-right: 0.15rem;
@@ -2982,7 +2982,7 @@ i {
     display: inline-block;
     width: 24px;
     height: 24px;
-    background-color: currentColor;
+    background-color: var(--pico-secondary-background);
     mask-repeat: no-repeat;
     mask-position: center;
     margin-right: 0.15rem;
@@ -3078,7 +3078,7 @@ i {
 
 button:not([role="search"]) {
     border-radius: 0.5rem !important;
-    padding: 0.6rem !important;
+    padding: 0.4rem !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -3174,7 +3174,7 @@ article footer {
 
 button {
     border-radius: 0.5rem !important;
-    padding: 0.6rem !important;
+    padding: 0.4rem !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;

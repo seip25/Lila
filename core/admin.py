@@ -188,7 +188,7 @@ def menu(models: list = []) -> str:
     for model in models:
         model_name = model.__name__.lower()
         model_plural = f"{model_name}s"
-        m += f"<a href='/admin/{model_plural}' class='secondary mt-2'>{model_name.capitalize()}</a>"
+        m += f"<li><a href='/admin/{model_plural}' class='secondary mt-2'>{model_name.capitalize()}</a></li>"
 
     return f"""
         <header class="shadow p-4  ">
@@ -202,8 +202,9 @@ def menu(models: list = []) -> str:
             <summary>Menu</summary>
             <ul>
                 {m}
-                <a href="/admin/logout" class="mt-2 secondary">Logout</a>
-        
+               <li>
+                 <a href="/admin/logout" class="mt-2 secondary">Logout</a>
+                </li>
             </ul>
             </details>
 
