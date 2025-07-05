@@ -8,9 +8,7 @@ from core.env import PORT, HOST
 import itertools
 import uvicorn
 import asyncio
-
-print(PORT)
-
+ 
 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
