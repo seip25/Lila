@@ -2874,6 +2874,10 @@ i {
     margin-right: 0.15rem;
 }
 
+button .icon,
+button i { 
+    background-color: var(--pico-secondary-inverse) !important; 
+}
 .icon-email {
     mask-image: var(--icon-email);
 }
