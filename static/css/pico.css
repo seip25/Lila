@@ -3198,13 +3198,41 @@ li {
     color: #ffc107 !important;
 }
 
+.mt-4 {
+    margin-top: 4rem !important;
+}
+
+.mt-2 {
+    margin-top: 2rem !important;
+}
+
+.mt-1 {
+    margin-top: 1rem !important;
+}
+
+.mt-0 {
+    margin-top: 0 !important;
+}
+
+.d-none {
+    display: none !important;
+}
+
+nav details.dropdown summary {
+    border: none !important;
+}
+
 @media (prefers-color-scheme: dark) {
 
     .shadow {
         box-shadow: 0 0.5rem 1rem rgb(30, 30, 30) !important;
     }
 
-
+    nav details.dropdown summary {
+        background-color: #2b3035 !important;
+        color: white !important;
+        border: none !important;
+    }
 
     article header {
         background-color: #32363a !important;
