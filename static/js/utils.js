@@ -1,15 +1,12 @@
-// English: Example utils.js for fetch and cookies (get,post,put,etc and jwt token)
-// Español: Ejemplo de utils.js para fetch y cookies (get,post,put,etc y token jwt).
-
-// HTTP Request function
-async function Http({
+async function Http(
   url = "/",
   method = "GET",
   body = false,
   bodyForm = false,
-  token_jwt = false,
+  token_jwt = true,
   headers = {}
-}) {
+) {
+
   const options = {
     method: method,
     headers: headers,
@@ -17,37 +14,36 @@ async function Http({
   if (body) options["body"] = JSON.stringify(body);
   if (bodyForm) options["body"] = bodyForm;
 
-  // JWT Token
   if (token_jwt) {
-    const token = await getCookie({ name: "token" });
+    const token = await getCookie("token" || token_jwt);
     options.headers["Authorization"] = `Bearer ${token}`;
   }
-
   const response = await fetch(url, options);
 
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Error fetch");
   }
-  return await response.json();
+  const resp = await response.json();
+  return resp;
 }
 
 // Cookie functions
-function setCookie({ name = "token", value, days = 7, secure = false }) {
+function setCookie(name = "token", value, days = 7, secure = false) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   let cookieString = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
   if (secure) cookieString += "; Secure";
   document.cookie = cookieString;
 }
 
-function getCookie({ name }) {
+function getCookie(name) {
   return document.cookie.split("; ").reduce((r, v) => {
     const parts = v.split("=");
     return parts[0] === name ? decodeURIComponent(parts[1]) : r;
   }, "");
 }
 
-function deleteCookie({ name }) {
+function deleteCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
 }
 
@@ -185,6 +181,23 @@ function alertInfo(message = false) {
   modal.modalAlert(message || (lang() ? "Información" : "Information"), 'info', 3000);
 }
 
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.showModal();
+  } else {
+    console.error(`Modal with ID ${modalId} not found.`);
+  }
+}
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.close();
+  } else {
+    console.error(`Modal with ID ${modalId} not found.`);
+  }
+}
+
 // Loading overlay
 let loadingOverlay;
 function showLoading(title = lang() ? "Cargando..." : "Loading...") {
@@ -255,7 +268,7 @@ function Confirm(title = '', message = '', type = 'warning', showCancel = true) 
       <article>
         <h3>${title || (lang() ? "¿Estás seguro?" : "Are you sure?")}</h3>
         <p>${message}</p>
-        <footer>
+        <footer class="flex between">
           ${showCancel ? `<button id="confirm-cancel" class="secondary">${cancelText}</button>` : ''}
           <button id="confirm-ok">${confirmText}</button>
         </footer>
@@ -277,6 +290,10 @@ function Confirm(title = '', message = '', type = 'warning', showCancel = true) 
     modal.showModal();
   });
 }
+document.addEventListener('DOMContentLoaded', () => {
+  modal.init();
+});
+
 
 class ResponsiveDataTable {
   constructor(containerId, options = {}) {
@@ -293,7 +310,8 @@ class ResponsiveDataTable {
       summaryFields: ['id'],
       edit: false,
       delete: false,
-      breakpoint: 768
+      breakpoint: 768,
+      materialIcons: true,
     };
 
     this.options = { ...this.defaults, ...options };
@@ -382,10 +400,19 @@ class ResponsiveDataTable {
     const tbody = table.querySelector('tbody');
     paginatedData.forEach(item => {
       const row = document.createElement('tr');
-      
+
       this.options.columns.forEach(column => {
         const td = document.createElement('td');
-        td.textContent = item[column.key] || '-';
+        const value = item[column.key];
+
+        if (value && typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
+
+          td.innerHTML = value;
+        } else {
+
+          td.textContent = value || '-';
+        }
+
         row.appendChild(td);
       });
 
@@ -393,26 +420,34 @@ class ResponsiveDataTable {
         const td = document.createElement('td');
         td.style.display = 'flex';
         td.style.gap = '0.5rem';
-        
+
         if (this.options.edit) {
+          const txt_edit = lang() ? 'Editar' : 'Edit';
           const btn = document.createElement('button');
           btn.className = 'secondary';
-          btn.textContent = lang() ? 'Editar' : 'Edit';
-          btn.onclick = () => this.handleAction('edit', item);
+          btn.textContent = txt_edit;
+          if (this.options.materialIcons) {
+            btn.innerHTML = `<span class="material-icons">edit</span>${txt_edit}`;
+          }
+          btn.onclick = (e) => this.handleAction('edit', e, item);
           td.appendChild(btn);
         }
-        
+
         if (this.options.delete) {
+          const txt_delete = lang() ? 'Eliminar' : 'Delete';
           const btn = document.createElement('button');
-          btn.className = 'secondary outline';
-          btn.textContent = lang() ? 'Eliminar' : 'Delete';
-          btn.onclick = () => this.handleAction('delete', item);
+          btn.className = 'secondary';
+          btn.textContent = txt_delete;
+          if (this.options.materialIcons) {
+            btn.innerHTML = `<span class="material-icons">delete</span>${txt_delete}`;
+          }
+          btn.onclick = (e) => this.handleAction('delete', e, item);
           td.appendChild(btn);
         }
-        
+
         row.appendChild(td);
       }
-      
+
       tbody.appendChild(row);
     });
   }
@@ -431,33 +466,42 @@ class ResponsiveDataTable {
 
       const summary = document.createElement('div');
       summary.className = 'font-bold';
-      
+
       this.options.summaryFields.forEach(fieldKey => {
-        const value = item[fieldKey] || '-';
-        summary.innerHTML += `${value}<br>`;
+        const value = item[fieldKey];
+        if (value && typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
+          summary.innerHTML += `${value}<br>`;
+        } else {
+          summary.innerHTML += `${value || '-'}<br>`;
+        }
       });
-      
+
       card.appendChild(summary);
 
       const details = document.createElement('div');
       this.options.columns.forEach(column => {
         if (this.options.summaryFields.includes(column.key)) return;
-        
+
         const row = document.createElement('div');
         row.className = 'grid';
-        
+
         const label = document.createElement('span');
         label.className = 'text-muted';
         label.textContent = `${this.options.headerTitles[column.key] || column.title || column.key}:`;
-        
+
         const value = document.createElement('span');
-        value.textContent = item[column.key] || '-';
-        
+        const cellValue = item[column.key];
+        if (cellValue && typeof cellValue === 'string' && /<[a-z][\s\S]*>/i.test(cellValue)) {
+          value.innerHTML = cellValue;
+        } else {
+          value.textContent = cellValue || '-';
+        }
+
         row.appendChild(label);
         row.appendChild(value);
         details.appendChild(row);
       });
-      
+
       card.appendChild(details);
 
       if (this.options.edit || this.options.delete) {
@@ -465,34 +509,43 @@ class ResponsiveDataTable {
         actions.style.marginTop = '1rem';
         actions.style.display = 'flex';
         actions.style.gap = '0.5rem';
-        
+
         if (this.options.edit) {
+          const txt_edit = lang() ? 'Editar' : 'Edit';
           const btn = document.createElement('button');
           btn.className = 'secondary';
-          btn.textContent = lang() ? 'Editar' : 'Edit';
-          btn.onclick = () => this.handleAction('edit', item);
+          btn.textContent = txt_edit;
+          if (this.options.materialIcons) {
+            btn.innerHTML = `<span class="material-icons">edit</span>${txt_edit}`;
+          }
+          btn.onclick = (e) => this.handleAction('edit', e, item);
           actions.appendChild(btn);
         }
-        
+
         if (this.options.delete) {
+          const txt_delete = lang() ? 'Eliminar' : 'Delete';
           const btn = document.createElement('button');
-          btn.className = 'secondary outline';
-          btn.textContent = lang() ? 'Eliminar' : 'Delete';
-          btn.onclick = () => this.handleAction('delete', item);
+          btn.className = 'secondary';
+          btn.textContent = txt_delete;
+          if (this.options.materialIcons) {
+            btn.innerHTML = `<span class="material-icons">delete</span>${txt_delete}`;
+          }
+          btn.onclick = (e) => this.handleAction('delete', e, item);
           actions.appendChild(btn);
         }
-        
+
         card.appendChild(actions);
       }
-      
+
       mobileView.appendChild(card);
     });
   }
 
+
   renderPagination() {
     const pagination = this.container.querySelector('.datatable-pagination');
     if (!pagination || !this.options.pagination) return;
-    
+
     pagination.innerHTML = '';
     const pageCount = Math.ceil(this.filteredData.length / this.options.rowsPerPage);
     if (pageCount <= 1) return;
@@ -559,11 +612,18 @@ class ResponsiveDataTable {
     this.updateTable();
   }
 
-  handleAction(type, item) {
-    const callback = typeof this.options[type] === 'function' 
-      ? this.options[type] 
+  handleAction(type, event, item) {
+    if (!this.options[type]) return;
+    if (typeof this.options[type] === 'string' && !window[this.options[type]]) {
+      console.error(`Callback function "${this.options[type]}" not found.`);
+
+      return;
+    }
+
+    const callback = typeof this.options[type] === 'function'
+      ? this.options[type]
       : window[this.options[type]];
-    if (typeof callback === 'function') callback(item.id || item);
+    if (typeof callback === 'function') callback(event, item.id || item);
   }
 
   setupSearch() {
@@ -614,3 +674,6 @@ window.alertWarning = alertWarning;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 window.Confirm = Confirm;
+window.modal = modal;
+window.showModal = showModal;
+window.closeModal = closeModal;

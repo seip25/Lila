@@ -3126,6 +3126,14 @@ button.secondary {
     color: #25d366 !important;
 }
 
+.text-white {
+    color: white !important;
+}
+
+.text-warning {
+    color: gold !important;
+}
+
 .gap-1 {
     gap: 1rem;
 }
@@ -3186,6 +3194,10 @@ li {
     color: #ff4d4d !important;
 }
 
+.text-danger {
+    color: #ff4d4d !important;
+}
+
 .text-success {
     color: #4caf50 !important;
 }
@@ -3222,6 +3234,25 @@ nav details.dropdown summary {
     border: none !important;
 }
 
+
+.visible-sm { display: block !important; }
+.hidden-sm { display: none !important; }
+
+@media (min-width: 768px) {
+    .visible-md { display: block !important; }
+    .hidden-md { display: none !important; }
+}
+
+@media (min-width: 1024px) {
+    .visible-lg { display: block !important; }
+    .hidden-lg { display: none !important; }
+}
+
+@media (min-width: 1280px) {
+    .visible-xl { display: block !important; }
+    .hidden-xl { display: none !important; }
+}
+
 @media (prefers-color-scheme: dark) {
 
     .shadow {
@@ -3256,6 +3287,9 @@ nav details.dropdown summary {
         color: white !important;
     }
 
+    .text-primary {
+        color: var(--pico-primary) !important;
+    }
 
 
 }
