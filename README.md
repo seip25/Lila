@@ -106,3 +106,6 @@ At this stage, all official modifications to the framework will be made only by 
 
 Actualmente, todas las modificaciones oficiales al framework serán realizadas únicamente por el autor original. Sin embargo, se agradece cualquier comentario o sugerencia que pueda mejorar el proyecto.
 
+
+[![Donar](https://img.shields.io/badge/Donar-PayPal-blue)](https://www.paypal.com/donate/?business=C65NYY5JGJZDS&no_recurring=0&item_name=Si+te+gusta+mi+trabajo%2C+puedes+apoyarme.%0ALas+donaciones+me+ayudan+a+dedicar+m%C3%A1s+tiempo+a+mejorar+este+proyecto&currency_code=USD)  
+
