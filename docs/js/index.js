@@ -48,3 +48,17 @@ function searchDocs(event = false, type = "eng") {
         });
     }
 }
+
+ 
+ 
+async function savePageView(method = 'GET') {
+    const url = 'https://vps-5161722-x.dattaweb.com';
+    const options = {
+        method: method
+    };
+    const request = await fetch(`${url}?page=lila`, { ...options });
+    const response = await request.json();
+ 
+}
+
+window.addEventListener('DOMContentLoaded',async()=>   await savePageView('POST'));
