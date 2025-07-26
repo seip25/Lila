@@ -126,6 +126,7 @@
                             <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
                             <li><a href="#admin-panel-esp">Panel de Admin</a></li>
                              <li><a href="#minify-esp">Minificar archivos para producción</a></li>
+                             <li><a href="#production-esp">Producción</a></li>
                             <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
                         </ul>
                     </nav>
@@ -957,6 +958,221 @@ handleRouting();
                                     </tbody>
                                 </table>
                             </section>
+                        </article>
+
+                        <article id="lila-js-esp">
+                            <h1>Documentación de Lila JS</h1>
+                            <p>
+                                Lila JS es un micro-framework de JavaScript minimalista para construir aplicaciones web modernas. Proporciona un sistema reactivo, enrutamiento y componentes en un paquete ligero.
+                            </p>
+
+                            <h2>Conceptos Centrales</h2>
+
+                            <h3>Componentes</h3>
+                            <p>
+                                Los componentes son los bloques de construcción de una aplicación Lila JS. Encapsulan una plantilla, estado y acciones.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de Componente</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+App.createComponent('Home', {
+    template: 'home-template',
+    state: () => ({
+        message: '¡Bienvenido a Lila JS!'
+    }),
+    actions: {
+        updateMessage: ({ state }) => {
+            state.message = '¡El mensaje ha sido actualizado!';
+        }
+    }
+});
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>Enrutamiento</h3>
+                            <p>
+                                Lila JS incluye un enrutador simple para mapear URLs a componentes.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de Enrutamiento</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+App.addRoute('/', 'Home');
+App.addRoute('/about', 'About');
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>Inicialización</h3>
+                            <p>
+                                Para iniciar la aplicación y manejar el enrutamiento, necesitas llamar a `handleRouting()`.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de Inicialización</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+handleRouting();
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article id="api-reference-esp">
+                            <h1>Referencia de API y Ejemplos</h1>
+
+                            <h2>Ejemplo de Formulario de Login</h2>
+                            <p>
+                                Este ejemplo demuestra cómo crear un formulario de login simple con validación.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Componente de Login</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-html">
+&lt;template data-template="login-template"&gt;
+    &lt;form data-action="login"&gt;
+        &lt;input type="email" data-model="email" placeholder="Correo electrónico" required&gt;
+        &lt;input type="password" data-model="password" placeholder="Contraseña" required&gt;
+        &lt;button type="submit"&gt;Iniciar sesión&lt;/button&gt;
+    &lt;/form&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+    App.createComponent('Login', {
+        template: 'login-template',
+        state: () => ({
+            email: '',
+            password: ''
+        }),
+        actions: {
+            login: ({ state, event }) => {
+                event.preventDefault();
+                if (state.email && state.password) {
+                    // Realizar la lógica de inicio de sesión aquí
+                    console.log('Iniciando sesión con:', state.email, state.password);
+                } else {
+                    alert('Por favor, complete todos los campos.');
+                }
+            }
+        }
+    });
+
+    App.addRoute('/login', 'Login');
+&lt;/script&gt;
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article id="production-esp">
+                            <h1>Despliegue a Producción</h1>
+
+                            <h2>Servidor Linux (con systemd)</h2>
+                            <p>
+                                Para desplegar tu aplicación Lila en un servidor Linux, se recomienda usar un entorno virtual y un servicio de systemd para gestionar el proceso.
+                            </p>
+
+                            <h3>1. Crear un Entorno Virtual</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>2. Crear un Script de Inicio</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">start_lila.sh</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+#!/bin/bash
+source /ruta/a/tu/proyecto/venv/bin/activate
+python /ruta/a/tu/proyecto/main.py
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>3. Crear un Servicio de systemd</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">/etc/systemd/system/lila.service</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-ini">
+[Unit]
+Description=Servicio de Lila Framework
+After=network.target
+
+[Service]
+User=tu_usuario
+Group=tu_grupo
+WorkingDirectory=/ruta/a/tu/proyecto
+ExecStart=/ruta/a/tu/proyecto/start_lila.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>4. Habilitar e Iniciar el Servicio</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+sudo systemctl daemon-reload
+sudo systemctl enable lila.service
+sudo systemctl start lila.service
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Servidor Windows</h2>
+                            <p>
+                                En Windows, puedes usar el Programador de Tareas para ejecutar tu aplicación al inicio.
+                            </p>
+                            <ol>
+                                <li>Crea un script `.bat` o `.ps1` para iniciar tu aplicación, similar al script `start_lila.sh`.</li>
+                                <li>Abre el Programador de Tareas.</li>
+                                <li>Crea una nueva tarea que se ejecute al inicio del sistema.</li>
+                                <li>Establece la acción para que ejecute tu script.</li>
+                            </ol>
+
+                            <h2>Desactivar el Modo de Depuración</h2>
+                            <p>
+                                En tu `main.py`, asegúrate de desactivar el modo de depuración para producción.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+app = App(debug=False, routes=all_routes)
+                                    </code></pre>
+                                </div>
+                            </div>
                         </article>
 
                         <article id="upload-esp">
