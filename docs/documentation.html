@@ -52,32 +52,7 @@
 
     <!-- Scripts -->
     <script src="js/index.js"></script>
-    <style>
-        .container-sm {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
 
-        .grid {
-            display: grid !important;
-            grid-template-columns: 35% 1fr !important;
-            gap: 1rem !important;
-        }
-
-        @media (min-width: 768px) {
-            .grid {
-                grid-template-columns: 25% 1fr !important;
-            }
-        }
-
-        aside {
-            position: sticky !important;
-            top: 0 !important;
-            height: 100vh !important;
-            overflow-y: auto !important;
-        }
-    </style>
 </head>
 
 <body>
@@ -583,7 +558,8 @@ router.mount()
                                         values, lists, dictionaries or whatever you need.
                                     </strong></p>
 
-                                <p>The parameters that the <code>render</code> function from <code>lila.core.templates</code>
+                                <p>The parameters that the <code>render</code> function from
+                                    <code>lila.core.templates</code>
                                     can receive are:</p>
                                 <div class="code-editor">
                                     <div class="editor-content">
@@ -956,14 +932,16 @@ handleRouting();
                         <article id="lila-js-eng">
                             <h1>Lila JS Documentation</h1>
                             <p>
-                                Lila JS is a minimalist JavaScript micro-framework for building modern web applications. It provides a reactive system, routing, and components in a lightweight package.
+                                Lila JS is a minimalist JavaScript micro-framework for building modern web applications.
+                                It provides a reactive system, routing, and components in a lightweight package.
                             </p>
 
                             <h2>Core Concepts</h2>
 
                             <h3>Components</h3>
                             <p>
-                                Components are the building blocks of a Lila JS application. They encapsulate a template, state, and actions.
+                                Components are the building blocks of a Lila JS application. They encapsulate a
+                                template, state, and actions.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1066,107 +1044,7 @@ handleRouting();
                             </div>
                         </article>
 
-                        <article id="production-eng">
-                            <h1>Deployment to Production</h1>
 
-                            <h2>Linux Server (with systemd)</h2>
-                            <p>
-                                To deploy your Lila application on a Linux server, it's recommended to use a virtual environment and a systemd service to manage the process.
-                            </p>
-
-                            <h3>1. Create a Virtual Environment</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Terminal</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>2. Create a Start Script</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">start_lila.sh</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-#!/bin/bash
-source /path/to/your/project/venv/bin/activate
-python /path/to/your/project/main.py
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>3. Create a systemd Service</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">/etc/systemd/system/lila.service</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-ini">
-[Unit]
-Description=Lila Framework Service
-After=network.target
-
-[Service]
-User=your_user
-Group=your_group
-WorkingDirectory=/path/to/your/project
-ExecStart=/path/to/your/project/start_lila.sh
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>4. Enable and Start the Service</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Terminal</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-sudo systemctl daemon-reload
-sudo systemctl enable lila.service
-sudo systemctl start lila.service
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h2>Windows Server</h2>
-                            <p>
-                                On Windows, you can use the Task Scheduler to run your application at startup.
-                            </p>
-                            <ol>
-                                <li>Create a `.bat` or `.ps1` script to start your application, similar to the `start_lila.sh` script.</li>
-                                <li>Open Task Scheduler.</li>
-                                <li>Create a new task that runs at system startup.</li>
-                                <li>Set the action to run your script.</li>
-                            </ol>
-
-                            <h2>Disable Debug Mode</h2>
-                            <p>
-                                In your `main.py`, make sure to turn off debug mode for production.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">main.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-app = App(debug=False, routes=all_routes)
-                                    </code></pre>
-                                </div>
-                            </div>
-                        </article>
 
                         <article id="upload-eng">
                             <h1>File Upload Helper</h1>
@@ -1384,7 +1262,8 @@ async def home(request: Request):
                         <article id="locales-eng">
                             <h1>Internationalization (Translations)</h1>
                             <p>Translations are used to internationalize an application and display content in different
-                                languages. In Lila, translations are stored in the <code>app/locales</code> directory and
+                                languages. In Lila, translations are stored in the <code>app/locales</code> directory
+                                and
                                 can be dynamically loaded into the application.</p>
 
                             <h2>Forcing Default Language in Routes</h2>
@@ -2215,6 +2094,7 @@ python -m cli.migrations --refresh
                                     so SQLAlchemy can detect them for migrations.</p>
                             </div>
                         </article>
+
                         <article id="rest_api_crud-eng">
                             <h1>Simple Generation of REST API CRUD</h1>
                             <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing
@@ -2640,31 +2520,136 @@ async def admin_route(request: Request):
                             </p>
                         </article>
 
-                        <article id="minify-eng"> 
-<h1>Minify files for production</h1> 
-<p> 
-With the <code>lila-minify</code> command you can minify your js, css and html files, which are in the <code>public</code> and <code>templates</code> folders. 
-</p> 
+                        <article id="minify-eng">
+                            <h1>Minify files for production</h1>
+                            <p>
+                                With the <code>lila-minify</code> command you can minify your js, css and html files,
+                                which are in the <code>public</code> and <code>templates</code> folders.
+                            </p>
 
 
-<div class="code-editor"> 
-<div class="editor-header"> 
-<span class="editor-title">Terminal Command</span> 
-<div class="editor-controls"> 
-<div class="control close"></div> 
-<div class="control minimize"></div> 
-<div class="control maximize"></div> 
-</div> 
-</div> 
-<div class="editor-content"> 
-<pre><code class="language-bash">
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal Command</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
 lila-minify 
 #Or
 python -m cli.minify
-</code></pre> 
-</div> 
-</div> 
-</article>
+</code></pre>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article id="production-eng">
+                            <h1>Deployment to Production</h1>
+
+                            <h2>Linux Server (with systemd)</h2>
+                            <p>
+                                To deploy your Lila application on a Linux server, it's recommended to use a virtual
+                                environment and a systemd service to manage the process.
+                            </p>
+
+                            <h3>1. Create a Virtual Environment</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>2. Create a Start Script</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">start_lila.sh</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+#!/bin/bash
+source /path/to/your/project/venv/bin/activate
+python /path/to/your/project/main.py
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>3. Create a systemd Service</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">/etc/systemd/system/lila.service</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-ini">
+[Unit]
+Description=Lila Framework Service
+After=network.target
+
+[Service]
+User=your_user
+Group=your_group
+WorkingDirectory=/path/to/your/project
+ExecStart=/path/to/your/project/start_lila.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>4. Enable and Start the Service</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+sudo systemctl daemon-reload
+sudo systemctl enable lila.service
+sudo systemctl start lila.service
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Windows Server</h2>
+                            <p>
+                                On Windows, you can use the Task Scheduler to run your application at startup.
+                            </p>
+                            <ol>
+                                <li>Create a `.bat` or `.ps1` script to start your application, similar to the
+                                    `start_lila.sh` script.</li>
+                                <li>Open Task Scheduler.</li>
+                                <li>Create a new task that runs at system startup.</li>
+                                <li>Set the action to run your script.</li>
+                            </ol>
+
+                            <h2>Disable Debug Mode</h2>
+                            <p>
+                                In your `main.py`, make sure to turn off debug mode for production.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+app = App(debug=False, routes=all_routes)
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
                         <!-- 
                 <article id="helpers-eng">
 

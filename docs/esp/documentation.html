@@ -52,32 +52,7 @@
 
     <!-- Scripts -->
     <script src="../js/index.js"></script>
-    <style>
-        .container-sm {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .grid {
-            display: grid !important;
-            grid-template-columns: 35% 1fr !important;
-            gap: 1rem !important;
-        }
-
-        @media (min-width: 768px) {
-            .grid {
-                grid-template-columns: 25% 1fr !important;
-            }
-        }
-
-        aside {
-            position: sticky !important;
-            top: 0 !important;
-            height: 100vh !important;
-            overflow-y: auto !important;
-        }
-    </style>
+ 
 </head>
 
 <body>
@@ -1073,108 +1048,7 @@ handleRouting();
                             </div>
                         </article>
 
-                        <article id="production-esp">
-                            <h1>Despliegue a Producción</h1>
-
-                            <h2>Servidor Linux (con systemd)</h2>
-                            <p>
-                                Para desplegar tu aplicación Lila en un servidor Linux, se recomienda usar un entorno virtual y un servicio de systemd para gestionar el proceso.
-                            </p>
-
-                            <h3>1. Crear un Entorno Virtual</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Terminal</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>2. Crear un Script de Inicio</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">start_lila.sh</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-#!/bin/bash
-source /ruta/a/tu/proyecto/venv/bin/activate
-python /ruta/a/tu/proyecto/main.py
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>3. Crear un Servicio de systemd</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">/etc/systemd/system/lila.service</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-ini">
-[Unit]
-Description=Servicio de Lila Framework
-After=network.target
-
-[Service]
-User=tu_usuario
-Group=tu_grupo
-WorkingDirectory=/ruta/a/tu/proyecto
-ExecStart=/ruta/a/tu/proyecto/start_lila.sh
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>4. Habilitar e Iniciar el Servicio</h3>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Terminal</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-sudo systemctl daemon-reload
-sudo systemctl enable lila.service
-sudo systemctl start lila.service
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h2>Servidor Windows</h2>
-                            <p>
-                                En Windows, puedes usar el Programador de Tareas para ejecutar tu aplicación al inicio.
-                            </p>
-                            <ol>
-                                <li>Crea un script `.bat` o `.ps1` para iniciar tu aplicación, similar al script `start_lila.sh`.</li>
-                                <li>Abre el Programador de Tareas.</li>
-                                <li>Crea una nueva tarea que se ejecute al inicio del sistema.</li>
-                                <li>Establece la acción para que ejecute tu script.</li>
-                            </ol>
-
-                            <h2>Desactivar el Modo de Depuración</h2>
-                            <p>
-                                En tu `main.py`, asegúrate de desactivar el modo de depuración para producción.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">main.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-app = App(debug=False, routes=all_routes)
-                                    </code></pre>
-                                </div>
-                            </div>
-                        </article>
-
+            
                         <article id="upload-esp">
                             <h1>Helper para Subida de Archivos</h1>
                             <p><strong>
@@ -2021,10 +1895,7 @@ async def dispatch(self, request, call_next):
                                 </div>
                             </div>
                         </article>
-
-
-
-
+ 
                         <article id="connections-esp">
                             <h1>Conexiones a la base de datos</h1>
                             <p>
@@ -2716,6 +2587,109 @@ python -m cli.minify
                                 </div>
                             </div>
  </article>
+
+
+             <article id="production-esp">
+                            <h1>Despliegue a Producción</h1>
+
+                            <h2>Servidor Linux (con systemd)</h2>
+                            <p>
+                                Para desplegar tu aplicación Lila en un servidor Linux, se recomienda usar un entorno virtual y un servicio de systemd para gestionar el proceso.
+                            </p>
+
+                            <h3>1. Crear un Entorno Virtual</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>2. Crear un Script de Inicio</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">start_lila.sh</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+#!/bin/bash
+source /ruta/a/tu/proyecto/venv/bin/activate
+python /ruta/a/tu/proyecto/main.py
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>3. Crear un Servicio de systemd</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">/etc/systemd/system/lila.service</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-ini">
+[Unit]
+Description=Servicio de Lila Framework
+After=network.target
+
+[Service]
+User=tu_usuario
+Group=tu_grupo
+WorkingDirectory=/ruta/a/tu/proyecto
+ExecStart=/ruta/a/tu/proyecto/start_lila.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>4. Habilitar e Iniciar el Servicio</h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+sudo systemctl daemon-reload
+sudo systemctl enable lila.service
+sudo systemctl start lila.service
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Servidor Windows</h2>
+                            <p>
+                                En Windows, puedes usar el Programador de Tareas para ejecutar tu aplicación al inicio.
+                            </p>
+                            <ol>
+                                <li>Crea un script `.bat` o `.ps1` para iniciar tu aplicación, similar al script `start_lila.sh`.</li>
+                                <li>Abre el Programador de Tareas.</li>
+                                <li>Crea una nueva tarea que se ejecute al inicio del sistema.</li>
+                                <li>Establece la acción para que ejecute tu script.</li>
+                            </ol>
+
+                            <h2>Desactivar el Modo de Depuración</h2>
+                            <p>
+                                En tu `main.py`, asegúrate de desactivar el modo de depuración para producción.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+app = App(debug=False, routes=all_routes)
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
 
                         <!-- <article id="helpers-esp">
 
