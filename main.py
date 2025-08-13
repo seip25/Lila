@@ -6,7 +6,7 @@ import itertools
 import uvicorn
 import asyncio
 
-cors=None
+
 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
@@ -22,6 +22,7 @@ all_routes = list(itertools.chain(routes, api_routes))
 # Español: Marcador para las rutas de administrador en main.py.
 #admin_marker   
 
+cors=None
 
 #English: CORS usage example
 #Español : Ejemplo de utilización de CORS
@@ -36,9 +37,30 @@ all_routes = list(itertools.chain(routes, api_routes))
 #English:necessary for cli command modify react cors for development
 #Español:necesario para el comando cli modificar cors de react para desarrollo
 #react_marker
+    
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
 app = App(debug=DEBUG, routes=all_routes,cors=cors)
+
+#English: To ensure SEO (bots, AI), caching, and HTML hydration, uncomment these lines.
+#Adding {% include "react/cache/index.html" %} to <div id="root">
+#Español :Para tener seo (bots,ia) ,cache y que react hidrate el html ,descomenta estas lineas.
+#Agregadando en <div id="root"> ,  {% include "react/cache/index.html"  %} 
+
+# import subprocess
+# import sys
+
+# @app.on_event("startup")
+# async def startup_event():
+#     print("♻️ Prerender for react...")
+#     url_with_port =f" http://{HOST}:{PORT}"
+#     subprocess.Popen([
+#     sys.executable, 
+#     "-m", 
+#     "cli.prerender",  
+#     "--url", 
+#     url_with_port.strip()
+# ])
 
 
 # English: Asynchronous main function to run the application server.

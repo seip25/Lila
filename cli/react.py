@@ -271,7 +271,7 @@ export default App
                 <script src="https://cdn.tailwindcss.com"></script>
                 </head>
                 <body>
-                <div id="root"></div>
+                <div id="root">{% include "react/cache/index.html" ignore missing %} </div>
                 <script type="module" src="/src/main.jsx"></script>
                 </body>
             </html>
