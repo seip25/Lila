@@ -176,7 +176,7 @@ function App() {
         <br />
        <code className="block bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
 router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
-@router.route(path="/&#123;path:path&#125;", methods={["GET"]})
+@router.route(path="/&#123;path:path&#125;", methods=["GET"])
 <br />
 async def home(request: Request):
     <br />
