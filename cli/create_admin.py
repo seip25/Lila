@@ -2,10 +2,13 @@ import typer
 from core.helpers import generate_token_value
 from app.connections import connection
 from argon2 import PasswordHasher
+import os
 
 ph = PasswordHasher()
 
 app = typer.Typer()
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 @app.command(name="create_admin")
 def create_admin(user: str = "admin", password: str = None):
@@ -20,6 +23,23 @@ def create_admin(user: str = "admin", password: str = None):
     if not success:
         typer.echo(f"Failed to create admin user '{user}'.")
         raise typer.Exit(code=1)
+    main_file=os.path.join(project_root, "main.py")
+    marker = "#admin_marker"
+    replace_text = f"""
+from app.routes.admin import Admin
+from app.models.user import User
+admin_routes=Admin(models=[User])
+all_routes = list(itertools.chain(routes, api_routes,admin_routes))
+    """
+    if os.path.exists(main_file):
+         with open(main_file, "r") as file:
+            content = file.read()
+
+    if marker in content:
+        new_content = content.replace(marker, f"{marker}\n{replace_text}")
+        with open(main_file, "w") as file:
+            file.write(new_content)
+        
     typer.echo(f"Admin user '{user}' created with password '{password}'.")
     typer.echo("Admin command executed.")
 

@@ -101,7 +101,7 @@ export default defineConfig({
     # Step 4: Update CORS config in main.py / Paso 4: Actualizar configuración CORS en main.py
     print("\n🔧 Updating CORS configuration in main.py...\n"
           "🔧 Actualizando configuración CORS en main.py...\n")
-    marker = "#react"
+    marker = "#react_marker"
     replace_text = """
 #English: for development react
 #Espanol: para desarrollo react
@@ -111,7 +111,7 @@ cors={
     "allow_methods":["*"],
     "allow_headers": ["*"]
 }
-app = App(debug=True, routes=all_routes, cors=cors)
+ 
     """
 
     with open(file_path, "r") as file:
@@ -277,7 +277,26 @@ export default App
     """
     with open(index_html_path, "r+", encoding="utf-8") as f:
         f.write(react_html_default_lila)
-            
+
+
+    file_routes= os.path.join(project_root, "app", "routes", "routes.py")
+    if os.path.exists(file_routes):
+        with open(file_routes, "r") as file:
+            content = file.read()
+
+        if "marker_react" in content:
+            replace_text = """#marker_react
+# English: Mounting the React app assets and defining the route to render the React index.
+# Español: Montando los assets de la app React y definiendo la ruta para renderizar el index de React.
+router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
+@router.route(path="/{path:path}", methods=["GET"])
+async def home(request: Request):
+  response = render(request=request, template="react/index")
+  return response
+  """
+            new_content = content.replace("marker_react", replace_text)
+            with open(file_routes, "w") as file:
+                file.write(new_content)
 
     # Step 5: Final instructions / Paso 5: Instrucciones finales
     print("\n🎉 React app created successfully! / ¡App React creada exitosamente!\n")

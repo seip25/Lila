@@ -10,6 +10,8 @@ from core.env import LANG_DEFAULT # English: Importing the default language sett
 # Español: Creando una instancia del Router para definir las rutas
 router = Router()
 
+#marker_react
+
 # English: Mounting statics files ,in folder 'static',url ='/public'
 #  Español: Montando los archivos estaticos en la carpeta 'static',url ='/public'
 router.mount()
