@@ -37,6 +37,10 @@ app = App(debug=DEBUG, routes=all_routes)
 # }      
 # app = App(debug=True, routes=all_routes,cors=cors)
 
+#English:necessary for cli command modify react cors for development
+#Español:necesario para el comando cli modificar cors de react para desarrollo
+#react
+
 # English: Asynchronous main function to run the application server.
 # Español: Función principal asíncrona para ejecutar el servidor de la aplicación.
 async def main():
