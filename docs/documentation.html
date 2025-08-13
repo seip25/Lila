@@ -93,6 +93,7 @@
                             <li><a href="#routes-eng">Routes</a></li>
                             <li><a href="#static-eng">Static</a></li>
                             <li><a href="#templates-eng">Templates</a></li>
+                            <li><a href="#react-seo">React</a></li>
                             <li><a href="#upload-eng">Uploads Files</a></li>
                             <li><a href="#markdown-eng">Markdown/HTML</a></li>
                             <li><a href="#locales-eng">Internationalization (Translations)</a></li>
@@ -561,7 +562,8 @@ router.mount()
 
                                 <p>The parameters that the <code>render</code> function from
                                     <code>lila.core.templates</code>
-                                    can receive are:</p>
+                                    can receive are:
+                                </p>
                                 <div class="code-editor">
                                     <div class="editor-content">
                                         <pre><code class="language-python">
@@ -930,6 +932,189 @@ handleRouting();
                                 </table>
                             </section>
                         </article>
+
+                        <article id="react-seo">
+                            <h1>React Integration with Lila</h1>
+
+                            <p>
+                                Lila provides a seamless integration with React, allowing you to develop your frontend
+                                with a
+                                modified Vite + React setup while keeping strong SEO capabilities, caching, and HTML
+                                hydration.
+                                This setup ensures your React app can be prerendered and recognized by Google Bots and
+                                AI.
+                            </p>
+
+                            <h5>Starting a React Project in Lila</h5>
+                            <p>
+                                To create or run a React project inside Lila, execute the following command:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">CLI Command</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+# For Python 3 environments
+python3 -m cli.react [--name PROJECT_NAME]
+
+# Or if your default Python is python
+python -m cli.react [--name PROJECT_NAME]
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <p>
+                                <strong>Parameters:</strong><br>
+                                <code>--name</code>: Optional project name, default is <code>"react"</code>.
+                            </p>
+
+                            <h5>Development CORS Configuration</h5>
+                            <p>
+                                When running React in development mode, Lila automatically edits <code>main.py</code> to
+                                add the
+                                necessary CORS configuration. By default:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py CORS snippet</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+# English: for development react
+# Español: para desarrollo react
+cors = {
+    "origin": ["http://localhost:5173"],
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"]
+}
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Automatic Routes and Asset Mounting</h5>
+                            <p>
+                                Lila modifies <code>app/routes/routes.py</code> automatically for your React build. This
+                                ensures
+                                the React build assets are served correctly and the index.html is rendered from the
+                                cache.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">routes.py Example</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+router.mount(path="/assets", directory="templates/html/react/assets", name="react-assets")
+
+@router.route(path="/{path:path}", methods=["GET"])
+async def home(request: Request):
+    response = render(request=request, template="react/index")
+    return response
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Prerendering and Caching</h5>
+                            <p>
+                                To improve SEO, Lila supports prerendering your React pages and caching them. After
+                                building your
+                                React app with <code>npm run build</code>, you can generate the cached HTML:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Generate Cache</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+python -m cli.prerender --url http://localhost:8001
+# or python3 -m cli.prerender
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <p>
+                                Then, in your <code>react/index.html</code> dev file, include the cached HTML for SEO
+                                hydration:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">index.html snippet</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-html">
+<div id="root">{% include "react/cache/index.html" ignore missing %}</div>
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Startup Integration in main.py</h5>
+                            <p>
+                                You can optionally execute the prerender automatically on server startup by uncommenting
+                                the
+                                following section in <code>main.py</code>:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py prerender on startup</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+# import subprocess
+# import sys
+
+# @app.on_event("startup")
+# async def startup_event():
+#     print("♻️ Prerender for react...")
+#     url_with_port = f"http://{HOST}:{PORT}"
+#     subprocess.Popen([
+#         sys.executable,
+#         "-m",
+#         "cli.prerender",
+#         "--url",
+#         url_with_port.strip()
+#     ])
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>SEO and Hydration</h5>
+                            <p>
+                                By including the cached HTML in the <code>root</code> div, React will rehydrate the
+                                content on the
+                                client side. This gives you:
+                            </p>
+                            <ul>
+                                <li>Strong SEO recognition by Google Bots and AI.</li>
+                                <li>Faster first paint with pre-rendered HTML.</li>
+                                <li>Optional daily caching using a scheduled prerender task.</li>
+                            </ul>
+
+                            <h5>React Helpers and Context</h5>
+                            <p>
+                                You can pass context from Jinja2 templates to React using <code>&lt;script&gt;</code>
+                                tags in
+                                <code>templates/html/react/index.html</code>. Useful for translations, configuration, or
+                                any
+                                dynamic data.
+                            </p>
+
+                            <h5>Automatic API Documentation</h5>
+                            <p>
+                                Lila continues to generate API documentation automatically using Pydantic models. All
+                                helpers
+                                and middlewares can be combined seamlessly with React routes.
+                            </p>
+
+                        </article>
+
                         <article id="lila-js-eng">
                             <h1>Lila JS Documentation</h1>
                             <p>
