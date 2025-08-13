@@ -209,7 +209,7 @@ async def home(request: Request):
           Español: Puedes usar Lila para tener SEO reconocible por Bots de Google,IA con hidratación
             y sistema de caching , lee la documentación con el ejemplo en
              <a href="https://seip25.github.io/Lila/esp/documentation.html#react-seo" target="_blank" className="text-blue-500 hover:underline">
-            https://seip25.github.io/Lila/documentation.html#react-seo 
+            https://seip25.github.io/Lila/esp/documentation.html#react-seo 
              </a>.
         
         </p>
