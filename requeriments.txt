@@ -16,4 +16,3 @@ typer==0.15.3
 jsmin==3.0.1
 cssmin==0.2.0
 htmlmin2==0.1.13
-playwright==1.54.0

@@ -1,14 +1,10 @@
 from core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-
-# English: Importing the host and port configurations from the environment settings.
-# Español: Importando las configuraciones de host y puerto desde la configuración del entorno.
 from core.env import PORT, HOST,DEBUG
 import itertools
 import uvicorn
 import asyncio
-
 
 cors=None
 
@@ -39,12 +35,11 @@ all_routes = list(itertools.chain(routes, api_routes))
 
 #English:necessary for cli command modify react cors for development
 #Español:necesario para el comando cli modificar cors de react para desarrollo
-#react_marker  
-
+#react_marker
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
 app = App(debug=DEBUG, routes=all_routes,cors=cors)
- 
+
 
 # English: Asynchronous main function to run the application server.
 # Español: Función principal asíncrona para ejecutar el servidor de la aplicación.

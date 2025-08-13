@@ -4,6 +4,7 @@ import os
 import sys
 import shlex
 import shutil
+import sys
 
 app = typer.Typer()
 
@@ -114,12 +115,12 @@ cors={
  
     """
 
-    with open(file_path, "r") as file:
+    with open(file_path, "r",encoding="utf-8") as file:
         content = file.read()
 
     if marker in content:
         new_content = content.replace(marker, f"{marker}\n{replace_text}")
-        with open(file_path, "w") as file:
+        with open(file_path, "w",encoding="utf-8") as file:
             file.write(new_content)
         print("✅ CORS configuration inserted / Configuración CORS insertada")
     else:
@@ -281,7 +282,7 @@ export default App
 
     file_routes= os.path.join(project_root, "app", "routes", "routes.py")
     if os.path.exists(file_routes):
-        with open(file_routes, "r") as file:
+        with open(file_routes, "r",encoding="utf-8") as file:
             content = file.read()
 
         if "marker_react" in content:
@@ -295,10 +296,12 @@ async def home(request: Request):
   return response
   """
             new_content = content.replace("marker_react", replace_text)
-            with open(file_routes, "w") as file:
+            with open(file_routes, "w",encoding="utf-8") as file:
                 file.write(new_content)
+    
+    
 
-    # Step 5: Final instructions / Paso 5: Instrucciones finales
+
     print("\n🎉 React app created successfully! / ¡App React creada exitosamente!\n")
     print(f"➡ cd {name}")
     print("➡ npm run dev  (start development server / iniciar servidor de desarrollo)")
