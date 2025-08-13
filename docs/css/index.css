@@ -219,32 +219,3 @@ pre {
 .white {
     color: white !important;
 }
-
-.mb-4 {
-    margin-bottom: 4rem !important;
-}
-
-.container-sm {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-.grid {
-    display: grid !important;
-    grid-template-columns: 35% 1fr !important;
-    gap: 1rem !important;
-}
-
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns: 25% 1fr !important;
-    }
-}
-
-aside {
-    position: sticky !important;
-    top: 0 !important;
-    height: 100vh !important;
-    overflow-y: auto !important;
-}
