@@ -76,20 +76,23 @@ async def create_react_app(name: str):
         f.write(
             """import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: '../templates/html/react/build',
+    outDir: resolve(__dirname, '../templates/html/react'), 
+    emptyOutDir: true,
     rollupOptions: {
       output: {
-        entryFileNames: `../static/build/[name].js`,
-        chunkFileNames: `../static/build/[name].js`,
-        assetFileNames: `../static/build/[name].[ext]`
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`
       }
     }
   }
 })
+
 """
         )
 
@@ -99,7 +102,7 @@ export default defineConfig({
     marker = "#react"
     replace_text = """
 #English: for development react
-#Español: para desarrollo react
+#Espanol: para desarrollo react
 cors={
     "origin": ["http://localhost:5173"],
     "allow_credentials" : True,
@@ -128,9 +131,12 @@ app = App(debug=True, routes=all_routes, cors=cors)
     print("➡ To build for production, run: npm run build / Para construir para producción, ejecuta: npm run build")
     print("➡ Update your routes in app/routes/routes.py to include the React app for production/ Actualiza tus rutas en app/routes/routes.py para incluir la app React para producción")
     print("""➡ Example/ Ejemplo: 
+router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
 @router.route(path="/{path:path}", methods=["GET"])
 async def home(request: Request):
-    response = render( request=request, template="react/index") 
+    response = render(
+        request=request, template="react/index"
+    )  
     return response
     """)
     print("\nYou can now start developing your React app! / ¡Ahora puedes comenzar a desarrollar tu app React!\n")
