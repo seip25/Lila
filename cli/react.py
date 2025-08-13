@@ -285,9 +285,9 @@ export default App
             content = file.read()
 
         if "marker_react" in content:
-            replace_text = """#marker_react
+            replace_text = """marker_react
 # English: Mounting the React app assets and defining the route to render the React index.
-# Español: Montando los assets de la app React y definiendo la ruta para renderizar el index de React.
+# Espanol: Montando los assets de la app React y definiendo la ruta para renderizar el index de React.
 router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
 @router.route(path="/{path:path}", methods=["GET"])
 async def home(request: Request):
