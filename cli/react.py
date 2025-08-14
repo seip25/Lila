@@ -299,7 +299,12 @@ async def home(request: Request):
             with open(file_routes, "w",encoding="utf-8") as file:
                 file.write(new_content)
     
-    
+    print("\n🏗️ Building the React app...\n"
+      "🏗️ Construyendo la aplicación React...\n")
+    exit_code = await run_command("npm run build", cwd=project_dir)
+    if exit_code != 0:
+        print("❌ Error building React app / Error construyendo la app React.")
+        return
 
 
     print("\n🎉 React app created successfully! / ¡App React creada exitosamente!\n")
