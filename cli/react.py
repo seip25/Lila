@@ -290,7 +290,7 @@ export default App
 # English: Mounting the React app assets and defining the route to render the React index.
 # Espanol: Montando los assets de la app React y definiendo la ruta para renderizar el index de React.
 router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
-@router.route(path="/{path:path}", methods=["GET"])
+@router.route(path="/", methods=["GET"])
 async def home(request: Request):
   response = render(request=request, template="react/index")
   return response
