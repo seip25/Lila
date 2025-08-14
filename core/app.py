@@ -17,10 +17,10 @@ class App(Starlette):
             if cors:
                 self.add_middleware(
                     CORSMiddleware,
-                    allow_origins=self.cors.get("origin", ["*"]),
-                    allow_credentials=self.cors.get("allow_credentials", True),
-                    allow_methods=self.cors.get("allow_methods", ["*"]),
-                    allow_headers=self.cors.get("allow_headers", ["*"]),
+                    allow_origins=cors.get("origin", ["*"]),
+                    allow_credentials=cors.get("allow_credentials", True),
+                    allow_methods=cors.get("allow_methods", ["*"]),
+                    allow_headers=cors.get("allow_headers", ["*"]),
                 )
 
             Logger.info("Application started successfully")
