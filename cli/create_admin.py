@@ -1,5 +1,5 @@
 import typer
-from core.helpers import generate_token_value
+from lila.core.helpers import generate_token_value
 from app.connections import connection
 from argon2 import PasswordHasher
 import os
@@ -32,12 +32,12 @@ admin_routes=Admin(models=[User])
 all_routes = list(itertools.chain(routes, api_routes,admin_routes))
     """
     if os.path.exists(main_file):
-         with open(main_file, "r") as file:
+         with open(main_file, "r",encoding="utf-8") as file:
             content = file.read()
 
     if marker in content:
         new_content = content.replace(marker, f"{marker}\n{replace_text}")
-        with open(main_file, "w") as file:
+        with open(main_file, "w",encoding="utf-8") as file:
             file.write(new_content)
         
     typer.echo(f"Admin user '{user}' created with password '{password}'.")
