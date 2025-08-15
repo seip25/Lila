@@ -53,7 +53,7 @@
 
     <!-- Scripts -->
     <script src="../js/index.js"></script>
- 
+
 </head>
 
 <body>
@@ -102,8 +102,8 @@
                             <li><a href="#migrations-esp">Migraciones</a></li>
                             <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
                             <li><a href="#admin-panel-esp">Panel de Admin</a></li>
-                             <li><a href="#minify-esp">Minificar archivos para producción</a></li>
-                             <li><a href="#production-esp">Producción</a></li>
+                            <li><a href="#minify-esp">Minificar archivos para producción</a></li>
+                            <li><a href="#production-esp">Producción</a></li>
                             <!-- <li><a href="#helpers-esp">Helpers</a></li> -->
                         </ul>
                     </nav>
@@ -499,7 +499,7 @@ router.mount()
                             </div>
                         </article>
 
-                        
+
 
                         <article id="templates-esp">
                             <h1>Templates Render (Jinja2 + Lila JS)</h1>
@@ -938,53 +938,57 @@ handleRouting();
                                 </table>
                             </section>
                         </article>
-<article id="react-seo">
-    <h1>Integración de React con Lila</h1>
+                        <article id="react-seo">
+                            <h1>Integración de React con Lila</h1>
 
-    <p>
-        Lila proporciona una integración fluida con React, permitiéndote desarrollar tu frontend con una
-        configuración modificada de Vite + React, manteniendo fuertes capacidades de SEO, caché e hidratación
-        de HTML. Esta configuración asegura que tu aplicación React pueda prerenderizarse y ser reconocida
-        por Google Bots y sistemas de IA.
-    </p>
+                            <p>
+                                Lila proporciona una integración fluida con React, permitiéndote desarrollar tu frontend
+                                con una
+                                configuración modificada de Vite + React, manteniendo fuertes capacidades de SEO, caché
+                                e hidratación
+                                de HTML. Esta configuración asegura que tu aplicación React pueda prerenderizarse y ser
+                                reconocida
+                                por Google Bots y sistemas de IA.
+                            </p>
 
-    <h5>Iniciando un Proyecto React en Lila</h5>
-    <p>
-        Para crear o ejecutar un proyecto React dentro de Lila, ejecuta el siguiente comando:
-    </p>
+                            <h5>Iniciando un Proyecto React en Lila</h5>
+                            <p>
+                                Para crear o ejecutar un proyecto React dentro de Lila, ejecuta el siguiente comando:
+                            </p>
 
-    <div class="code-editor">
-        <div class="editor-header">
-            <span class="editor-title">Comando CLI</span>
-        </div>
-        <div class="editor-content">
-            <pre><code class="language-bash">
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Comando CLI</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
 # Para entornos Python 3
 python3 -m cli.react [--name NOMBRE_DEL_PROYECTO]
 
 # O si tu Python por defecto es python
 python -m cli.react [--name NOMBRE_DEL_PROYECTO]
             </code></pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <p>
-        <strong>Parámetros:</strong><br>
-        <code>--name</code>: Nombre opcional del proyecto, por defecto <code>"react"</code>.
-    </p>
+                            <p>
+                                <strong>Parámetros:</strong><br>
+                                <code>--name</code>: Nombre opcional del proyecto, por defecto <code>"react"</code>.
+                            </p>
 
-    <h5>Configuración CORS para Desarrollo</h5>
-    <p>
-        Al ejecutar React en modo desarrollo, Lila edita automáticamente <code>main.py</code> para agregar la
-        configuración CORS necesaria. Por defecto:
-    </p>
+                            <h5>Configuración CORS para Desarrollo</h5>
+                            <p>
+                                Al ejecutar React en modo desarrollo, Lila edita automáticamente <code>main.py</code>
+                                para agregar la
+                                configuración CORS necesaria. Por defecto:
+                            </p>
 
-    <div class="code-editor">
-        <div class="editor-header">
-            <span class="editor-title">Fragmento de CORS en main.py</span>
-        </div>
-        <div class="editor-content">
-            <pre><code class="language-python">
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Fragmento de CORS en main.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
 # Inglés: for development react
 # Español: para desarrollo react
 cors = {
@@ -994,22 +998,25 @@ cors = {
     "allow_headers": ["*"]
 }
             </code></pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <h5>Rutas Automáticas y Montaje de Assets</h5>
-    <p>
-        Lila modifica <code>app/routes/routes.py</code> automáticamente para tu build de React. Esto asegura
-        que los assets del build se sirvan correctamente y que <code>index.html</code> se renderice desde la
-        caché.
-    </p>
+                            <h5>Rutas Automáticas y Montaje de Assets</h5>
+                            <p>
+                                Lila modifica <code>app/routes/routes.py</code> automáticamente para tu build de React.
+                                Esto asegura
+                                que los assets del build se sirvan correctamente y que <code>index.html</code> se
+                                renderice desde la
+                                caché.
+                            </p>
 
-    <div class="code-editor">
-        <div class="editor-header">
-            <span class="editor-title">Ejemplo de routes.py</span>
-        </div>
-        <div class="editor-content">
-            <pre><code class="language-python">
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de routes.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
 router.mount(path="/assets", directory="templates/html/react/assets", name="react-assets")
 
 @router.route(path="/{path:path}", methods=["GET"])
@@ -1017,55 +1024,86 @@ async def home(request: Request):
     response = render(request=request, template="react/index")
     return response
             </code></pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
+                           <div>
+                             <h3>
+                                Recuerda modificar en el archivo <code>main.py</code> , cuando vayas a pasar tus rutas
+                                para inicializar
+                                la aplicación , pasa siempre primero <strong>api_routes</strong> o como tu le hayas
+                                puesto.
+                                <br /> Esto es clave para que tome tus rutas de api, sin colisionar con la ruta general
+                                de React <code>
+            @router.route(path="/{path:path}", methods=["GET"])
+        </code>
+                                , donde React , con React Router o lo que utilices pueda manejar todas las rutas .
+                                <br /> Quedando de esta forma en <code>main.py</code>
 
-    <h5>Prerender y Caché</h5>
-    <p>
-        Para mejorar el SEO, Lila soporta prerenderizar tus páginas React y guardarlas en caché. Después de
-        ejecutar <code>npm run build</code>, puedes generar el HTML en caché:
-    </p>
+                            </h3>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+                                <code class="language-python">
+all_routes = list(itertools.chain( api_routes,routes)) 
+#Primero api_routes, luego routes (donde esta la ruta general de React)                                    <pre><code class="language-python">
+         </code>
+        </pre>
+                                </div>
+                            </div>
 
-    <div class="code-editor">
-        <div class="editor-header">
-            <span class="editor-title">Generar Caché</span>
-        </div>
-        <div class="editor-content">
-            <pre><code class="language-bash">
+                           </div>
+                            <h5>Prerender y Caché</h5>
+                            <p>
+                                Para mejorar el SEO, Lila soporta prerenderizar tus páginas React y guardarlas en caché.
+                                Después de
+                                ejecutar <code>npm run build</code>, puedes generar el HTML en caché:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Generar Caché</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
 python -m cli.prerender --url http://localhost:8001
 # o python3 -m cli.prerender
             </code></pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <p>
-        Luego, en tu archivo de desarrollo <code>react/index.html</code>, incluye el HTML en caché para la
-        hidratación y SEO:
-    </p>
+                            <p>
+                                Luego, en tu archivo de desarrollo <code>react/index.html</code>, incluye el HTML en
+                                caché para la
+                                hidratación y SEO:
+                            </p>
 
-    <div class="code-editor">
-        <div class="editor-header">
-            <span class="editor-title">Fragmento index.html</span>
-        </div>
-        <div class="editor-content">
-            <pre><code class="language-html">
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Fragmento index.html</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-html">
 <div id="root">{% include "react/cache/index.html" ignore missing %}</div>
             </code></pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <h5>Integración de Prerender en main.py</h5>
-    <p>
-        Opcionalmente, puedes ejecutar el prerender automáticamente al iniciar el servidor descomentando
-        la siguiente sección en <code>main.py</code>:
-    </p>
+                            <h5>Integración de Prerender en main.py</h5>
+                            <p>
+                                Opcionalmente, puedes ejecutar el prerender automáticamente al iniciar el servidor
+                                descomentando
+                                la siguiente sección en <code>main.py</code>:
+                            </p>
 
-    <div class="code-editor">
-        <div class="editor-header">
-            <span class="editor-title">main.py prerender al inicio</span>
-        </div>
-        <div class="editor-content">
-            <pre><code class="language-python">
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py prerender al inicio</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
 # import subprocess
 # import sys
 
@@ -1081,47 +1119,54 @@ python -m cli.prerender --url http://localhost:8001
 #         url_with_port.strip()
 #     ])
             </code></pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <h5>SEO e Hidratación</h5>
-    <p>
-        Al incluir el HTML en caché dentro del <code>div</code> con id <code>root</code>, React rehidrata
-        el contenido del lado del cliente. Esto permite:
-    </p>
-    <ul>
-        <li>Fuerte reconocimiento SEO por Google Bots y sistemas de IA.</li>
-        <li>Pintado inicial más rápido con HTML prerenderizado.</li>
-        <li>Caché diario opcional usando una tarea programada de prerender.</li>
-    </ul>
+                            <h5>SEO e Hidratación</h5>
+                            <p>
+                                Al incluir el HTML en caché dentro del <code>div</code> con id <code>root</code>, React
+                                rehidrata
+                                el contenido del lado del cliente. Esto permite:
+                            </p>
+                            <ul>
+                                <li>Fuerte reconocimiento SEO por Google Bots y sistemas de IA.</li>
+                                <li>Pintado inicial más rápido con HTML prerenderizado.</li>
+                                <li>Caché diario opcional usando una tarea programada de prerender.</li>
+                            </ul>
 
-    <h5>Helpers y Contexto para React</h5>
-    <p>
-        Puedes pasar contexto desde plantillas Jinja2 a React usando etiquetas <code>&lt;script&gt;</code>
-        en <code>templates/html/react/index.html</code>. Útil para traducciones, configuración o cualquier
-        dato dinámico.
-    </p>
+                            <h5>Helpers y Contexto para React</h5>
+                            <p>
+                                Puedes pasar contexto desde plantillas Jinja2 a React usando etiquetas
+                                <code>&lt;script&gt;</code>
+                                en <code>templates/html/react/index.html</code>. Útil para traducciones, configuración o
+                                cualquier
+                                dato dinámico.
+                            </p>
 
-    <h5>Documentación Automática de API</h5>
-    <p>
-        Lila genera automáticamente la documentación de API usando modelos Pydantic. Todos los helpers
-        y middlewares se pueden combinar perfectamente con las rutas React.
-    </p>
+                            <h5>Documentación Automática de API</h5>
+                            <p>
+                                Lila genera automáticamente la documentación de API usando modelos Pydantic. Todos los
+                                helpers
+                                y middlewares se pueden combinar perfectamente con las rutas React.
+                            </p>
 
-</article>
+                        </article>
 
-                        
+
                         <article id="lila-js-esp">
                             <h1>Documentación de Lila JS</h1>
                             <p>
-                                Lila JS es un micro-framework de JavaScript minimalista para construir aplicaciones web modernas. Proporciona un sistema reactivo, enrutamiento y componentes en un paquete ligero.
+                                Lila JS es un micro-framework de JavaScript minimalista para construir aplicaciones web
+                                modernas. Proporciona un sistema reactivo, enrutamiento y componentes en un paquete
+                                ligero.
                             </p>
 
                             <h2>Conceptos Centrales</h2>
 
                             <h3>Componentes</h3>
                             <p>
-                                Los componentes son los bloques de construcción de una aplicación Lila JS. Encapsulan una plantilla, estado y acciones.
+                                Los componentes son los bloques de construcción de una aplicación Lila JS. Encapsulan
+                                una plantilla, estado y acciones.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1162,7 +1207,8 @@ App.addRoute('/about', 'About');
 
                             <h3>Inicialización</h3>
                             <p>
-                                Para iniciar la aplicación y manejar el enrutamiento, necesitas llamar a `handleRouting()`.
+                                Para iniciar la aplicación y manejar el enrutamiento, necesitas llamar a
+                                `handleRouting()`.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1224,7 +1270,7 @@ handleRouting();
                             </div>
                         </article>
 
-            
+
                         <article id="upload-esp">
                             <h1>Helper para Subida de Archivos</h1>
                             <p><strong>
@@ -1866,8 +1912,9 @@ async def login(request: Request):
                                 <li>
                                     <strong>Bloqueo de Extensiones Maliciosas</strong>:
                                     Bloquea URLs que contienen extensiones de archivo maliciosas como <code>.php</code>,
-                                    <code>.asp</code>, <code>.jsp</code> y <code>.aspx</code>. 
-                                    Dado que no ejecutamos dichas extensiones de los lenguajes mencionados, se bloquean para evitar
+                                    <code>.asp</code>, <code>.jsp</code> y <code>.aspx</code>.
+                                    Dado que no ejecutamos dichas extensiones de los lenguajes mencionados, se bloquean
+                                    para evitar
                                     posibles ataques.
                                 </li>
                                 <li>
@@ -2071,7 +2118,7 @@ async def dispatch(self, request, call_next):
                                 </div>
                             </div>
                         </article>
- 
+
                         <article id="connections-esp">
                             <h1>Conexiones a la base de datos</h1>
                             <p>
@@ -2737,13 +2784,14 @@ async def admin_route(request: Request):
                             </p>
                         </article>
 
- <article id="minify-esp">
+                        <article id="minify-esp">
                             <h1>Minificar archivos para producción</h1>
                             <p>
-                                Con el comando <code>lila-minify</code> puedes minificar tus archivos js,css y html, que esten en las carpetas <code>public</code> y <code>templates</code>
+                                Con el comando <code>lila-minify</code> puedes minificar tus archivos js,css y html, que
+                                esten en las carpetas <code>public</code> y <code>templates</code>
                             </p>
 
-     
+
                             <div class="code-editor">
                                 <div class="editor-header">
                                     <span class="editor-title">Comando de Terminal</span>
@@ -2762,15 +2810,16 @@ python -m cli.minify
                                     </code></pre>
                                 </div>
                             </div>
- </article>
+                        </article>
 
 
-             <article id="production-esp">
+                        <article id="production-esp">
                             <h1>Despliegue a Producción</h1>
 
                             <h2>Servidor Linux (con systemd)</h2>
                             <p>
-                                Para desplegar tu aplicación Lila en un servidor Linux, se recomienda usar un entorno virtual y un servicio de systemd para gestionar el proceso.
+                                Para desplegar tu aplicación Lila en un servidor Linux, se recomienda usar un entorno
+                                virtual y un servicio de systemd para gestionar el proceso.
                             </p>
 
                             <h3>1. Crear un Entorno Virtual</h3>
@@ -2845,7 +2894,8 @@ sudo systemctl start lila.service
                                 En Windows, puedes usar el Programador de Tareas para ejecutar tu aplicación al inicio.
                             </p>
                             <ol>
-                                <li>Crea un script `.bat` o `.ps1` para iniciar tu aplicación, similar al script `start_lila.sh`.</li>
+                                <li>Crea un script `.bat` o `.ps1` para iniciar tu aplicación, similar al script
+                                    `start_lila.sh`.</li>
                                 <li>Abre el Programador de Tareas.</li>
                                 <li>Crea una nueva tarea que se ejecute al inicio del sistema.</li>
                                 <li>Establece la acción para que ejecute tu script.</li>

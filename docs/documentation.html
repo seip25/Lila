@@ -1018,6 +1018,36 @@ async def home(request: Request):
             </code></pre>
                                 </div>
                             </div>
+<div>
+<h3>
+Remember to modify the <code>main.py</code> file when passing your routes
+to initialize
+the application, always pass <strong>api_routes</strong> first, or whatever you have
+named it.
+<br/> This is key to getting your API routes without colliding with the general React route.
+<code>
+@router.route(path="/{path:path}", methods=["GET"])
+</code>
+, where React, with React Router, or whatever you use, can handle all the routes.
+<br /> Remaining this way in <code>main.py</code> 
+
+</h3> 
+<div class="code-editor"> 
+<div class="editor-header"> 
+<span class="editor-title">main.py</span> 
+</div> 
+<div class="editor-content"> 
+<pre> 
+<code class="language-python">
+all_routes = list(itertools.chain( api_routes,routes))
+#First api_routes, then routes (where the general React route is) <pre><code class="language-python"> 
+</code> 
+</pre> 
+</div> 
+</div> 
+
+</div>
+
 
                             <h5>Prerendering and Caching</h5>
                             <p>
