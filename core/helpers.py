@@ -11,6 +11,8 @@ import secrets
 from datetime import datetime, timedelta, date
 from typing import Union, List, Set
 from os import getenv
+from PIL import Image
+import io
 
 LOCALES_PATH = Path("app/locales")
 
@@ -120,7 +122,7 @@ def convert_date_to_str(value):
     return value
 
 
-ALLOWED_EXTENSIONS_ = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
+ALLOWED_EXTENSIONS_ = {"txt", "pdf", "png", "jpg", "jpeg"}
 MAX_FILE_SIZE_ = 10 * 1024 * 1024  # 10MB
 UPLOAD_DIR_ = "uploads"
 
@@ -236,7 +238,9 @@ async def upload(
 
                     with open(file_path, "wb") as fp:
                         fp.write(content)
-                    files.append(str(file_path))
+
+                    optimized_path = optimize_image(file_path,extension)
+                    files.append(optimized_path)
 
                 return JSONResponse(
                     {
@@ -289,6 +293,8 @@ async def upload(
             with open(file_path, "wb") as fp:
                 fp.write(content)
 
+            file_path = optimize_image(file_path,extension)
+
             return JSONResponse(
                 {
                     "file": str(file_path),
@@ -319,6 +325,27 @@ async def upload(
             },
             status_code=500,
         )
+
+
+def optimize_image(file_path: Path, extension: str, max_width=1920, quality=75) -> Path:
+    img = Image.open(file_path)
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+
+    if img.width > max_width:
+        ratio = max_width / float(img.width)
+        new_height = int(img.height * ratio)
+        img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
+    optimized_filename = f"{file_path.stem}.webp"
+    optimized_path = file_path.parent / optimized_filename
+
+    if extension.lower() in ["jpg", "jpeg", "png"]:
+        img.save(optimized_path, format="WEBP", optimize=True, quality=quality)
+    else:
+        img.save(optimized_path, format=img.format, optimize=True, quality=quality)
+
+    return optimized_path
 
 
 def getenvironment(
