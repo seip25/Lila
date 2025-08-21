@@ -1,4 +1,4 @@
-from core.env import THEME_DEFAULT, LANG_DEFAULT, SECRET_KEY
+from app.config import THEME_DEFAULT, LANG_DEFAULT, SECRET_KEY
 from core.session import Session
 from core.request import Request
 from core.responses import JSONResponse

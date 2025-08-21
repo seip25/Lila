@@ -1,5 +1,5 @@
 import json
-from core.env import SECRET_KEY
+from app.config import SECRET_KEY
 from itsdangerous import Signer, BadSignature
 from core.request import Request
 

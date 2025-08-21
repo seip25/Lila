@@ -11,6 +11,7 @@ from argon2 import PasswordHasher
 from functools import wraps
 from core.responses import convert_to_serializable
 from core.templates import render
+from app.config import LOG_BASE_DIR as LOG_BASE_DIR_ADMIN
  
 connection = connection
 ph = PasswordHasher()
@@ -122,12 +123,12 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
     system_used_memory, system_total_memory, cpu_usage = get_system_memory_usage()
 
     logs = {}
-    log_base_dir = "app/logs"
+    LOG_BASE_DIR = LOG_BASE_DIR_ADMIN
     logs_html = ""
 
-    if os.path.exists(log_base_dir):
-        for log_folder in os.listdir(log_base_dir):
-            log_folder_path = os.path.join(log_base_dir, log_folder)
+    if os.path.exists(LOG_BASE_DIR):
+        for log_folder in os.listdir(LOG_BASE_DIR):
+            log_folder_path = os.path.join(LOG_BASE_DIR, log_folder)
             if os.path.isdir(log_folder_path):
                 logs[log_folder] = {}
                 for log_file in os.listdir(log_folder_path):

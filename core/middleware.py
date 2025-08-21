@@ -7,6 +7,10 @@ import json
 import os
 
 
+from starlette.middleware import Middleware
+
+Middleware=Middleware
+
 # English: Load data from a JSON file. If the file doesn't exist, is empty, or invalid, it initializes it with a default value.
 # Español: Cargar datos desde un archivo JSON. Si el archivo no existe, está vacío o es inválido, lo inicializa con un valor por defecto.
 def load_blocked_data(file_path, default_value):

@@ -5,14 +5,29 @@ from starlette.middleware.cors import CORSMiddleware
 from core.logger import Logger
 from core.middleware import ErrorHandlerMiddleware
 import os 
+from app.config import PATH_TEMPLATE_NOT_FOUND
+from typing import List, Optional, Dict, Any
+
 
 class App(Starlette):
-    def __init__(self, debug: bool = False, routes=[], cors=None):
-        super().__init__(debug=debug, routes=routes)
-        try:
+    def __init__(
+        self, 
+        debug: bool = False, 
+        routes: List = None, 
+        cors: Optional[Dict[str, Any]] = None,
+        middleware: List = None
+    ):
+        routes = routes or []
         
+        middleware = middleware or []
+        
+        super().__init__(debug=debug, routes=routes, middleware=middleware)
+        
+        try:
             self.add_exception_handler(404, self._404_page)
-            self.add_middleware(ErrorHandlerMiddleware)
+            
+            if not any(isinstance(m, ErrorHandlerMiddleware) for m in self.user_middleware):
+                self.add_middleware(ErrorHandlerMiddleware)
             
             if cors:
                 self.add_middleware(
@@ -25,18 +40,24 @@ class App(Starlette):
 
             Logger.info("Application started successfully")
         except Exception as e:
-            Logger.error(f"Error: {e}", exception=e)
+            Logger.error(f"Error initializing application: {e}", exception=e)
 
-    
     async def _404_page(self, request, exc):
-        excluded_words={"public", "service-worker", "css","js","img","favicon.ico"}
-
-        if all(word not in request.url.path for word in excluded_words ):
-            Logger.warning(await Logger.request(request=request))
+        static_extensions = {'.js', '.css', '.jpg', '.jpeg', '.png', '.gif', '.ico', '.svg', '.woff', '.woff2', '.ttf', '.eot'}
+        excluded_paths = {'public', 'static', 'assets', 'favicon.ico'}
         
-        verify_404 = os.path.exists(f"templates/html/404.html")
-        if not verify_404:
+        should_log = True
+        path = request.url.path.lower()
+        
+        if any(path.endswith(ext) for ext in static_extensions) or any(excluded in path for excluded in excluded_paths):
+            should_log = False
+        
+        if should_log:
+            Logger.warning(f"404 Not Found: {request.url.path} - {await Logger.request(request=request)}")
+        
+        if os.path.exists(PATH_TEMPLATE_NOT_FOUND):
+            response = render(request=request, template="404")
+            return response
+        else:
             html_content = "<h1>404 Not Found</h1><p>The requested resource was not found on this server.</p>"
-            return HTMLResponse(content=html_content, status_code=404) 
-        response = render(request=request, template="404")
-        return response
+            return HTMLResponse(content=html_content, status_code=404)

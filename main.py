@@ -1,13 +1,13 @@
 from core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-from core.env import PORT, HOST,DEBUG
+from core.middleware import Middleware
+from app.config import PORT, HOST,DEBUG
+from app.middlewares.default import LoggingMiddleware,IPBlockingMiddleware,URLBlockingMiddleware,MaliciousExtensionMiddleware,SensitivePathMiddleware,ErrorHandlerMiddleware
 import itertools
 import uvicorn
 import asyncio
-
-
-
+ 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
 all_routes = list(itertools.chain(routes, api_routes))
@@ -40,7 +40,20 @@ cors=None
     
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
-app = App(debug=DEBUG, routes=all_routes,cors=cors)
+
+app = App(
+    debug= DEBUG,
+    routes=all_routes,
+    cors=cors,
+    middleware=[
+        Middleware(LoggingMiddleware),
+        Middleware(IPBlockingMiddleware),
+        Middleware(URLBlockingMiddleware),
+        Middleware(MaliciousExtensionMiddleware),
+        Middleware(SensitivePathMiddleware),
+        Middleware(ErrorHandlerMiddleware),
+    ]
+)
 
 #English: To ensure SEO (bots, AI), caching, and HTML hydration, uncomment these lines.
 #Adding {% include "react/cache/index.html" %} to <div id="root">

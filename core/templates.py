@@ -1,5 +1,5 @@
 from starlette.templating import Jinja2Templates
-from core.env import VERSION_PROJECT,TITLE_PROJECT
+from app.config import VERSION_PROJECT,TITLE_PROJECT
 from core.helpers import theme,lang,translate as t
 from core.request import Request
 from core.responses import HTMLResponse ,JSONResponse

@@ -2,7 +2,7 @@ from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 from core.responses import HTMLResponse, JSONResponse
 from core.request import Request
-from core.env import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
+from app.config import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
