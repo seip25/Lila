@@ -1,4 +1,4 @@
-from app.config import THEME_DEFAULT, LANG_DEFAULT, SECRET_KEY
+from app.config import THEME_DEFAULT, LANG_DEFAULT, SECRET_KEY,PATH_LOCALES,PATH_UPLOADS
 from core.session import Session
 from core.request import Request
 from core.responses import JSONResponse
@@ -12,14 +12,13 @@ from datetime import datetime, timedelta, date
 from typing import Union, List, Set
 from os import getenv
 from PIL import Image
-import io
 
-LOCALES_PATH = Path("app/locales")
+ 
 
 
 def theme(request: Request = None) -> str:
     if request:
-        t = Session.getSession(key="theme", request=request)
+        t = Session.getSessionValue(key="theme", request=request)
         if t:
             return Session.unsign(key="theme", request=request)
     t = THEME_DEFAULT
@@ -28,16 +27,16 @@ def theme(request: Request = None) -> str:
 
 def lang(request: Request) -> str:
     l = LANG_DEFAULT or "en"
-    session_lang = Session.getSession(key="lang", request=request)
+    session_lang = Session.getSessionValue(key="lang", request=request) 
     if session_lang:
-        l = Session.unsign(key="lang", request=request)
+        l = Session.unsign(key="lang", request=request) 
     return l
 
 
 def translate(file_name: str, request: Request, lang_default: str = None) -> dict:
     current_lang = lang(request) if not lang_default else lang_default
     translations = {}
-    file_path = LOCALES_PATH / f"{file_name}.json"
+    file_path = Path(PATH_LOCALES) / f"{file_name}.json"
 
     try:
         with open(file=file_path, mode="r", encoding="utf-8") as f:
@@ -99,7 +98,7 @@ def get_token(token: str):
         )
 
 
-def get_user_by_token(request: Request):
+def get_user_by_token(request: Request,key:str="user_id"):
     token = request.headers.get("Authorization")
     if not token:
         return JSONResponse(
@@ -108,7 +107,7 @@ def get_user_by_token(request: Request):
     token = get_token(token=token)
     if isinstance(token, JSONResponse):
         return token
-    user_id = token.get("user_id")
+    user_id = token.get(key)
     if not user_id:
         return JSONResponse(
             {"session": False, "message": "Invalid token"}, status_code=401
@@ -124,13 +123,12 @@ def convert_date_to_str(value):
 
 ALLOWED_EXTENSIONS_ = {"txt", "pdf", "png", "jpg", "jpeg"}
 MAX_FILE_SIZE_ = 10 * 1024 * 1024  # 10MB
-UPLOAD_DIR_ = "uploads"
 
 
 async def upload(
     request: Request,
     name_file: Union[str, List[str]] = "file",
-    UPLOAD_DIR: str = UPLOAD_DIR_,
+    UPLOAD_DIR: str = PATH_UPLOADS,
     ALLOWED_EXTENSIONS: Set[str] = ALLOWED_EXTENSIONS_,
     MAX_FILE_SIZE: int = MAX_FILE_SIZE_,
 ):

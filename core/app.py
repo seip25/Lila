@@ -2,8 +2,7 @@ from starlette.applications import Starlette
 from core.responses import HTMLResponse
 from core.templates import render
 from starlette.middleware.cors import CORSMiddleware
-from core.logger import Logger
-from core.middleware import ErrorHandlerMiddleware
+from core.logger import Logger 
 import os 
 from app.config import PATH_TEMPLATE_NOT_FOUND
 from typing import List, Optional, Dict, Any
@@ -25,9 +24,6 @@ class App(Starlette):
         
         try:
             self.add_exception_handler(404, self._404_page)
-            
-            if not any(isinstance(m, ErrorHandlerMiddleware) for m in self.user_middleware):
-                self.add_middleware(ErrorHandlerMiddleware)
             
             if cors:
                 self.add_middleware(

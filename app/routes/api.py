@@ -2,7 +2,7 @@ from core.request import Request  # English: Handles HTTP requests in the applic
 from core.responses import  JSONResponse # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
 from core.routing import Router # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
 from pydantic import  EmailStr,BaseModel  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
-from core.helpers import get_user_by_token
+from app.helpers.helpers import get_user_by_token
 from app.middlewares.middlewares import validate_token, check_token, check_session
 
 # English: Initialize the router instance for managing API routes.
@@ -83,6 +83,7 @@ middlewares_user = {
 }
 # Rest crud generate ,base models SQl and models pydantic
 router.rest_crud_generate(
+    router=router,
     connection=connection,
     model_sql=User,
     model_pydantic=UserModel,

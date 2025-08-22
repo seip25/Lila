@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 from starlette.middleware.base import BaseHTTPMiddleware
-from core.responses import HTMLResponse,JSONResponse
+from core.responses import HTMLResponse, JSONResponse
 from core.request import Request
 from core.logger import Logger
 from datetime import datetime
 import json
 import os
-from typing import  Any
+import traceback
+import sys
+from typing import Any
 from app.config import PATH_SECURITY
+from app.config import SENSITIVE_PATHS
 
 
 class BaseSecurityMiddleware(BaseHTTPMiddleware, ABC):
@@ -16,7 +19,7 @@ class BaseSecurityMiddleware(BaseHTTPMiddleware, ABC):
         self.config_file = config_file
         self.default_value = default_value
         self.data = self.load_data()
-    
+
     def load_data(self):
         try:
             if not os.path.exists(self.config_file):
@@ -71,9 +74,10 @@ class BaseSecurityMiddleware(BaseHTTPMiddleware, ABC):
     async def dispatch(self, request, call_next):
         if await self.check_request(request):
             return await self.handle_blocked_request(request)
-        
+
         response = await call_next(request)
         return response
+
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -81,12 +85,39 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         except Exception as e:
-            Logger.error(f"Unhandled Error: {str(e)}")
-            print(str(e))
+            exc_type, exc_value, exc_tb = sys.exc_info()
+
+            if exc_tb:
+                tb = exc_tb
+                while tb.tb_next:
+                    tb = tb.tb_next
+
+                frame = tb.tb_frame
+                filename = frame.f_code.co_filename
+                lineno = tb.tb_lineno
+                function = frame.f_code.co_name
+
+                error_info = {
+                    "type": exc_type.__name__,
+                    "message": str(e),
+                    "file": filename,
+                    "line": lineno,
+                    "function": function,
+                    "traceback": traceback.format_exc(),
+                }
+
+                Logger.error(
+                    f"Error: {error_info['type']} in {error_info['file']}:{error_info['line']}"
+                )
+                Logger.error(f"Function: {error_info['function']}")
+                Logger.error(f"Message: {error_info['message']}")
+                Logger.error(f"Traceback:\n{error_info['traceback']}")
+
             return JSONResponse(
                 {"error": "Internal Server Error", "success": False}, status_code=500
             )
-        
+
+
 class IPBlockingMiddleware(BaseSecurityMiddleware):
     def __init__(self, app, blocked_ips_file=f"{PATH_SECURITY}/blocked_ips.json"):
         super().__init__(app, blocked_ips_file, default_value={})
@@ -100,7 +131,7 @@ class IPBlockingMiddleware(BaseSecurityMiddleware):
             content="<h1>Access Denied</h1><p>Your IP has been temporarily blocked.</p>",
             status_code=403,
         )
-    
+
 
 class URLBlockingMiddleware(BaseSecurityMiddleware):
     def __init__(self, app, blocked_urls_file=f"{PATH_SECURITY}blocked_urls.json"):
@@ -115,16 +146,22 @@ class URLBlockingMiddleware(BaseSecurityMiddleware):
             content="<h1>Access Denied</h1><p>This URL has been temporarily blocked.</p>",
             status_code=403,
         )
-    
+
+
 class MaliciousExtensionMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, malicious_extensions=None, block_duration_hours=6):
         super().__init__(app)
-        self.malicious_extensions = malicious_extensions or [".php", ".asp", ".jsp", ".aspx"]
+        self.malicious_extensions = malicious_extensions or [
+            ".php",
+            ".asp",
+            ".jsp",
+            ".aspx",
+        ]
         self.block_duration_hours = block_duration_hours
 
     async def dispatch(self, request, call_next):
         url_path = request.url.path.lower()
-        
+
         if any(ext in url_path for ext in self.malicious_extensions):
             client_ip = request.client.host
             Logger.warning(f"Malicious extension detected from {client_ip}: {url_path}")
@@ -132,20 +169,20 @@ class MaliciousExtensionMiddleware(BaseHTTPMiddleware):
                 content="<h1>Access Denied</h1><p>Malicious URL detected.</p>",
                 status_code=403,
             )
-        
+
         response = await call_next(request)
         return response
-    
+
+
 class SensitivePathMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, sensitive_paths_file=f"{PATH_SECURITY}sensitive_paths.json"):
+    def __init__(
+        self, app, sensitive_paths_file=f"{PATH_SECURITY}sensitive_paths.json"
+    ):
         super().__init__(app)
         self.sensitive_paths = self.load_sensitive_paths(sensitive_paths_file)
 
     def load_sensitive_paths(self, file_path):
-        default_paths = [
-            "/admin", "/config", "/env", "/.env", "/.git", 
-            "/wp-admin", "/wp-login", "/database", "/backup"
-        ]
+        default_paths = SENSITIVE_PATHS
         try:
             if not os.path.exists(file_path):
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -175,7 +212,7 @@ class SensitivePathMiddleware(BaseHTTPMiddleware):
         url_path = request.url.path.lower()
         body = await request.body()
         body_str = str(body).lower()
-        
+
         if any(path in url_path or path in body_str for path in self.sensitive_paths):
             client_ip = request.client.host
             Logger.warning(f"Sensitive path detected from {client_ip}: {url_path}")
@@ -183,15 +220,34 @@ class SensitivePathMiddleware(BaseHTTPMiddleware):
                 content="<h1>Access Denied</h1><p>Sensitive path detected.</p>",
                 status_code=403,
             )
-        
+
         response = await call_next(request)
         return response
-    
+
+
 class LoggingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, exclude_extensions=None, exclude_paths=None):
         super().__init__(app)
-        self.exclude_extensions = exclude_extensions or {'.js', '.css', '.jpg', '.jpeg', '.png', '.gif', '.ico', '.svg', '.woff', '.woff2', '.ttf', '.eot'}
-        self.exclude_paths = exclude_paths or {'public', 'static', 'assets', 'favicon.ico'}
+        self.exclude_extensions = exclude_extensions or {
+            ".js",
+            ".css",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".ico",
+            ".svg",
+            ".woff",
+            ".woff2",
+            ".ttf",
+            ".eot",
+        }
+        self.exclude_paths = exclude_paths or {
+            "public",
+            "static",
+            "assets",
+            "favicon.ico",
+        }
 
     async def should_log(self, path: str) -> bool:
         path_lower = path.lower()
@@ -204,6 +260,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         if await self.should_log(request.url.path):
             Logger.info(await Logger.request(request=request))
-        
+
         response = await call_next(request)
         return response

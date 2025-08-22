@@ -6,7 +6,7 @@ from app.config import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel
 from argon2 import PasswordHasher
-from core.helpers import generate_token_value,get_user_by_token
+from app.helpers.helpers import generate_token_value, get_user_by_token
 from core.logger import Logger
 import datetime
 import re
@@ -63,7 +63,7 @@ class Router:
                   
                     <script>
                         const ui = SwaggerUIBundle({
-                            url: '/openapi.json',  // Este es el endpoint que genera el JSON de OpenAPI
+                            url: '/openapi.json',  
                             dom_id: '#swagger-ui',
                             deepLinking: true,
                             presets: [
@@ -182,6 +182,7 @@ class Router:
 
     def rest_crud_generate(
         self,
+        router,
         connection,
         model_sql,
         model_pydantic: Type[BaseModel],
@@ -190,11 +191,13 @@ class Router:
         active: bool = False,
         delete_logic: bool = False,
         middlewares: dict = None,
-        jsonresponse_prefix:str='',
-        user_id_session:bool| str=False
+        jsonresponse_prefix: str = "",
+        user_id_session: bool | str = False,
+        base_path: str = None,
     ) -> None:
-        self.name = f"/api/{model_sql.__tablename__}"
-
+        name = base_path or f"/api/{model_sql.__tablename__}"
+        crud_routes=[]
+        
         def middleware(func):
             @wraps(func)
             async def middleware_wr(*args, **kwargs):
@@ -205,50 +208,53 @@ class Router:
                     return result
 
             return middleware_wr
-        
-        async def execute_middleware(self,type:str):
+
+        async def execute_middleware(self, type: str):
             if middlewares is not None and type in middlewares:
-                        for middleware_get in middlewares[type]:
-                            middleware_func = middleware(middleware_get)
-                            response =await middleware_func(self)
-                            if isinstance(response,JSONResponse):
-                                return response
+                for middleware_get in middlewares[type]:
+                    middleware_func = middleware(middleware_get)
+                    response = await middleware_func(self)
+                    if isinstance(response, JSONResponse):
+                        return response
 
         def get_user_id_session(self):
-            id_token =get_user_by_token(self)
-            if isinstance(id_token,JSONResponse):
+            id_token = get_user_by_token(self)
+            if isinstance(id_token, JSONResponse):
                 return id_token
             return id_token
-        
-        
+
         async def get(self):
             try:
-                response =await execute_middleware(self,type='get')
-                if isinstance(response,JSONResponse):
+                response = await execute_middleware(self, type="get")
+                if isinstance(response, JSONResponse):
                     return response
 
                 columns = " , ".join(select) if select else "*"
                 filters = f"WHERE active = 1" if active else ""
-                params={"user_id":0}
-                if user_id_session: 
-                    
-                    user_id=get_user_id_session(self)
-                    if isinstance(user_id,JSONResponse):
+                params = {"user_id": 0}
+                if user_id_session:
+
+                    user_id = get_user_id_session(self)
+                    if isinstance(user_id, JSONResponse):
                         return user_id
-                    params[user_id_session]=user_id
-                    filters +=f" AND {user_id_session}= :{user_id_session}"
+                    params[user_id_session] = user_id
+                    filters += f" AND {user_id_session}= :{user_id_session}"
                 else:
-                    params=None
+                    params = None
 
                 query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
-                items = connection.query(query=query,params=params,return_rows=True)
-                return JSONResponse(items) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:items})
+                items = connection.query(query=query, params=params, return_rows=True)
+                return (
+                    JSONResponse(items)
+                    if jsonresponse_prefix == ""
+                    else JSONResponse({jsonresponse_prefix: items})
+                )
             except Exception as e:
                 Logger.error(f"Error rest crud , GET: {str(e)}")
 
         async def post(self):
-            response =await execute_middleware(self,type='post')
-            if isinstance(response,JSONResponse):
+            response = await execute_middleware(self, type="post")
+            if isinstance(response, JSONResponse):
                 return response
             try:
                 body = await self.json()
@@ -295,21 +301,20 @@ class Router:
                 columns_ += ",created_date"
                 values += ",:created_date"
 
-            if user_id_session: 
-                user_id=get_user_id_session(self)
-                if isinstance(user_id,JSONResponse):
+            if user_id_session:
+                user_id = get_user_id_session(self)
+                if isinstance(user_id, JSONResponse):
                     return user_id
                 if user_id is not None:
                     params[user_id_session] = user_id
                     columns_ += f", {user_id_session}"
-                    values += f", :{user_id_session}" 
-             
+                    values += f", :{user_id_session}"
+
             if active:
                 params["active"] = 1
                 columns_ += ", active"
                 values += ", :active"
 
-           
             query = (
                 f" INSERT INTO {model_sql.__tablename__} ({columns_}) VALUES ({values})"
             )
@@ -318,7 +323,9 @@ class Router:
                 id = result.lastrowid if result else 0
                 result = True if result else False
                 status_code = 201 if result else 200
-                return JSONResponse({"success": result,"id":id}, status_code=status_code)
+                return JSONResponse(
+                    {"success": result, "id": id}, status_code=status_code
+                )
             except Exception as e:
                 print(e)
                 Logger.error(f"Error rest_crud_generate , POST: {str(e)}")
@@ -333,36 +340,37 @@ class Router:
             elif "id_user" in model_pydantic.__fields__.keys():
                 filters += " AND id_user:id_user"
 
+            id = int(self.path_params["id"])
+            params = {"user_id": 0, "id": id}
 
-            id = int(self.path_params["id"] )
-            params = {"user_id":0,"id":id}
-
-            if user_id_session: 
-                user_id=get_user_id_session(self)
-                if isinstance(user_id,JSONResponse):
+            if user_id_session:
+                user_id = get_user_id_session(self)
+                if isinstance(user_id, JSONResponse):
                     return user_id
                 if user_id is not None:
                     params[user_id_session] = user_id
                     filters += f" AND {user_id_session} = :{user_id_session}"
-                    
-            
-            
+
             query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
-            results = connection.query(query=query, params=params,return_row=True)
+            results = connection.query(query=query, params=params, return_row=True)
             return results
 
         async def get_id(self) -> dict:
-            response =await execute_middleware(self,type='get_id')
-            if isinstance(response,JSONResponse):
+            response = await execute_middleware(self, type="get_id")
+            if isinstance(response, JSONResponse):
                 return response
             item = search_id(self)
             if item is None:
                 return JSONResponse({}, status_code=404)
-            return JSONResponse(item) if jsonresponse_prefix =='' else JSONResponse({jsonresponse_prefix:item})
+            return (
+                JSONResponse(item)
+                if jsonresponse_prefix == ""
+                else JSONResponse({jsonresponse_prefix: item})
+            )
 
         async def put(self):
-            response =await execute_middleware(self,type='put')
-            if isinstance(response,JSONResponse):
+            response = await execute_middleware(self, type="put")
+            if isinstance(response, JSONResponse):
                 return response
             result = search_id(self)
             if result is None:
@@ -387,8 +395,8 @@ class Router:
                 for field in model_pydantic.__fields__.keys()
             }
 
-            id = int(self.path_params["id"] )
-            params["id"]=id
+            id = int(self.path_params["id"])
+            params["id"] = id
             if "password" in params:
                 params["password"] = ph.hash(params["password"])
 
@@ -399,14 +407,14 @@ class Router:
 
             filters = ""
 
-            if user_id_session: 
-                user_id=get_user_id_session(self)
-                if isinstance(user_id,JSONResponse):
+            if user_id_session:
+                user_id = get_user_id_session(self)
+                if isinstance(user_id, JSONResponse):
                     return user_id
                 if user_id is not None:
                     params[user_id_session] = user_id
                     filters += f" AND {user_id_session} = :{user_id_session}"
-            
+
             query = f" UPDATE {model_sql.__tablename__} SET {values} WHERE id= :id {filters}"
             id = self.path_params["id"]
             params["id"] = int(id)
@@ -415,8 +423,8 @@ class Router:
             return JSONResponse({"success": result_update})
 
         async def delete(self):
-            response =await execute_middleware(self,type='delete')
-            if isinstance(response,JSONResponse):
+            response = await execute_middleware(self, type="delete")
+            if isinstance(response, JSONResponse):
                 return response
             result = search_id(self)
             if result is None:
@@ -425,9 +433,9 @@ class Router:
             id = int(self.path_params["id"])
             params = {"id": id, "user_id": 0}
             filters = ""
-            if user_id_session: 
-                user_id=get_user_id_session(self)
-                if isinstance(user_id,JSONResponse):
+            if user_id_session:
+                user_id = get_user_id_session(self)
+                if isinstance(user_id, JSONResponse):
                     return user_id
                 if user_id is not None:
                     params[user_id_session] = user_id
@@ -442,28 +450,31 @@ class Router:
             result_delete = True if result else False
             return JSONResponse({"success": result_delete})
 
-        self.routes += [
-            Route(path=self.name, name=self.name, methods=["GET"], endpoint=get),
-            Route(path=self.name, name=self.name, methods=["POST"], endpoint=post),
+        crud_routes += [
+            Route(path=name, name=name, methods=["GET"], endpoint=get),
+            Route(path=name, name=name, methods=["POST"], endpoint=post),
             Route(
-                path=f"{self.name}/{{id}}",
-                name=f"{self.name}_get_id",
+                path=f"{name}/{{id}}",
+                name=f"{name}_get_id",
                 methods=["GET"],
                 endpoint=get_id,
             ),
             Route(
-                path=f"{self.name}/{{id}}",
-                name=f"{self.name}_put",
+                path=f"{name}/{{id}}",
+                name=f"{name}_put",
                 methods=["PUT"],
                 endpoint=put,
             ),
             Route(
-                path=f"{self.name}/{{id}}",
-                name=f"{self.name}_delete",
+                path=f"{name}/{{id}}",
+                name=f"{name}_delete",
                 methods=["DELETE"],
                 endpoint=delete,
             ),
         ]
-
-        self.docs.append({"path": self.name, "model": model_pydantic})
-        self.docs.append({"path": f"{self.name}/{{id}}", "model": model_pydantic})
+        docs_info = [
+            {"path": name, "model": model_pydantic},
+            {"path": f"{name}/{{id}}", "model": model_pydantic},
+        ]
+        router.routes.extend(crud_routes)
+        router.docs.extend(docs_info)

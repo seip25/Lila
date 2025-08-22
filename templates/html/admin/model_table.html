@@ -6,38 +6,45 @@
     <link rel=icon type=image href=/public/img/lila.png alt="Admin Lila Framework">
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>Admin - {{ model_name.capitalize() }}</title>
-    <link rel=stylesheet href=/public/css/pico.css>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src=/public/js/utils.js></script>
 </head>
 
-<body> {{ menu | safe }} <main class=container>
-        <article>
-            <h2 class="flex center">{{ model_name.capitalize() }}</h2>
-            <div id=table></div>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
+    {{ menu | safe }}
+    <main class="container mx-auto p-4 max-w-7xl">
+        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 class="text-3xl font-bold text-center mb-6 text-blue-600 dark:text-blue-400">
+                {{ model_name.capitalize() }}
+            </h2>
+            <div id="table"></div>
         </article>
     </main>
     <script>
-
         document.addEventListener('DOMContentLoaded', () => {
             const dataTable = new ResponsiveDataTable('table', {
                 data: {{ items_json | safe }},
-            columns: [
-            {%for header in headers %}
-        {
-            title: "{{header.capitalize()}}",
-                key : "{{header}}"
-        } {% if not loop.last %} , {% endif %}
-        {% endfor %}
+                columns: [
+                    {% for header in headers %}
+                        {
+                            title: "{{ header.capitalize() }}",
+                            key: "{{ header }}"
+                        }
+                        {% if not loop.last %}
+                            ,
+                        {% endif %}
+                    {% endfor %}
                 ],
-        rowsPerPage: 5,
-            search: true,
+                rowsPerPage: 5,
+                search: true,
                 pagination: true,
-                    responsive: true,
-                        headerTitles: { "id": "ID" },
-        summaryFields: ['id']
+                responsive: true,
+                headerTitles: {
+                    "id": "ID"
+                },
+                summaryFields: ['id']
             });
-
-            });
+        });
     </script>
 </body>
 

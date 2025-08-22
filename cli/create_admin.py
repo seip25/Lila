@@ -1,5 +1,5 @@
 import typer
-from lila.core.helpers import generate_token_value
+from app.helpers.helpers import generate_token_value
 from app.connections import connection
 from argon2 import PasswordHasher
 import os
@@ -24,7 +24,7 @@ def create_admin(user: str = "admin", password: str = None):
         typer.echo(f"Failed to create admin user '{user}'.")
         raise typer.Exit(code=1)
     main_file=os.path.join(project_root, "main.py")
-    marker = "#admin_marker"
+    marker = "admin_marker"
     replace_text = f"""
 from app.routes.admin import Admin
 from app.models.user import User

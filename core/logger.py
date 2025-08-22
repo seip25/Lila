@@ -4,15 +4,15 @@ from datetime import timedelta
 import traceback
 from core.request import Request
 import re
-from app.config import LOG_BASE_DIR
+from app.config import PATH_LOG_BASE_DIR
 
-if not os.path.exists(LOG_BASE_DIR):
-    os.makedirs(LOG_BASE_DIR)
+if not os.path.exists(PATH_LOG_BASE_DIR):
+    os.makedirs(PATH_LOG_BASE_DIR)
 
 
 def folder_logs(type):
     now = datetime.datetime.now().strftime("%d-%m-%Y")
-    path_ = f"{LOG_BASE_DIR}/{now}"
+    path_ = f"{PATH_LOG_BASE_DIR}/{now}"
     os.makedirs(path_, exist_ok=True)
     return f"{path_}/{type}.log"
 
@@ -98,8 +98,8 @@ class Logger:
 
 def delete_old_logs(days: int = 30):
     now = datetime.datetime.now()
-    for folder_name in os.listdir(LOG_BASE_DIR):
-        folder_path = os.path.join(LOG_BASE_DIR, folder_name)
+    for folder_name in os.listdir(PATH_LOG_BASE_DIR):
+        folder_path = os.path.join(PATH_LOG_BASE_DIR, folder_name)
         try:
             folder_date = datetime.datetime.strptime(folder_name, "%d-%m-%Y")
             if now - folder_date > timedelta(days=days):

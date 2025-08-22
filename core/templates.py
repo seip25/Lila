@@ -1,14 +1,18 @@
 from starlette.templating import Jinja2Templates
 from app.config import VERSION_PROJECT,TITLE_PROJECT
-from core.helpers import theme,lang,translate as t
+from app.helpers.helpers import theme,lang,translate as t
 from core.request import Request
 from core.responses import HTMLResponse ,JSONResponse
-from core.helpers import lang
+from app.helpers.helpers import lang
+from app.config import PATH_TEMPLATES_HTML,PATH_TEMPLATES_MARKDOWN
+from core.logger import Logger
 import markdown
 import os
 import traceback
+import sys
 
-templates = Jinja2Templates(directory='templates/html')
+
+templates = Jinja2Templates(directory=PATH_TEMPLATES_HTML)
  
 def render(request:Request, template: str,context :dict ={},theme_ :bool= True,translate:bool = True,files_translate:list=[],lang_default:str=None,templates=templates):
     try:
@@ -34,10 +38,39 @@ def render(request:Request, template: str,context :dict ={},theme_ :bool= True,t
         context.update(default_context)
         return templates.TemplateResponse(request=request,name=template,context=context)
     except Exception as e:
-        traceback.print_exc()
-        return JSONResponse({"success": False, "message": "Error"}, status_code=500)
+        
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        
+        error_info = {
+            'error_type': exc_type.__name__,
+            'error_message': str(e),
+            'template': template,
+            'traceback': traceback.format_exc()
+        }
+         
+        if exc_tb:
+            frame = exc_tb.tb_frame
+            error_info['file'] = frame.f_code.co_filename
+            error_info['line'] = exc_tb.tb_lineno
+            error_info['function'] = frame.f_code.co_name
+
+           
+            
+            Logger.error(f"Render error in {error_info['file']}:{error_info['line']} "
+                        f"({error_info['function']}): {error_info['error_message']}")
+        else:
+            Logger.error(f"Render error: {error_info['error_message']}") 
+
+        error_details = f"{error_info['error_type']}: {error_info['error_message']}"
+        message=  "Error rendering template"
+        print(f" {message} - {error_details}")
+        return JSONResponse({
+            "success": False, 
+            "message":message,
+            "error_details":error_details
+        }, status_code=500)
     
-def renderMarkdown(request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =True):
+def renderMarkdown(request,file : str , base_path:str =PATH_TEMPLATES_MARKDOWN,css_files : list = [],js_files:list=[],picocss : bool =True):
     file_path=os.path.join(base_path,f"{file}.md")
     if not os.path.exists(file_path):
         return HTMLResponse('<h5>404</h5><br/><p>Not found</p>')

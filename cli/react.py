@@ -102,7 +102,7 @@ export default defineConfig({
     # Step 4: Update CORS config in main.py / Paso 4: Actualizar configuración CORS en main.py
     print("\n🔧 Updating CORS configuration in main.py...\n"
           "🔧 Actualizando configuración CORS en main.py...\n")
-    marker = "#react_marker"
+    marker = "react_marker"
     replace_text = """
 #English: for development react
 #Espanol: para desarrollo react

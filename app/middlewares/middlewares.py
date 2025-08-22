@@ -2,7 +2,7 @@ from core.session import Session
 from core.responses import RedirectResponse, JSONResponse
 from core.request import Request
 from functools import wraps
-from core.helpers import get_token,generate_token
+from app.helpers.helpers import get_token,generate_token
 
 
 def login_required(func, key: str = "auth", url_return="/login"):

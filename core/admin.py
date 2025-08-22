@@ -1,7 +1,7 @@
 import psutil
 import os
 import json
-from core.helpers import lang
+from app.helpers.helpers import lang
 from core.responses import  RedirectResponse, JSONResponse
 from core.request import Request
 from core.routing import Router
@@ -11,7 +11,7 @@ from argon2 import PasswordHasher
 from functools import wraps
 from core.responses import convert_to_serializable
 from core.templates import render
-from app.config import LOG_BASE_DIR as LOG_BASE_DIR_ADMIN
+from app.config import PATH_LOG_BASE_DIR as PATH_LOG_BASE_DIR_ADMIN
  
 connection = connection
 ph = PasswordHasher()
@@ -94,8 +94,8 @@ async def admin_login(request: Request):
     if request.method == "POST":
         try:
             form_data = await request.json()
-            username = form_data.get("user")
-            password = form_data.get("password")
+            username = form_data.get("user",None)
+            password = form_data.get("password",None)
             admin = authenticate(username=username, password=password)
             if admin:
                 response = JSONResponse(
@@ -123,12 +123,11 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
     system_used_memory, system_total_memory, cpu_usage = get_system_memory_usage()
 
     logs = {}
-    LOG_BASE_DIR = LOG_BASE_DIR_ADMIN
+    PATH_LOG_BASE_DIR = PATH_LOG_BASE_DIR_ADMIN
     logs_html = ""
-
-    if os.path.exists(LOG_BASE_DIR):
-        for log_folder in os.listdir(LOG_BASE_DIR):
-            log_folder_path = os.path.join(LOG_BASE_DIR, log_folder)
+    if os.path.exists(PATH_LOG_BASE_DIR):
+        for log_folder in os.listdir(PATH_LOG_BASE_DIR):
+            log_folder_path = os.path.join(PATH_LOG_BASE_DIR, log_folder)
             if os.path.isdir(log_folder_path):
                 logs[log_folder] = {}
                 for log_file in os.listdir(log_folder_path):
@@ -136,24 +135,30 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
                         with open(os.path.join(log_folder_path, log_file), "r") as f:
                             logs[log_folder][log_file] = f.readlines()
 
-        logs_html = """
-        <details class="logs-container container ">
-            <summary class="logs-summary">📁 Logs</summary>
-            <ul class="logs-list">
+        logs_html = f"""
+        <details class="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-600">
+            <summary class="logs-summary font-bold cursor-pointer p-2 bg-gray-200 dark:bg-gray-600 rounded-md text-gray-800 dark:text-gray-200 flex items-center space-x-2">
+                📁 Logs
+            </summary>
+            <ul class="logs-list list-none pl-0 mt-2 space-y-2">
         """
         for log_folder, log_files in logs.items():
             logs_html += f"""
-            <li class="log-item mt-2">
-                <details class="log-folder">
-                    <summary class="log-folder-summary">📁 {log_folder}</summary>
-                    <ul class="log-files-list">
+            <li class="log-item">
+                <details class="log-folder bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                    <summary class="log-folder-summary font-medium cursor-pointer p-2 border-b dark:border-gray-700 flex items-center space-x-2">
+                        📁 {log_folder}
+                    </summary>
+                    <ul class="log-files-list list-none pl-0 mt-2 space-y-2">
             """
             for log_file, log_lines in log_files.items():
                 logs_html += f"""
                 <li class="log-file-item">
-                    <details class="log-file mt-2">
-                        <summary class="log-summary">📄 {log_file}</summary>
-                        <pre class="log-content">{"".join(log_lines)}</pre>
+                    <details class="log-file bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-2">
+                        <summary class="log-summary font-medium cursor-pointer flex items-center space-x-2">
+                            📄 {log_file}
+                        </summary>
+                        <pre class="log-content mt-2 p-2 border border-gray-300 dark:border-gray-600 rounded-md max-h-96 overflow-y-auto font-mono text-sm whitespace-pre-wrap break-words bg-black text-lime-400">{"".join(log_lines)}</pre>
                     </details>
                 </li>
                 """
@@ -186,42 +191,39 @@ def menu(models: list = []) -> str:
     """Generate the admin menu."""
 
     m = ""
+    
     for model in models:
         model_name = model.__name__.lower()
         model_plural = f"{model_name}s"
-        m += f"<li><a href='/admin/{model_plural}' class='secondary mt-2'>{model_name.capitalize()}</a></li>"
+        # m += f"<li><a href='/admin/{model_plural}' class='secondary mt-2'>{model_name.capitalize()}</a></li>"
+        m += f"<li><a href='/admin/{model_plural}' class='block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'>{model_name.capitalize()}</a></li>"
 
     return f"""
-        <header class="shadow p-4  ">
-        <nav class="container  ">
-        <ul>
-       <li>  <h3> <a href="/admin/" class="secondary" >Admin Dashboard</a> </h3></li>
-</ul>
-       <ul>
-        <li>
-            <details class="dropdown">
-            <summary>Menu</summary>
-            <ul>
-                {m}
-               <li>
-                 <a href="/admin/logout" class="mt-2 secondary">Logout</a>
-                </li>
-            </ul>
-            </details>
-
-        </li>
-       </ul>
-
-        
-         
-       
-       
+    <header class="bg-white dark:bg-gray-800 shadow-md p-4">
+        <nav class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/admin/" class="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Admin Dashboard</a>
+            </div>
+            
+            <div class="relative">
+                <details class="group">
+                    <summary class="flex items-center space-x-2 px-4 py-2 rounded-md cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <span>Menu</span>
+                        <svg class="w-4 h-4 transform group-open:rotate-180 transition-transform" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </summary>
+                    <ul class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10 p-2 space-y-1">
+                        {m}
+                        <li>
+                            <a href="/admin/logout" class="block px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">Logout</a>
+                        </li>
+                    </ul>
+                </details>
+            </div>
         </nav>
-        </header>
-
-        """
-
-
+    </header>
+    """
 def admin_routes(models: list, router: Router,default_route: str = "admin") -> Router:
 
     @router.route(path=f"/{default_route}/logout", methods=["GET"])

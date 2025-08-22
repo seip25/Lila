@@ -1,4 +1,4 @@
-from core.helpers import LANG_DEFAULT
+from app.helpers.helpers import LANG_DEFAULT
 from core.session import Session
 from core.request import Request
 
@@ -9,6 +9,6 @@ class Translate:
         Session.setSession(new_lang=lang,response=response)
         
     def getLang(self,request : Request)->str :
-        session_lang=Session.getSession(key='lang',request=request)
+        session_lang=Session.getSessionValue(key='lang',request=request)
         lang = session_lang if session_lang else LANG_DEFAULT
         return lang
