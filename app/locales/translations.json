@@ -146,5 +146,11 @@
   "example_reactive_lila_js": {
     "es": "Ejemplo de Lila Js Reactivo",
     "en": "Example of Reactive Lila Js"
-  }
+  },
+  "forgot password":{
+    "es": "Olvidaste tu contraseña?","en": "Forgot Password?"
+  },
+  "create account":{
+    "es":"Crear cuenta","en":"Create account"
+  } 
 }

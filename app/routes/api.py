@@ -41,7 +41,7 @@ class ExampleModel(BaseModel):
 # Español: Define una ruta "api/example", utilizando ExampleModel para la validación de entradas,con documentación automatica pasandole el parametro "model"("model=ExampleModel")
 @router.route(path="/api/example", methods=["POST"], model=ExampleModel)
 async def login(request: Request):
-    """Example function"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
+    """Example function get request json form"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     # English: Asynchronously parse JSON body from the request.
     # Español: Analiza asíncronamente el cuerpo JSON de la solicitud.
     body = await request.json()
@@ -79,7 +79,7 @@ middlewares_user = {
     "post": [],  
     "get_id": [],
     "put": [],
-    "delete": [check_session, check_token],# Example of passing middlewares to the function  'rest_crud_generate'
+    "delete": [check_session],# Example of passing middlewares to the function  'rest_crud_generate'
 }
 # Rest crud generate ,base models SQl and models pydantic
 router.rest_crud_generate(
