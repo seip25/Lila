@@ -163,10 +163,10 @@
                                 <div class="editor-content">
 
                                     <pre><code class="language-python">
-from core.app import App
+from lila.core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-from core.middleware import Middleware
+from lila.core.middleware import Middleware
 from app.config import PORT, HOST, DEBUG
 from app.middlewares.defaults import (
     LoggingMiddleware,
@@ -298,7 +298,7 @@ if __name__ == "__main__":
                                 <div class="editor-content">
                                     <pre>
                             <code class="language-python">
-#Import from core JSONResponse .
+#Import from lila.core JSONResponse .
 from lila.core.responses import JSONResponse 
 
 # Manages routes for API endpoints.
