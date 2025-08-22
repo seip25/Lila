@@ -1143,6 +1143,97 @@ python -m cli.prerender --url http://localhost:8001
                                 and middlewares can be combined seamlessly with React routes.
                             </p>
 
+                            <h5>Session Validation with React</h5>
+                            <p>
+                                In the backend, you can add a middleware to validate the session. You can also use JWT, but Session is more secure because it is signed by <code>itsdangerous</code>.
+                            </p>
+                            <p>
+                                This way, you can validate requests and store public IDs, tokens, etc., to validate sessions, or you can use JWT or both.
+                                The main recommendation is to validate the session this way or with <code>login_required</code>, which is another middleware that can also be configured there.
+                                This way, Lila and React are connected for the developer. In production, thanks to the <code>if DEBUG</code> condition, it will be secure with the signature of <code>itsdangerous</code> in the <code>Session</code> class.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app/routes/api.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from app.middlewares.middlewares import login_required_auth, check_token, check_session
+from lila.core.session import Session
+from app.config import DEBUG
+
+# Define a simple API route that supports GET method.
+@router.route(path="/api", methods=["GET"])
+async def api(request: Request):
+    """Api function"""
+    # Returns a simple JSON response for API verification.
+    response = JSONResponse({"api": True})
+    new_val={"id":20}
+    samesite="none" if DEBUG else "secure"
+    Session.setSession(new_val=new_val,name_cookie='auth',response=response,samesite=samesite)
+    return response
+
+
+# Define an API route that supports GET and POST methods.
+@router.route(path="/api/token", methods=["GET", "POST"])
+# Middleware to validate the JWT Token.
+@login_required_auth
+async def api_token(request: Request):
+    """Api Token function"""
+    print(Session.getSessionValue(request=request))
+    return JSONResponse({"api": True})
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app/middlewares/middlewares.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+def login_required_auth(func, key: str = "auth"):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data = Session.getSession(request=request,key=key)
+        if not session_data:
+            return JSONResponse({"session": False, "success": False}, status_code=401)
+        return await func(request, *args, **kwargs)
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">React Component</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+import { useEffect } from 'react';
+
+function MyComponent() {
+  useEffect(() => {
+    const start = async () => {
+      const resp = await fetch('http://127.0.0.1:8000/api', { credentials: 'include' });
+
+      const resp_ = await fetch('http://127.0.0.1:8000/api/token', { credentials: 'include' });
+      const json = await resp_.json();
+
+      console.log(json);
+    };
+    start();
+  }, []);
+
+  return (
+    &lt;div&gt;
+      {/* Your component JSX */}
+    &lt;/div&gt;
+  );
+}
+                                    </code></pre>
+                                </div>
+                            </div>
                         </article>
 
                         <article id="lila-js-eng">
