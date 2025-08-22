@@ -13,9 +13,6 @@ from typing import Union, List, Set
 from os import getenv
 from PIL import Image
 
- 
-
-
 def theme(request: Request = None) -> str:
     if request:
         t = Session.getSessionValue(key="theme", request=request)
@@ -23,7 +20,6 @@ def theme(request: Request = None) -> str:
             return Session.unsign(key="theme", request=request)
     t = THEME_DEFAULT
     return t
-
 
 def lang(request: Request) -> str:
     l = LANG_DEFAULT or "en"
