@@ -29,12 +29,6 @@ all_routes = list(itertools.chain(routes, api_routes))
 # Español: Marcador para las rutas de administrador en main.py.
 # admin_marker
 
-from app.routes.admin import Admin
-from app.models.user import User
-admin_routes=Admin(models=[User])
-all_routes = list(itertools.chain(routes, api_routes,admin_routes))
-    
-
 cors = None
 
 # English: CORS usage example
