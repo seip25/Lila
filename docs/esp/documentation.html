@@ -340,7 +340,7 @@ from lila.core.responses import JSONResponse  # Simplifica el envío de respuest
 from lila.core.routing import Router  # Administra las rutas de la API.
 from lila.core.request import Request  # Maneja solicitudes HTTP en la aplicación.
 from pydantic import EmailStr, BaseModel  # Valida y analiza modelos de datos para la validación de entradas.
-from lila.core.helpers import get_user_by_id_and_token
+from app.helpers.helpers import get_user_by_id_and_token
 from app.middlewares.middlewares import validate_token
 
 router = Router()
@@ -1417,7 +1417,7 @@ MAX_FILE_SIZE: int        # Tamaño máximo en bytes (por defecto: 10MB)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import upload
+from app.helpers.helpers import upload
 
 @router.route("/upload", methods=["POST"])
 async def uploadFile(request: Request):
@@ -1625,7 +1625,7 @@ async def home(request: Request):
 
                             <h2>Archivos de traducción</h2>
                             <p>Para cargar un archivo de locales, usa la función <code>translate</code> desde
-                                <code>lila.core.helpers</code>. Puedes acceder a las traducciones usando:
+                                <code>app.helpers.helpers</code>. Puedes acceder a las traducciones usando:
                             </p>
                             <ul>
                                 <li><code>translate</code> - devuelve un diccionario con todas las traducciones</li>
@@ -1694,7 +1694,7 @@ async def home(request: Request):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import translate_
+from app.helpers.helpers import translate_
 
 msg_error_login = translate_(
     key="Incorrect email or password", 
@@ -1718,7 +1718,7 @@ msg_error_login = translate_(
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import translate
+from app.helpers.helpers import translate
 
 all_translations = translate(
     request=request, 
@@ -1743,7 +1743,7 @@ all_translations = translate(
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import lang
+from app.helpers.helpers import lang
 
 current_language = lang(request)
                                     </code></pre>
@@ -1879,7 +1879,7 @@ class User(Base):
                             <p>
                                 El tercero es <code>validate_token</code>, que se utiliza para validar un token JWT
                                 gracias a los helpers <code>get_token</code> importados en
-                                <code>from lila.core.helpers import get_token</code>.
+                                <code>from app.helpers.helpers import get_token</code>.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1896,7 +1896,7 @@ from lila.core.session import Session
 from lila.core.responses import RedirectResponse, JSONResponse
 from lila.core.request import Request
 from functools import wraps
-from lila.core.helpers import get_token
+from app.helpers.helpers import get_token
 
 def login_required(func, key: str = 'auth', url_return='/login'):
     @wraps(func)
