@@ -162,56 +162,106 @@
                                 </div>
                                 <div class="editor-content">
 
-                                    <pre><code class="language-python"> 
-# Import necessary modules and routes
-from lila.core.app import App 
+                                    <pre><code class="language-python">
+from core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-
-# Import environment variables for host and port
-from lila.core.env import PORT, HOST
+from core.middleware import Middleware
+from app.config import PORT, HOST, DEBUG
+from app.middlewares.defaults import (
+    LoggingMiddleware,
+    IPBlockingMiddleware,
+    URLBlockingMiddleware,
+    MaliciousExtensionMiddleware,
+    SensitivePathMiddleware,
+    ErrorHandlerMiddleware,
+)
 import itertools
 import uvicorn
 import asyncio
 
-# Optionally, uncomment the following imports for database migrations and connections.
-# You can enable database migration or connection setup if necessary.
-# from database.migrations import migrate
-# from app.connections import connection
-
-# Combine application and API routes into a single list.
-# This combines both regular app routes and API routes for easy use.
+# English: Combining application and API routes into a single list.
+# Español: Combinando las rutas de la aplicación y la API en una única lista.
 all_routes = list(itertools.chain(routes, api_routes))
 
-# Initialize the app with debugging enabled and combined app.routes.
-# The app is initialized with debug mode on and the routes to handle the requests.
-app = App(debug=True, routes=all_routes)
+# English: Here we activate the admin panel with default settings.
+# Español: Aquí activamos el panel de administrador con configuraciones predeterminadas.
+# from app.routes.admin import Admin
+# from app.models.user import User
+# admin_routes=Admin(models=[User])
+# all_routes = list(itertools.chain(routes, api_routes,admin_routes))
+# English: Marker for the admin routes in main.py.
+# Español: Marcador para las rutas de administrador en main.py.
+# admin_marker
 
-# Uncomment the following lines for CORS configuration if needed:
-# CORS (Cross-Origin Resource Sharing) configuration is optional.
+cors = None
+
+# English: CORS usage example
+# Español : Ejemplo de utilización de CORS
 # cors={
 #     "origin": ["*"],
-#     "allow_credentials": True,
+#     "allow_credentials" : True,
 #     "allow_methods":["*"],
 #     "allow_headers": ["*"]
-# }      
-# app = App(debug=True, routes=all_routes, cors=cors)
+# }
+# app = App(debug=True, routes=all_routes,cors=cors)
 
-# Main asynchronous function to run the application.
-# This function starts the application server asynchronously.
+# English:necessary for cli command modify react cors for development
+# Español:necesario para el comando cli modificar cors de react para desarrollo
+# react_marker
+
+middlewares = [
+    Middleware(LoggingMiddleware),
+    Middleware(IPBlockingMiddleware),
+    Middleware(URLBlockingMiddleware),
+    Middleware(MaliciousExtensionMiddleware),
+    Middleware(SensitivePathMiddleware),
+    Middleware(ErrorHandlerMiddleware),
+]
+
+# English: Initializing the application with debugging enabled and the combined routes.
+# Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
+app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares)
+
+# English: To ensure SEO (bots, AI), caching, and HTML hydration, uncomment these lines.
+# Adding {% include "react/cache/index.html" %} to <div id="root">
+# Español :Para tener seo (bots,ia) ,cache y que react hidrate el html ,descomenta estas lineas.
+# Agregadando en <div id="root"> ,  {% include "react/cache/index.html"  %}
+
+# import subprocess
+# import sys
+
+# @app.on_event("startup")
+# async def startup_event():
+#     print("♻️ Prerender for react...")
+#     url_with_port =f" http://{HOST}:{PORT}"
+#     subprocess.Popen([
+#     sys.executable,
+#     "-m",
+#     "cli.prerender",
+#     "--url",
+#     url_with_port.strip()
+# ])
+
+
+# English: Asynchronous main function to run the application server.
+# Español: Función principal asíncrona para ejecutar el servidor de la aplicación.
 async def main():
-# Uncomment the following line to execute database migrations.
-# This ensures that the database schema is up-to-date before starting the app.
-# migrations = await migrate(connection)
+    # English: Starting the Uvicorn server with the application instance.
+    # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
-# Start the Uvicorn server with the app instance.
-# The app is served by Uvicorn, which is an ASGI server.
-uvicorn.run("app:app.start", host=HOST, port=PORT, reload=True)
 
-# Entry point of the script to run the main async function.
-# This is where the execution of the app begins.
+# English: Entry point for the script, running the main asynchronous function.
+# Español: Punto de entrada del script, ejecutando la función principal asíncrona.
 if __name__ == "__main__":
-asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        # English: Gracefully shutting down the application on keyboard interrupt.
+        # Español: Apagando la aplicación de manera ordenada al interrumpir con el teclado.
+        print("Shutting down the application...")
+        pass
                 </code>
             </pre>
                                 </div>
@@ -339,7 +389,7 @@ from lila.core.responses import JSONResponse  # Simplifies sending JSON response
 from lila.core.routing import Router  # Manages API app.routes.
 from lila.core.request import Request  # Handles HTTP requests in the application.
 from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
-from lila.core.helpers import get_user_by_id_and_token
+from app.helpers.helpers import get_user_by_id_and_token
 from app.middlewares.middlewares import validate_token
 
 router = Router()
@@ -1408,7 +1458,7 @@ MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import upload
+from app.helpers.helpers import upload
 
 @router.route("/upload", methods=["POST"])
 async def uploadFile(request: Request):
@@ -1613,7 +1663,7 @@ async def home(request: Request):
 
                             <h2>Translation Files</h2>
                             <p>To load a locale file, use the <code>translate</code> function from
-                                <code>lila.core.helpers</code>. You can access translations using:
+                                <code>app.helpers.helpers</code>. You can access translations using:
                             </p>
                             <ul>
                                 <li><code>translate</code> - returns a dictionary with all translations</li>
@@ -1682,7 +1732,7 @@ async def home(request: Request):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import translate_
+from app.helpers.helpers import translate_
 
 msg_error_login = translate_(
     key="Incorrect email or password", 
@@ -1706,7 +1756,7 @@ msg_error_login = translate_(
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from lila.core.helpers import translate
+from app.helpers.helpers import translate
 
 all_translations = translate(
     request=request, 
@@ -1836,7 +1886,7 @@ user = User.get_by_id(1)
                             <p>
                                 The third is <code>validate_token</code>, which is used to validate a JWT token thanks
                                 to the <code>get_token</code> helpers imported in
-                                <code>from lila.core.helpers import get_token</code>.
+                                <code>from app.helpers.helpers import get_token</code>.
                             </p>
                             <div class="code-editor">
                                 <div class="editor-header">
@@ -1855,7 +1905,7 @@ from lila.core.session import Session
 from lila.core.responses import RedirectResponse,JSONResponse
 from lila.core.request import Request
 from functools import wraps 
-from lila.core.helpers import get_token
+from app.helpers.helpers import get_token
 
 def login_required(func,key:str='auth',url_return='/login'):
     @wraps(func)
