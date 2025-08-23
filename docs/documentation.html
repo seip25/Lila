@@ -633,7 +633,7 @@ files_translate: list = []
                                 <h2>Lila JS: Reactive System</h2>
                                 <p>Lila JS is a minimalist library to create reactive interfaces with vanilla
                                     JavaScript.</p>
-                                <p><a href="https://github.com/seip25/Lila_js" target="_blank">Documentation</a></p>
+                                <p><a href="https://seip25.github.io/Lila_js/" target="_blank">Documentation Lila JS</a></p>
 
                                 <h3>Key Concepts</h3>
                                 <div class="concept-grid">
@@ -983,6 +983,72 @@ handleRouting();
                                 </table>
                             </section>
                         </article>
+                            <article id="lila-js-eng">
+                            <h1>Lila JS Documentation</h1>
+                            <p>
+                                Lila JS is a minimalist JavaScript micro-framework for building modern web applications.
+                                It provides a reactive system, routing, and components in a lightweight package.
+                            </p>
+
+                            <h2>Core Concepts</h2>
+
+                            <h3>Components</h3>
+                            <p>
+                                Components are the building blocks of a Lila JS application. They encapsulate a
+                                template, state, and actions.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Component Example</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+App.createComponent('Home', {
+    template: 'home-template',
+    state: () => ({
+        message: 'Welcome to Lila JS!'
+    }),
+    actions: {
+        updateMessage: ({ state }) => {
+            state.message = 'The message has been updated!';
+        }
+    }
+});
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>Routing</h3>
+                            <p>
+                                Lila JS includes a simple router to map URLs to components.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Routing Example</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+App.addRoute('/', 'Home');
+App.addRoute('/about', 'About');
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h3>Initialization</h3>
+                            <p>
+                                To start the application and handle routing, you need to call `handleRouting()`.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Initialization Example</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+handleRouting();
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
 
                         <article id="session-eng">
                             <h1>Session Management</h1>
@@ -1202,72 +1268,7 @@ class Session:
                         </article>
 
 
-                        <article id="lila-js-eng">
-                            <h1>Lila JS Documentation</h1>
-                            <p>
-                                Lila JS is a minimalist JavaScript micro-framework for building modern web applications.
-                                It provides a reactive system, routing, and components in a lightweight package.
-                            </p>
-
-                            <h2>Core Concepts</h2>
-
-                            <h3>Components</h3>
-                            <p>
-                                Components are the building blocks of a Lila JS application. They encapsulate a
-                                template, state, and actions.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Component Example</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-javascript">
-App.createComponent('Home', {
-    template: 'home-template',
-    state: () => ({
-        message: 'Welcome to Lila JS!'
-    }),
-    actions: {
-        updateMessage: ({ state }) => {
-            state.message = 'The message has been updated!';
-        }
-    }
-});
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>Routing</h3>
-                            <p>
-                                Lila JS includes a simple router to map URLs to components.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Routing Example</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-javascript">
-App.addRoute('/', 'Home');
-App.addRoute('/about', 'About');
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h3>Initialization</h3>
-                            <p>
-                                To start the application and handle routing, you need to call `handleRouting()`.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Initialization Example</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-javascript">
-handleRouting();
-                                    </code></pre>
-                                </div>
-                            </div>
-                        </article>
+                    
 
                         <article id="api-reference-eng">
                             <h1>API Reference & Examples</h1>

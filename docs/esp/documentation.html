@@ -93,7 +93,6 @@
                             <li><a href="#static-esp">Static</a></li>
                             <li><a href="#templates-esp">Templates</a></li>
                             <li><a href="#session-esp">Session</a></li>
-                            <li><a href="#react-seo">React</a></li>
                             <li><a href="#upload-esp">Upload de archivos</a></li>
                             <li><a href="#markdown-esp">Markdown/HTML</a></li>
                             <li><a href="#locales-esp">Internalización (Traducciones)</a></li>
@@ -101,6 +100,7 @@
                             <li><a href="#middlewares-esp">Middlewares</a></li>
                             <li><a href="#connections-esp">Connections</a></li>
                             <li><a href="#migrations-esp">Migraciones</a></li>
+                            <li><a href="#react-seo">React</a></li>
                             <li><a href="#rest_api_crud-esp">Generación sencilla de CRUD de API Rest</a></li>
                             <li><a href="#admin-panel-esp">Panel de Admin</a></li>
                             <li><a href="#minify-esp">Minificar archivos para producción</a></li>
@@ -270,222 +270,7 @@ if __name__ == "__main__":
                             </div>
                         </article>
 
-                        <article id="session-esp">
-                            <h1>Gestión de Sesiones</h1>
-                            <p>
-                                Lila proporciona un sistema de gestión de sesiones simple pero potente, construido sobre <code>itsdangerous</code> para datos de sesión firmados criptográficamente. Esto asegura que los datos de la sesión no puedan ser manipulados en el lado del cliente.
-                            </p>
-                            <p>
-                                La clase <code>Session</code> proporciona un conjunto de métodos estáticos para manejar los datos de la sesión.
-                            </p>
-
-                            <h2>Estableciendo Datos de Sesión</h2>
-                            <p>
-                                El método <code>setSession</code> se utiliza para establecer datos de sesión en una cookie. Puede manejar cadenas, diccionarios y listas, que se serializan automáticamente a JSON si es necesario.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Ejemplo de setSession</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-from lila.core.session import Session
-from lila.core.responses import JSONResponse
-
-@router.route("/set-session", methods=["GET"])
-async def set_session_example(request: Request):
-    response = JSONResponse({"message": "La sesión ha sido establecida"})
-    session_data = {"user_id": 123, "username": "lila_user"}
-    Session.setSession(new_val=session_data, response=response, name_cookie="user_session")
-    return response
-                                    </code></pre>
-                                </div>
-                            </div>
-                            <p>
-                                El método <code>setSession</code> acepta varios parámetros para personalizar la cookie, como <code>secure</code>, <code>samesite</code>, <code>max_age</code>, etc.
-                            </p>
-
-                            <h2>Obteniendo Datos de Sesión</h2>
-                            <p>
-                                El método <code>getSession</code> recupera los datos de sesión brutos y firmados de una cookie. Para obtener los datos de sesión sin firmar y validados, debe usar <code>getSessionValue</code> o <code>unsign</code>.
-                            </p>
-
-                            <h2>Verificando y Validando Datos de Sesión</h2>
-                            <p>
-                                Los métodos <code>unsign</code> y <code>getSessionValue</code> se utilizan para obtener los datos de la sesión en su forma original después de verificar la firma. Se recomienda <code>getSessionValue</code> ya que también maneja las firmas caducadas con gracia.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Ejemplo de getSessionValue</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-from lila.core.session import Session
-
-@router.route("/get-session", methods=["GET"])
-async def get_session_example(request: Request):
-    session_data = Session.getSessionValue(request=request, key="user_session")
-    if session_data:
-        return JSONResponse({"session_data": session_data})
-    else:
-        return JSONResponse({"message": "No se encontró la sesión o la sesión no es válida o ha caducado."}, status_code=401)
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h2>Eliminando una Sesión</h2>
-                            <p>
-                                El método <code>deleteSession</code> se utiliza para eliminar una cookie de sesión del navegador del cliente.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Ejemplo de deleteSession</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-from lila.core.session import Session
-from lila.core.responses import JSONResponse
-
-@router.route("/logout", methods=["GET"])
-async def logout(request: Request):
-    response = JSONResponse({"message": "Sesión cerrada con éxito"})
-    Session.deleteSession(response=response, name_cookie="user_session")
-    return response
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h2>Referencia Completa de la Clase Session</h2>
-                            <p>Aquí está el código completo de la clase <code>Session</code> para su referencia.</p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">core/session.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-import json
-from app.config import SECRET_KEY
-from itsdangerous import BadSignature, URLSafeTimedSerializer,SignatureExpired
-from lila.core.request import Request
-from typing import Any, Union, Optional, Dict, List
-from lila.core.logger import Logger
-
-serializer = URLSafeTimedSerializer(SECRET_KEY)
-
-
-class Session:
-    @staticmethod
-    def setSession(
-        new_val: str | dict | list,
-        response,
-        name_cookie: str = "session",
-        secure: bool = True,
-        samesite: str = "strict",
-        max_age: int = 3600,
-        domain: Optional[str] = None,
-        http_only: bool = True,
-        path: str = "/",
-    ) -> bool:
-        try:
-            if isinstance(new_val, (dict, list)):
-                new_val = json.dumps(new_val)
-            else:
-                new_val = str(new_val)
-
-            signed_session = serializer.dumps(new_val)
-
-            response.set_cookie(
-                key=name_cookie,
-                value=signed_session,
-                max_age=max_age,
-                expires=max_age,
-                secure=secure,
-                httponly=http_only,
-                samesite=samesite,
-                domain=domain,
-                path=path,
-            )
-            return True
-        except (TypeError, ValueError, Exception) as e:
-            Logger.error(f"Error setting session: {str(e)}")
-            print(f"Error session {str(e)}")
-            return False
-
-    @staticmethod
-    def getSession(key: str, request: Request) -> Optional[str]:
-        return request.cookies.get(key)
-
-    @staticmethod
-    def unsign(
-        key: str, request: Request, max_age: Optional[int] = None
-    ) -> Union[Dict, List, str, None]:
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
-
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-            try:
-                return json.loads(unsigned_data)
-            except json.JSONDecodeError:
-                return unsigned_data
-
-        except BadSignature:
-            msg = f"Invalid session signature for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except Exception as e:
-            msg = f"Error unsigning session: {str(e)}"
-            print(msg)
-            Logger.error(msg)
-            return None
-
-    @staticmethod
-    def deleteSession(response, name_cookie: str) -> bool:
-        try:
-            response.delete_cookie(name_cookie)
-            return True
-        except Exception as e:
-            msg = f"Error deleting session: {str(e)}"
-            print(e)
-            Logger.error(msg)
-            return False
-
-    @staticmethod
-    def getSessionValue(
-         request: Request,key: str='auth', max_age: Optional[int] = 3600
-    ) -> Union[Dict, List, str, None]:
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
-
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-            try:
-                return json.loads(unsigned_data)
-            except json.JSONDecodeError:
-                return unsigned_data
-
-        except BadSignature:
-            msg = f"Invalid session signature for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except SignatureExpired:
-            msg = f"Session expired for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except Exception as e:
-            msg = f"Error unsigning session: {str(e)}"
-            print(msg)
-            Logger.error(msg)
-            return None
-                                    </code></pre>
-                                </div>
-                            </div>
-                        </article>
+            
 
                         <article id="routes-esp">
                             <h1>Rutas</h1>
@@ -855,7 +640,7 @@ files_translate: list = []
                                 <h2>Lila JS: Sistema Reactivo</h2>
                                 <p>Lila JS es una librería minimalista para crear interfaces reactivas con JavaScript
                                     vanilla.</p>
-                                <p><a href="https://github.com/seip25/Lila_js" target="_blank">Documentación</a></p>
+                                <p><a href="https://seip25.github.io/Lila_js/lila.js" target="_blank">Documentación de Lila JS</a></p>
 
                                 <h3>Conceptos Clave</h3>
                                 <div class="concept-grid">
@@ -1325,6 +1110,222 @@ handleRouting();
                             </div>
                         </article>
 
+                                    <article id="session-esp">
+                            <h1>Gestión de Sesiones</h1>
+                            <p>
+                                Lila proporciona un sistema de gestión de sesiones simple pero potente, construido sobre <code>itsdangerous</code> para datos de sesión firmados criptográficamente. Esto asegura que los datos de la sesión no puedan ser manipulados en el lado del cliente.
+                            </p>
+                            <p>
+                                La clase <code>Session</code> proporciona un conjunto de métodos estáticos para manejar los datos de la sesión.
+                            </p>
+
+                            <h2>Estableciendo Datos de Sesión</h2>
+                            <p>
+                                El método <code>setSession</code> se utiliza para establecer datos de sesión en una cookie. Puede manejar cadenas, diccionarios y listas, que se serializan automáticamente a JSON si es necesario.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de setSession</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from lila.core.session import Session
+from lila.core.responses import JSONResponse
+
+@router.route("/set-session", methods=["GET"])
+async def set_session_example(request: Request):
+    response = JSONResponse({"message": "La sesión ha sido establecida"})
+    session_data = {"user_id": 123, "username": "lila_user"}
+    Session.setSession(new_val=session_data, response=response, name_cookie="user_session")
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+                            <p>
+                                El método <code>setSession</code> acepta varios parámetros para personalizar la cookie, como <code>secure</code>, <code>samesite</code>, <code>max_age</code>, etc.
+                            </p>
+
+                            <h2>Obteniendo Datos de Sesión</h2>
+                            <p>
+                                El método <code>getSession</code> recupera los datos de sesión brutos y firmados de una cookie. Para obtener los datos de sesión sin firmar y validados, debe usar <code>getSessionValue</code> o <code>unsign</code>.
+                            </p>
+
+                            <h2>Verificando y Validando Datos de Sesión</h2>
+                            <p>
+                                Los métodos <code>unsign</code> y <code>getSessionValue</code> se utilizan para obtener los datos de la sesión en su forma original después de verificar la firma. Se recomienda <code>getSessionValue</code> ya que también maneja las firmas caducadas con gracia.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de getSessionValue</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from lila.core.session import Session
+
+@router.route("/get-session", methods=["GET"])
+async def get_session_example(request: Request):
+    session_data = Session.getSessionValue(request=request, key="user_session")
+    if session_data:
+        return JSONResponse({"session_data": session_data})
+    else:
+        return JSONResponse({"message": "No se encontró la sesión o la sesión no es válida o ha caducado."}, status_code=401)
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Eliminando una Sesión</h2>
+                            <p>
+                                El método <code>deleteSession</code> se utiliza para eliminar una cookie de sesión del navegador del cliente.
+                            </p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Ejemplo de deleteSession</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from lila.core.session import Session
+from lila.core.responses import JSONResponse
+
+@router.route("/logout", methods=["GET"])
+async def logout(request: Request):
+    response = JSONResponse({"message": "Sesión cerrada con éxito"})
+    Session.deleteSession(response=response, name_cookie="user_session")
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <h2>Referencia Completa de la Clase Session</h2>
+                            <p>Aquí está el código completo de la clase <code>Session</code> para su referencia.</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">core/session.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+import json
+from app.config import SECRET_KEY
+from itsdangerous import BadSignature, URLSafeTimedSerializer,SignatureExpired
+from lila.core.request import Request
+from typing import Any, Union, Optional, Dict, List
+from lila.core.logger import Logger
+
+serializer = URLSafeTimedSerializer(SECRET_KEY)
+
+
+class Session:
+    @staticmethod
+    def setSession(
+        new_val: str | dict | list,
+        response,
+        name_cookie: str = "session",
+        secure: bool = True,
+        samesite: str = "strict",
+        max_age: int = 3600,
+        domain: Optional[str] = None,
+        http_only: bool = True,
+        path: str = "/",
+    ) -> bool:
+        try:
+            if isinstance(new_val, (dict, list)):
+                new_val = json.dumps(new_val)
+            else:
+                new_val = str(new_val)
+
+            signed_session = serializer.dumps(new_val)
+
+            response.set_cookie(
+                key=name_cookie,
+                value=signed_session,
+                max_age=max_age,
+                expires=max_age,
+                secure=secure,
+                httponly=http_only,
+                samesite=samesite,
+                domain=domain,
+                path=path,
+            )
+            return True
+        except (TypeError, ValueError, Exception) as e:
+            Logger.error(f"Error setting session: {str(e)}")
+            print(f"Error session {str(e)}")
+            return False
+
+    @staticmethod
+    def getSession(key: str, request: Request) -> Optional[str]:
+        return request.cookies.get(key)
+
+    @staticmethod
+    def unsign(
+        key: str, request: Request, max_age: Optional[int] = None
+    ) -> Union[Dict, List, str, None]:
+        session_data = request.cookies.get(key)
+        if not session_data:
+            return None
+
+        try:
+            unsigned_data = serializer.loads(session_data, max_age=max_age)
+            try:
+                return json.loads(unsigned_data)
+            except json.JSONDecodeError:
+                return unsigned_data
+
+        except BadSignature:
+            msg = f"Invalid session signature for cookie: {key}"
+            print(msg)
+            Logger.warning(msg)
+            return None
+        except Exception as e:
+            msg = f"Error unsigning session: {str(e)}"
+            print(msg)
+            Logger.error(msg)
+            return None
+
+    @staticmethod
+    def deleteSession(response, name_cookie: str) -> bool:
+        try:
+            response.delete_cookie(name_cookie)
+            return True
+        except Exception as e:
+            msg = f"Error deleting session: {str(e)}"
+            print(e)
+            Logger.error(msg)
+            return False
+
+    @staticmethod
+    def getSessionValue(
+         request: Request,key: str='auth', max_age: Optional[int] = 3600
+    ) -> Union[Dict, List, str, None]:
+        session_data = request.cookies.get(key)
+        if not session_data:
+            return None
+
+        try:
+            unsigned_data = serializer.loads(session_data, max_age=max_age)
+            try:
+                return json.loads(unsigned_data)
+            except json.JSONDecodeError:
+                return unsigned_data
+
+        except BadSignature:
+            msg = f"Invalid session signature for cookie: {key}"
+            print(msg)
+            Logger.warning(msg)
+            return None
+        except SignatureExpired:
+            msg = f"Session expired for cookie: {key}"
+            print(msg)
+            Logger.warning(msg)
+            return None
+        except Exception as e:
+            msg = f"Error unsigning session: {str(e)}"
+            print(msg)
+            Logger.error(msg)
+            return None
+                                    </code></pre>
+                                </div>
+                            </div>
+                        </article>
 
                         <article id="upload-esp">
                             <h1>Helper para Subida de Archivos</h1>
