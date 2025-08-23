@@ -93,7 +93,7 @@
                             <li><a href="#routes-eng">Routes</a></li>
                             <li><a href="#static-eng">Static</a></li>
                             <li><a href="#templates-eng">Templates</a></li>
-                            <li><a href="#react-seo">React</a></li>
+                            <li><a href="#session-eng">Session</a></li>
                             <li><a href="#upload-eng">Uploads Files</a></li>
                             <li><a href="#markdown-eng">Markdown/HTML</a></li>
                             <li><a href="#locales-eng">Internationalization (Translations)</a></li>
@@ -101,6 +101,7 @@
                             <li><a href="#middlewares-eng">Middlewares</a></li>
                             <li><a href="#connections-eng">Connections</a></li>
                             <li><a href="#migrations-eng">Migrations</a></li>
+                            <li><a href="#react-seo">React</a></li>
                             <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
                             <li><a href="#admin-panel-eng">Admin Panel</a></li>
                             <li><a href="#minify-eng">Minify JS,CSS and HTML</a></li>
@@ -983,308 +984,223 @@ handleRouting();
                             </section>
                         </article>
 
-                        <article id="react-seo">
-                            <h1>React Integration with Lila</h1>
-
+                        <article id="session-eng">
+                            <h1>Session Management</h1>
                             <p>
-                                Lila provides a seamless integration with React, allowing you to develop your frontend
-                                with a
-                                modified Vite + React setup while keeping strong SEO capabilities, caching, and HTML
-                                hydration.
-                                This setup ensures your React app can be prerendered and recognized by Google Bots and
-                                AI.
+                                Lila provides a simple yet powerful session management system built on top of <code>itsdangerous</code> for cryptographically signed session data. This ensures that session data cannot be tampered with on the client side.
+                            </p>
+                            <p>
+                                The <code>Session</code> class provides a set of static methods to handle session data.
                             </p>
 
-                            <h5>Starting a React Project in Lila</h5>
+                            <h2>Setting Session Data</h2>
                             <p>
-                                To create or run a React project inside Lila, execute the following command:
+                                The <code>setSession</code> method is used to set session data in a cookie. It can handle strings, dictionaries, and lists, which are automatically serialized to JSON if needed.
                             </p>
-
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">CLI Command</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-# For Python 3 environments
-python3 -m cli.react [--name PROJECT_NAME]
-
-# Or if your default Python is python
-python -m cli.react [--name PROJECT_NAME]
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <p>
-                                <strong>Parameters:</strong><br>
-                                <code>--name</code>: Optional project name, default is <code>"react"</code>.
-                            </p>
-
-                            <h5>Development CORS Configuration</h5>
-                            <p>
-                                When running React in development mode, Lila automatically edits <code>main.py</code> to
-                                add the
-                                necessary CORS configuration. By default:
-                            </p>
-
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">main.py CORS snippet</span>
+                                    <span class="editor-title">setSession example</span>
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-# English: for development react
-# Español: para desarrollo react
-cors = {
-    "origin": ["http://localhost:5173"],
-    "allow_credentials": True,
-    "allow_methods": ["*"],
-    "allow_headers": ["*"]
-}
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <h5>Automatic Routes and Asset Mounting</h5>
-                            <p>
-                                Lila modifies <code>app/routes/routes.py</code> automatically for your React build. This
-                                ensures
-                                the React build assets are served correctly and the index.html is rendered from the
-                                cache.
-                            </p>
-
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">routes.py Example</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-router.mount(path="/assets", directory="templates/html/react/assets", name="react-assets")
-
-@router.route(path="/{path:path}", methods=["GET"])
-async def home(request: Request):
-    response = render(request=request, template="react/index")
-    return response
-            </code></pre>
-                                </div>
-                            </div>
-<div>
-<h3>
-Remember to modify the <code>main.py</code> file when passing your routes
-to initialize
-the application, always pass <strong>api_routes</strong> first, or whatever you have
-named it.
-<br/> This is key to getting your API routes without colliding with the general React route.
-<code>
-@router.route(path="/{path:path}", methods=["GET"])
-</code>
-, where React, with React Router, or whatever you use, can handle all the routes.
-<br /> Remaining this way in <code>main.py</code> 
-
-</h3> 
-<div class="code-editor"> 
-<div class="editor-header"> 
-<span class="editor-title">main.py</span> 
-</div> 
-<div class="editor-content"> 
-<pre> 
-<code class="language-python">
-all_routes = list(itertools.chain( api_routes,routes))
-#First api_routes, then routes (where the general React route is) <pre><code class="language-python"> 
-</code> 
-</pre> 
-</div> 
-</div> 
-
-</div>
-
-
-                            <h5>Prerendering and Caching</h5>
-                            <p>
-                                To improve SEO, Lila supports prerendering your React pages and caching them. After
-                                building your
-                                React app with <code>npm run build</code>, you can generate the cached HTML:
-                            </p>
-
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Generate Cache</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-python -m cli.prerender --url http://localhost:8001
-# or python3 -m cli.prerender
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <p>
-                                Then, in your <code>react/index.html</code> dev file, include the cached HTML for SEO
-                                hydration:
-                            </p>
-
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">index.html snippet</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-html">
-<div id="root">{% include "react/cache/index.html" ignore missing %}</div>
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <h5>Startup Integration in main.py</h5>
-                            <p>
-                                You can optionally execute the prerender automatically on server startup by uncommenting
-                                the
-                                following section in <code>main.py</code>:
-                            </p>
-
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">main.py prerender on startup</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-# import subprocess
-# import sys
-
-# @app.on_event("startup")
-# async def startup_event():
-#     print("♻️ Prerender for react...")
-#     url_with_port = f"http://{HOST}:{PORT}"
-#     subprocess.Popen([
-#         sys.executable,
-#         "-m",
-#         "cli.prerender",
-#         "--url",
-#         url_with_port.strip()
-#     ])
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <h5>SEO and Hydration</h5>
-                            <p>
-                                By including the cached HTML in the <code>root</code> div, React will rehydrate the
-                                content on the
-                                client side. This gives you:
-                            </p>
-                            <ul>
-                                <li>Strong SEO recognition by Google Bots and AI.</li>
-                                <li>Faster first paint with pre-rendered HTML.</li>
-                                <li>Optional daily caching using a scheduled prerender task.</li>
-                            </ul>
-
-                            <h5>React Helpers and Context</h5>
-                            <p>
-                                You can pass context from Jinja2 templates to React using <code>&lt;script&gt;</code>
-                                tags in
-                                <code>templates/html/react/index.html</code>. Useful for translations, configuration, or
-                                any
-                                dynamic data.
-                            </p>
-
-                            <h5>Automatic API Documentation</h5>
-                            <p>
-                                Lila continues to generate API documentation automatically using Pydantic models. All
-                                helpers
-                                and middlewares can be combined seamlessly with React routes.
-                            </p>
-
-                            <h5>Session Validation with React</h5>
-                            <p>
-                                In the backend, you can add a middleware to validate the session. You can also use JWT, but Session is more secure because it is signed by <code>itsdangerous</code>.
-                            </p>
-                            <p>
-                                This way, you can validate requests and store public IDs, tokens, etc., to validate sessions, or you can use JWT or both.
-                                The main recommendation is to validate the session this way or with <code>login_required</code>, which is another middleware that can also be configured there.
-                                This way, Lila and React are connected for the developer. In production, thanks to the <code>if DEBUG</code> condition, it will be secure with the signature of <code>itsdangerous</code> in the <code>Session</code> class.
-                            </p>
-
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">app/routes/api.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-from app.middlewares.middlewares import login_required_auth, check_token, check_session
 from lila.core.session import Session
-from app.config import DEBUG
+from lila.core.responses import JSONResponse
 
-# Define a simple API route that supports GET method.
-@router.route(path="/api", methods=["GET"])
-async def api(request: Request):
-    """Api function"""
-    # Returns a simple JSON response for API verification.
-    response = JSONResponse({"api": True})
-    new_val={"id":20}
-    samesite="none" if DEBUG else "secure"
-    Session.setSession(new_val=new_val,name_cookie='auth',response=response,samesite=samesite)
+@router.route("/set-session", methods=["GET"])
+async def set_session_example(request: Request):
+    response = JSONResponse({"message": "Session has been set"})
+    session_data = {"user_id": 123, "username": "lila_user"}
+    Session.setSession(new_val=session_data, response=response, name_cookie="user_session")
     return response
-
-
-# Define an API route that supports GET and POST methods.
-@router.route(path="/api/token", methods=["GET", "POST"])
-# Middleware to validate the JWT Token.
-@login_required_auth
-async def api_token(request: Request):
-    """Api Token function"""
-    print(Session.getSessionValue(request=request))
-    return JSONResponse({"api": True})
                                     </code></pre>
                                 </div>
                             </div>
+                            <p>
+                                The <code>setSession</code> method accepts several parameters to customize the cookie, such as <code>secure</code>, <code>samesite</code>, <code>max_age</code>, etc.
+                            </p>
 
+                            <h2>Getting Session Data</h2>
+                            <p>
+                                The <code>getSession</code> method retrieves the raw, signed session data from a cookie. To get the unsigned and validated session data, you should use <code>getSessionValue</code> or <code>unsign</code>.
+                            </p>
+
+                            <h2>Unsigning and Validating Session Data</h2>
+                            <p>
+                                The <code>unsign</code> and <code>getSessionValue</code> methods are used to get the session data in its original form after verifying the signature. <code>getSessionValue</code> is recommended as it also handles expired signatures gracefully.
+                            </p>
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">app/middlewares/middlewares.py</span>
+                                    <span class="editor-title">getSessionValue example</span>
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-def login_required_auth(func, key: str = "auth"):
-    @wraps(func)
-    async def wrapper(request, *args, **kwargs):
-        session_data = Session.getSession(request=request,key=key)
-        if not session_data:
-            return JSONResponse({"session": False, "success": False}, status_code=401)
-        return await func(request, *args, **kwargs)
+from lila.core.session import Session
+
+@router.route("/get-session", methods=["GET"])
+async def get_session_example(request: Request):
+    session_data = Session.getSessionValue(request=request, key="user_session")
+    if session_data:
+        return JSONResponse({"session_data": session_data})
+    else:
+        return JSONResponse({"message": "No session found or session is invalid/expired."}, status_code=401)
                                     </code></pre>
                                 </div>
                             </div>
 
+                            <h2>Deleting a Session</h2>
+                            <p>
+                                The <code>deleteSession</code> method is used to delete a session cookie from the client's browser.
+                            </p>
                             <div class="code-editor">
                                 <div class="editor-header">
-                                    <span class="editor-title">React Component</span>
+                                    <span class="editor-title">deleteSession example</span>
                                 </div>
                                 <div class="editor-content">
-                                    <pre><code class="language-javascript">
-import { useEffect } from 'react';
+                                    <pre><code class="language-python">
+from lila.core.session import Session
+from lila.core.responses import JSONResponse
 
-function MyComponent() {
-  useEffect(() => {
-    const start = async () => {
-      const resp = await fetch('http://127.0.0.1:8000/api', { credentials: 'include' });
+@router.route("/logout", methods=["GET"])
+async def logout(request: Request):
+    response = JSONResponse({"message": "Logged out successfully"})
+    Session.deleteSession(response=response, name_cookie="user_session")
+    return response
+                                    </code></pre>
+                                </div>
+                            </div>
 
-      const resp_ = await fetch('http://127.0.0.1:8000/api/token', { credentials: 'include' });
-      const json = await resp_.json();
+                            <h2>Full Session Class Reference</h2>
+                            <p>Here is the full code for the <code>Session</code> class for your reference.</p>
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">core/session.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+import json
+from app.config import SECRET_KEY
+from itsdangerous import BadSignature, URLSafeTimedSerializer,SignatureExpired
+from lila.core.request import Request
+from typing import Any, Union, Optional, Dict, List
+from lila.core.logger import Logger
 
-      console.log(json);
-    };
-    start();
-  }, []);
+serializer = URLSafeTimedSerializer(SECRET_KEY)
 
-  return (
-    &lt;div&gt;
-      {/* Your component JSX */}
-    &lt;/div&gt;
-  );
-}
+
+class Session:
+    @staticmethod
+    def setSession(
+        new_val: str | dict | list,
+        response,
+        name_cookie: str = "session",
+        secure: bool = True,
+        samesite: str = "strict",
+        max_age: int = 3600,
+        domain: Optional[str] = None,
+        http_only: bool = True,
+        path: str = "/",
+    ) -> bool:
+        try:
+            if isinstance(new_val, (dict, list)):
+                new_val = json.dumps(new_val)
+            else:
+                new_val = str(new_val)
+
+            signed_session = serializer.dumps(new_val)
+
+            response.set_cookie(
+                key=name_cookie,
+                value=signed_session,
+                max_age=max_age,
+                expires=max_age,
+                secure=secure,
+                httponly=http_only,
+                samesite=samesite,
+                domain=domain,
+                path=path,
+            )
+            return True
+        except (TypeError, ValueError, Exception) as e:
+            Logger.error(f"Error setting session: {str(e)}")
+            print(f"Error session {str(e)}")
+            return False
+
+    @staticmethod
+    def getSession(key: str, request: Request) -> Optional[str]:
+        return request.cookies.get(key)
+
+    @staticmethod
+    def unsign(
+        key: str, request: Request, max_age: Optional[int] = None
+    ) -> Union[Dict, List, str, None]:
+        session_data = request.cookies.get(key)
+        if not session_data:
+            return None
+
+        try:
+            unsigned_data = serializer.loads(session_data, max_age=max_age)
+            try:
+                return json.loads(unsigned_data)
+            except json.JSONDecodeError:
+                return unsigned_data
+
+        except BadSignature:
+            msg = f"Invalid session signature for cookie: {key}"
+            print(msg)
+            Logger.warning(msg)
+            return None
+        except Exception as e:
+            msg = f"Error unsigning session: {str(e)}"
+            print(msg)
+            Logger.error(msg)
+            return None
+
+    @staticmethod
+    def deleteSession(response, name_cookie: str) -> bool:
+        try:
+            response.delete_cookie(name_cookie)
+            return True
+        except Exception as e:
+            msg = f"Error deleting session: {str(e)}"
+            print(e)
+            Logger.error(msg)
+            return False
+
+    @staticmethod
+    def getSessionValue(
+         request: Request,key: str='auth', max_age: Optional[int] = 3600
+    ) -> Union[Dict, List, str, None]:
+        session_data = request.cookies.get(key)
+        if not session_data:
+            return None
+
+        try:
+            unsigned_data = serializer.loads(session_data, max_age=max_age)
+            try:
+                return json.loads(unsigned_data)
+            except json.JSONDecodeError:
+                return unsigned_data
+
+        except BadSignature:
+            msg = f"Invalid session signature for cookie: {key}"
+            print(msg)
+            Logger.warning(msg)
+            return None
+        except SignatureExpired:
+            msg = f"Session expired for cookie: {key}"
+            print(msg)
+            Logger.warning(msg)
+            return None
+        except Exception as e:
+            msg = f"Error unsigning session: {str(e)}"
+            print(msg)
+            Logger.error(msg)
+            return None
                                     </code></pre>
                                 </div>
                             </div>
                         </article>
+
 
                         <article id="lila-js-eng">
                             <h1>Lila JS Documentation</h1>
@@ -2449,6 +2365,309 @@ python -m cli.migrations --refresh
                                 <p><strong>Note:</strong> When using Models, make sure to import all your model classes
                                     in the migrations file
                                     so SQLAlchemy can detect them for migrations.</p>
+                            </div>
+                        </article>
+
+                        <article id="react-seo">
+                            <h1>React Integration with Lila</h1>
+
+                            <p>
+                                Lila provides a seamless integration with React, allowing you to develop your frontend
+                                with a
+                                modified Vite + React setup while keeping strong SEO capabilities, caching, and HTML
+                                hydration.
+                                This setup ensures your React app can be prerendered and recognized by Google Bots and
+                                AI.
+                            </p>
+
+                            <h5>Starting a React Project in Lila</h5>
+                            <p>
+                                To create or run a React project inside Lila, execute the following command:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">CLI Command</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+# For Python 3 environments
+python3 -m cli.react [--name PROJECT_NAME]
+
+# Or if your default Python is python
+python -m cli.react [--name PROJECT_NAME]
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <p>
+                                <strong>Parameters:</strong><br>
+                                <code>--name</code>: Optional project name, default is <code>"react"</code>.
+                            </p>
+
+                            <h5>Development CORS Configuration</h5>
+                            <p>
+                                When running React in development mode, Lila automatically edits <code>main.py</code> to
+                                add the
+                                necessary CORS configuration. By default:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py CORS snippet</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+# English: for development react
+# Español: para desarrollo react
+cors = {
+    "origin": ["http://localhost:5173"],
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"]
+}
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Automatic Routes and Asset Mounting</h5>
+                            <p>
+                                Lila modifies <code>app/routes/routes.py</code> automatically for your React build. This
+                                ensures
+                                the React build assets are served correctly and the index.html is rendered from the
+                                cache.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">routes.py Example</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+router.mount(path="/assets", directory="templates/html/react/assets", name="react-assets")
+
+@router.route(path="/{path:path}", methods=["GET"])
+async def home(request: Request):
+    response = render(request=request, template="react/index")
+    return response
+            </code></pre>
+                                </div>
+                            </div>
+<div>
+<h3>
+Remember to modify the <code>main.py</code> file when passing your routes
+to initialize
+the application, always pass <strong>api_routes</strong> first, or whatever you have
+named it.
+<br/> This is key to getting your API routes without colliding with the general React route.
+<code>
+@router.route(path="/{path:path}", methods=["GET"])
+</code>
+, where React, with React Router, or whatever you use, can handle all the routes.
+<br /> Remaining this way in <code>main.py</code>
+
+</h3>
+<div class="code-editor">
+<div class="editor-header">
+<span class="editor-title">main.py</span>
+</div>
+<div class="editor-content">
+<pre>
+<code class="language-python">
+all_routes = list(itertools.chain( api_routes,routes))
+#First api_routes, then routes (where the general React route is) <pre><code class="language-python">
+</code>
+</pre>
+</div>
+</div>
+
+</div>
+
+
+                            <h5>Prerendering and Caching</h5>
+                            <p>
+                                To improve SEO, Lila supports prerendering your React pages and caching them. After
+                                building your
+                                React app with <code>npm run build</code>, you can generate the cached HTML:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">Generate Cache</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-bash">
+python -m cli.prerender --url http://localhost:8001
+# or python3 -m cli.prerender
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <p>
+                                Then, in your <code>react/index.html</code> dev file, include the cached HTML for SEO
+                                hydration:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">index.html snippet</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-html">
+<div id="root">{% include "react/cache/index.html" ignore missing %}</div>
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>Startup Integration in main.py</h5>
+                            <p>
+                                You can optionally execute the prerender automatically on server startup by uncommenting
+                                the
+                                following section in <code>main.py</code>:
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">main.py prerender on startup</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+# import subprocess
+# import sys
+
+# @app.on_event("startup")
+# async def startup_event():
+#     print("♻️ Prerender for react...")
+#     url_with_port = f"http://{HOST}:{PORT}"
+#     subprocess.Popen([
+#         sys.executable,
+#         "-m",
+#         "cli.prerender",
+#         "--url",
+#         url_with_port.strip()
+#     ])
+            </code></pre>
+                                </div>
+                            </div>
+
+                            <h5>SEO and Hydration</h5>
+                            <p>
+                                By including the cached HTML in the <code>root</code> div, React will rehydrate the
+                                content on the
+                                client side. This gives you:
+                            </p>
+                            <ul>
+                                <li>Strong SEO recognition by Google Bots and AI.</li>
+                                <li>Faster first paint with pre-rendered HTML.</li>
+                                <li>Optional daily caching using a scheduled prerender task.</li>
+                            </ul>
+
+                            <h5>React Helpers and Context</h5>
+                            <p>
+                                You can pass context from Jinja2 templates to React using <code>&lt;script&gt;</code>
+                                tags in
+                                <code>templates/html/react/index.html</code>. Useful for translations, configuration, or
+                                any
+                                dynamic data.
+                            </p>
+
+                            <h5>Automatic API Documentation</h5>
+                            <p>
+                                Lila continues to generate API documentation automatically using Pydantic models. All
+                                helpers
+                                and middlewares can be combined seamlessly with React routes.
+                            </p>
+
+                            <h5>Session Validation with React</h5>
+                            <p>
+                                In the backend, you can add a middleware to validate the session. You can also use JWT, but Session is more secure because it is signed by <code>itsdangerous</code>.
+                            </p>
+                            <p>
+                                This way, you can validate requests and store public IDs, tokens, etc., to validate sessions, or you can use JWT or both.
+                                The main recommendation is to validate the session this way or with <code>login_required</code>, which is another middleware that can also be configured there.
+                                This way, Lila and React are connected for the developer. In production, thanks to the <code>if DEBUG</code> condition, it will be secure with the signature of <code>itsdangerous</code> in the <code>Session</code> class.
+                            </p>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app/routes/api.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+from app.middlewares.middlewares import login_required_auth, check_token, check_session
+from lila.core.session import Session
+from app.config import DEBUG
+
+# Define a simple API route that supports GET method.
+@router.route(path="/api", methods=["GET"])
+async def api(request: Request):
+    """Api function"""
+    # Returns a simple JSON response for API verification.
+    response = JSONResponse({"api": True})
+    new_val={"id":20}
+    samesite="none" if DEBUG else "secure"
+    Session.setSession(new_val=new_val,name_cookie='auth',response=response,samesite=samesite)
+    return response
+
+
+# Define an API route that supports GET and POST methods.
+@router.route(path="/api/token", methods=["GET", "POST"])
+# Middleware to validate the JWT Token.
+@login_required_auth
+async def api_token(request: Request):
+    """Api Token function"""
+    print(Session.getSessionValue(request=request))
+    return JSONResponse({"api": True})
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">app/middlewares/middlewares.py</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+def login_required_auth(func, key: str = "auth"):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data = Session.getSession(request=request,key=key)
+        if not session_data:
+            return JSONResponse({"session": False, "success": False}, status_code=401)
+        return await func(request, *args, **kwargs)
+                                    </code></pre>
+                                </div>
+                            </div>
+
+                            <div class="code-editor">
+                                <div class="editor-header">
+                                    <span class="editor-title">React Component</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+import { useEffect } from 'react';
+
+function MyComponent() {
+  useEffect(() => {
+    const start = async () => {
+      const resp = await fetch('http://127.0.0.1:8000/api', { credentials: 'include' });
+
+      const resp_ = await fetch('http://127.0.0.1:8000/api/token', { credentials: 'include' });
+      const json = await resp_.json();
+
+      console.log(json);
+    };
+    start();
+  }, []);
+
+  return (
+    &lt;div&gt;
+      {/* Your component JSX */}
+    &lt;/div&gt;
+  );
+}
+                                    </code></pre>
+                                </div>
                             </div>
                         </article>
 
