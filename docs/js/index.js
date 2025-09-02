@@ -1,4 +1,4 @@
-const sections ={
+const sections = {
     "eng": [
         { "id": "install-eng", "name": "Installation (eng)" },
         { "id": "routes-eng", "name": "Routes (eng)" },
@@ -49,8 +49,8 @@ function searchDocs(event = false, type = "eng") {
     }
 }
 
- 
- 
+
+
 async function savePageView(method = 'GET') {
     const url = 'https://vps-5161722-x.dattaweb.com';
     const options = {
@@ -58,7 +58,45 @@ async function savePageView(method = 'GET') {
     };
     const request = await fetch(`${url}?page=lila`, { ...options });
     const response = await request.json();
- 
+
 }
 
-window.addEventListener('DOMContentLoaded',async()=>   await savePageView('POST'));
+document.addEventListener('DOMContentLoaded',   () => {
+      savePageView('POST');
+     
+      const themeToggleButton = document.getElementById('theme-toggle-button');
+      const sunIcon = document.getElementById('theme-toggle-sun-icon');
+      const moonIcon = document.getElementById('theme-toggle-moon-icon');
+      const htmlElement = document.documentElement;
+
+      const applyTheme = (theme) => {
+        if (theme === 'dark') {
+          htmlElement.classList.add('dark');
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          htmlElement.classList.remove('dark');
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+          localStorage.setItem('theme', 'light');
+        }
+      };
+
+      const storedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      let initialTheme = 'light';
+      if (storedTheme) {
+        initialTheme = storedTheme;
+      } else if (systemPrefersDark) {
+        initialTheme = 'dark';
+      }
+      
+      applyTheme(initialTheme);
+
+      themeToggleButton.addEventListener('click', () => {
+        const isDark = htmlElement.classList.contains('dark');
+        applyTheme(isDark ? 'light' : 'dark');
+      }); 
+});
