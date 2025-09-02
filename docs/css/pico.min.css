@@ -3261,3 +3261,22 @@ li {
         color: white !important;
     }
 }
+
+
+.visible-sm { display: block !important; }
+.hidden-sm { display: none !important; }
+
+@media (min-width: 768px) {
+    .visible-md { display: block !important; }
+    .hidden-md { display: none !important; }
+}
+
+@media (min-width: 1024px) {
+    .visible-lg { display: block !important; }
+    .hidden-lg { display: none !important; }
+}
+
+@media (min-width: 1280px) {
+    .visible-xl { display: block !important; }
+    .hidden-xl { display: none !important; }
+}
