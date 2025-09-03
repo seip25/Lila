@@ -2,167 +2,207 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="canonical" href="https://seip25.github.io/Lila/" />
     <title>Lila Framework - Python Web Framework</title>
     <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
     <meta name="description"
-        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
-    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT">
-    <meta name="author" content="Lila Framework Team">
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
 
-    <!-- Spanish Meta Tags -->
-    <meta name="description" lang="es"
-        content="Lila es un framework minimalista de Python basado en Starlette y Pydantic, diseñado para ser simple, flexible y de alto rendimiento.">
-    <meta name="keywords" lang="es" content="Python, Framework Web, API, Starlette, Pydantic,  SQLAlchemy, JWT">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:title" content="Lila Framework - Minimalist Python Web Framework">
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
     <meta property="og:description"
-        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
-    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png">
-    <meta property="og:url" content="https://seip25.github.io/Lila/">
-    <meta property="og:type" content="website">
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Lila Framework - Minimalist Python Web Framework">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
     <meta name="twitter:description"
-        content="Lila is a minimalist Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance.">
-    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png">
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
 
-    <!-- Multi-language support -->
-    <meta name="language" content="en, es">
-    <meta http-equiv="Content-Language" content="en, es">
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://seip25.github.io/Lila/img/lila.png" alt="Lila Framework Logo">
+    <link rel="icon" type="image/png" href="img/lila.png" alt="Lila Framework Logo" />
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/pico.min.css">
-    <link rel="stylesheet" href="css/atom-one-dark.min.css">
-    <link rel="stylesheet" href="css/index.css">
-    <link rel="stylesheet" href="css/doc.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        lila: '#A78BFA',
+                    }
+                }
+            }
+        }
+    </script>
 
-    <!-- Highlight.js -->
+    <link rel="stylesheet" href="css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="css/index.css" />
     <script src="js/highlight.min.js"></script>
-    <script>hljs.highlightAll();</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
 
-    <!-- Scripts -->
     <script src="js/index.js"></script>
 
 </head>
 
-<body>
-    <header class="container">
-        <nav>
-            <ul>
-                <li>
-                    <a href="index.html">
-                        <h1 class="text-lila">Lila Framework</h1>
-                    </a>
-                </li>
-            </ul>
-            <ul>
-
-                <li>
-                    <details class="dropdown">
-                        <summary>🌐</summary>
-                        <ul dir="rtl">
-                            <li><a href="esp/documentation.html">Español</a></li>
-                            <li><a href="documentation.html">English</a></li>
-                        </ul>
-                    </details>
-                </li>
-            </ul>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased">
+    <header class="py-4 border-b dark:border-gray-800">
+        <nav class="container mx-auto px-4 flex justify-between items-center">
+            <div class="text-2xl font-bold">
+                <h1 class="text-lila">
+                    <a href="index.html">Lila Framework</a>
+                </h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button id="theme-toggle-button" type="button"
+                    class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600">
+                    <svg id="theme-toggle-sun-icon" class="h-6 w-6 hidden" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 12.122l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z"
+                            fill-rule="evenodd" clip-rule="evenodd"></path>
+                    </svg>
+                    <svg id="theme-toggle-moon-icon" class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+                <ul class="flex items-center space-x-6">
+                    <li><a href="esp/documentation.html"
+                            class="hover:text-lila transition-colors duration-200">Español</a></li>
+                    <li><a href="https://github.com/seip25/Lila"
+                            class="hover:text-lila transition-colors duration-200">Github</a></li>
+                </ul>
+            </div>
         </nav>
     </header>
-    <main class="container ">
 
-        <div class="grid">
-            <aside>
+    <main class="container  mx-auto   " id="app">
+
+        <div class=" ">
+            <aside
+                class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 underline-none w-64   h-screen fixed top-50 left-0">
                 <header>
-                    <nav>
-
-                        <ul>
-
-                            <li><a href="#install-eng">Installation</a></li>
-                            <li><a href="#routes-eng">Routes</a></li>
-                            <li><a href="#static-eng">Static</a></li>
-                            <li><a href="#templates-eng">Templates</a></li>
-                            <li><a href="#session-eng">Session</a></li>
-                            <li><a href="#upload-eng">Uploads Files</a></li>
-                            <li><a href="#markdown-eng">Markdown/HTML</a></li>
-                            <li><a href="#locales-eng">Internationalization (Translations)</a></li>
-                            <li><a href="#models-eng">Models</a></li>
-                            <li><a href="#middlewares-eng">Middlewares</a></li>
-                            <li><a href="#connections-eng">Connections</a></li>
-                            <li><a href="#migrations-eng">Migrations</a></li>
+                    <nav class="p-4 border-b dark:border-gray-800">
+                        <ul class="flex flex-col space-y-2   ">
+                            <li><a href="#install-eng" class="mt-8 mb-8">Installation</a></li>
+                            <li><a href="#routes-eng" class="mt-8 mb-8">Routes</a></li>
+                            <li><a href="#static-eng" class="mt-8 mb-8">Static</a></li>
+                            <li><a href="#templates-eng" class="mt-8 mb-8">Templates</a></li>
+                            <li><a href="#session-eng" class="mt-8 mb-8">Session</a></li>
+                            <li><a href="#upload-eng" class="mt-8 mb-8">Uploads Files</a></li>
+                            <li><a href="#markdown-eng" class="mt-8 mb-8">Markdown/HTML</a></li>
+                            <li><a href="#locales-eng" class="mt-8 mb-8">Internationalization (Translations)</a></li>
+                            <li><a href="#models-eng" class="mt-8 mb-8">Models</a></li>
+                            <li><a href="#middlewares-eng" class="mt-8 mb-8">Middlewares</a></li>
+                            <li><a href="#connections-eng" class="mt-8 mb-8">Connections</a></li>
+                            <li><a href="#migrations-eng" class="mt-8 mb-8">Migrations</a></li>
                             <li><a href="#react-seo">React</a></li>
-                            <li><a href="#rest_api_crud-eng">API Rest crud generate</a></li>
-                            <li><a href="#admin-panel-eng">Admin Panel</a></li>
-                            <li><a href="#minify-eng">Minify JS,CSS and HTML</a></li>
-                            <li><a href="#production-eng">Production</a></li>
-                            <!-- <li><a href="#helpers-eng">Helpers</a></li> -->
+                            <li><a href="#rest_api_crud-eng" class="mt-8 mb-8">API Rest crud generate</a></li>
+                            <li><a href="#admin-panel-eng" class="mt-8 mb-8">Admin Panel</a></li>
+                            <li><a href="#minify-eng" class="mt-8 mb-8">Minify JS,CSS and HTML</a></li>
+                            <li><a href="#production-eng" class="mt-8 mb-8">Production</a></li>
+                            <!-- <li><a href="/helpers-eng" class="mt-8 mb-8">Helpers</a></li> -->
                         </ul>
 
                     </nav>
                 </header>
             </aside>
 
-            <div class="main">
-                <div id="search">
+            <div class="main ml-64 p-8">
+                <div id="search" class="mt-8 mb-8">
                     <input type="search" name="search" id="searchBox" placeholder="Search..."
-                        onkeyup="searchDocs(false,'eng')" />
+                        onkeyup="searchDocs(false,'eng')"
+                        class="w-full p-2 border border-gray-500 
+                        bg-white  dark:bg-gray-800 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-lila transition rounded-lg" />
                     <ul id="searchResults"></ul>
                 </div>
 
                 <div id="doc">
-                    <div id="doc-eng">
+                    <div id="doc-eng" class="mt-8 mb-8 container mx-auto px-4 py-4 mt-8 mb-8  ">
 
-                        <article id="install-eng">
-                            <h2>Installation</h2>
-                            <div class="terminal">
-                                <div class="terminal-encabezado">
-                                    <span class="terminal-titulo">Installation</span>
-                                    <div class="terminal-controles">
-                                        <div class="control cerrar"></div>
-                                        <div class="control minimizar"></div>
-                                        <div class="control maximizar"></div>
-                                    </div>
-                                </div>
-                                <div class="terminal-contenido">
-                                    <span class="comando">$ python -m venv venv # Or python3 -m venv venv</span><br>
-                                    <span class="comando">$ source venv/bin/activate # On Windows use
-                                        `venv\Scripts\activate`</span><br>
-                                    <span class="comando">$ pip install lila-framework</span><br>
-                                    <span class="comando">$ lila-init</span><br>
-                                    <span class="comando">$ python main.py #Or python3 main.py</span><br>
-                                    <span class="cursor"></span>
-                                </div>
-                            </div>
-
-                        </article>
-                        <hr />
-
-                        <article id="app-py-eng">
-                            <h5 class=" ">Purpose: Configure and start the application.
-                                main.py is the main entry point where the application is configured and initialized.
-                            </h5>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">main.py Explanation</span>
+                        <article id="install-eng" class="section-card">
+                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                                <i class="fas fa-download mr-3 text-lila-500"></i> Installation
+                            </h2>
+                            <div class="code-editor mt-6 mb-6">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-terminal mr-2"></i>Installation Commands
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <div class="command-line flex items-start mb-2">
+                                        <span class="text-purple-400 mr-2">$</span>
+                                        <span class="comando text-green-400">python -m venv venv</span>
+                                        <span class="text-gray-500 ml-2"># Or python3 -m venv venv</span>
+                                    </div>
+                                    <div class="command-line flex items-start mb-2">
+                                        <span class="text-purple-400 mr-2">$</span>
+                                        <span class="comando text-green-400">source venv/bin/activate</span>
+                                        <span class="text-gray-500 ml-2"># On Windows use `venv\Scripts\activate`</span>
+                                    </div>
+                                    <div class="command-line flex items-start mb-2">
+                                        <span class="text-purple-400 mr-2">$</span>
+                                        <span class="comando text-green-400">pip install lila-framework</span>
+                                    </div>
+                                    <div class="command-line flex items-start mb-2">
+                                        <span class="text-purple-400 mr-2">$</span>
+                                        <span class="comando text-green-400">lila-init</span>
+                                    </div>
+                                    <div class="command-line flex items-start">
+                                        <span class="text-purple-400 mr-2">$</span>
+                                        <span class="comando text-green-400">python main.py</span>
+                                        <span class="text-gray-500 ml-2"># Or python3 main.py</span>
+                                    </div>
+                                    <span class="cursor"></span>
+                                </div>
+                            </div>
+                        </article>
 
+                        <div class="border-t border-gray-200 dark:border-gray-700 my-8"></div>
+
+                        <article id="app-py-eng" class="section-card">
+                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                                <i class="fas fa-cogs mr-3 text-lila-500"></i> Application Configuration
+                            </h2>
+                            <p class="text-gray-600 dark:text-gray-300 mb-6 text-lg">
+                                <strong>Purpose:</strong> Configure and start the application. main.py is the main entry
+                                point where the application is configured and initialized.
+                            </p>
+
+                            <div class="code-editor mt-6 mb-6">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-file-code mr-2"></i>main.py Explanation
+                                    </span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content bg-gray-900 dark:bg-black">
                                     <pre><code class="language-python">
 from lila.core.app import App
 from app.routes.routes import routes
@@ -263,43 +303,52 @@ if __name__ == "__main__":
         # Español: Apagando la aplicación de manera ordenada al interrumpir con el teclado.
         print("Shutting down the application...")
         pass
-                </code>
-            </pre>
+            </code></pre>
                                 </div>
                             </div>
                         </article>
 
-                        <article id="routes-eng">
-                            <h1>Routes</h1>
+                        <div class="border-t border-gray-200 dark:border-gray-700 my-8"></div>
 
-                            <p>Routes are the access points to the application. In Lila, routes are defined in the
-                                <code>routes</code> directory (by default, but you can place them wherever you want) and
-                                imported into
-                                <code>main.py</code> for use. Routes can be configured to handle HTTP requests, API
-                                methods, and
-                                more.
-                            <p>
-                                In addition to JSONResponse you can use HTMLResponse,
-                                RedirectResponse and PlainTextResponse, or
-                                StreamingResponse , to transmit data in real-time (useful for
-                                streaming video/audio or large responses).
+                        <article id="routes-eng" class="section-card">
+                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                                <i class="fas fa-route mr-3 text-lila-500"></i> Routes
+                            </h2>
 
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Routes are the access points to the application. In Lila, routes are defined in the
+                                <code class="code-inline">routes</code> directory (by default, but you can place them
+                                wherever you want) and
+                                imported into <code class="code-inline">main.py</code> for use. Routes can be configured
+                                to handle HTTP requests, API
+                                methods, and more.
                             </p>
-                            Below is an example of how routes are defined in Lila:
+
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                In addition to JSONResponse you can use HTMLResponse, RedirectResponse and
+                                PlainTextResponse, or
+                                StreamingResponse, to transmit data in real-time (useful for streaming video/audio or
+                                large responses).
                             </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">routes/api.py</span>
+
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                Below is an example of how routes are defined in Lila:
+                            </p>
+
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-file-code mr-2"></i>routes/api.py
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-                            <code class="language-python">
-#Import from lila.core JSONResponse .
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
+# Import from lila.core JSONResponse.
 from lila.core.responses import JSONResponse 
 
 # Manages routes for API endpoints.
@@ -307,85 +356,88 @@ from lila.core.routing import Router
 # Initializes the router instance to handle API app.routes.
 router = Router()
 
-
 # Defines a simple API route that supports the GET method.
 @router.route(path='/api', methods=['GET'])
 async def api(request: Request):
-"""Api function"""
-# English: Returns a simple JSON response for API verification.
-return JSONResponse({'api': True})   
-                            </code>
-                        </pre>
+    """Api function"""
+    # English: Returns a simple JSON response for API verification.
+    return JSONResponse({'api': True})   
+            </code></pre>
                                 </div>
                             </div>
 
-                            <br />
+                            <h3
+                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+                                <i class="fas fa-code-branch mr-2 text-lila-400"></i> Get URL Parameters
+                            </h3>
 
-                            <h5>Get url parameteres</h5>
-                            <p>In this function, we receive a parameter via
-                                the URL using <code>{param}</code>.
-                                If the parameter is not provided,
-                                it defaults to <code>'default'</code>.
-                                The response is a JSON containing the received value.</p>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                In this function, we receive a parameter via the URL using <code
+                                    class="code-inline">{param}</code>.
+                                If the parameter is not provided, it defaults to <code
+                                    class="code-inline">'default'</code>.
+                                The response is a JSON containing the received value.
+                            </p>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Receiving GET Parameters</span>
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-code mr-2"></i>Receiving GET Parameters
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python">
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
 @router.route(path='/url_with_param/{param}', methods=['GET']) 
 async def param(request: Request):  
     param = request.path_params.get('param', 'default') 
     return JSONResponse({"received_param": param})
-        </code>
-        </pre>
+            </code></pre>
                                 </div>
                             </div>
-                            <br />
-                            <p>Or you canl also do it like this
 
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                Or you can also do it like this:
                             </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Receiving GET Query parameters</span>
+
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-code mr-2"></i>Receiving GET Query Parameters
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python"> 
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python"> 
 @router.route(path='/url_with_param/?query_param', methods=['GET','POST']) 
 async def query_param(request: Request):  
-    query_param= request.query_params.get('query_param', 'query_param')
-    return JSONResponse({"received_param": query_params})
-                            
-        </code>
-        </pre>
+    query_param = request.query_params.get('query_param', 'query_param')
+    return JSONResponse({"received_param": query_param})
+            </code></pre>
                                 </div>
                             </div>
-                            <br />
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Basic Imports</span>
+
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-file-import mr-2"></i>Basic Imports
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python">
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
 from lila.core.responses import JSONResponse  # Simplifies sending JSON responses.
 from lila.core.routing import Router  # Manages API app.routes.
 from lila.core.request import Request  # Handles HTTP requests in the application.
@@ -394,58 +446,69 @@ from app.helpers.helpers import get_user_by_id_and_token
 from app.middlewares.middlewares import validate_token
 
 router = Router()
-        </code>
-        </pre>
+            </code></pre>
                                 </div>
                             </div>
 
-                            <h5>Middleware and Decorators Usage</h5>
-                            <p>Middlewares allow intercepting requests before they reach the main logic of the API.
-                                In this example, we use <code>@validate_token</code> to validate a JWT token in the
-                                request
-                                header.</p>
+                            <h3
+                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+                                <i class="fas fa-filter mr-2 text-lila-400"></i> Middleware and Decorators Usage
+                            </h3>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Middleware Validation</span>
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                Middlewares allow intercepting requests before they reach the main logic of the API.
+                                In this example, we use <code class="code-inline">@validate_token</code> to validate a
+                                JWT token in the
+                                request header.
+                            </p>
+
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-shield-alt mr-2"></i>Middleware Validation
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python">
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
 @router.route(path='/api/token', methods=['GET','POST'])
 @validate_token  # Middleware to validate JWT token.
 async def api_token(request: Request):
     return JSONResponse({'api': True})
-        </code>
-        </pre>
+            </code></pre>
                                 </div>
                             </div>
 
-                            <h5>Data Validation with Pydantic</h5>
-                            <p>Pydantic allows defining data models that automatically validate user input.
+                            <h3
+                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+                                <i class="fas fa-check-circle mr-2 text-lila-400"></i> Data Validation with Pydantic
+                            </h3>
+
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                Pydantic allows defining data models that automatically validate user input.
                                 Additionally, specifying a model in the route generates automatic documentation in
-                                <code>/docs</code>.
+                                <code class="code-inline">/docs</code>.
                             </p>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Validation with Pydantic</span>
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-check-square mr-2"></i>Validation with Pydantic
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python">
-
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
 from pydantic import EmailStr, BaseModel 
+
 class ExampleModel(BaseModel):
     email: EmailStr  # Ensures a valid email.
     password: str  # String for password.
@@ -458,527 +521,758 @@ async def login(request: Request):
     except Exception as e:
         return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400) 
     return JSONResponse({"email": input.email, "password": input.password})
-        </code>
-        </pre>
+            </code></pre>
                                 </div>
                             </div>
 
-                            <h5>Automatic Documentation Generation</h5>
-                            <p>Thanks to the integration with Pydantic, the API documentation is generated automatically
-                                and is
-                                accessible from
-                                <code>/docs</code>. You can also generate an OpenAPI JSON file for external tools.
+                            <h3
+                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+                                <i class="fas fa-book mr-2 text-lila-400"></i> Automatic Documentation Generation
+                            </h3>
+
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                Thanks to the integration with Pydantic, the API documentation is generated
+                                automatically
+                                and is accessible from <code class="code-inline">/docs</code>. You can also generate an
+                                OpenAPI JSON file for external tools.
                             </p>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Documentation Generation</span>
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-file-alt mr-2"></i>Documentation Generation
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python">
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
 router.swagger_ui()  # Enables Swagger UI for API documentation.
 router.openapi_json()  # Generates OpenAPI JSON for external tools.
-        </code>
-        </pre>
+            </code></pre>
                                 </div>
                             </div>
 
+                            <h3
+                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+                                <i class="fas fa-file-import mr-2 text-lila-400"></i> Importing Routes in main.py
+                            </h3>
 
-                            <h5>Importing Routes in main.py</h5>
-                            <p>To use the routes defined in the router, you need to obtain them with
-                                <code>router.get_routes()</code> and import them into <code>main.py</code>.
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                To use the routes defined in the router, you need to obtain them with
+                                <code class="code-inline">router.get_routes()</code> and import them into <code
+                                    class="code-inline">main.py</code>.
                             </p>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Route Import</span>
+                            <div class="code-editor mt-6 mb-8">
+                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
+                                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                                        <i class="fas fa-sign-in-alt mr-2"></i>Route Import
+                                    </span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
                                         <div class="control maximize"></div>
                                     </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-        <code class="language-python">
+                                <div class="editor-content bg-gray-900 dark:bg-black">
+                                    <pre><code class="language-python">
 routes = router.get_routes()  # Retrieves all defined app.routes.
-        </code>
-        </pre>
+            </code></pre>
                                 </div>
                             </div>
-
                         </article>
 
-                        <article id="static-eng">
-                            <h1>Static files</h1>
-                            <p>To load static files(js,css,etc) you can use the <code>mount()</code> method.
-                            </p>
-                            <p>What will be received as parameters that trade by default
-                                <code>path: str = '/public', directory: str = 'static', name: str = 'static'</code>
-                            </p>
+                        <hr />
+                        <article id="static-eng" class="space-y-6 md:space-y-8 py-8">
+                            <div class="space-y-4">
+                                <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                                    Static Files
+                                </h1>
+                                <p class="text-lg text-gray-700 dark:text-gray-300">
+                                    To load static files (JS, CSS, etc.), you can use the
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">mount()</code>
+                                    method.
+                                </p>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    The default parameters are:
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">path: str = '/public', directory: str = 'static', name: str = 'static'</code>
+                                </p>
+                            </div>
 
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Static</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">Static</span>
                                 </div>
-                                <div class="editor-content">
-                                    <pre>
-<code class="language-python">
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-python">
+<code class="whitespace-pre-wrap">
 from lila.core.routing import Router
-# Creating an instance of the Router to define the routes, if it was not previously created in the file
+# Creating an instance of the Router
 router = Router()
-# Mounting the static files in the 'static' folder, url ='/public' by default
+# Mounting the static files in the 'static' folder, with URL '/public' by default
 router.mount()
-</code> 
+</code>
 </pre>
                                 </div>
                             </div>
                         </article>
 
-                   <article id="templates-eng">
+                        <hr class="my-10 border-gray-300 dark:border-gray-700" />
 
-    <h1>Template Rendering (Jinja2 + Lila JS)</h1>
-    <p><strong>
-        In Lila you can use <code>Jinja2</code> to render HTML with server data or <code>Lila JS</code>
-        to create reactive components on the client, or even combine both approaches depending on your needs.
-    </strong></p>
+                        <article id="templates-eng" class="space-y-6 md:space-y-8 py-8">
+                            <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                                Template Rendering (Jinja2 + Lila JS)
+                            </h1>
+                            <p class="text-lg text-gray-700 dark:text-gray-300">
+                                In Lila, you can use
+                                <strong class="font-semibold text-gray-900 dark:text-gray-100">Jinja2</strong> to render
+                                HTML with server data or
+                                <strong class="font-semibold text-gray-900 dark:text-gray-100">Lila JS</strong> to
+                                create reactive components. You can even combine both approaches.
+                            </p>
 
-    <!-- ============================= -->
-    <!-- JINJA2 SECTION -->
-    <!-- ============================= -->
-    <section>
-        <h2>Rendering with Jinja2</h2>
-        <p><strong>
-            In Lila, Jinja2 is used by default to render HTML templates and send them to the client.
-            With <code>context</code>, you can pass information such as translations, data, values, lists, or dictionaries.
-        </strong></p>
+                            <section class="space-y-6">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Rendering with
+                                    Jinja2</h2>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    Jinja2 is the default for rendering HTML templates. You can pass data like
+                                    translations, values, lists, or dictionaries using the
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">context</code>
+                                    parameter.
+                                </p>
 
-        <h3>📌 Basic usage in routes</h3>
-        <div class="code-editor">
-            <div class="editor-content">
-                <pre><code class="language-python">
+                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Basic Usage in Routes
+                                </h3>
+                                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                    <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                        <pre class="language-python">
+<code class="whitespace-pre-wrap">
 @router.route(path="/", methods=["GET"])
 async def home(request: Request):
-    context = {}
-    
-    response = render(
-        request=request,
-        template="index",
-        context=context
-    )
-    # English: Renders the 'index' template with translations
-    # Español: Renderiza la plantilla 'index' con traducciones
-    
-    return response
-                </code></pre>
-            </div>
-        </div>
+  context = {}
+  
+  response = render(
+    request=request,
+    template="index",
+    context=context
+  )
+  # Renders the 'index' template
+  
+  return response
+</code>
+</pre>
+                                    </div>
+                                </div>
 
-        <h3>📌 The <code>render</code> function</h3>
-        <p>The <code>render</code> function is located in <code>lila.core.templates</code>:</p>
+                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                                    The
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+                                    Function
+                                </h3>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    The
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+                                    function is located in
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.templates</code>:
+                                </p>
 
-        <div class="code-editor">
-            <div class="editor-content">
-                <pre><code class="language-python">
+                                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                    <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                        <pre class="language-python">
+<code class="whitespace-pre-wrap">
 def render(
-    request: Request,
-    template: str,
-    context: dict = {},
-    theme_: bool = True,
-    translate: bool = True,
-    files_translate: list = [],
-    lang_default: str = None,
-    templates=templates
+  request: Request,
+  template: str,
+  context: dict = {},
+  theme_: bool = True,
+  translate: bool = True,
+  files_translate: list = [],
+  lang_default: str = None,
+  templates=templates
 )
-                </code></pre>
-            </div>
-        </div>
+</code>
+</pre>
+                                    </div>
+                                </div>
 
-        <h3>📖 Parameter description</h3>
-        <ul>
-            <li><strong>request</strong>: <code>Request</code> object.</li>
-            <li><strong>template</strong> (str): template name (without the <code>.html</code> extension).</li>
-            <li><strong>context</strong> (dict): data to pass to the template (dictionaries, lists, translations, etc.).</li>
-            <li><strong>theme_</strong> (bool, default=True): applies the default visual theme.</li>
-            <li><strong>translate</strong> (bool, default=True): enables the built-in translation system.</li>
-            <li><strong>files_translate</strong> (list): list of additional translation files.</li>
-            <li><strong>lang_default</strong> (str): forced default language (ideal for SEO in routes like <code>/es</code>, <code>/en</code>, <code>/fr</code>).</li>
-            <li><strong>templates</strong>: base template collection used by Lila.</li>
-        </ul>
+                                <h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Parameter
+                                    Description</h3>
+                                <ul class="space-y-2 p-6 rounded-lg bg-gray-50 dark:bg-gray-800">
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong
+                                            class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">request:</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">
+                                            The
+                                            <code
+                                                class="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 px-1.5 py-0.5 rounded-md font-mono text-xs">Request</code>
+                                            object.
+                                        </p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">template
+                                            (str):</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">
+                                            Template name (without the
+                                            <code
+                                                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.html</code>
+                                            extension).
+                                        </p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">context
+                                            (dict):</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">
+                                            Data to pass to the template (dictionaries, lists, etc.).
+                                        </p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">theme_
+                                            (bool, default=True):</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">Applies the default
+                                            visual theme.</p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong
+                                            class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">translate
+                                            (bool, default=True):</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">Enables the built-in
+                                            translation system.</p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong
+                                            class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">files_translate
+                                            (list):</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">List of additional
+                                            translation files.</p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong
+                                            class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">lang_default
+                                            (str):</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">
+                                            Forced default language (ideal for SEO in routes like
+                                            <code
+                                                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/es</code>,
+                                            <code
+                                                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/en</code>,
+                                            etc.).
+                                        </p>
+                                    </li>
+                                    <li class="flex flex-col md:flex-row md:items-start">
+                                        <strong
+                                            class="font-semibold text-gray-900 dark:text-gray-100 min-w-40">templates:</strong>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-1 md:mt-0">Base template
+                                            collection used by Lila.</p>
+                                    </li>
+                                </ul>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    In Lila, you can also use
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+                                    to pass translations to Jinja2, and parameters like
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">title</code>
+                                    or
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">version</code>
+                                    (ideal for structuring APIs: "v1", "v2").
+                                </p>
+                            </section>
 
-        <p><em>In Lila, you can also use <code>translate</code> to pass translations to Jinja2, 
-        and parameters like <code>title</code> or <code>version</code> (ideal for structuring APIs: "v1", "v2").</em></p>
-    </section>
+                            <section class="space-y-6">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Lila JS: Reactive
+                                    System</h2>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    Lila JS is a minimalist library for building reactive interfaces with plain
+                                    JavaScript.
+                                </p>
+                                <p>
+                                    <a href="https://seip25.github.io/Lila_js/" target="_blank"
+                                        class="text-blue-500 hover:text-blue-600 font-medium">Lila JS Documentation
+                                        →</a>
+                                </p>
 
-    <!-- ============================= -->
-    <!-- LILA JS SECTION -->
-    <!-- ============================= -->
-    <section>
-        <h2>Lila JS: Reactive System</h2>
-        <p>Lila JS is a minimalist library for building reactive interfaces with plain JavaScript.</p>
-        <p><a href="https://seip25.github.io/Lila_js/" target="_blank">Lila JS Documentation</a></p>
-
-        <h3>Key Concepts</h3>
-        <div class="concept-grid">
-
-            <div class="concept">
-                <h4>Reactive State</h4>
-                <p>The state is a special object that updates the interface automatically when it changes.</p>
-                <pre><code class="language-javascript">
+                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Key Concepts</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
+                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Reactive
+                                            State</h4>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            The state is a special object that automatically updates the interface when
+                                            its value changes.
+                                        </p>
+                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
+                                            <pre class="language-javascript"><code class="whitespace-pre-wrap">
 state: () => ({
-    email: '',
-    password: ''
+  email: '',
+  password: ''
 })
-                </code></pre>
-            </div>
+</code></pre>
+                                        </div>
+                                    </div>
 
-            <div class="concept">
-                <h4>Two-Way Data Binding</h4>
-                <p>Link between inputs and state using <code>data-model</code>.</p>
-                <pre><code class="language-html">
+                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
+                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Two-Way Data
+                                            Binding</h4>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            Link inputs and state using the
+                                            <code
+                                                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">data-model</code>
+                                            attribute.
+                                        </p>
+                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
+                                            <pre class="language-html"><code class="whitespace-pre-wrap">
 &lt;input data-model="email"&gt;
 &lt;span data-bind="email"&gt;&lt;/span&gt;
-                </code></pre>
-            </div>
+</code></pre>
+                                        </div>
+                                    </div>
 
-            <div class="concept">
-                <h4>Components</h4>
-                <p>Reusable units with their own state, template, and actions.</p>
-                <pre><code class="language-javascript">
+                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
+                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Components
+                                        </h4>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            Reusable units with their own state, template, and actions.
+                                        </p>
+                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
+                                            <pre class="language-javascript"><code class="whitespace-pre-wrap">
 App.createComponent('login-component', {
-    template: 'login-template',
-    state: () => ({...}),
-    actions: {...}
+  template: 'login-template',
+  state: () => ({...}),
+  actions: {...}
 });
-                </code></pre>
-            </div>
+</code></pre>
+                                        </div>
+                                    </div>
 
-            <div class="concept">
-                <h4>Routing</h4>
-                <p>Client-side navigation between components.</p>
-                <pre><code class="language-javascript">
+                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
+                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Routing</h4>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">Client-side navigation
+                                            between components.</p>
+                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
+                                            <pre class="language-javascript"><code class="whitespace-pre-wrap">
 App.defineRoute('/login', '&lt;login-component&gt;&lt;/login-component&gt;');
-App.mount('app'); // id of the div where it will be mounted
-                </code></pre>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- ============================= -->
-    <!-- APPROACH ADVANTAGES -->
-    <!-- ============================= -->
-    <section>
-        <h2>Advantages of This Approach</h2>
-        <div class="advantages">
-            <div class="advantage">
-                <h3>🚀 Performance</h3>
-                <p>Combines Jinja2's fast initial rendering with the smoothness of an SPA.</p>
-            </div>
-            <div class="advantage">
-                <h3>🔍 SEO Optimized</h3>
-                <p>Critical content is rendered server-side for search engines.</p>
-            </div>
-            <div class="advantage">
-                <h3>💡 Progressive</h3>
-                <p>Start with Jinja2 and add interactivity only where needed.</p>
-            </div>
-            <div class="advantage">
-                <h3>🛠️ Simple</h3>
-                <p>No complex configurations or heavy dependencies.</p>
-            </div>
-        </div>
-    </section>
-
-</article>
-
- 
-
-                        <article id="session-eng">
-                            <h1>Session Management</h1>
-                            <p>
-                                Lila provides a simple yet powerful session management system built on top of <code>itsdangerous</code> for cryptographically signed session data. This ensures that session data cannot be tampered with on the client side.
-                            </p>
-                            <p>
-                                The <code>Session</code> class provides a set of static methods to handle session data.
-                            </p>
-
-                            <h2>Setting Session Data</h2>
-                            <p>
-                                The <code>setSession</code> method is used to set session data in a cookie. It can handle strings, dictionaries, and lists, which are automatically serialized to JSON if needed.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">setSession example</span>
+App.mount('app'); // id of the mounting div
+</code></pre>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
+                            </section>
+
+                            <section class="rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                                <div class="p-8">
+                                    <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-8">
+                                        Advantages of This Approach</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div
+                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                                            <h3
+                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                                <span
+                                                    class="p-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M12 2L19 22H5L12 2Z"></path>
+                                                        <path d="M12 2V22"></path>
+                                                        <path d="M2 15L22 15"></path>
+                                                    </svg>
+                                                </span>
+                                                Performance
+                                            </h3>
+                                            <p class="text-gray-600 dark:text-gray-400">
+                                                Combines Jinja2's fast initial rendering with the smoothness of a Single
+                                                Page Application (SPA).
+                                            </p>
+                                        </div>
+
+                                        <div
+                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                                            <h3
+                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                                <span
+                                                    class="p-2 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                        <circle cx="12" cy="7" r="4"></circle>
+                                                        <path d="M17 11L19 13L23 9"></path>
+                                                    </svg>
+                                                </span>
+                                                SEO Optimized
+                                            </h3>
+                                            <p class="text-gray-600 dark:text-gray-400">Critical content is rendered
+                                                server-side for search engines, improving discoverability.</p>
+                                        </div>
+
+                                        <div
+                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                                            <h3
+                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                                <span
+                                                    class="p-2 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path
+                                                            d="M15 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z">
+                                                        </path>
+                                                        <path
+                                                            d="M9 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z">
+                                                        </path>
+                                                        <path
+                                                            d="M3 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z">
+                                                        </path>
+                                                        <path
+                                                            d="M21 4h-1a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-14a1 1 0 0 0-1-1z">
+                                                        </path>
+                                                    </svg>
+                                                </span>
+                                                Progressive
+                                            </h3>
+                                            <p class="text-gray-600 dark:text-gray-400">
+                                                Start with Jinja2 for static content and add interactivity with Lila JS
+                                                only where it's needed.
+                                            </p>
+                                        </div>
+
+                                        <div
+                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                                            <h3
+                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                                <span
+                                                    class="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                                    </svg>
+                                                </span>
+                                                Simple
+                                            </h3>
+                                            <p class="text-gray-600 dark:text-gray-400">No complex build configurations
+                                                or heavy dependencies required.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </article>
+
+                        <hr class="my-10 border-gray-300 dark:border-gray-700" />
+
+                        <article id="session-eng" class="space-y-6 md:space-y-8 py-8">
+                            <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Session
+                                Management</h1>
+                            <p class="text-lg text-gray-700 dark:text-gray-300">
+                                Lila provides a simple yet powerful session management system built on top of
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>
+                                for cryptographically signed session data. This ensures that session data cannot be
+                                tampered with on the client side.
+                            </p>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                The
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
+                                class provides a set of static methods to handle session data.
+                            </p>
+
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Setting Session Data
+                            </h2>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                The
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">setSession</code>
+                                method is used to store session data in a cookie. It can handle strings, dictionaries,
+                                and lists, which are automatically serialized to JSON.
+                            </p>
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">setSession example</span>
+                                </div>
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-python">
+<code class="whitespace-pre-wrap">
 from lila.core.session import Session
 from lila.core.responses import JSONResponse
 
 @router.route("/set-session", methods=["GET"])
 async def set_session_example(request: Request):
-    response = JSONResponse({"message": "Session has been set"})
-    session_data = {"user_id": 123, "username": "lila_user"}
-    Session.setSession(new_val=session_data, response=response, name_cookie="user_session")
-    return response
-                                    </code></pre>
+  response = JSONResponse({"message": "Session has been set"})
+  session_data = {"user_id": 123, "username": "lila_user"}
+  Session.setSession(new_val=session_data, response=response, name_cookie="user_session")
+  return response
+</code>
+</pre>
                                 </div>
                             </div>
-                            <p>
-                                The <code>setSession</code> method accepts several parameters to customize the cookie, such as <code>secure</code>, <code>samesite</code>, <code>max_age</code>, etc.
+                            <p class="text-gray-700 dark:text-gray-300">
+                                The
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">setSession</code>
+                                method accepts several parameters to customize the cookie, such as
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">secure</code>,
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">samesite</code>,
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">max_age</code>,
+                                etc.
                             </p>
 
-                            <h2>Getting Session Data</h2>
-                            <p>
-                                The <code>getSession</code> method retrieves the raw, signed session data from a cookie. To get the unsigned and validated session data, you should use <code>getSessionValue</code> or <code>unsign</code>.
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Getting Session Data
+                            </h2>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                The
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSession</code>
+                                method retrieves the raw, signed session data from a cookie. To get the unsigned and
+                                validated data, use
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSessionValue</code>
+                                or
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">unsign</code>.
                             </p>
 
-                            <h2>Unsigning and Validating Session Data</h2>
-                            <p>
-                                The <code>unsign</code> and <code>getSessionValue</code> methods are used to get the session data in its original form after verifying the signature. <code>getSessionValue</code> is recommended as it also handles expired signatures gracefully.
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Unsigning and Validating
+                                Session Data</h2>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                The
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">unsign</code>
+                                and
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSessionValue</code>
+                                methods get the session data in its original form after verifying the signature.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSessionValue</code>
+                                is recommended because it also gracefully handles expired signatures.
                             </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">getSessionValue example</span>
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">getSessionValue
+                                        example</span>
                                 </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-python">
+<code class="whitespace-pre-wrap">
 from lila.core.session import Session
 
 @router.route("/get-session", methods=["GET"])
 async def get_session_example(request: Request):
-    session_data = Session.getSessionValue(request=request, key="user_session")
-    if session_data:
-        return JSONResponse({"session_data": session_data})
-    else:
-        return JSONResponse({"message": "No session found or session is invalid/expired."}, status_code=401)
-                                    </code></pre>
+  session_data = Session.getSessionValue(request=request, key="user_session")
+  if session_data:
+    return JSONResponse({"session_data": session_data})
+  else:
+    return JSONResponse({"message": "No session found or session is invalid/expired."}, status_code=401)
+</code>
+</pre>
                                 </div>
                             </div>
 
-                            <h2>Deleting a Session</h2>
-                            <p>
-                                The <code>deleteSession</code> method is used to delete a session cookie from the client's browser.
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Deleting a Session</h2>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                The
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">deleteSession</code>
+                                method is used to delete a session cookie from the client's browser.
                             </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">deleteSession example</span>
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">deleteSession
+                                        example</span>
                                 </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-python">
+<code class="whitespace-pre-wrap">
 from lila.core.session import Session
 from lila.core.responses import JSONResponse
 
 @router.route("/logout", methods=["GET"])
 async def logout(request: Request):
-    response = JSONResponse({"message": "Logged out successfully"})
-    Session.deleteSession(response=response, name_cookie="user_session")
-    return response
-                                    </code></pre>
+  response = JSONResponse({"message": "Logged out successfully"})
+  Session.deleteSession(response=response, name_cookie="user_session")
+  return response
+</code>
+</pre>
                                 </div>
                             </div>
 
-                            <h2>Full Session Class Reference</h2>
-                            <p>Here is the full code for the <code>Session</code> class for your reference.</p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">core/session.py</span>
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Full Session Class
+                                Reference</h2>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                Here is the full code for the
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
+                                class for your reference.
+                            </p>
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">core/session.py</span>
                                 </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-python">
+<code class="whitespace-pre-wrap">
 import json
 from app.config import SECRET_KEY
-from itsdangerous import BadSignature, URLSafeTimedSerializer,SignatureExpired
+from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
 from lila.core.request import Request
 from typing import Any, Union, Optional, Dict, List
 from lila.core.logger import Logger
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
-
 class Session:
-    @staticmethod
-    def setSession(
-        new_val: str | dict | list,
-        response,
-        name_cookie: str = "session",
-        secure: bool = True,
-        samesite: str = "strict",
-        max_age: int = 3600,
-        domain: Optional[str] = None,
-        http_only: bool = True,
-        path: str = "/",
-    ) -> bool:
-        try:
-            if isinstance(new_val, (dict, list)):
-                new_val = json.dumps(new_val)
-            else:
-                new_val = str(new_val)
+  @staticmethod
+  def setSession(
+    new_val: str | dict | list,
+    response,
+    name_cookie: str = "session",
+    secure: bool = True,
+    samesite: str = "strict",
+    max_age: int = 3600,
+    domain: Optional[str] = None,
+    http_only: bool = True,
+    path: str = "/",
+  ) -> bool:
+    try:
+      if isinstance(new_val, (dict, list)):
+        new_val = json.dumps(new_val)
+      else:
+        new_val = str(new_val)
 
-            signed_session = serializer.dumps(new_val)
+      signed_session = serializer.dumps(new_val)
 
-            response.set_cookie(
-                key=name_cookie,
-                value=signed_session,
-                max_age=max_age,
-                expires=max_age,
-                secure=secure,
-                httponly=http_only,
-                samesite=samesite,
-                domain=domain,
-                path=path,
-            )
-            return True
-        except (TypeError, ValueError, Exception) as e:
-            Logger.error(f"Error setting session: {str(e)}")
-            print(f"Error session {str(e)}")
-            return False
+      response.set_cookie(
+        key=name_cookie,
+        value=signed_session,
+        max_age=max_age,
+        expires=max_age,
+        secure=secure,
+        httponly=http_only,
+        samesite=samesite,
+        domain=domain,
+        path=path,
+      )
+      return True
+    except (TypeError, ValueError, Exception) as e:
+      Logger.error(f"Error setting session: {str(e)}")
+      print(f"Error session {str(e)}")
+      return False
 
-    @staticmethod
-    def getSession(key: str, request: Request) -> Optional[str]:
-        return request.cookies.get(key)
+  @staticmethod
+  def getSession(key: str, request: Request) -> Optional[str]:
+    return request.cookies.get(key)
 
-    @staticmethod
-    def unsign(
-        key: str, request: Request, max_age: Optional[int] = None
-    ) -> Union[Dict, List, str, None]:
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
+  @staticmethod
+  def unsign(
+    key: str, request: Request, max_age: Optional[int] = None
+  ) -> Union[Dict, List, str, None]:
+    session_data = request.cookies.get(key)
+    if not session_data:
+      return None
 
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-            try:
-                return json.loads(unsigned_data)
-            except json.JSONDecodeError:
-                return unsigned_data
+    try:
+      unsigned_data = serializer.loads(session_data, max_age=max_age)
+      try:
+        return json.loads(unsigned_data)
+      except json.JSONDecodeError:
+        return unsigned_data
 
-        except BadSignature:
-            msg = f"Invalid session signature for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except Exception as e:
-            msg = f"Error unsigning session: {str(e)}"
-            print(msg)
-            Logger.error(msg)
-            return None
+    except BadSignature:
+      msg = f"Invalid session signature for cookie: {key}"
+      print(msg)
+      Logger.warning(msg)
+      return None
+    except Exception as e:
+      msg = f"Error unsigning session: {str(e)}"
+      print(msg)
+      Logger.error(msg)
+      return None
 
-    @staticmethod
-    def deleteSession(response, name_cookie: str) -> bool:
-        try:
-            response.delete_cookie(name_cookie)
-            return True
-        except Exception as e:
-            msg = f"Error deleting session: {str(e)}"
-            print(e)
-            Logger.error(msg)
-            return False
+  @staticmethod
+  def deleteSession(response, name_cookie: str) -> bool:
+    try:
+      response.delete_cookie(name_cookie)
+      return True
+    except Exception as e:
+      msg = f"Error deleting session: {str(e)}"
+      print(e)
+      Logger.error(msg)
+      return False
 
-    @staticmethod
-    def getSessionValue(
-         request: Request,key: str='auth', max_age: Optional[int] = 3600
-    ) -> Union[Dict, List, str, None]:
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
+  @staticmethod
+  def getSessionValue(
+    request: Request, key: str = 'auth', max_age: Optional[int] = 3600
+  ) -> Union[Dict, List, str, None]:
+    session_data = request.cookies.get(key)
+    if not session_data:
+      return None
 
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-            try:
-                return json.loads(unsigned_data)
-            except json.JSONDecodeError:
-                return unsigned_data
+    try:
+      unsigned_data = serializer.loads(session_data, max_age=max_age)
+      try:
+        return json.loads(unsigned_data)
+      except json.JSONDecodeError:
+        return unsigned_data
 
-        except BadSignature:
-            msg = f"Invalid session signature for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except SignatureExpired:
-            msg = f"Session expired for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except Exception as e:
-            msg = f"Error unsigning session: {str(e)}"
-            print(msg)
-            Logger.error(msg)
-            return None
-                                    </code></pre>
+    except BadSignature:
+      msg = f"Invalid session signature for cookie: {key}"
+      print(msg)
+      Logger.warning(msg)
+      return None
+    except SignatureExpired:
+      msg = f"Session expired for cookie: {key}"
+      print(msg)
+      Logger.warning(msg)
+      return None
+    except Exception as e:
+      msg = f"Error unsigning session: {str(e)}"
+      print(msg)
+      Logger.error(msg)
+      return None
+</code>
+</pre>
                                 </div>
                             </div>
                         </article>
+                        <hr />
 
-
-                    
-
-                        <article id="api-reference-eng">
-                            <h1>API Reference & Examples</h1>
-
-                            <h2>Login Form Example</h2>
-                            <p>
-                                This example demonstrates how to create a simple login form with validation.
-                            </p>
-                            <div class="code-editor">
-                                <div class="editor-header">
-                                    <span class="editor-title">Login Component</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-html">
-&lt;template data-template="login-template"&gt;
-    &lt;form data-action="login"&gt;
-        &lt;input type="email" data-model="email" placeholder="Email" required&gt;
-        &lt;input type="password" data-model="password" placeholder="Password" required&gt;
-        &lt;button type="submit"&gt;Login&lt;/button&gt;
-    &lt;/form&gt;
-&lt;/template&gt;
-
-&lt;script&gt;
-    App.createComponent('Login', {
-        template: 'login-template',
-        state: () => ({
-            email: '',
-            password: ''
-        }),
-        actions: {
-            login: ({ state, event }) => {
-                event.preventDefault();
-                if (state.email && state.password) {
-                    // Perform login logic here
-                    console.log('Logging in with:', state.email, state.password);
-                } else {
-                    alert('Please fill in all fields.');
-                }
-            }
-        }
-    });
-
-    App.addRoute('/login', 'Login');
-&lt;/script&gt;
-                                    </code></pre>
-                                </div>
-                            </div>
-                        </article>
-
-
-
-                        <article id="upload-eng">
-                            <h1>File Upload Helper</h1>
+                        <article id="upload-eng" class="mt-8 mb-8  ">
+                            <h1 class="text-2xl font-semibold">File Upload Helper</h1>
                             <p><strong>
-                                    The <code>upload</code> helper provides a complete solution for handling file
+                                    The <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code>
+                                    helper provides a complete solution for handling file
                                     uploads in your application,
                                     including validation, security checks, and translation support.
                                 </strong></p>
@@ -996,9 +1290,11 @@ class Session:
                             </ul>
                             </p>
 
-                            <h2>Parameters</h2>
-                            <p>The <code>upload</code> function accepts these parameters:</p>
-                            <div class="code-editor">
+                            <h2 class="text-xl">Parameters</h2>
+                            <p>The <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code>
+                                function accepts these parameters:</p>
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Parameters</span>
                                     <div class="editor-controls">
@@ -1018,8 +1314,8 @@ MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
                                 </div>
                             </div>
 
-                            <h2>Usage Example</h2>
-                            <div class="code-editor">
+                            <h2 class="text-xl">Usage Example</h2>
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Route Implementation</span>
                                     <div class="editor-controls">
@@ -1040,8 +1336,8 @@ async def uploadFile(request: Request):
                                 </div>
                             </div>
 
-                            <h2>Frontend Implementation</h2>
-                            <div class="code-editor">
+                            <h2 class="text-xl">Frontend Implementation</h2>
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">HTML + JavaScript</span>
                                     <div class="editor-controls">
@@ -1087,9 +1383,9 @@ async def uploadFile(request: Request):
                                 </div>
                             </div>
 
-                            <h2>Response Format</h2>
+                            <h2 class="text-xl">Response Format</h2>
                             <p>The helper returns a JSONResponse with this structure:</p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Success Response</span>
                                     <div class="editor-controls">
@@ -1109,7 +1405,7 @@ async def uploadFile(request: Request):
                                 </div>
                             </div>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Error Response</span>
                                     <div class="editor-controls">
@@ -1129,37 +1425,61 @@ async def uploadFile(request: Request):
                                 </div>
                             </div>
                         </article>
-                        <article id="markdown-eng">
-                            <h1>Markdown /HTML</h1>
-                            <p>To render <code>markdown</code> files, the
-                                <code>renderMarkdown</code> function is used, which receives the following parameters:
-                                <code>request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
+                        <hr />
+
+                        <article id="markdown-eng" class="mt-8 mb-8  ">
+                            <h1 class="text-2xl font-semibold">Markdown /HTML</h1>
+                            <p>To render <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>
+                                files, the
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">renderMarkdown</code>
+                                function is used, which receives the following parameters:
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
                             </p>
                             <p>
-                                <code>file</code> is the name of the file, starting from the <code>base_path</code> of
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">file</code>
+                                is the name of the file, starting from the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">base_path</code>
+                                of
                                 the
                                 directory
-                                located in <code>templates/markdown/</code>, for example: <code>index.md</code>.
-                                It will look for an <code>index.md</code> file in the markdown directory inside the
+                                located in <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/markdown/</code>,
+                                for example: <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>.
+                                It will look for an <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>
+                                file in the markdown directory inside the
                                 templates
                                 folder
                                 (templates/markdown/index.md).
                             </p>
                             <p>
-                                <code>css_files</code> and <code>js_files</code> are lists of CSS and JS files that will
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">css_files</code>
+                                and <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">js_files</code>
+                                are lists of CSS and JS files that will
                                 be
                                 loaded in the
                                 generated HTML file.
                             </p>
                             <p>
-                                <code>picocss</code> is a boolean indicating whether the PicoCSS CSS file should be
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">picocss</code>
+                                is a boolean indicating whether the PicoCSS CSS file should be
                                 loaded.
                             </p>
                             <p>
-                                Below is an example of how <code>markdown</code> files are rendered in
+                                Below is an example of how <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>
+                                files are rendered in
                                 Lilac:
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Markdown</span>
                                     <div class="editor-controls">
@@ -1187,19 +1507,26 @@ async def home(request: Request):
                             </div>
 
                         </article>
+                        <hr />
 
-                        <article id="locales-eng">
-                            <h1>Internationalization (Translations)</h1>
+                        <article id="locales-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Internationalization (Translations)</h1>
                             <p>Translations are used to internationalize an application and display content in different
-                                languages. In Lila, translations are stored in the <code>app/locales</code> directory
+                                languages. In Lila, translations are stored in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/locales</code>
+                                directory
                                 and
                                 can be dynamically loaded into the application.</p>
 
-                            <h2>Forcing Default Language in Routes</h2>
-                            <p>The <code>render</code> method accepts a <code>lang_default</code> parameter to force a
+                            <h2 class="text-xl">Forcing Default Language in Routes</h2>
+                            <p>The <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+                                method accepts a <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lang_default</code>
+                                parameter to force a
                                 specific language for the rendered template:</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app.routes.py</span>
                                     <div class="editor-controls">
@@ -1233,19 +1560,29 @@ async def home(request: Request):
                                 </div>
                             </div>
 
-                            <h2>Translation Files</h2>
-                            <p>To load a locale file, use the <code>translate</code> function from
-                                <code>app.helpers.helpers</code>. You can access translations using:
+                            <h2 class="text-xl">Translation Files</h2>
+                            <p>To load a locale file, use the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+                                function from
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app.helpers.helpers</code>.
+                                You can access translations using:
                             </p>
                             <ul>
-                                <li><code>translate</code> - returns a dictionary with all translations</li>
-                                <li><code>translate_</code> - returns a specific translation (returns original text if
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+                                    - returns a dictionary with all translations</li>
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate_</code>
+                                    - returns a specific translation (returns original text if
                                     not found)</li>
                             </ul>
 
-                            <p>Example translation file (<code>app/locales/translations.json</code>):</p>
+                            <p>Example translation file (<code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/locales/translations.json</code>):
+                            </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/locales/translations.json</span>
                                     <div class="editor-controls">
@@ -1290,10 +1627,10 @@ async def home(request: Request):
                                 </div>
                             </div>
 
-                            <h2>Using Translations</h2>
+                            <h2 class="text-xl">Using Translations</h2>
                             <p>Get a specific translation:</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
                                     <div class="editor-controls">
@@ -1317,7 +1654,7 @@ msg_error_login = translate_(
 
                             <p>Get all translations from a file:</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">example.py</span>
                                     <div class="editor-controls">
@@ -1338,11 +1675,12 @@ all_translations = translate(
                                 </div>
                             </div>
                         </article>
+                        <hr />
 
 
-                        <article id="models-eng">
-                            <h1>Models (SQLAlchemy)</h1>
-                            <h5>Models are used to define the structure of data in
+                        <article id="models-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Models (SQLAlchemy)</h1>
+                            <h5 class="text-2xl font-semibold">Models are used to define the structure of data in
                                 the application.
                             </h5>
                             <p>
@@ -1354,20 +1692,20 @@ all_translations = translate(
                                 efficiently.
                             </p>
 
-                            <h2>Using Models </h2>
+                            <h2 class="text-xl">Using Models </h2>
                             <p>
                                 The `Base` class, imported from `lila.core.database`, serves as the foundation for
                                 all models .
                                 Models inherit from `Base` to define database tables with SQLAlchemy.
                             </p>
 
-                            <h2>Example: User Model</h2>
+                            <h2 class="text-xl">Example: User Model</h2>
                             This example demonstrates how to create a `User` model using SQLAlchemy.
                             The model defines a `users` table with columns such as `id`, `name`, `email`, `password`,
                             `token`,
                             `active`, and `created_at`.
                             </h5>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/models/user.py</span>
                                     <div class="editor-controls">
@@ -1428,39 +1766,54 @@ user = User.get_by_id(1)
                             </p>
 
                         </article>
+                        <hr />
 
-                        <article id="middlewares-eng">
-                            <h1>Middlewares</h1>
-                            <h5>
+                        <article id="middlewares-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Middlewares</h1>
+                            <h5 class="text-2xl font-semibold">
                                 Middleware functions are used to intercept requests before they reach the main logic of
                                 the application.
-                                In Lila, middlewares are defined in the <code>app/middlewares</code> directory (can be
+                                In Lila, middlewares are defined in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/middlewares</code>
+                                directory (can be
                                 modified to any file and/or directory).
                                 Middlewares can be used for tasks such as authentication, logging, and error handling.
                             </h5>
                             <p>
                                 By default, Lila comes with 3 middlewares to start any application. Middlewares can be
-                                used with decorators <code>@my_middleware</code>.
+                                used with decorators <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@my_middleware</code>.
                             </p>
                             <p>
-                                <code>login_required</code>, to validate that you have a signed session, for the 'auth'
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">login_required</code>,
+                                to validate that you have a signed session, for the 'auth'
                                 key that is passed as a parameter to be able to modify it as you wish.
                                 If this session is not found, it redirects to the URL that is passed as a parameter, by
-                                default, it is <code>"/login"</code>.
+                                default, it is <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"/login"</code>.
                                 Otherwise, it will continue its course executing the route or function.
                             </p>
                             <p>
-                                Then we have <code>session_active</code>, which is used to verify if you have an active
+                                Then we have <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">session_active</code>,
+                                which is used to verify if you have an active
                                 session.
                                 It will redirect to the URL that is received as a parameter, by default, it is
-                                <code>"/dashboard"</code>.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"/dashboard"</code>.
                             </p>
                             <p>
-                                The third is <code>validate_token</code>, which is used to validate a JWT token thanks
-                                to the <code>get_token</code> helpers imported in
-                                <code>from app.helpers.helpers import get_token</code>.
+                                The third is <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">validate_token</code>,
+                                which is used to validate a JWT token thanks
+                                to the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">get_token</code>
+                                helpers imported in
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">from app.helpers.helpers import get_token</code>.
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/middlewares/middlewares.py</span>
                                     <div class="editor-controls">
@@ -1521,11 +1874,11 @@ async def check_token(request:Request):
                             </div>
 
                             <br />
-                            <h5>
+                            <h5 class="text-2xl font-semibold">
                                 Here we give you several examples of how to use all 3, with the decorators.
                             </h5>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Middlewares in routes</span>
                                     <div class="editor-controls">
@@ -1567,9 +1920,11 @@ async def login(request: Request):
                                 </div>
                             </div>
 
-                            <h2>Security Middleware</h2>
+                            <h2 class="text-xl">Security Middleware</h2>
                             <p>
-                                Lila Framework includes a built-in <code>ErrorHandlerMiddleware</code> that not only
+                                Lila Framework includes a built-in <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">ErrorHandlerMiddleware</code>
+                                that not only
                                 handles unhandled exceptions but also provides robust security checks to protect your
                                 application from malicious requests. This middleware is designed to block suspicious
                                 IPs, URLs, and sensitive paths, ensuring that your application remains secure.
@@ -1587,33 +1942,52 @@ async def login(request: Request):
                                 </li>
                                 <li>
                                     <strong>Sensitive Paths Blocking</strong>:
-                                    Blocks access to sensitive paths such as <code>/etc/passwd</code>,
-                                    <code>.env</code>, and others.
+                                    Blocks access to sensitive paths such as <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/etc/passwd</code>,
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.env</code>,
+                                    and others.
                                 </li>
                                 <li>
                                     <strong>Malicious Extensions Blocking</strong>:
-                                    Blocks URLs containing malicious file extensions like <code>.php</code>,
-                                    <code>.asp</code>, <code>.jsp</code>, and <code>.aspx</code>.
+                                    Blocks URLs containing malicious file extensions like <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.php</code>,
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.asp</code>,
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.jsp</code>,
+                                    and <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.aspx</code>.
                                 </li>
                                 <li>
                                     <strong>HTTP Detection</strong>:
-                                    Blocks requests containing <code>"http"</code> in query parameters or body content.
+                                    Blocks requests containing <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"http"</code>
+                                    in query parameters or body content.
                                 </li>
                             </ul>
                             <h3>Configuration</h3>
                             <p>
-                                The middleware uses three JSON files located in the <code>app/security</code> directory:
+                                The middleware uses three JSON files located in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/security</code>
+                                directory:
                             </p>
                             <ul>
-                                <li><code>blocked_ips.json</code>: Stores blocked IPs with their expiration time.</li>
-                                <li><code>blocked_urls.json</code>: Stores blocked URLs with their expiration time.</li>
-                                <li><code>sensitive_paths.json</code>: Stores a list of sensitive paths to block.</li>
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">blocked_ips.json</code>:
+                                    Stores blocked IPs with their expiration time.</li>
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">blocked_urls.json</code>:
+                                    Stores blocked URLs with their expiration time.</li>
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">sensitive_paths.json</code>:
+                                    Stores a list of sensitive paths to block.</li>
                             </ul>
                             <p>
                                 If these files do not exist, they are automatically created and initialized with default
                                 values:
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">security/sensitive_paths.json</span>
                                     <div class="editor-controls">
@@ -1647,11 +2021,14 @@ async def login(request: Request):
                             </div>
                             <h3>Usage</h3>
                             <p>
-                                The <code>ErrorHandlerMiddleware</code> is automatically applied to all requests. You
-                                can customize its behavior by modifying the JSON files in the <code>security</code>
+                                The <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">ErrorHandlerMiddleware</code>
+                                is automatically applied to all requests. You
+                                can customize its behavior by modifying the JSON files in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">security</code>
                                 directory.
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">core/middleware.py</span>
                                     <div class="editor-controls">
@@ -1737,13 +2114,13 @@ try:
 
     if await is_blocked(self.blocked_ips, client_ip, request=request):
         return HTMLResponse(
-            content="<h1>Access Denied</h1><p>Your IP has been temporarily blocked.</p>",
+            content="<h1 class="text-2xl font-semibold">Access Denied</h1><p>Your IP has been temporarily blocked.</p>",
             status_code=403,
         )
 
     if await is_blocked(self.blocked_urls, url_path, request=request):
         return HTMLResponse(
-            content="<h1>Access Denied</h1><p>This URL has been temporarily blocked.</p>",
+            content="<h1 class="text-2xl font-semibold">Access Denied</h1><p>This URL has been temporarily blocked.</p>",
             status_code=403,
         )
 
@@ -1754,7 +2131,7 @@ try:
         }
         save_blocked_data(self.blocked_ips_file, self.blocked_ips)
         return HTMLResponse(
-            content="<h1>Access Denied</h1><p>Malicious URL detected.</p>",
+            content="<h1 class="text-2xl font-semibold">Access Denied</h1><p>Malicious URL detected.</p>",
             status_code=403,
         )
 
@@ -1764,7 +2141,7 @@ try:
         }
         save_blocked_data(self.blocked_ips_file, self.blocked_ips)
         return HTMLResponse(
-            content="<h1>Access Denied</h1><p>Malicious query parameters detected.</p>",
+            content="<h1 class="text-2xl font-semibold">Access Denied</h1><p>Malicious query parameters detected.</p>",
             status_code=403,
         )
 
@@ -1774,7 +2151,7 @@ try:
         }
         save_blocked_data(self.blocked_ips_file, self.blocked_ips)
         return HTMLResponse(
-            content="<h1>Access Denied</h1><p>Sensitive path detected.</p>",
+            content="<h1 class="text-2xl font-semibold">Access Denied</h1><p>Sensitive path detected.</p>",
             status_code=403,
         )
 
@@ -1791,21 +2168,25 @@ except Exception as e:
                                 </div>
                             </div>
                         </article>
+                        <hr />
 
 
-                        <article id="connections-eng">
-                            <h1>Connections to database</h1>
+                        <article id="connections-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Connections to database</h1>
                             <p>
-                                To use connections, you need to import the <code>Database</code> class from
+                                To use connections, you need to import the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Database</code>
+                                class from
                                 lila.core.database. With
                                 that you can connect to your database, which can be SQLite, MySLQ, PostgreSQL or
                                 whatever you
                                 want to configure.
                             <p>Below we leave you the example of how to connect. The connection will close automatically
                                 after
-                                being used, so you can use it as in this example in the variable <code>connection</code>
+                                being used, so you can use it as in this example in the variable <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">connection</code>
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/connections.py</span>
                                     <div class="editor-controls">
@@ -1842,9 +2223,10 @@ mysql_connection = connection
                             </div>
 
                         </article>
+                        <hr />
 
-                        <article id="migrations-eng">
-                            <h1>Migrations</h1>
+                        <article id="migrations-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Migrations</h1>
                             <p>In Lila Framework, database migrations can be managed using SQLAlchemy and Lila's
                                 configuration
                                 to make migrations as easy as possible. The framework now supports command-line
@@ -1853,13 +2235,13 @@ mysql_connection = connection
                             </p>
                             <br />
 
-                            <h2>Migration Methods</h2>
+                            <h2 class="text-xl">Migration Methods</h2>
                             <p>There are two main ways to define database tables:</p>
 
                             <h3>1. Using Table</h3>
                             <p>This method manually defines the table structure using SQLAlchemy's Table object.</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">cli/migrations.py</span>
                                     <div class="editor-controls">
@@ -1918,7 +2300,7 @@ if __name__ == "__main__":
                             <p>This approach defines database tables as Python classes that inherit from "Base".
                                 This is the recommended method as it provides more structure and ORM capabilities.</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/models/user.py</span>
                                     <div class="editor-controls">
@@ -1945,7 +2327,7 @@ class User(Base):
                                 </div>
                             </div>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">cli/migrations.py (Models version)</span>
                                     <div class="editor-controls">
@@ -1988,10 +2370,10 @@ if __name__ == "__main__":
                                 </div>
                             </div>
 
-                            <h2>Running Migrations</h2>
-                            <p>To execute migrations, use the following command in your terminal:</p>
+                            <h2 class="text-xl">Running Migrations</h2>
+                            <p>To execute migrations, use the following command in your code:</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal Command</span>
                                     <div class="editor-controls">
@@ -2013,8 +2395,12 @@ python -m cli.migrations --refresh
 
                             <h3>Command Options</h3>
                             <ul>
-                                <li><code>migrate</code>: Run the database migrations</li>
-                                <li><code>--refresh</code>: Optional flag to drop and recreate all tables</li>
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">migrate</code>:
+                                    Run the database migrations</li>
+                                <li><code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">--refresh</code>:
+                                    Optional flag to drop and recreate all tables</li>
                             </ul>
 
                             <div class="note">
@@ -2023,9 +2409,10 @@ python -m cli.migrations --refresh
                                     so SQLAlchemy can detect them for migrations.</p>
                             </div>
                         </article>
+                        <hr />
 
                         <article id="react-seo">
-                            <h1>React Integration with Lila</h1>
+                            <h1 class="text-2xl font-semibold">React Integration with Lila</h1>
 
                             <p>
                                 Lila provides a seamless integration with React, allowing you to develop your frontend
@@ -2036,12 +2423,12 @@ python -m cli.migrations --refresh
                                 AI.
                             </p>
 
-                            <h5>Starting a React Project in Lila</h5>
+                            <h5 class="text-2xl font-semibold">Starting a React Project in Lila</h5>
                             <p>
                                 To create or run a React project inside Lila, execute the following command:
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">CLI Command</span>
                                 </div>
@@ -2058,17 +2445,22 @@ python -m cli.react [--name PROJECT_NAME]
 
                             <p>
                                 <strong>Parameters:</strong><br>
-                                <code>--name</code>: Optional project name, default is <code>"react"</code>.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">--name</code>:
+                                Optional project name, default is <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"react"</code>.
                             </p>
 
-                            <h5>Development CORS Configuration</h5>
+                            <h5 class="text-2xl font-semibold">Development CORS Configuration</h5>
                             <p>
-                                When running React in development mode, Lila automatically edits <code>main.py</code> to
+                                When running React in development mode, Lila automatically edits <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
+                                to
                                 add the
                                 necessary CORS configuration. By default:
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">main.py CORS snippet</span>
                                 </div>
@@ -2086,15 +2478,17 @@ cors = {
                                 </div>
                             </div>
 
-                            <h5>Automatic Routes and Asset Mounting</h5>
+                            <h5 class="text-2xl font-semibold">Automatic Routes and Asset Mounting</h5>
                             <p>
-                                Lila modifies <code>app/routes/routes.py</code> automatically for your React build. This
+                                Lila modifies <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/routes.py</code>
+                                automatically for your React build. This
                                 ensures
                                 the React build assets are served correctly and the index.html is rendered from the
                                 cache.
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">routes.py Example</span>
                                 </div>
@@ -2109,45 +2503,52 @@ async def home(request: Request):
             </code></pre>
                                 </div>
                             </div>
-<div>
-<h3>
-Remember to modify the <code>main.py</code> file when passing your routes
-to initialize
-the application, always pass <strong>api_routes</strong> first, or whatever you have
-named it.
-<br/> This is key to getting your API routes without colliding with the general React route.
-<code>
+                            <div>
+                                <h3>
+                                    Remember to modify the <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
+                                    file when passing your routes
+                                    to initialize
+                                    the application, always pass <strong>api_routes</strong> first, or whatever you have
+                                    named it.
+                                    <br /> This is key to getting your API routes without colliding with the general
+                                    React route.
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
 @router.route(path="/{path:path}", methods=["GET"])
 </code>
-, where React, with React Router, or whatever you use, can handle all the routes.
-<br /> Remaining this way in <code>main.py</code>
+                                    , where React, with React Router, or whatever you use, can handle all the routes.
+                                    <br /> Remaining this way in <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
 
-</h3>
-<div class="code-editor">
-<div class="editor-header">
-<span class="editor-title">main.py</span>
-</div>
-<div class="editor-content">
-<pre>
+                                </h3>
+                                <div class="code-editor mt-4 mb-4">
+                                    <div class="editor-header">
+                                        <span class="editor-title">main.py</span>
+                                    </div>
+                                    <div class="editor-content">
+                                        <pre>
 <code class="language-python">
 all_routes = list(itertools.chain( api_routes,routes))
-#First api_routes, then routes (where the general React route is) <pre><code class="language-python">
+#First api_routes, then routes (where the general React route is)  
 </code>
 </pre>
-</div>
-</div>
+                                    </div>
+                                </div>
 
-</div>
+                            </div>
 
 
-                            <h5>Prerendering and Caching</h5>
+                            <h5 class="text-2xl font-semibold">Prerendering and Caching</h5>
                             <p>
                                 To improve SEO, Lila supports prerendering your React pages and caching them. After
                                 building your
-                                React app with <code>npm run build</code>, you can generate the cached HTML:
+                                React app with <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">npm run build</code>,
+                                you can generate the cached HTML:
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Generate Cache</span>
                                 </div>
@@ -2160,11 +2561,13 @@ python -m cli.prerender --url http://localhost:8001
                             </div>
 
                             <p>
-                                Then, in your <code>react/index.html</code> dev file, include the cached HTML for SEO
+                                Then, in your <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react/index.html</code>
+                                dev file, include the cached HTML for SEO
                                 hydration:
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">index.html snippet</span>
                                 </div>
@@ -2175,14 +2578,15 @@ python -m cli.prerender --url http://localhost:8001
                                 </div>
                             </div>
 
-                            <h5>Startup Integration in main.py</h5>
+                            <h5 class="text-2xl font-semibold">Startup Integration in main.py</h5>
                             <p>
                                 You can optionally execute the prerender automatically on server startup by uncommenting
                                 the
-                                following section in <code>main.py</code>:
+                                following section in <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>:
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">main.py prerender on startup</span>
                                 </div>
@@ -2206,9 +2610,11 @@ python -m cli.prerender --url http://localhost:8001
                                 </div>
                             </div>
 
-                            <h5>SEO and Hydration</h5>
+                            <h5 class="text-2xl font-semibold">SEO and Hydration</h5>
                             <p>
-                                By including the cached HTML in the <code>root</code> div, React will rehydrate the
+                                By including the cached HTML in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">root</code>
+                                div, React will rehydrate the
                                 content on the
                                 client side. This gives you:
                             </p>
@@ -2218,33 +2624,51 @@ python -m cli.prerender --url http://localhost:8001
                                 <li>Optional daily caching using a scheduled prerender task.</li>
                             </ul>
 
-                            <h5>React Helpers and Context</h5>
+                            <h5 class="text-2xl font-semibold">React Helpers and Context</h5>
                             <p>
-                                You can pass context from Jinja2 templates to React using <code>&lt;script&gt;</code>
+                                You can pass context from Jinja2 templates to React using <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">&lt;script&gt;</code>
                                 tags in
-                                <code>templates/html/react/index.html</code>. Useful for translations, configuration, or
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/html/react/index.html</code>.
+                                Useful for translations, configuration, or
                                 any
                                 dynamic data.
                             </p>
 
-                            <h5>Automatic API Documentation</h5>
+                            <h5 class="text-2xl font-semibold">Automatic API Documentation</h5>
                             <p>
                                 Lila continues to generate API documentation automatically using Pydantic models. All
                                 helpers
                                 and middlewares can be combined seamlessly with React routes.
                             </p>
 
-                            <h5>Session Validation with React</h5>
+                            <h5 class="text-2xl font-semibold">Session Validation with React</h5>
                             <p>
-                                In the backend, you can add a middleware to validate the session. You can also use JWT, but Session is more secure because it is signed by <code>itsdangerous</code>.
+                                In the backend, you can add a middleware to validate the session. You can also use JWT,
+                                but Session is more secure because it is signed by <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>.
                             </p>
                             <p>
-                                This way, you can validate requests and store public IDs, tokens, etc., to validate sessions, or you can use JWT or both.
-                                The main recommendation is to validate the session this way or with <code>login_required</code>, which is another middleware that can also be configured there.
-                                This way, Lila and React are connected for the developer. In production, thanks to the <code>if DEBUG</code> condition, it will be secure with the signature of <code>itsdangerous</code> in the <code>Session</code> class.
+                                This way, you can validate requests and store public IDs, tokens, etc., to validate
+                                sessions, or you can use JWT or both.
+                                The main recommendation is to validate the session this way or with
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">login_required</code>,
+                                which is another middleware that can also be configured
+                                there.
+                                This way, Lila and React are connected for the developer. In production, thanks to the
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">if DEBUG</code>
+                                condition, it will be secure with the signature of
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>
+                                in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
+                                class.
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/routes/api.py</span>
                                 </div>
@@ -2278,7 +2702,7 @@ async def api_token(request: Request):
                                 </div>
                             </div>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">app/middlewares/middlewares.py</span>
                                 </div>
@@ -2295,7 +2719,7 @@ def login_required_auth(func, key: str = "auth"):
                                 </div>
                             </div>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">React Component</span>
                                 </div>
@@ -2326,10 +2750,12 @@ function MyComponent() {
                                 </div>
                             </div>
                         </article>
+                        <hr />
 
-                        <article id="rest_api_crud-eng">
-                            <h1>Simple Generation of REST API CRUD</h1>
-                            <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing
+                        <article id="rest_api_crud-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Simple Generation of REST API CRUD</h1>
+                            <h5 class="text-2xl font-semibold">At Lila, we have a simple way to generate CRUDs with
+                                automatic documentation, allowing
                                 you to
                                 create your REST API efficiently.</h5>
 
@@ -2347,11 +2773,13 @@ function MyComponent() {
                             <p>
                                 <strong>If you haven't already, enable migrations when you start the server</strong>
                                 .
-                                By default it uses SQLite, it will create a database file <code>lila.sqlite</code> in
+                                By default it uses SQLite, it will create a database file <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.sqlite</code>
+                                in
                                 the
                                 project root.
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">term</span>
                                     <div class="editor-controls">
@@ -2370,7 +2798,7 @@ python -m cli.migrations
                             </div>
                             <br />
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">routes/api.py</span>
                                     <div class="editor-controls">
@@ -2424,18 +2852,25 @@ router.rest_crud_generate(
 
                             <br />
                             <p>You can create your own <strong>middlewares</strong> and pass them as a list to customize
-                                security and validations for each <code>rest_crud_generate</code> operation.</p>
+                                security and validations for each <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code>
+                                operation.</p>
                             <p>
                                 <strong>
                                     To generate the documentation, always remember to
-                                    run it after the routes <code>router.swagger_ui()</code> and
-                                    <code>router.openapi_json()</code>
+                                    run it after the routes <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">router.swagger_ui()</code>
+                                    and
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">router.openapi_json()</code>
                                 </strong>
                             </p>
-                            <h5>Function Parameters for <code>rest_crud_generate</code></h5>
+                            <h5 class="text-2xl font-semibold">Function Parameters for <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code>
+                            </h5>
                             <p>Below are the parameters that this function accepts to generate CRUD automatically:</p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">core/routing.py</span>
                                     <div class="editor-controls">
@@ -2464,43 +2899,47 @@ def rest_crud_generate(
                                 </div>
                             </div>
 
-                            <h5>Automatic Documentation</h5>
+                            <h5 class="text-2xl font-semibold">Automatic Documentation</h5>
                             <p>Below is an example of the generated documentation for the
-                                <code>rest_crud_generate</code>
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code>
                                 function:
                             </p>
-                            <p>Go to <code>http://127.0.0.1:8001/docs</code>, or as configured in your .env file (by
+                            <p>Go to <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://127.0.0.1:8001/docs</code>,
+                                or as configured in your .env file (by
                                 HOST and
                                 PORT).</p>
                             <div>
-                                <h5>GET - Retrieve all users</h5>
+                                <h5 class="text-2xl font-semibold">GET - Retrieve all users</h5>
                                 <img src="img/rest_1.png" alt="GET - Retrieve all users">
                                 <br />
 
-                                <h5>GET - Output of all users</h5>
+                                <h5 class="text-2xl font-semibold">GET - Output of all users</h5>
                                 <img src="img/rest_2.png" alt="GET - Output">
                                 <br />
 
-                                <h5>POST - Create new user</h5>
+                                <h5 class="text-2xl font-semibold">POST - Create new user</h5>
                                 <img src="img/rest_3.png" alt="POST - Create new user">
                                 <br />
 
-                                <h5>GET_ID - Retrieve a specific user</h5>
+                                <h5 class="text-2xl font-semibold">GET_ID - Retrieve a specific user</h5>
                                 <img src="img/rest_4-5.png" alt="GET_ID - Retrieve a specific user">
                                 <br />
 
-                                <h5>PUT - Update user</h5>
+                                <h5 class="text-2xl font-semibold">PUT - Update user</h5>
                                 <img src="img/rest_4.png" alt="PUT - Update user">
                                 <br />
 
-                                <h5>DELETE - Delete user</h5>
+                                <h5 class="text-2xl font-semibold">DELETE - Delete user</h5>
                                 <img src="img/rest_5.png" alt="DELETE - Delete user">
                                 <br />
                             </div>
                             <br />
                             <p>In this example, we did it with 'users', but you can apply it however you want according
                                 to your
-                                logic ,'products','stores',etc. Even modifying the core in <code>core/routing.py</code>.
+                                logic ,'products','stores',etc. Even modifying the core in <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/routing.py</code>.
                             </p>
                             <br />
                             <p>
@@ -2519,8 +2958,11 @@ def rest_crud_generate(
                         </code>
                         </pre>
                             </p>
-                            <p>Then, if you pass 'token' or 'hash', with the <code>helper</code> function
-                                <code>generate_token_value</code>
+                            <p>Then, if you pass 'token' or 'hash', with the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">helper</code>
+                                function
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">generate_token_value</code>
                                 , it automatically generates a token, which will be saved in the database as the 'token'
                                 column
                                 with the value generated by the function
@@ -2556,8 +2998,13 @@ def rest_crud_generate(
                             <p>
                                 <strong>For the 'PUT', 'GET' (get_id) or 'DELETE' methods</strong>
                                 It is optional according to the logic of each REST API, you can pass it as
-                                <code>query string</code> , <code>user_id</code>
-                                or <code>id_user</code>, an example would be GET, PUT or DELETE as a method
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">query string</code>
+                                , <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">user_id</code>
+                                or <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">id_user</code>,
+                                an example would be GET, PUT or DELETE as a method
                                 to the url http://127.0.0.1:8001/api/products/1?user_id=20
                             </p>
                             <p>Where it validates that the product ID '1' exists but also that it belongs to the user ID
@@ -2565,21 +3012,26 @@ def rest_crud_generate(
                             </p>
 
                         </article>
+                        <hr />
 
-                        <article id="admin-panel-eng">
-                            <h1>Admin Panel</h1>
+                        <article id="admin-panel-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Admin Panel</h1>
                             <p>
-                                The <code>Admin</code> module allows you to manage an admin panel for your application.
+                                The <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Admin</code>
+                                module allows you to manage an admin panel for your application.
                                 It includes authentication, model management, system metrics, and more. This panel is
                                 highly customizable and integrates easily with your application.
                             </p>
                             <p>
                                 The admin panel is now more modular and flexible. All admin-related components
                                 (templates, routes, and configuration)
-                                are located in the <code>admin</code> folder, making it easier to customize and extend.
+                                are located in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">admin</code>
+                                folder, making it easier to customize and extend.
                             </p>
 
-                            <h2>Key Features</h2>
+                            <h2 class="text-xl">Key Features</h2>
                             <ul>
                                 <li><strong>Authentication</strong>: Secure login and logout for administrators.</li>
                                 <li><strong>Model Management</strong>: Automatically generates routes and views to
@@ -2588,19 +3040,26 @@ def rest_crud_generate(
                                     application and the server.</li>
                                 <li><strong>Password Management</strong>: Allows administrators to change their
                                     passwords.</li>
-                                <li><strong>Logs</strong>: Enables administrators to view application <code>Logs</code>.
+                                <li><strong>Logs</strong>: Enables administrators to view application <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Logs</code>.
                                 </li>
                             </ul>
 
-                            <h2>Basic Usage</h2>
+                            <h2 class="text-xl">Basic Usage</h2>
                             <p>
-                                To use the admin panel, you need to import the <code>Admin</code> class from
-                                <code>admin.routes</code> and pass it
+                                To use the admin panel, you need to import the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Admin</code>
+                                class from
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">admin.routes</code>
+                                and pass it
                                 an optional list of models you want to manage. Each model must implement a
-                                <code>get_all</code> method to be displayed in the admin panel.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">get_all</code>
+                                method to be displayed in the admin panel.
                             </p>
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">main.py</span>
                                     <div class="editor-controls">
@@ -2623,11 +3082,11 @@ all_routes = list(itertools.chain(routes, api_routes,admin_routes))
                                 </div>
                             </div>
 
-                            <h2>Setup and Migrations</h2>
+                            <h2 class="text-xl">Setup and Migrations</h2>
                             <p>
                                 Before using the admin panel, you need to run the migrations:
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal</span>
                                     <div class="editor-controls">
@@ -2645,11 +3104,11 @@ python -m cli.migrations
                                 </div>
                             </div>
 
-                            <h2>Creating Admin Users</h2>
+                            <h2 class="text-xl">Creating Admin Users</h2>
                             <p>
                                 Admin users can be created via command line with customizable parameters:
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal</span>
                                     <div class="editor-controls">
@@ -2671,27 +3130,40 @@ python -m cli.create_admin --user myadmin --password mysecurepassword
                                 </div>
                             </div>
 
-                            <h2>Generated Routes</h2>
+                            <h2 class="text-xl">Generated Routes</h2>
                             <p>
                                 The admin panel automatically generates the following routes:
                             </p>
                             <p>
-                                You can access the templates in the <code>templates/html/admin</code> folder.
+                                You can access the templates in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/html/admin</code>
+                                folder.
                             </p>
                             <ul>
-                                <li><strong>Login</strong>: <code>/admin/login</code> (GET/POST)</li>
-                                <li><strong>Logout</strong>: <code>/admin/logout</code> (GET)</li>
+                                <li><strong>Login</strong>: <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin/login</code>
+                                    (GET/POST)</li>
+                                <li><strong>Logout</strong>: <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin/logout</code>
+                                    (GET)</li>
                                 </li>
-                                <li><strong>Dashboard</strong>: <code>/admin</code> (GET)</li>
-                                <li><strong>Model Management</strong>: <code>/admin/{model_plural}</code> (GET)</li>
+                                <li><strong>Dashboard</strong>: <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin</code>
+                                    (GET)</li>
+                                <li><strong>Model Management</strong>: <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin/{model_plural}</code>
+                                    (GET)</li>
                             </ul>
 
-                            <h2>Authentication Middleware</h2>
+                            <h2 class="text-xl">Authentication Middleware</h2>
                             <p>
                                 To protect routes and ensure only authenticated administrators can access them, use the
-                                <code>@admin_required</code> decorator from <code>core/admin.py</code>.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@admin_required</code>
+                                decorator from <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/admin.py</code>.
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Middleware Usage</span>
                                     <div class="editor-controls">
@@ -2715,7 +3187,7 @@ async def admin_route(request: Request):
                                 </div>
                             </div>
 
-                            <h2>System Metrics</h2>
+                            <h2 class="text-xl">System Metrics</h2>
                             <p>
                                 The admin panel displays real-time metrics, including:
                             </p>
@@ -2729,15 +3201,20 @@ async def admin_route(request: Request):
                                 These metrics are updated every 10 seconds.
                             </p>
 
-                            <h2>Logs</h2>
+                            <h2 class="text-xl">Logs</h2>
                             <p>
                                 In Lila, we use a middleware that you can enable or disable if you want to use
-                                <code>Logs</code> for info, warnings, or errors in your application.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Logs</code>
+                                for info, warnings, or errors in your application.
                             </p>
                             <p>
-                                The middleware is located in <code>core/middleware.py</code> and is added to the
+                                The middleware is located in <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/middleware.py</code>
+                                and is added to the
                                 application with:
-                                <code>app.add_middleware(ErrorHandlerMiddleware)</code>.
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app.add_middleware(ErrorHandlerMiddleware)</code>.
                             </p>
                             <p>
                                 This helps generate logs that you can view in the admin panel, organized by date (in
@@ -2751,16 +3228,23 @@ async def admin_route(request: Request):
                                 <img src="img/admin_2.png" alt="admin" />
                             </p>
                         </article>
+                        <hr />
 
-                        <article id="minify-eng">
-                            <h1>Minify files for production</h1>
+                        <article id="minify-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Minify files for production</h1>
                             <p>
-                                With the <code>lila-minify</code> command you can minify your js, css and html files,
-                                which are in the <code>public</code> and <code>templates</code> folders.
+                                With the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-minify</code>
+                                command you can minify your js, css and html files,
+                                which are in the <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public</code>
+                                and <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates</code>
+                                folders.
                             </p>
 
 
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal Command</span>
                                     <div class="editor-controls">
@@ -2778,18 +3262,19 @@ python -m cli.minify
                                 </div>
                             </div>
                         </article>
+                        <hr />
 
-                        <article id="production-eng">
-                            <h1>Deployment to Production</h1>
+                        <article id="production-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Deployment to Production</h1>
 
-                            <h2>Linux Server (with systemd)</h2>
+                            <h2 class="text-xl">Linux Server (with systemd)</h2>
                             <p>
                                 To deploy your Lila application on a Linux server, it's recommended to use a virtual
                                 environment and a systemd service to manage the process.
                             </p>
 
                             <h3>1. Create a Virtual Environment</h3>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal</span>
                                 </div>
@@ -2803,7 +3288,7 @@ pip install -r requirements.txt
                             </div>
 
                             <h3>2. Create a Start Script</h3>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">start_lila.sh</span>
                                 </div>
@@ -2817,7 +3302,7 @@ python /path/to/your/project/main.py
                             </div>
 
                             <h3>3. Create a systemd Service</h3>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">/etc/systemd/system/lila.service</span>
                                 </div>
@@ -2842,7 +3327,7 @@ WantedBy=multi-user.target
                             </div>
 
                             <h3>4. Enable and Start the Service</h3>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal</span>
                                 </div>
@@ -2855,7 +3340,7 @@ sudo systemctl start lila.service
                                 </div>
                             </div>
 
-                            <h2>Windows Server</h2>
+                            <h2 class="text-xl">Windows Server</h2>
                             <p>
                                 On Windows, you can use the Task Scheduler to run your application at startup.
                             </p>
@@ -2867,11 +3352,11 @@ sudo systemctl start lila.service
                                 <li>Set the action to run your script.</li>
                             </ol>
 
-                            <h2>Disable Debug Mode</h2>
+                            <h2 class="text-xl">Disable Debug Mode</h2>
                             <p>
                                 In your `main.py`, make sure to turn off debug mode for production.
                             </p>
-                            <div class="code-editor">
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">main.py</span>
                                 </div>
@@ -2882,16 +3367,15 @@ app = App(debug=False, routes=all_routes)
                                 </div>
                             </div>
                         </article>
+                        <hr />
                         <!-- 
-                <article id="helpers-eng">
+                <article id="helpers-eng" class="mt-8 mb-8">
 
-                </article> -->
+                </article>
+<hr /> -->
 
 
                     </div>
-
-
-
                 </div>
             </div>
 
