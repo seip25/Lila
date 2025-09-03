@@ -92,39 +92,33 @@
         </nav>
     </header>
 
-    <main class="container  mx-auto   " id="app">
+    <div class="flex">
+        <aside class="fixed top-16 left-0 w-64 h-full bg-white dark:bg-gray-900 border-r dark:border-gray-800 overflow-y-auto">
+            <nav class="p-4">
+                <ul class="space-y-1">
+                    <li><a href="#install-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Installation</a></li>
+                    <li><a href="#routes-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Routes</a></li>
+                    <li><a href="#static-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Static</a></li>
+                    <li><a href="#templates-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Templates</a></li>
+                    <li><a href="#session-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Session</a></li>
+                    <li><a href="#upload-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Uploads Files</a></li>
+                    <li><a href="#markdown-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Markdown/HTML</a></li>
+                    <li><a href="#locales-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Internationalization</a></li>
+                    <li><a href="#models-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Models</a></li>
+                    <li><a href="#middlewares-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Middlewares</a></li>
+                    <li><a href="#connections-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Connections</a></li>
+                    <li><a href="#migrations-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Migrations</a></li>
+                    <li><a href="#react-seo" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">React</a></li>
+                    <li><a href="#rest_api_crud-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">API Rest CRUD</a></li>
+                    <li><a href="#admin-panel-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Admin Panel</a></li>
+                    <li><a href="#minify-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Minify</a></li>
+                    <li><a href="#production-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Production</a></li>
+                </ul>
+            </nav>
+        </aside>
 
-        <div class=" ">
-            <aside
-                class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 underline-none w-64   h-screen fixed top-50 left-0">
-                <header>
-                    <nav class="p-4 border-b dark:border-gray-800">
-                        <ul class="flex flex-col space-y-2   ">
-                            <li><a href="#install-eng" class="mt-8 mb-8">Installation</a></li>
-                            <li><a href="#routes-eng" class="mt-8 mb-8">Routes</a></li>
-                            <li><a href="#static-eng" class="mt-8 mb-8">Static</a></li>
-                            <li><a href="#templates-eng" class="mt-8 mb-8">Templates</a></li>
-                            <li><a href="#session-eng" class="mt-8 mb-8">Session</a></li>
-                            <li><a href="#upload-eng" class="mt-8 mb-8">Uploads Files</a></li>
-                            <li><a href="#markdown-eng" class="mt-8 mb-8">Markdown/HTML</a></li>
-                            <li><a href="#locales-eng" class="mt-8 mb-8">Internationalization (Translations)</a></li>
-                            <li><a href="#models-eng" class="mt-8 mb-8">Models</a></li>
-                            <li><a href="#middlewares-eng" class="mt-8 mb-8">Middlewares</a></li>
-                            <li><a href="#connections-eng" class="mt-8 mb-8">Connections</a></li>
-                            <li><a href="#migrations-eng" class="mt-8 mb-8">Migrations</a></li>
-                            <li><a href="#react-seo">React</a></li>
-                            <li><a href="#rest_api_crud-eng" class="mt-8 mb-8">API Rest crud generate</a></li>
-                            <li><a href="#admin-panel-eng" class="mt-8 mb-8">Admin Panel</a></li>
-                            <li><a href="#minify-eng" class="mt-8 mb-8">Minify JS,CSS and HTML</a></li>
-                            <li><a href="#production-eng" class="mt-8 mb-8">Production</a></li>
-                            <!-- <li><a href="/helpers-eng" class="mt-8 mb-8">Helpers</a></li> -->
-                        </ul>
-
-                    </nav>
-                </header>
-            </aside>
-
-            <div class="main ml-64 p-8">
+        <main class="ml-64 p-8 w-full">
+            <div class="max-w-4xl mx-auto">
                 <div id="search" class="mt-8 mb-8">
                     <input type="search" name="search" id="searchBox" placeholder="Search..."
                         onkeyup="searchDocs(false,'eng')"
@@ -3264,50 +3258,38 @@ python -m cli.minify
                         </article>
                         <hr />
 
-                        <article id="production-eng" class="mt-8 mb-8">
-                            <h1 class="text-2xl font-semibold">Deployment to Production</h1>
+                <article id="production-eng" class="section-card">
+                    <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">Deployment to Production</h2>
 
-                            <h2 class="text-xl">Linux Server (with systemd)</h2>
-                            <p>
-                                To deploy your Lila application on a Linux server, it's recommended to use a virtual
-                                environment and a systemd service to manage the process.
-                            </p>
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-8 mb-4">Linux Server (with systemd)</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-6">
+                        To deploy your Lila application on a Linux server, it's recommended to use a virtual environment and a systemd service to manage the process.
+                    </p>
 
-                            <h3>1. Create a Virtual Environment</h3>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">Terminal</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
+                    <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">1. Create a Virtual Environment</h4>
+                    <div class="code-editor">
+                        <div class="editor-header"><span>Terminal</span></div>
+                        <div class="editor-content"><pre><code class="language-bash">
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-                                    </code></pre>
-                                </div>
-                            </div>
+                        </code></pre></div>
+                    </div>
 
-                            <h3>2. Create a Start Script</h3>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">start_lila.sh</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
+                    <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">2. Create a Start Script</h4>
+                    <div class="code-editor">
+                        <div class="editor-header"><span>start_lila.sh</span></div>
+                        <div class="editor-content"><pre><code class="language-bash">
 #!/bin/bash
 source /path/to/your/project/venv/bin/activate
 python /path/to/your/project/main.py
-                                    </code></pre>
-                                </div>
-                            </div>
+                        </code></pre></div>
+                    </div>
 
-                            <h3>3. Create a systemd Service</h3>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">/etc/systemd/system/lila.service</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-ini">
+                    <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">3. Create a systemd Service</h4>
+                    <div class="code-editor">
+                        <div class="editor-header"><span>/etc/systemd/system/lila.service</span></div>
+                        <div class="editor-content"><pre><code class="language-ini">
 [Unit]
 Description=Lila Framework Service
 After=network.target
@@ -3322,67 +3304,44 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
-                                    </code></pre>
-                                </div>
-                            </div>
+                        </code></pre></div>
+                    </div>
 
-                            <h3>4. Enable and Start the Service</h3>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">Terminal</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
+                    <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">4. Enable and Start the Service</h4>
+                    <div class="code-editor">
+                        <div class="editor-header"><span>Terminal</span></div>
+                        <div class="editor-content"><pre><code class="language-bash">
 sudo systemctl daemon-reload
 sudo systemctl enable lila.service
 sudo systemctl start lila.service
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <h2 class="text-xl">Windows Server</h2>
-                            <p>
-                                On Windows, you can use the Task Scheduler to run your application at startup.
-                            </p>
-                            <ol>
-                                <li>Create a `.bat` or `.ps1` script to start your application, similar to the
-                                    `start_lila.sh` script.</li>
-                                <li>Open Task Scheduler.</li>
-                                <li>Create a new task that runs at system startup.</li>
-                                <li>Set the action to run your script.</li>
-                            </ol>
-
-                            <h2 class="text-xl">Disable Debug Mode</h2>
-                            <p>
-                                In your `main.py`, make sure to turn off debug mode for production.
-                            </p>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">main.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-app = App(debug=False, routes=all_routes)
-                                    </code></pre>
-                                </div>
-                            </div>
-                        </article>
-                        <hr />
-                        <!-- 
-                <article id="helpers-eng" class="mt-8 mb-8">
-
-                </article>
-<hr /> -->
-
-
+                        </code></pre></div>
                     </div>
-                </div>
+
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-8 mb-4">Windows Server</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-6">
+                        On Windows, you can use the Task Scheduler to run your application at startup.
+                    </p>
+                    <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2">
+                        <li>Create a `.bat` or `.ps1` script to start your application.</li>
+                        <li>Open Task Scheduler and create a new task that runs at system startup.</li>
+                        <li>Set the action to run your script.</li>
+                    </ol>
+
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-8 mb-4">Disable Debug Mode</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-6">
+                        In your `.env` file, make sure to set `DEBUG=False` for production.
+                    </p>
+                    <div class="code-editor">
+                        <div class="editor-header"><span>.env</span></div>
+                        <div class="editor-content"><pre><code class="language-ini">
+DEBUG=False
+                        </code></pre></div>
+                    </div>
+                </article>
+
             </div>
-
-        </div>
-    </main>
-
+        </main>
+    </div>
 
 </body>
-
 </html>
