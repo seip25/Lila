@@ -147,10 +147,37 @@
     "es": "Ejemplo de Lila Js Reactivo",
     "en": "Example of Reactive Lila Js"
   },
-  "forgot password":{
-    "es": "Olvidaste tu contraseña?","en": "Forgot Password?"
+  "forgot your password":{
+    "es": "Olvidaste tu contraseña?","en": "Forgot your Password?"
   },
   "create account":{
     "es":"Crear cuenta","en":"Create account"
-  } 
+  } ,
+  "We have left you the example of login, register with Lila-JS, in":{
+    "es":"Te hemos dejado ejemplo de login,register con Lila-JS , en",
+    "en": "We have left you the example of login, register with Lila-JS, in" 
+  },
+  "Lila-JS is a minimalist JavaScript library for building reactive web components with ease.":{
+    "es":  "Lila-JS es una librería de JavaScript minimalista para construir componentes web reactivos con facilidad.",
+    "en": "Lila-JS is a minimalist JavaScript library for building reactive web components with ease."
+  },
+  "If you want to see the documentation, we leave the link here.":{
+    "es": " Si quieres mirar la documentación , te dejamos el link aquí ",
+    "en": "If you want to see the documentation, we leave the link here."
+  },
+  "Here we leave you the link so you can see the reactivity, Lila-Js routes, for css we use BaseCoat":
+  {
+    "es": "Aquí te dejamos el enlace para que puedas ver la simpleza, reactividad,componentes, rutas de Lila-Js, para el css usamos BaseCoat",
+    "en": "Here we leave you the link so you can see the simplicity,reactivity,components, Lila-Js routes, for css we use BaseCoat"
+  },
+  "Recover password":{
+    "es": "Recuperar contraseña",
+    "en": "Recover password"
+  },
+  "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one":
+  {
+    "en": "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one",
+    "es": "¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña y podrás elegir una nueva." 
+  }
+
 }

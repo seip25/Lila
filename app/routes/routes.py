@@ -4,7 +4,7 @@ from core.routing import Router # English: Importing Router class to define and 
 from core.templates import render,renderMarkdown# English: Importing functions for rendering templates and Markdown files | Español: Importando funciones para renderizar plantillas y archivos Markdown
 from core.session import Session # English: Importing Session class for session handling | Español: Importando la clase Session para el manejo de sesiones
 from core.responses import RedirectResponse# English: Importing RedirectResponse to handle HTTP redirects | Español: Importando RedirectResponse para manejar redirecciones HTTP
-from app.config import LANG_DEFAULT # English: Importing the default language setting from the environment | Español: Importando la configuración de idioma por defecto desde el entorno
+from app.config import LANG_DEFAULT,HOST,PORT  # English: Importing the default language setting from the environment | Español: Importando la configuración de idioma por defecto desde el entorno
 
 # English: Creating an instance of Router to define routes
 # Español: Creando una instancia del Router para definir las rutas
@@ -20,11 +20,18 @@ router.mount()
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto
 @router.route(path="/", methods=["GET"])
 async def home(request: Request):
+    context ={
+        "url": f"http://{HOST}:{PORT}"
+    }
     response = render(
-        request=request, template="index"
+        request=request, template="index",context=context
     )  # English: Renders the 'index' template with  translations | Español: Renderiza la plantilla 'index' con traducciones
     return response
 
+@router.route(path="/auth",methods=['GET'])
+async def auth_html(request:Request):
+    response=render(request=request,template="auth")
+    return response
 
 # English: Example default lang in the path
 # Español : Ejemplo de dejar el idioma por defecto en la ruta

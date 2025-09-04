@@ -56,7 +56,7 @@ async def login(request: Request):
 
     email = input.email
     password = input.password
-    response = JSONResponse({"email": email, "password": password})
+    response = JSONResponse({"email": email, "password": password, "success": True})
     return response
 
 
