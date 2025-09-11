@@ -2552,7 +2552,7 @@ async def api(request: Request):
     # Devuelve una respuesta JSON simple para la verificación de la API.
     response = JSONResponse({"api": True})
     new_val={"id":20}
-    samesite="none" if DEBUG else "secure"
+    samesite="none" if DEBUG else "strict"
     Session.setSession(new_val=new_val,name_cookie='auth',response=response,samesite=samesite)
     return response
 
