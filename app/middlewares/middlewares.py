@@ -29,8 +29,10 @@ def session_active(func, key: str = "auth", url_return: str = "/dashboard"):
 
 async def check_session(request: Request, key: str='auth', return_JsonResponse: bool = True):
     session_data = Session.unsign(key=key, request=request)
-    if return_JsonResponse:
-        return JSONResponse({"session": False, "success": False}, status_code=401)
+    if not session_data:
+        if return_JsonResponse:
+            return JSONResponse({"session": False, "success": False}, status_code=401)
+        return None
     return session_data
 
 
