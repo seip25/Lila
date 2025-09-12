@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
+from sqlalchemy import Table, Column, Integer, String, TIMESTAMP,func
 from sqlalchemy.orm import Session
 from core.database import Base
 from app.connections import connection
@@ -15,7 +15,7 @@ class User(Base):
     password = Column(String(length=150), nullable=False)
     token = Column(String(length=150), nullable=False)
     active = Column(Integer, nullable=False, default=1)
-    created_at = Column(TIMESTAMP)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     # English : Example of how to use SQLAlchemy to make queries to the database
     # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos

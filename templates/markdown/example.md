@@ -1,15 +1,15 @@
-# Welcome to My Website
+# {{ translate["welcome"] }}
 
 This is a simple **Markdown** example. 
 
-## Features
-- Easy to write
-- Converts to HTML
-- Supports links and images
+## {{ translate["features"] }}
+- {{ translate["easy_write"] }}
+- {{ translate["convert_html"] }}
+- {{ translate["supports_links"] }}
 
-### Example Code
+### {{ translate["example_code"] }}
 
 ```
 print("Hello, Markdown!")
 ```
- 
+

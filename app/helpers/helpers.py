@@ -13,6 +13,22 @@ from typing import Union, List, Set
 from os import getenv
 from PIL import Image
 
+_TRANSLATIONS_CACHE: dict[str, dict] = {}
+
+def load_translations(file_name: str) -> dict:
+    if file_name in _TRANSLATIONS_CACHE:
+        return _TRANSLATIONS_CACHE[file_name]
+
+    file_path = Path(PATH_LOCALES) / f"{file_name}.json"
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _TRANSLATIONS_CACHE[file_name] = data 
+        return data
+    except Exception:
+        _TRANSLATIONS_CACHE[file_name] = {}
+        return {}
+
 def theme(request: Request = None) -> str:
     if request:
         t = Session.getSessionValue(key="theme", request=request)
@@ -31,23 +47,8 @@ def lang(request: Request) -> str:
 
 def translate(file_name: str, request: Request, lang_default: str = None) -> dict:
     current_lang = lang(request) if not lang_default else lang_default
-    translations = {}
-    file_path = Path(PATH_LOCALES) / f"{file_name}.json"
-
-    try:
-        with open(file=file_path, mode="r", encoding="utf-8") as f:
-            data = json.load(f)
-        for key, val in data.items():
-            if current_lang in val:
-                translations[key] = val[current_lang]
-            else:
-                translations[key] = key
-        return translations
-    except FileNotFoundError:
-        print(f"{file_name}.json not found")
-    except json.JSONDecodeError as e:
-        print(f"{file_name} - {e}")
-
+    data = load_translations(file_name)
+    translations = {k: v.get(current_lang, k) for k, v in data.items()}
     return translations
 
 

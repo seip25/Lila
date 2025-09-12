@@ -16,17 +16,21 @@ ph = PasswordHasher()
 
 
 class Router:
-    def __init__(self) -> None:
+    def __init__(self, prefix: str = "") -> None:
         self.routes = []
         self.docs = []
+        self.prefix = prefix
 
     def route(self, path: str, methods: list[str] = ["GET"], model=None) -> None:
         try:
+            real_path = self.normalize_path(prefix=self.prefix, path=path)
 
             def decorator(func):
-                self.routes.append(Route(path=path, endpoint=func, methods=methods))
+                self.routes.append(
+                    Route(path=real_path, endpoint=func, methods=methods)
+                )
                 if model is not None:
-                    self.docs.append({"path": path, "model": model})
+                    self.docs.append({"path": real_path, "model": model})
 
                 return func
 
@@ -34,6 +38,22 @@ class Router:
         except RuntimeError as e:
             Logger.error(f"Error : {str(e)}")
             print(f"Error : {e}")
+
+    def normalize_path(self, prefix: str, path: str) -> str:
+        full = f"/{prefix.strip('/')}/{path.strip('/')}"
+        return re.sub(r"//+", "/", full)
+
+    def get(self, path: str, **kwargs):
+        return self.route(path, methods=["GET"], **kwargs)
+
+    def post(self, path: str, **kwargs):
+        return self.route(path, methods=["POST"], **kwargs)
+
+    def put(self, path: str, **kwargs):
+        return self.route(path, methods=["PUT"], **kwargs)
+
+    def delete(self, path: str, **kwargs):
+        return self.route(path, methods=["DELETE"], **kwargs)
 
     def mount(
         self, path: str = "/public", directory: str = "static", name: str = "static"
@@ -48,41 +68,49 @@ class Router:
     def get_routes(self) -> list:
         return self.routes
 
-    def swagger_ui(self, path: str = "/docs", methods: list[str] = ["GET"]) -> None:
+    def swagger_ui(
+        self,
+        path: str = "/docs",
+        methods: list[str] | None = None,
+        swagger_url: str = "/public/swagger",
+    ) -> None:
+        if methods is None:
+            methods = ["GET"]
+
         def swagger_docs(request: Request):
-            html = """
-                <html>
-                <head>
-                    <title>API Documentation</title>
-                    <link rel="stylesheet" type="text/css" href="/public/swagger/swagger-ui.css" />
-                    <script src="/public/swagger/swagger-ui-bundle.js"></script>
-                    <script src="/public/swagger/swagger-ui-standalone-preset.js"></script>
-                </head>
-                <body>
-                    <div id="swagger-ui"></div>
-                  
-                    <script>
-                        const ui = SwaggerUIBundle({
-                            url: '/openapi.json',  
-                            dom_id: '#swagger-ui',
-                            deepLinking: true,
-                            presets: [
-                                SwaggerUIBundle.presets.apis,
-                                SwaggerUIStandalonePreset
-                            ],
-                            layout: "StandaloneLayout"
-                        });
-                    </script>
-                </body>
+            html = f"""
+            <html>
+            <head>
+                <title>API Documentation</title>
+                <link rel="stylesheet" type="text/css" href="{swagger_url}/swagger-ui.css" />
+                <script src="{swagger_url}/swagger-ui-bundle.js"></script>
+                <script src="{swagger_url}/swagger-ui-standalone-preset.js"></script>
+            </head>
+            <body>
+                <div id="swagger-ui"></div>
+                <script>
+                    const ui = SwaggerUIBundle({{
+                        url: '/openapi.json',
+                        dom_id: '#swagger-ui',
+                        deepLinking: true,
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIStandalonePreset
+                        ],
+                        layout: "StandaloneLayout"
+                    }});
+                </script>
+            </body>
             </html>
             """
             return HTMLResponse(html)
 
         self.routes.append(Route(path=path, endpoint=swagger_docs, methods=methods))
 
-    def openapi_json(
-        self, path: str = "/openapi.json", methods: list[str] = ["GET"]
-    ) -> None:
+    def openapi_json(self, path: str = "/openapi.json", methods: list[str] | None = None) -> None:
+        if methods is None:
+            methods = ["GET"]
+
         def openapi_schema(request: Request):
             openapi_schema = {
                 "openapi": "3.0.0",
@@ -92,80 +120,121 @@ class Router:
                     "description": DESCRIPTION_PROJECT,
                 },
                 "paths": {},
+                "components": {"schemas": {}},
             }
 
+            EXCLUDED = {"/docs", "/openapi.json"}
+
             for route in self.routes:
-                if isinstance(route, Route):
-                    methods = route.methods or ["GET"]
-                    path = route.path
-                    if path not in ["/docs", "/openapi.json"]:
-                        for method in methods:
-                            if path not in openapi_schema["paths"]:
-                                openapi_schema["paths"][path] = {}
-                            if method.lower() != "head":
-                                openapi_schema["paths"][path][method.lower()] = {
-                                    "summary": f"{route.name} ",
-                                    **(
-                                        {
-                                            "requestBody": {
-                                                "content": {
-                                                    "application/json": {
-                                                        "schema": {
-                                                            "type": "object",
-                                                            "properties": self.get_params(
-                                                                route
-                                                            ),
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if method.lower() not in ["get", "delete"]
-                                        else {}
-                                    ),
-                                    "parameters": [
-                                        {
-                                            "name": param,
-                                            "in": "path",
-                                            "required": True,
-                                            "schema": {"type": "integer"},
-                                        }
-                                        for param in self.get_path_params(path)
-                                    ],
-                                    "responses": {
-                                        "200": {
-                                            "description": route.endpoint.__doc__
-                                            or f"{route.name} function"
-                                        }
-                                    },
-                                }
+                if not isinstance(route, Route):
+                    continue
+
+                route_path = route.path
+                if route_path in EXCLUDED:
+                    continue
+
+                model = None
+                for doc in self.docs:
+                    doc_path = doc.get("path")
+                    if not doc_path:
+                        continue
+                    route_base = re.sub(r"/\{[^/]+\}", "", route_path)
+                    if doc_path.rstrip("/") == route_base.rstrip("/"):
+                        model = doc.get("model")
+                        break
+
+                model_schema = None
+                if model and hasattr(model, "schema"):
+                    try:
+                        model_schema = model.schema()
+                        if model.__name__ not in openapi_schema["components"]["schemas"]:
+                            openapi_schema["components"]["schemas"][model.__name__] = model_schema
+                    except Exception:
+                        model_schema = None
+
+                methods_list = route.methods or ["GET"]
+                for method in methods_list:
+                    m = method.lower()
+                    if m == "head":
+                        continue
+
+                    openapi_schema["paths"].setdefault(route_path, {})
+
+                    path_param_names = self.get_path_params(route_path)
+                    path_parameters = []
+                    for pname in path_param_names:
+                        inferred_schema = {"type": "string"}
+                        if model_schema:
+                            props = model_schema.get("properties", {})
+                            if pname in props:
+                                prop = props[pname]
+                                inferred_schema = {}
+                                if "$ref" in prop:
+                                    inferred_schema["$ref"] = prop["$ref"]
+                                else:
+                                    if "type" in prop:
+                                        inferred_schema["type"] = prop["type"]
+                                    if "format" in prop:
+                                        inferred_schema["format"] = prop["format"]
+                        path_parameters.append(
+                            {"name": pname, "in": "path", "required": True, "schema": inferred_schema}
+                        )
+
+                    op = {
+                        "summary": route.name or getattr(route.endpoint, "__name__", ""),
+                        "parameters": path_parameters,
+                        "responses": {
+                            "200": {"description": route.endpoint.__doc__ or f"{route.name} function", "content": {}}
+                        },
+                    }
+
+                    if model_schema and m in ["post", "put", "patch"]:
+                        props = dict(model_schema.get("properties", {}))
+                        required = list(model_schema.get("required", []))
+                        for p in path_param_names:
+                            props.pop(p, None)
+                            if p in required:
+                                required.remove(p)
+                        request_schema = {"type": "object", "properties": props}
+                        if required:
+                            request_schema["required"] = required
+                        op["requestBody"] = {"required": True, "content": {"application/json": {"schema": request_schema}}}
+
+                    if model_schema:
+                        op["responses"]["200"]["content"] = {
+                            "application/json": {"schema": {"$ref": f"#/components/schemas/{model.__name__}"}}
+                        }
+
+                    openapi_schema["paths"][route_path][m] = op
 
             return JSONResponse(openapi_schema)
 
         self.routes.append(Route(path=path, endpoint=openapi_schema, methods=methods))
-
+        
     def get_path_params(self, path: str):
-        matches = re.findall(r"{(\w+)(?::\w+)?}", path)
-        return matches
+        return re.findall(r"{(\w+)(?::\w+)?}", path)
 
     def get_params(self, route):
         model = None
-        parameters = {}
         for doc in self.docs:
-            if doc["path"] == route.path:
-                model = doc["model"]
+            if doc.get("path") == route.path:
+                model = doc.get("model")
                 break
 
-        if model:
-            fields = model.__fields__
-            for field, field_info in fields.items():
-                field_type = self.pydantic_type_to_openapi(field_info=field_info)
-                parameters[field] = {
-                    "name": field,
-                    "required": field_info.required,
-                    "name": field,
-                    "type": field_type,
-                }
+        if model is None or not hasattr(model, "schema"):
+            return {}
+
+        m_schema = model.schema()
+        props = m_schema.get("properties", {})
+        required = set(m_schema.get("required", []))
+
+        parameters = {}
+        for field_name, field_schema in props.items():
+            parameters[field_name] = {
+                "name": field_name,
+                "required": field_name in required,
+                "schema": field_schema,
+            }
 
         return parameters
 
@@ -196,8 +265,8 @@ class Router:
         base_path: str = None,
     ) -> None:
         name = base_path or f"/api/{model_sql.__tablename__}"
-        crud_routes=[]
-        
+        crud_routes = []
+
         def middleware(func):
             @wraps(func)
             async def middleware_wr(*args, **kwargs):
@@ -451,29 +520,42 @@ class Router:
             return JSONResponse({"success": result_delete})
 
         crud_routes += [
-            Route(path=name, name=name, methods=["GET"], endpoint=get),
-            Route(path=name, name=name, methods=["POST"], endpoint=post),
             Route(
-                path=f"{name}/{{id}}",
+                path=self.normalize_path(prefix=self.prefix, path=name),
+                name=name,
+                methods=["GET"],
+                endpoint=get,
+            ),
+            Route(
+                path=self.normalize_path(prefix=self.prefix, path=name),
+                name=name,
+                methods=["POST"],
+                endpoint=post,
+            ),
+            Route(
+                path=f"{self.normalize_path(prefix=self.prefix,path=name)}/{{id}}",
                 name=f"{name}_get_id",
                 methods=["GET"],
                 endpoint=get_id,
             ),
             Route(
-                path=f"{name}/{{id}}",
+                path=f"{self.normalize_path(prefix=self.prefix,path=name)}/{{id}}",
                 name=f"{name}_put",
                 methods=["PUT"],
                 endpoint=put,
             ),
             Route(
-                path=f"{name}/{{id}}",
+                path=f"{self.normalize_path(prefix=self.prefix,path=name)}/{{id}}",
                 name=f"{name}_delete",
                 methods=["DELETE"],
                 endpoint=delete,
             ),
         ]
         docs_info = [
-            {"path": name, "model": model_pydantic},
+            {
+                "path": self.normalize_path(prefix=self.prefix, path=name),
+                "model": model_pydantic,
+            },
             {"path": f"{name}/{{id}}", "model": model_pydantic},
         ]
         router.routes.extend(crud_routes)

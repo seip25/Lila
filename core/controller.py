@@ -1,26 +1,24 @@
-from core.request import Request
-from core.responses import JSONResponse
+from typing import Union
 from pydantic import BaseModel, ValidationError
+from core.request import Request
 
-
-class Controller:
-    async def parse_request(
-        self, request: Request, schema: BaseModel, response: JSONResponse = None
-    ):
+class RequestParser:
+    async def parse_body(self, request: Request, schema: BaseModel) -> dict:
         try:
             body = await request.json()
-            return schema(**body)
+            model = schema(**body)
+            return {"success": True, "data": model}
         except ValidationError as e:
-            if response:
-                return response(
-                    status_code=400,
-                    content={"error": True, "details": e.errors()},
-                )
-            return False
+            return {"success": False, "errors": e.errors()}
         except Exception as e:
-            if response:
-                return response(
-                    status_code=400,
-                    content={"error": True, "details": e.errors()},
-                )
-            return False
+            return {"success": False, "errors": [{"msg": str(e)}]}
+
+    async def parse_query(self, request: Request, schema: BaseModel) -> dict:
+        try:
+            query_dict = dict(request.query_params)
+            model = schema(**query_dict)
+            return {"success": True, "data": model}
+        except ValidationError as e:
+            return {"success": False, "errors": e.errors()}
+        except Exception as e:
+            return {"success": False, "errors": [{"msg": str(e)}]}

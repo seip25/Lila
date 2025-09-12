@@ -7,11 +7,11 @@ from app.middlewares.middlewares import validate_token, check_token, check_sessi
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
-router = Router()
+router = Router(prefix="v1/api")
 
 # English: Define a simple API route that supports GET method.
 # Español: Define una ruta de API simple que soporta el método GET.
-@router.route(path="/api", methods=["GET"])
+@router.get("/")
 async def api(request: Request):
     """Api function"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     # English: Returns a simple JSON response for API verification. | Español: Devuelve una respuesta JSON simple para la verificación de la API.
@@ -20,7 +20,7 @@ async def api(request: Request):
 
 # English: Define an API route that supports GET and POST methods.
 # Español: Define una ruta de API que soporta los métodos GET y POST.
-@router.route(path="/api/token", methods=["GET", "POST"])
+@router.route(path="/token", methods=["GET", "POST"])
 # English: Middleware to validate the JWT Token.
 # Español: Middleware para validar token de JWT.
 @validate_token
@@ -39,7 +39,7 @@ class ExampleModel(BaseModel):
 
 # English: Defines an "api/example" route, using ExampleModel for input validation, with automatic documentation passing the "model" parameter ("model=ExampleModel").
 # Español: Define una ruta "api/example", utilizando ExampleModel para la validación de entradas,con documentación automatica pasandole el parametro "model"("model=ExampleModel")
-@router.route(path="/api/example", methods=["POST"], model=ExampleModel)
+@router.post(path="/example", model=ExampleModel)
 async def login(request: Request):
     """Example function get request json form"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     # English: Asynchronously parse JSON body from the request.

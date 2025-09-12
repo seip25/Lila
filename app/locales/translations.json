@@ -115,69 +115,92 @@
     "es": "El archivo está vacío",
     "en": "File is empty"
   },
-  "login":{
+  "login": {
     "es": "Iniciar sesión",
     "en": "Login"
   },
-  "register":{
+  "register": {
     "es": "Registrarse",
     "en": "Register"
   },
-  "user":{
+  "user": {
     "es": "Usuario",
     "en": "User"
   },
-  "password":{
+  "password": {
     "es": "Contraseña",
     "en": "Password"
   },
-  "confirm_password":{
+  "confirm_password": {
     "es": "Confirmar contraseña",
     "en": "Confirm password"
   },
-  "name":{
+  "name": {
     "es": "Nombre",
     "en": "Name"
   },
   "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)": {
     "es": "Documentación de Lila Js (Templates Reactivos con Vanilla Js Javascript)",
     "en": "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)"
-  } ,
+  },
   "example_reactive_lila_js": {
     "es": "Ejemplo de Lila Js Reactivo",
     "en": "Example of Reactive Lila Js"
   },
-  "forgot your password":{
-    "es": "Olvidaste tu contraseña?","en": "Forgot your Password?"
+  "forgot your password": {
+    "es": "Olvidaste tu contraseña?",
+    "en": "Forgot your Password?"
   },
-  "create account":{
-    "es":"Crear cuenta","en":"Create account"
-  } ,
-  "We have left you the example of login, register with Lila-JS, in":{
-    "es":"Te hemos dejado ejemplo de login,register con Lila-JS , en",
-    "en": "We have left you the example of login, register with Lila-JS, in" 
+  "create account": {
+    "es": "Crear cuenta",
+    "en": "Create account"
   },
-  "Lila-JS is a minimalist JavaScript library for building reactive web components with ease.":{
-    "es":  "Lila-JS es una librería de JavaScript minimalista para construir componentes web reactivos con facilidad.",
+  "We have left you the example of login, register with Lila-JS, in": {
+    "es": "Te hemos dejado ejemplo de login,register con Lila-JS , en",
+    "en": "We have left you the example of login, register with Lila-JS, in"
+  },
+  "Lila-JS is a minimalist JavaScript library for building reactive web components with ease.": {
+    "es": "Lila-JS es una librería de JavaScript minimalista para construir componentes web reactivos con facilidad.",
     "en": "Lila-JS is a minimalist JavaScript library for building reactive web components with ease."
   },
-  "If you want to see the documentation, we leave the link here.":{
+  "If you want to see the documentation, we leave the link here.": {
     "es": " Si quieres mirar la documentación , te dejamos el link aquí ",
     "en": "If you want to see the documentation, we leave the link here."
   },
-  "Here we leave you the link so you can see the reactivity, Lila-Js routes, for css we use BaseCoat":
-  {
+  "Here we leave you the link so you can see the reactivity, Lila-Js routes, for css we use BaseCoat": {
     "es": "Aquí te dejamos el enlace para que puedas ver la simpleza, reactividad,componentes, rutas de Lila-Js, para el css usamos BaseCoat",
     "en": "Here we leave you the link so you can see the simplicity,reactivity,components, Lila-Js routes, for css we use BaseCoat"
   },
-  "Recover password":{
+  "Recover password": {
     "es": "Recuperar contraseña",
     "en": "Recover password"
   },
-  "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one":
-  {
+  "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one": {
     "en": "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one",
-    "es": "¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña y podrás elegir una nueva." 
+    "es": "¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña y podrás elegir una nueva."
+  },
+  "welcome": {
+    "es": "Bienvenido a mi sitio web",
+    "en": "Welcome to My Website"
+  },
+  "features": {
+    "es": "Características",
+    "en": "Features"
+  },
+  "easy_write": {
+    "es": "Fácil de escribir",
+    "en": "Easy to write"
+  },
+  "convert_html": {
+    "es": "Se convierte a HTML",
+    "en": "Converts to HTML"
+  },
+  "supports_links": {
+    "es": "Soporta enlaces e imágenes",
+    "en": "Supports links and images"
+  },
+  "example_code": {
+    "es": "Ejemplo de código",
+    "en": "Example Code"
   }
-
 }
