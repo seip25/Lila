@@ -578,6 +578,140 @@ routes = router.get_routes()  # Retrieves all defined app.routes.
             </code></pre>
                                 </div>
                             </div>
+
+                            <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+    <i class="fas fa-layer-group mr-2 text-lila-400"></i> Route Prefixes and HTTP Method Shortcuts
+</h3>
+
+<p class="text-gray-600 dark:text-gray-300 mb-6">
+    Routes can now have a <code class="code-inline">prefix</code>, which allows grouping multiple endpoints under a common path. 
+    Additionally, you can define routes directly with HTTP methods as functions: <code class="code-inline">get</code>, 
+    <code class="code-inline">post</code>, <code class="code-inline">put</code>, <code class="code-inline">delete</code>.
+</p>
+
+<div class="code-editor mt-6 mb-8">
+    <div class="editor-header bg-gray-800 dark:bg-gray-900">
+        <span class="editor-title text-gray-300 dark:text-gray-400">
+            <i class="fas fa-file-code mr-2"></i>routes/api_v2.py
+        </span>
+        <div class="editor-controls">
+            <div class="control close"></div>
+            <div class="control minimize"></div>
+            <div class="control maximize"></div>
+        </div>
+    </div>
+    <div class="editor-content bg-gray-900 dark:bg-black">
+        <pre><code class="language-python">
+# English: Initialize the router instance for managing API routes.
+router = Router(prefix="v1/api")
+
+# English: Define a simple API route that supports GET method.
+@router.get("/")
+async def api(request: Request):
+    """Api function"""  # use doc for description http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
+    # English: Returns a simple JSON response for API verification.
+    return JSONResponse({"api": True})
+
+# Español: Define una ruta de API que soporta los métodos GET y POST.
+@router.route(path="/token", methods=["GET", "POST"])
+# English: Middleware to validate the JWT Token.
+@validate_token
+async def api_token(request: Request):
+    """Api Token function"""  # use doc for description http://127.0.0.1:8001/openapi.json and http://127.0.0.1:8001/docs
+    print(get_user_by_token(request=request))
+    return JSONResponse({"api": True})
+        </code></pre>
+    </div>
+</div>
+
+<p class="text-gray-600 dark:text-gray-300 mb-6">
+    Using prefixes helps organize your API under a common version path (e.g., <code class="code-inline">v1/api</code>), 
+    while method-specific decorators (<code class="code-inline">@router.get</code>, <code class="code-inline">@router.post</code>, etc.) 
+    make route definitions cleaner and more intuitive.
+</p>
+<h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+    <i class="fas fa-network-wired mr-2 text-lila-400"></i> HTTP Method Examples with Prefix and Pydantic Models
+</h3>
+
+<p class="text-gray-600 dark:text-gray-300 mb-6">
+    Routes now support the HTTP methods <code class="code-inline">get</code>, <code class="code-inline">post</code>, 
+    <code class="code-inline">put</code>, and <code class="code-inline">delete</code> directly. 
+    You can also attach Pydantic models for automatic input validation and documentation generation.
+</p>
+
+<div class="code-editor mt-6 mb-8">
+    <div class="editor-header bg-gray-800 dark:bg-gray-900">
+        <span class="editor-title text-gray-300 dark:text-gray-400">
+            <i class="fas fa-file-code mr-2"></i>routes/v1_api_example.py
+        </span>
+        <div class="editor-controls">
+            <div class="control close"></div>
+            <div class="control minimize"></div>
+            <div class="control maximize"></div>
+        </div>
+    </div>
+    <div class="editor-content bg-gray-900 dark:bg-black">
+        <pre><code class="language-python">
+from lila.core.responses import JSONResponse
+from lila.core.routing import Router
+from lila.core.request import Request
+from pydantic import BaseModel
+
+router = Router(prefix="v1/api")
+
+# ---------------- GET Example ----------------
+@router.get("/items/{item_id}")
+async def get_item(request: Request):
+    """Fetch an item by ID."""
+    item_id = request.path_params.get("item_id")
+    return JSONResponse({"item_id": item_id, "status": "fetched"})
+
+# ---------------- POST Example ----------------
+class CreateItemModel(BaseModel):
+    name: str
+    description: str
+
+@router.post("/items", model=CreateItemModel)
+async def create_item(request: Request):
+    """Create a new item."""
+    body = await request.json()
+    input_data = CreateItemModel(**body)
+    return JSONResponse({"name": input_data.name, "description": input_data.description})
+
+# ---------------- PUT Example ----------------
+class UpdateItemModel(BaseModel):
+    name: str
+    description: str
+
+@router.put("/items/{item_id}", model=UpdateItemModel)
+async def update_item(request: Request):
+    """Update an existing item by ID."""
+    item_id = request.path_params.get("item_id")
+    body = await request.json()
+    input_data = UpdateItemModel(**body)
+    return JSONResponse({"item_id": item_id, "updated_name": input_data.name})
+
+# ---------------- DELETE Example ----------------
+@router.delete("/items/{item_id}")
+async def delete_item(request: Request):
+    """Delete an item by ID."""
+    item_id = request.path_params.get("item_id")
+    return JSONResponse({"item_id": item_id, "status": "deleted"})
+        </code></pre>
+    </div>
+</div>
+
+<p class="text-gray-600 dark:text-gray-300 mb-6">
+    These examples demonstrate how to:
+    <ul class="list-disc ml-6">
+        <li>Use a <code class="code-inline">prefix</code> for versioned API endpoints.</li>
+        <li>Use method-specific decorators like <code class="code-inline">@router.get</code>, <code class="code-inline">@router.post</code>, etc.</li>
+        <li>Automatically validate input and generate documentation using Pydantic models.</li>
+        <li>Receive URL parameters and JSON bodies.</li>
+    </ul>
+    Documentation is automatically generated at <code class="code-inline">/docs</code> and <code class="code-inline">/openapi.json</code>.
+</p>
+
                         </article>
 
                         <hr />
@@ -1421,86 +1555,106 @@ async def uploadFile(request: Request):
                         </article>
                         <hr />
 
-                        <article id="markdown-eng" class="mt-8 mb-8  ">
-                            <h1 class="text-2xl font-semibold">Markdown /HTML</h1>
-                            <p>To render <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>
-                                files, the
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">renderMarkdown</code>
-                                function is used, which receives the following parameters:
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
-                            </p>
-                            <p>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">file</code>
-                                is the name of the file, starting from the <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">base_path</code>
-                                of
-                                the
-                                directory
-                                located in <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/markdown/</code>,
-                                for example: <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>.
-                                It will look for an <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>
-                                file in the markdown directory inside the
-                                templates
-                                folder
-                                (templates/markdown/index.md).
-                            </p>
-                            <p>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">css_files</code>
-                                and <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">js_files</code>
-                                are lists of CSS and JS files that will
-                                be
-                                loaded in the
-                                generated HTML file.
-                            </p>
-                            <p>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">picocss</code>
-                                is a boolean indicating whether the PicoCSS CSS file should be
-                                loaded.
-                            </p>
-                            <p>
-                                Below is an example of how <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>
-                                files are rendered in
-                                Lilac:
-                            </p>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">Markdown</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content">
-                                    <pre>
-                     <code class="language-python">
+                     <article id="markdown-eng" class="mt-8 mb-8">
+    <h1 class="text-2xl font-semibold">Markdown /HTML</h1>
+    <p>
+        To render <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code> files, the
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">renderMarkdown</code>
+        function is used, which receives the following parameters:
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+            request, file: str, base_path: str='templates/markdown/', css_files: list=[], js_files: list=[], picocss: bool=False
+        </code>
+    </p>
+
+    <p>
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">file</code>
+        is the name of the Markdown file starting from <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">base_path</code>.
+        For example: <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>.
+        It will look for <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>
+        inside <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/markdown/</code>.
+    </p>
+
+    <p>
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">css_files</code> and
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">js_files</code>
+        are lists of CSS and JS files to include in the rendered HTML.
+    </p>
+
+    <p>
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">picocss</code>
+        is a boolean indicating whether the PicoCSS stylesheet should be loaded.
+    </p>
+
+    <p>Now, you can use <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">layout.html</code> in <code>templates/markdown/</code> as a base editable template:</p>
+
+ 
+
+    <p>Below is an example of rendering a Markdown file with bilingual support in Lilac:</p>
+
+    <div class="code-editor mt-4 mb-4">
+        <div class="editor-header">
+            <span class="editor-title">example.md</span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content">
+<pre>
+<code class="language-html">
+# {{ translate["welcome"] }}
+
+This is a simple **Markdown** example. 
+
+## {{ translate["features"] }}
+- {{ translate["easy_write"] }}
+- {{ translate["convert_html"] }}
+- {{ translate["supports_links"] }}
+
+### {{ translate["example_code"] }}
+
+\`\`\`
+print("Hello, Markdown!")
+\`\`\`
+</code>
+</pre>
+        </div>
+    </div>
+
+    <p>Python code to render it using <code>renderMarkdown</code>:</p>
+
+    <div class="code-editor mt-4 mb-4">
+        <div class="editor-header">
+            <span class="editor-title">Python</span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content">
+<pre>
+<code class="language-python">
 from lila.core.templates import renderMarkdown
 
 @router.route(path='/markdown', methods=['GET'])
 async def home(request: Request):
-    #Define a list of CSS files to include in the response
     css = ["/public/css/styles.css"]
-    #Renders a markdown file with PicoCSS styling
-    response = renderMarkdown(request=request, file='example', css_files=css, picocss=True)
+    response = renderMarkdown(
+        request=request,
+        file='example',
+        css_files=css,
+        picocss=True
+    )
     return response
+</code>
+</pre>
+        </div>
+    </div>
+</article>
 
-                     </code>
-                     </pre>
-                                </div>
-                            </div>
 
-                        </article>
                         <hr />
 
                         <article id="locales-eng" class="mt-8 mb-8">

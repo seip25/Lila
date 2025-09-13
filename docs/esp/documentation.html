@@ -302,261 +302,322 @@ if __name__ == "__main__":
                         </article>
 
                         <div class="border-t border-gray-200 dark:border-gray-700 my-8"></div>
+<article id="routes-esp" class="section-card">
+    <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+        <i class="fas fa-route mr-3 text-lila-500"></i> Rutas
+    </h2>
 
-                        <article id="routes-esp" class="section-card">
-                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
-                                <i class="fas fa-route mr-3 text-lila-500"></i> Rutas
-                            </h2>
+    <p class="text-gray-600 dark:text-gray-300 mb-4">
+        Las rutas son los puntos de acceso a la aplicación. En Lila, las rutas se definen en el directorio
+        <code class="code-inline">routes</code> (por defecto, aunque puedes ubicarlas donde desees) y
+        se importan en <code class="code-inline">main.py</code> para su uso. Las rutas pueden configurarse
+        para manejar solicitudes HTTP, métodos de API y más.
+    </p>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-4">
-                                Las rutas son los puntos de acceso a la aplicación. En Lila, las rutas se definen en el directorio <code class="code-inline">routes</code> (por defecto, pero puedes ubicarlas donde quieras) y se importan en <code class="code-inline">main.py</code> para su uso. Las rutas pueden configurarse para manejar peticiones HTTP, métodos de API y más.
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Además de <code class="code-inline">JSONResponse</code>, puedes usar <code class="code-inline">HTMLResponse</code>, 
+        <code class="code-inline">RedirectResponse</code>, <code class="code-inline">PlainTextResponse</code> o 
+        <code class="code-inline">StreamingResponse</code> para transmitir datos en tiempo real (útil para video/audio en streaming o respuestas grandes).
+    </p>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                Además de JSONResponse, puedes usar HTMLResponse, RedirectResponse y PlainTextResponse, o StreamingResponse, para transmitir datos en tiempo real (útil para streaming de video/audio o respuestas grandes).
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        A continuación, un ejemplo de cómo se definen las rutas en Lila:
+    </p>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                A continuación se muestra un ejemplo de cómo se definen las rutas en Lila:
-                            </p>
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-file-code mr-2"></i>routes/api.py
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
+from lila.core.responses import JSONResponse
+from lila.core.routing import Router
+from lila.core.request import Request
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-file-code mr-2"></i>routes/api.py
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
-# Importar desde lila.core JSONResponse.
-from lila.core.responses import JSONResponse 
-
-# Gestiona las rutas para los puntos finales de la API.
-from lila.core.routing import Router  
-# Inicializa la instancia del enrutador para gestionar las rutas de la API.
 router = Router()
 
-# Define una ruta de API simple que admite el método GET.
 @router.route(path='/api', methods=['GET'])
 async def api(request: Request):
-    """Función de la API"""
-    # Español: Devuelve una respuesta JSON simple para la verificación de la API.
-    return JSONResponse({'api': True})   
+    """Función API"""
+    return JSONResponse({'api': True})
             </code></pre>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
-                            <h3
-                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
-                                <i class="fas fa-code-branch mr-2 text-lila-400"></i> Obtener Parámetros de la URL
-                            </h3>
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+        <i class="fas fa-code-branch mr-2 text-lila-400"></i> Obtener Parámetros de URL
+    </h3>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-4">
-                                En esta función, recibimos un parámetro a través de la URL usando <code class="code-inline">{param}</code>. Si el parámetro no se proporciona, se establece por defecto como <code class="code-inline">'default'</code>. La respuesta es un JSON que contiene el valor recibido.
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-4">
+        En esta función recibimos un parámetro a través de la URL usando <code class="code-inline">{param}</code>.
+        Si no se proporciona, se usa <code class="code-inline">'default'</code>. 
+        La respuesta es un JSON con el valor recibido.
+    </p>
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-code mr-2"></i>Recepción de Parámetros GET
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-code mr-2"></i>Recibiendo Parámetros GET
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
 @router.route(path='/url_with_param/{param}', methods=['GET']) 
 async def param(request: Request):  
     param = request.path_params.get('param', 'default') 
     return JSONResponse({"received_param": param})
             </code></pre>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                O también puedes hacerlo de esta manera:
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        También se puede hacer así:
+    </p>
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-code mr-2"></i>Recepción de Parámetros GET por Query
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
-@router.route(path='/url_con_param/?query_param', methods=['GET','POST'])
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-code mr-2"></i>Recibiendo Parámetros de Consulta GET
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python"> 
+@router.route(path='/url_with_param/?query_param', methods=['GET','POST']) 
 async def query_param(request: Request):  
     query_param = request.query_params.get('query_param', 'query_param')
-    return JSONResponse({"parametro_recibido": query_param})
+    return JSONResponse({"received_param": query_param})
             </code></pre>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-file-import mr-2"></i>Importaciones Básicas
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
-from lila.core.responses import JSONResponse  # Simplifica el envío de respuestas JSON.
-from lila.core.routing import Router  # Gestiona las rutas de la API.
-from lila.core.request import Request  # Maneja las peticiones HTTP en la aplicación.
-from pydantic import EmailStr, BaseModel  # Valida y procesa modelos de datos para la validación de entradas.
-from app.helpers.helpers import get_user_by_id_and_token
-from app.middlewares.middlewares import validate_token
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+        <i class="fas fa-filter mr-2 text-lila-400"></i> Uso de Middleware y Decoradores
+    </h3>
 
-router = Router()
-            </code></pre>
-                                </div>
-                            </div>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Los middlewares permiten interceptar las solicitudes antes de que lleguen a la lógica principal de la API.
+        En este ejemplo usamos <code class="code-inline">@validate_token</code> para validar un token JWT en el encabezado.
+    </p>
 
-                            <h3
-                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
-                                <i class="fas fa-filter mr-2 text-lila-400"></i> Uso de Middlewares y Decoradores
-                            </h3>
-
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                Los middlewares permiten interceptar peticiones antes de que lleguen a la lógica principal de la API. En este ejemplo, usamos <code class="code-inline">@validate_token</code> para validar un token JWT en la cabecera de la petición.
-                            </p>
-
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-shield-alt mr-2"></i>Validación con Middleware
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-shield-alt mr-2"></i>Validación de Middleware
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
 @router.route(path='/api/token', methods=['GET','POST'])
-@validate_token  # Middleware to validate JWT token.
+@validate_token  # Middleware para validar token JWT.
 async def api_token(request: Request):
     return JSONResponse({'api': True})
             </code></pre>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
-                            <h3
-                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
-                                <i class="fas fa-check-circle mr-2 text-lila-400"></i> Validación de Datos con Pydantic
-                            </h3>
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+        <i class="fas fa-check-circle mr-2 text-lila-400"></i> Validación de Datos con Pydantic
+    </h3>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                Pydantic permite definir modelos de datos que validan automáticamente la entrada del usuario. Además, al especificar un modelo en la ruta, se genera documentación automática en <code class="code-inline">/docs</code>.
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Pydantic permite definir modelos de datos que validan automáticamente la entrada del usuario.
+        Además, especificar un modelo en la ruta genera documentación automática en <code class="code-inline">/docs</code>.
+    </p>
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-check-square mr-2"></i>Validación con Pydantic
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-check-square mr-2"></i>Validación con Pydantic
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
 from pydantic import EmailStr, BaseModel 
 
-class ModeloEjemplo(BaseModel):
-    email: EmailStr  # Asegura un email válido.
-    password: str  # Cadena para la contraseña.
+class ExampleModel(BaseModel):
+    email: EmailStr  # Valida que sea un email válido.
+    password: str  # Cadena de texto para contraseña.
 
-@router.route(path='/api/ejemplo', methods=['POST'], model=ModeloEjemplo)
+@router.route(path='/api/example', methods=['POST'], model=ExampleModel)
 async def login(request: Request):
     body = await request.json()
     try:
-        entrada = ModeloEjemplo(**body)  # Validación automática con Pydantic.
+        input = ExampleModel(**body)  # Validación automática con Pydantic.
     except Exception as e:
-        return JSONResponse({"success": False, "msg": f"Cuerpo JSON inválido: {e}"}, status_code=400)
-    return JSONResponse({"email": entrada.email, "password": entrada.password})
+        return JSONResponse({"success": False, "msg": f"JSON inválido: {e}"}, status_code=400) 
+    return JSONResponse({"email": input.email, "password": input.password})
             </code></pre>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
-                            <h3
-                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
-                                <i class="fas fa-book mr-2 text-lila-400"></i> Generación Automática de Documentación
-                            </h3>
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+        <i class="fas fa-book mr-2 text-lila-400"></i> Generación Automática de Documentación
+    </h3>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                Gracias a la integración con Pydantic, la documentación de la API se genera automáticamente y es accesible desde <code class="code-inline">/docs</code>. También puedes generar un archivo JSON de OpenAPI para herramientas externas.
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Gracias a la integración con Pydantic, la documentación de la API se genera automáticamente
+        y es accesible desde <code class="code-inline">/docs</code>. También puedes generar un archivo
+        OpenAPI JSON para herramientas externas.
+    </p>
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-file-alt mr-2"></i>Generación de Documentación
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
-router.swagger_ui()  # Enables Swagger UI for API documentation.
-router.openapi_json()  # Generates OpenAPI JSON for external tools.
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-file-alt mr-2"></i>Generación de Documentación
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
+router.swagger_ui()  # Activa Swagger UI para la documentación de la API.
+router.openapi_json()  # Genera OpenAPI JSON para herramientas externas.
             </code></pre>
-                                </div>
-                            </div>
+        </div>
+    </div>
 
-                            <h3
-                                class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
-                                <i class="fas fa-file-import mr-2 text-lila-400"></i> Importando Rutas en main.py
-                            </h3>
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+        <i class="fas fa-file-import mr-2 text-lila-400"></i> Importando Rutas en main.py
+    </h3>
 
-                            <p class="text-gray-600 dark:text-gray-300 mb-6">
-                                Para usar las rutas definidas en el enrutador, necesitas obtenerlas con <code class="code-inline">router.get_routes()</code> e importarlas en <code class="code-inline">main.py</code>.
-                            </p>
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Para usar las rutas definidas en el router, debes obtenerlas con
+        <code class="code-inline">router.get_routes()</code> e importarlas en <code class="code-inline">main.py</code>.
+    </p>
 
-                            <div class="code-editor mt-6 mb-8">
-                                <div class="editor-header bg-gray-800 dark:bg-gray-900">
-                                    <span class="editor-title text-gray-300 dark:text-gray-400">
-                                        <i class="fas fa-sign-in-alt mr-2"></i>Importación de Rutas
-                                    </span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content bg-gray-900 dark:bg-black">
-                                    <pre><code class="language-python">
-routes = router.get_routes()  # Recupera todas las rutas definidas de la aplicación.
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-sign-in-alt mr-2"></i>Importación de Rutas
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
+routes = router.get_routes()  # Obtiene todas las rutas definidas.
             </code></pre>
-                                </div>
-                            </div>
-                        </article>
+        </div>
+    </div>
 
+    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4 flex items-center">
+        <i class="fas fa-layer-group mr-2 text-lila-400"></i> Prefijos de Rutas y Atajos para Métodos HTTP
+    </h3>
+
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Las rutas ahora pueden tener un <code class="code-inline">prefix</code> para agrupar múltiples endpoints bajo un mismo camino. 
+        Además, puedes definir rutas directamente con métodos HTTP: <code class="code-inline">get</code>, 
+        <code class="code-inline">post</code>, <code class="code-inline">put</code> y <code class="code-inline">delete</code>.
+    </p>
+
+    <div class="code-editor mt-6 mb-8">
+        <div class="editor-header bg-gray-800 dark:bg-gray-900">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+                <i class="fas fa-file-code mr-2"></i>routes/v1_api_example.py
+            </span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
+from lila.core.responses import JSONResponse
+from lila.core.routing import Router
+from lila.core.request import Request
+from pydantic import BaseModel
+
+router = Router(prefix="v1/api")
+
+# ---------------- Ejemplo GET ----------------
+@router.get("/items/{item_id}")
+async def get_item(request: Request):
+    """Obtener un ítem por ID."""
+    item_id = request.path_params.get("item_id")
+    return JSONResponse({"item_id": item_id, "status": "fetched"})
+
+# ---------------- Ejemplo POST ----------------
+class CreateItemModel(BaseModel):
+    name: str
+    description: str
+
+@router.post("/items", model=CreateItemModel)
+async def create_item(request: Request):
+    """Crear un nuevo ítem."""
+    body = await request.json()
+    input_data = CreateItemModel(**body)
+    return JSONResponse({"name": input_data.name, "description": input_data.description})
+
+# ---------------- Ejemplo PUT ----------------
+class UpdateItemModel(BaseModel):
+    name: str
+    description: str
+
+@router.put("/items/{item_id}", model=UpdateItemModel)
+async def update_item(request: Request):
+    """Actualizar un ítem existente por ID."""
+    item_id = request.path_params.get("item_id")
+    body = await request.json()
+    input_data = UpdateItemModel(**body)
+    return JSONResponse({"item_id": item_id, "updated_name": input_data.name})
+
+# ---------------- Ejemplo DELETE ----------------
+@router.delete("/items/{item_id}")
+async def delete_item(request: Request):
+    """Eliminar un ítem por ID."""
+    item_id = request.path_params.get("item_id")
+    return JSONResponse({"item_id": item_id, "status": "deleted"})
+            </code></pre>
+        </div>
+    </div>
+
+    <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Estos ejemplos muestran cómo:
+        <ul class="list-disc ml-6">
+            <li>Usar un <code class="code-inline">prefix</code> para versionar endpoints.</li>
+            <li>Usar decoradores específicos por método como <code class="code-inline">@router.get</code>, <code class="code-inline">@router.post</code>, etc.</li>
+            <li>Validar automáticamente la entrada y generar documentación usando modelos Pydantic.</li>
+            <li>Recibir parámetros por URL y cuerpos JSON.</li>
+        </ul>
+        La documentación se genera automáticamente en <code class="code-inline">/docs</code> y <code class="code-inline">/openapi.json</code>.
+    </p>
+</article>
+
+                   
                         <hr />
                         <article id="static-esp" class="space-y-6 md:space-y-8 py-8">
                             <div class="space-y-4">
@@ -1382,73 +1443,105 @@ async def uploadFile(request: Request):
                         </article>
                         <hr />
 
-                        <article id="markdown-esp" class="mt-8 mb-8  ">
-                            <h1 class="text-2xl font-semibold">Markdown / HTML</h1>
-                            <p>Para renderizar archivos <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>,
-                                se utiliza la función <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">renderMarkdown</code>,
-                                que recibe los siguientes parámetros: <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">request,file : str , base_path:str ='templates/markdown/',css_files : list = [],js_files:list=[],picocss : bool =False</code>
-                            </p>
-                            <p>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">file</code>
-                                es el nombre del archivo, partiendo de la <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">base_path</code>
-                                del directorio ubicado en <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/markdown/</code>,
-                                por ejemplo: <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>.
-                                Buscará un archivo <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>
-                                en el directorio markdown dentro de la carpeta de plantillas (templates/markdown/index.md).
-                            </p>
-                            <p>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">css_files</code>
-                                y <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">js_files</code>
-                                son listas de archivos CSS y JS que se cargarán en el archivo HTML generado.
-                            </p>
-                            <p>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">picocss</code>
-                                es un booleano que indica si se debe cargar el archivo CSS de PicoCSS.
-                            </p>
-                            <p>
-                                A continuación, se muestra un ejemplo de cómo se renderizan los archivos <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>
-                                en Lila:
-                            </p>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">Markdown</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content">
-                                    <pre>
-                     <code class="language-python">
+                     <article id="markdown-esp" class="mt-8 mb-8">
+    <h1 class="text-2xl font-semibold">Markdown /HTML</h1>
+    <p>
+        Para renderizar archivos <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>, se utiliza la función
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">renderMarkdown</code>,
+        que recibe los siguientes parámetros:
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+            request, file: str, base_path: str='templates/markdown/', css_files: list=[], js_files: list=[], picocss: bool=False
+        </code>
+    </p>
+
+    <p>
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">file</code>
+        es el nombre del archivo Markdown, comenzando desde <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">base_path</code>.
+        Por ejemplo: <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>.
+        Se buscará dentro de <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/markdown/</code>.
+    </p>
+
+    <p>
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">css_files</code> y
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">js_files</code>
+        son listas de archivos CSS y JS que se cargarán en el HTML generado.
+    </p>
+
+    <p>
+        <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">picocss</code>
+        es un booleano que indica si se debe cargar el archivo de estilos PicoCSS.
+    </p>
+
+    <p>Ahora se puede usar <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">layout.html</code> en <code>templates/markdown/</code> como plantilla base editable:</p>
+ 
+
+    <p>Ejemplo de un archivo Markdown con soporte bilingüe usando <code>translate</code>:</p>
+
+    <div class="code-editor mt-4 mb-4">
+        <div class="editor-header">
+            <span class="editor-title">example.md</span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content">
+<pre>
+<code class="language-html">
+# {{ translate["welcome"] }}
+
+Este es un ejemplo simple de **Markdown**. 
+
+## {{ translate["features"] }}
+- {{ translate["easy_write"] }}
+- {{ translate["convert_html"] }}
+- {{ translate["supports_links"] }}
+
+### {{ translate["example_code"] }}
+
+\`\`\`
+print("¡Hola, Markdown!")
+\`\`\`
+</code>
+</pre>
+        </div>
+    </div>
+
+    <p>Código Python para renderizarlo usando <code>renderMarkdown</code>:</p>
+
+    <div class="code-editor mt-4 mb-4">
+        <div class="editor-header">
+            <span class="editor-title">Python</span>
+            <div class="editor-controls">
+                <div class="control close"></div>
+                <div class="control minimize"></div>
+                <div class="control maximize"></div>
+            </div>
+        </div>
+        <div class="editor-content">
+<pre>
+<code class="language-python">
 from lila.core.templates import renderMarkdown
 
 @router.route(path='/markdown', methods=['GET'])
 async def home(request: Request):
-    #Define una lista de archivos CSS para incluir en la respuesta
     css = ["/public/css/styles.css"]
-    #Renderiza un archivo markdown con estilo PicoCSS
-    response = renderMarkdown(request=request, file='example', css_files=css, picocss=True)
+    response = renderMarkdown(
+        request=request,
+        file='example',
+        css_files=css,
+        picocss=True
+    )
     return response
+</code>
+</pre>
+        </div>
+    </div>
+</article>
 
-                     </code>
-                     </pre>
-                                </div>
-                            </div>
 
-                        </article>
+
                         <hr />
 
                         <article id="locales-esp" class="mt-8 mb-8">
