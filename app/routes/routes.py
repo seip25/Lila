@@ -18,7 +18,7 @@ router.mount()
 
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto
-@router.route(path="/", methods=["GET"])
+@router.get("/")
 async def home(request: Request):
     context ={
         "url": f"http://{HOST}:{PORT}"
@@ -28,14 +28,14 @@ async def home(request: Request):
     )  # English: Renders the 'index' template with  translations | Español: Renderiza la plantilla 'index' con traducciones
     return response
 
-@router.route(path="/auth",methods=['GET'])
+@router.get("/auth")
 async def auth_html(request:Request):
     response=render(request=request,template="auth")
     return response
 
 # English: Example default lang in the path
 # Español : Ejemplo de dejar el idioma por defecto en la ruta
-@router.route(path="/es", methods=["GET"])
+@router.get("/es")
 async def home(request: Request):
     response = render(
         request=request, template="index",lang_default="es"
@@ -44,7 +44,7 @@ async def home(request: Request):
 
 # English: Example default lang in the path
 # Español : Ejemplo de dejar el idioma por defecto en la ruta
-@router.route(path="/en", methods=["GET"])
+@router.get("/en")
 async def home(request: Request):
     response = render(
         request=request, template="index",lang_default="en"
@@ -53,7 +53,7 @@ async def home(request: Request):
 
 # English : Example for render 'markdown' file
 # Español : Ejemplo para renderizar un archivo 'markdown'
-@router.route(path="/markdown", methods=["GET"])
+@router.get("/markdown")
 async def home(request: Request):
     # English: Define a list of CSS files to include in the response
     # Español: Define una lista de archivos CSS para incluir en la respuesta
@@ -68,7 +68,7 @@ async def home(request: Request):
 
 # English: Example route for changing the language
 # Español: Ejemplo de ruta para cambiar el idioma
-@router.route(path="/set-language/{lang}", methods=["GET"])
+@router.get("/set-language/{lang}")
 async def set_language(request: Request):
     # English: Gets the language from the path parameters, falling back to the default if not found
     # Español: Obtiene el idioma de los parámetros de la ruta, usando el valor por defecto si no se encuentra

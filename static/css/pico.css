@@ -3017,6 +3017,7 @@ input.secondary {
     top: 40%;
     transform: translateY(-50%);
     pointer-events: none;
+    background-color: currentColor;
 
 }
 
@@ -3026,6 +3027,7 @@ input.secondary {
     top: 40%;
     transform: translateY(-50%);
     pointer-events: none;
+    background-color: currentColor;
 }
 
 
