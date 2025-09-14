@@ -73,15 +73,18 @@ class Router:
         path: str = "/docs",
         methods: list[str] | None = None,
         swagger_url: str = "/public/swagger",
+        title : str = "Lila API Documentation",
+        icon : str = "/public/img/lila.png"
     ) -> None:
         if methods is None:
             methods = ["GET"]
 
-        def swagger_docs(request: Request):
+        def swagger_docs(title:str,icon :str ):
             html = f"""
             <html>
             <head>
-                <title>API Documentation</title>
+                <title>{title}</title>
+                  <link rel="icon" type="image/x-icon" href="{icon}" />
                 <link rel="stylesheet" type="text/css" href="{swagger_url}/swagger-ui.css" />
                 <script src="{swagger_url}/swagger-ui-bundle.js"></script>
                 <script src="{swagger_url}/swagger-ui-standalone-preset.js"></script>
@@ -105,7 +108,7 @@ class Router:
             """
             return HTMLResponse(html)
 
-        self.routes.append(Route(path=path, endpoint=swagger_docs, methods=methods))
+        self.routes.append(Route(path=path, endpoint=swagger_docs(title=title,icon=icon), methods=methods))
 
     def openapi_json(self, path: str = "/openapi.json", methods: list[str] | None = None) -> None:
         if methods is None:

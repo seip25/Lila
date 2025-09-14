@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lila JS </title>
+    <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/basecoat.cdn.min.css">
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.2/dist/js/all.min.js" defer></script>
     <script src="https://seip25.github.io/Lila_js/lila.js"></script>
-     <script>
+    <script>
         const t = {{ translate | safe}} // jijnja2 translates
     </script>
 </head>
-<body  class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased min-h-screen flex flex-col ">
+
+<body
+    class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased min-h-screen flex flex-col ">
 
     <main id="app" class="container mx-auto px-4 py-8 flex-grow    w-full lg:w-1/3 sm:w-full"></main>
 
@@ -26,7 +30,7 @@
             </a>
         </div>
     </footer>
-   
+
     <script>
         App.createComponent('lila-link', {
             template: /*html*/ `<a href="#\${props.href}" class="\${props.class}" data-on:click="handleClick">
@@ -113,7 +117,7 @@
                     if (event) event.preventDefault();
 
                     const { name, email, password, confirm_password } = this.state;
- 
+
                     if (!name || !email || !password || !confirm_password) {
                         alert('Please complete all fields..');
                         return;
