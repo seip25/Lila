@@ -28,11 +28,6 @@ async def home(request: Request):
     )  # English: Renders the 'index' template with  translations | Español: Renderiza la plantilla 'index' con traducciones
     return response
 
-@router.get("/auth")
-async def auth_html(request:Request):
-    response=render(request=request,template="auth")
-    return response
-
 # English: Example default lang in the path
 # Español : Ejemplo de dejar el idioma por defecto en la ruta
 @router.get("/es")
