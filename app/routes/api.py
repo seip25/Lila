@@ -1,13 +1,24 @@
-from core.request import Request  # English: Handles HTTP requests in the application. | Español: Maneja solicitudes HTTP en la aplicación.
-from core.responses import  JSONResponse # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
-from core.routing import Router # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
-from pydantic import  EmailStr,BaseModel  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
+from core.request import (
+    Request,
+)  # English: Handles HTTP requests in the application. | Español: Maneja solicitudes HTTP en la aplicación.
+from core.responses import (
+    JSONResponse,
+)  # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
+from core.routing import (
+    Router,
+)  # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
+from pydantic import (
+    EmailStr,
+    BaseModel,
+    Field,
+)  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 from app.helpers.helpers import get_user_by_token
 from app.middlewares.middlewares import validate_token, check_token, check_session
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
 router = Router(prefix="v1/api")
+
 
 # English: Define a simple API route that supports GET method.
 # Español: Define una ruta de API simple que soporta el método GET.
@@ -68,18 +79,19 @@ from pydantic import BaseModel, EmailStr
 
 class UserModel(BaseModel):
     email: EmailStr
-    name: str
-    token: str
-    password: str
+    name: str = Field(..., min_length=5, max_length=255) 
+    password: str = Field(..., min_length=5, max_length=255)
 
 
 # Example execute middlewares for rest crud generate
 middlewares_user = {
     "get": [],
-    "post": [],  
+    "post": [],
     "get_id": [],
     "put": [],
-    "delete": [check_session],# Example of passing middlewares to the function  'rest_crud_generate'
+    "delete": [
+        check_session
+    ],  # Example of passing middlewares to the function  'rest_crud_generate'
 }
 # Rest crud generate ,base models SQl and models pydantic
 router.rest_crud_generate(

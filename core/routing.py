@@ -4,7 +4,7 @@ from core.responses import HTMLResponse, JSONResponse
 from core.request import Request
 from app.config import TITLE_PROJECT, VERSION_PROJECT, DESCRIPTION_PROJECT
 from typing import Any, Type, Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel,ValidationError
 from argon2 import PasswordHasher
 from app.helpers.helpers import generate_token_value, get_user_by_token
 from core.logger import Logger
@@ -331,25 +331,40 @@ class Router:
             try:
                 body = await self.json()
                 model = model_pydantic(**body)
+            except ValidationError as e:
+                errors = []
+                msg_errors= ""
+                for err in e.errors():
+                    field = err['loc'][0]
+                    msg = err['msg']
+                    errors.append({field: msg})
+                    msg_errors += f"""{err['loc'][0]} : {msg} .  """
+
+                return JSONResponse(
+                {"success": False, "errors": errors,"msg": msg_errors},
+                status_code=400
+                )
             except Exception as e:
-                print(str(e))
                 Logger.warning(f"Error rest_crud_generate - POST: {str(e)}")
-                return JSONResponse({"success": False, "msg": str(e)}, status_code=400)
+                return JSONResponse(
+                {"success": False, "msg": "Error general"},
+                status_code=500
+                )
             columns_ = (
                 " , ".join(columns)
                 if columns
-                else " , ".join((row) for row in list(model_pydantic.__fields__.keys()))
+                else " , ".join((row) for row in list(model_pydantic.model_fields.keys()))
             )
             values = (
                 " , ".join(f":{row}" for row in columns)
                 if columns
                 else " , ".join(
-                    f":{row}" for row in list(model_pydantic.__fields__.keys())
+                    f":{row}" for row in list(model_pydantic.model_fields.keys())
                 )
             )
             params = {
                 field: getattr(model, field)
-                for field in model_pydantic.__fields__.keys()
+                for field in model_pydantic.model_fields.keys()
             }
             if "token" in params:
                 params["token"] = generate_token_value()
@@ -407,9 +422,9 @@ class Router:
             columns = " , ".join(select) if select else "*"
             filters = f"active = 1" if active else ""
             filters += " AND  id =:id" if filters else "  id = :id"
-            if "user_id" in model_pydantic.__fields__.keys():
+            if "user_id" in model_pydantic.model_fields.keys():
                 filters += " AND user_id:user_id"
-            elif "id_user" in model_pydantic.__fields__.keys():
+            elif "id_user" in model_pydantic.model_fields.keys():
                 filters += " AND id_user:id_user"
 
             id = int(self.path_params["id"])
@@ -459,12 +474,12 @@ class Router:
                 "  ".join(f"{row}= :{row}" for row in columns)
                 if columns
                 else " , ".join(
-                    f"{row}=:{row}" for row in list(model_pydantic.__fields__.keys())
+                    f"{row}=:{row}" for row in list(model_pydantic.model_fields.keys())
                 )
             )
             params = {
                 field: getattr(model, field)
-                for field in model_pydantic.__fields__.keys()
+                for field in model_pydantic.model_fields.keys()
             }
 
             id = int(self.path_params["id"])
