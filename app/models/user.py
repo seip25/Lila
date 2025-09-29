@@ -13,7 +13,7 @@ class User(Base):
     name = Column(String(length=50), nullable=False)
     email = Column(String(length=50), unique=True)
     password = Column(String(length=150), nullable=False)
-    token = Column(String(length=150), nullable=False)
+    token = Column(String(length=150), nullable=True)
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 

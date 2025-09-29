@@ -67,7 +67,7 @@ def renderMarkdown(
     file: str,
     css_files: list = [],
     js_files: list = [],
-    picocss: bool = True,
+    picocss: bool = False,
     lang_default: str = None,
     translate_files: list[str] = [],
 ):
@@ -90,6 +90,7 @@ def renderMarkdown(
     context_translate = t("translations", request, lang_default)
     for file_name in translate_files:
         context_translate.update(t(file_name, request, lang_default))
+        print(context_translate)
 
     for key, val in context_translate.items():
         md_content = md_content.replace(f'{{{{ translate["{key}"] }}}}', val)

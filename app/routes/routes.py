@@ -78,7 +78,7 @@ async def set_language(request: Request):
 
 @router.get("/changelogs")
 async def changelogs(request: Request):
-    response =renderMarkdown(request=request, file="changelogs")
+    response =renderMarkdown(request=request, file="changelogs",picocss=False,translate_files=["changelogs"])
     return response
 
 # English: Get all the defined routes

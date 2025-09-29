@@ -13,11 +13,11 @@ from pydantic import (
     Field,
 )  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 from app.helpers.helpers import get_user_by_token
-from app.middlewares.middlewares import validate_token, check_token, check_session
+from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
-router = Router(prefix="v1/api")
+router = Router(prefix="api/v1")
 
 
 # English: Define a simple API route that supports GET method.
@@ -79,8 +79,8 @@ from pydantic import BaseModel, EmailStr
 
 class UserModel(BaseModel):
     email: EmailStr
-    name: str = Field(..., min_length=5, max_length=255) 
-    password: str = Field(..., min_length=5, max_length=255)
+    name: str = Field(..., min_length=3, max_length=255) 
+    password: str = Field(..., min_length=3, max_length=255)
 
 
 # Example execute middlewares for rest crud generate
@@ -90,8 +90,9 @@ middlewares_user = {
     "get_id": [],
     "put": [],
     "delete": [
-        check_session
+        #check_session
     ],  # Example of passing middlewares to the function  'rest_crud_generate'
+    "html": [],
 }
 # Rest crud generate ,base models SQl and models pydantic
 router.rest_crud_generate(
@@ -99,7 +100,7 @@ router.rest_crud_generate(
     connection=connection,
     model_sql=User,
     model_pydantic=UserModel,
-    select=["name", "email", "id", "created_at", "active"],
+    select=["id","name", "email"], 
     delete_logic=True,
     active=True,
     middlewares=middlewares_user,

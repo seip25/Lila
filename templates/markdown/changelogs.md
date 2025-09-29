@@ -1,20 +1,23 @@
-## Changes 
-### create panel admin (previously create admin) , to create the first admin user and automatic 
-### configuration of the administrator panel create_admin to create admins .
+# {{ translate["changelogs"] }}
 
+## 0.7.2
 
+### {{ translate["create_panel_admin"] }}
+- {{ translate["create_panel_admin_desc"] }}
 
-# Cambios
+### {{ translate["create_admin"] }}
+- {{ translate["create_admin_desc"] }}
 
-### create_panel_admin (antes create_admin) , para crear primer usuario admin y configuracion automatica de panel de administrador
+### {{ translate["pydantic_v2"] }}
+- {{ translate["pydantic_v2_desc"] }}
 
-### create_admin para crear admins .
+### {{ translate["starlette_latest"] }}
+- {{ translate["starlette_latest_desc"] }}
 
+### {{ translate["psycopg2_latest"] }}
+- {{ translate["psycopg2_latest_desc"] }}
 
-### Soporte pydantic V2
-
-
-### Soporte ultima versión de starlette
-
-
-### Soporte ultima versión de psycopg2 para postgreSql
+### {{ translate["rest_crud_generate_html"] }}
+-  {{ translate["rest_crud_generate_html_desc"] }}
+- `generate_html: bool = True`  
+- `rewrite_template: bool = False`  

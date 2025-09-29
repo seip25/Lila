@@ -56,7 +56,6 @@ function lang(l = "es") {
 }
 
 
-
 class ResponsiveDataTable {
   constructor(containerId, options = {}) {
     this.container = document.getElementById(containerId);
@@ -98,22 +97,19 @@ class ResponsiveDataTable {
 
   renderContainer() {
     this.container.innerHTML = `
-      <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        ${this.options.search ? `
-          <div class="mb-4   "> 
-            <input type="search" class="datatable-search-input w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" 
-                    placeholder='${lang() ? 'Buscar' : 'Search'}'
-                     aria-label="Search" />
-          </div>` : ''}
+      <section>
+        ${this.options.search ? `
+        <header>
+          <input type="search" class="datatable-search-input" placeholder="${lang() ? 'Buscar' : 'Search'}" aria-label="Search" />
+        </header>` : ''}
 
-        <div class="overflow-x-auto">
-          <table class="table-auto w-full text-left datatable-table hidden"></table>
-          <div class="datatable-mobile"></div>
-        </div>
+        <div>
+          <table class="datatable-table hidden"></table>
+          <div class="datatable-mobile"></div>
+        </div>
 
-        ${this.options.pagination ? `
-          <nav class="datatable-pagination mt-4 flex justify-center space-x-2" aria-label="Pagination"></nav>` : ''}
-      </div>`;
+        ${this.options.pagination ? `<nav class="datatable-pagination mt flex gap-2" aria-label="Pagination"></nav>` : ''}
+      </section>`;
   }
 
   renderTable() {
@@ -134,16 +130,15 @@ class ResponsiveDataTable {
   renderDesktopTable() {
     const table = this.container.querySelector('.datatable-table');
     table.innerHTML = `
-      <thead class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-        <tr class="datatable-header"></tr>
-      </thead>
-      <tbody class="datatable-body divide-y divide-gray-200 dark:divide-gray-700"></tbody>`;
+      <thead>
+        <tr class="datatable-header"></tr>
+      </thead>
+      <tbody class="datatable-body"></tbody>`;
 
     const headerRow = table.querySelector('thead tr');
     this.options.columns.forEach(column => {
       const th = document.createElement('th');
       th.scope = 'col';
-      th.className = 'px-6 py-3 text-sm font-semibold tracking-wider';
       th.textContent = this.options.headerTitles[column.key] || column.title || column.key;
       headerRow.appendChild(th);
     });
@@ -151,7 +146,6 @@ class ResponsiveDataTable {
     if (this.options.edit || this.options.delete) {
       const th = document.createElement('th');
       th.scope = 'col';
-      th.className = 'px-6 py-3 text-sm font-semibold tracking-wider';
       th.textContent = lang() ? 'Acciones' : 'Actions';
       headerRow.appendChild(th);
     }
@@ -163,52 +157,34 @@ class ResponsiveDataTable {
     const tbody = table.querySelector('tbody');
     paginatedData.forEach(item => {
       const row = document.createElement('tr');
-      row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
 
       this.options.columns.forEach(column => {
         const td = document.createElement('td');
-        td.className = 'px-6 py-4 whitespace-nowrap text-sm';
         const value = item[column.key];
-
         if (value && typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
           td.innerHTML = value;
         } else {
           td.textContent = value || '-';
         }
-
         row.appendChild(td);
       });
 
       if (this.options.edit || this.options.delete) {
         const td = document.createElement('td');
-        td.className = 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium';
         const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'flex space-x-2 justify-end';
+        actionsDiv.className = 'mt flex justify-between gap-4';
 
         if (this.options.edit) {
-          const txt_edit = lang() ? 'Editar' : 'Edit';
           const btn = document.createElement('button');
-          btn.className = 'text-indigo-600 hover:text-indigo-900 flex items-center group';
-          btn.innerHTML = `
-<svg class="h-5 w-5 mr-1 text-indigo-500 group-hover:text-indigo-700 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
- <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-</svg>
-<span>${txt_edit}</span>
- `;
+          btn.className = 'outline';
+          btn.textContent = lang() ? 'Editar' : 'Edit';
           btn.onclick = (e) => this.handleAction('edit', e, item);
           actionsDiv.appendChild(btn);
         }
 
         if (this.options.delete) {
-          const txt_delete = lang() ? 'Eliminar' : 'Delete';
           const btn = document.createElement('button');
-          btn.className = 'text-red-600 hover:text-red-900 flex items-center group';
-          btn.innerHTML = `
-<svg class="h-5 w-5 mr-1 text-red-500 group-hover:text-red-700 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-</svg>
-<span>${txt_delete}</span>
-`;
+          btn.textContent = lang() ? 'Eliminar' : 'Delete';
           btn.onclick = (e) => this.handleAction('delete', e, item);
           actionsDiv.appendChild(btn);
         }
@@ -230,78 +206,47 @@ class ResponsiveDataTable {
     const paginatedData = this.filteredData.slice(startIndex, endIndex);
 
     paginatedData.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-4';
+      const card = document.createElement('article');
 
-      const summary = document.createElement('div');
-      summary.className = 'font-bold text-lg mb-2 text-blue-600 dark:text-blue-400';
-
+      const summary = document.createElement('h3');
       this.options.summaryFields.forEach(fieldKey => {
         const value = item[fieldKey];
-        if (value && typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
-          summary.innerHTML += `${value}<br>`;
-        } else {
-          summary.innerHTML += `${value || '-'}<br>`;
-        }
+        summary.innerHTML += `${value || '-'}<br>`;
       });
-
       card.appendChild(summary);
 
-      const details = document.createElement('div');
-      details.className = 'divide-y divide-gray-200 dark:divide-gray-700';
+      const details = document.createElement('dl');
       this.options.columns.forEach(column => {
         if (this.options.summaryFields.includes(column.key)) return;
 
-        const row = document.createElement('div');
-        row.className = 'py-2 grid grid-cols-2 gap-4';
+        const dt = document.createElement('dt');
+        dt.textContent = this.options.headerTitles[column.key] || column.title || column.key;
 
-        const label = document.createElement('span');
-        label.className = 'text-gray-500 font-medium dark:text-gray-400';
-        label.textContent = `${this.options.headerTitles[column.key] || column.title || column.key}:`;
-
-        const value = document.createElement('span');
+        const dd = document.createElement('dd');
         const cellValue = item[column.key];
-        if (cellValue && typeof cellValue === 'string' && /<[a-z][\s\S]*>/i.test(cellValue)) {
-          value.innerHTML = cellValue;
-        } else {
-          value.textContent = cellValue || '-';
-        }
+        dd.textContent = cellValue || '-';
 
-        row.appendChild(label);
-        row.appendChild(value);
-        details.appendChild(row);
+        details.appendChild(dt);
+        details.appendChild(dd);
       });
 
       card.appendChild(details);
 
       if (this.options.edit || this.options.delete) {
         const actions = document.createElement('div');
-        actions.className = 'mt-4 flex space-x-2';
+        actions.className = 'mt flex justify-between gap-4';
 
         if (this.options.edit) {
-          const txt_edit = lang() ? 'Editar' : 'Edit';
           const btn = document.createElement('button');
-          btn.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md flex items-center space-x-1';
-          btn.innerHTML = `
- <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
- <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
- </svg>
-<span>${txt_edit}</span>
-`;
+          btn.className = 'outline';
+          btn.textContent = lang() ? 'Editar' : 'Edit';
           btn.onclick = (e) => this.handleAction('edit', e, item);
           actions.appendChild(btn);
         }
 
         if (this.options.delete) {
-          const txt_delete = lang() ? 'Eliminar' : 'Delete';
           const btn = document.createElement('button');
-          btn.className = 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md flex items-center space-x-1';
-          btn.innerHTML = `
- <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
- </svg>
- <span>${txt_delete}</span>
- `;
+          btn.textContent = lang() ? 'Eliminar' : 'Delete';
           btn.onclick = (e) => this.handleAction('delete', e, item);
           actions.appendChild(btn);
         }
@@ -322,10 +267,9 @@ class ResponsiveDataTable {
     if (pageCount <= 1) return;
 
     const prevButton = document.createElement('button');
-    prevButton.className = `px-4 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700
-                            hover:bg-gray-100 transition-colors ${this.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
+    prevButton.textContent = '«';
+    prevButton.className = 'fill';
     prevButton.disabled = this.currentPage === 1;
-    prevButton.innerHTML = '&laquo;';
     prevButton.onclick = () => this.changePage(this.currentPage - 1);
     pagination.appendChild(prevButton);
 
@@ -339,7 +283,6 @@ class ResponsiveDataTable {
 
     if (start > 1) {
       const firstButton = document.createElement('button');
-      firstButton.className = 'px-4 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
       firstButton.textContent = '1';
       firstButton.onclick = () => this.changePage(1);
       pagination.appendChild(firstButton);
@@ -349,9 +292,7 @@ class ResponsiveDataTable {
 
     for (let i = start; i <= end; i++) {
       const button = document.createElement('button');
-      button.className = i === this.currentPage
-        ? 'px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white'
-        : 'px-4 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
+      button.className = i === this.currentPage ? '' : 'fill';
       button.textContent = i;
       button.onclick = () => this.changePage(i);
       pagination.appendChild(button);
@@ -361,24 +302,21 @@ class ResponsiveDataTable {
       if (end < pageCount - 1) pagination.appendChild(this.createEllipsis());
 
       const lastButton = document.createElement('button');
-      lastButton.className = 'px-4 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
       lastButton.textContent = pageCount;
       lastButton.onclick = () => this.changePage(pageCount);
       pagination.appendChild(lastButton);
     }
 
     const nextButton = document.createElement('button');
-    nextButton.className = `px-4 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700
-                            hover:bg-gray-100 transition-colors ${this.currentPage === pageCount ? 'opacity-50 cursor-not-allowed' : ''}`;
+    nextButton.className = 'fill';
+    nextButton.textContent = '»';
     nextButton.disabled = this.currentPage === pageCount;
-    nextButton.innerHTML = '&raquo;';
     nextButton.onclick = () => this.changePage(this.currentPage + 1);
     pagination.appendChild(nextButton);
   }
 
   createEllipsis() {
     const span = document.createElement('span');
-    span.className = 'px-4 py-2 text-gray-500';
     span.textContent = '...';
     return span;
   }
@@ -390,11 +328,6 @@ class ResponsiveDataTable {
 
   handleAction(type, event, item) {
     if (!this.options[type]) return;
-    if (typeof this.options[type] === 'string' && !window[this.options[type]]) {
-      console.error(`Callback function "${this.options[type]}" not found.`);
-      return;
-    }
-
     const callback = typeof this.options[type] === 'function'
       ? this.options[type]
       : window[this.options[type]];
@@ -407,12 +340,11 @@ class ResponsiveDataTable {
 
     searchInput.addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase().trim();
-      this.filteredData = this.options.data.filter(item => {
-        return this.options.columns.some(column => {
-          const value = item[column.key];
-          return String(value).toLowerCase().includes(term);
-        });
-      });
+      this.filteredData = this.options.data.filter(item =>
+        this.options.columns.some(column =>
+          String(item[column.key] || '').toLowerCase().includes(term)
+        )
+      );
       this.currentPage = 1;
       this.updateTable();
     });
@@ -436,8 +368,8 @@ class ResponsiveDataTable {
   }
 }
 
+
 window.ResponsiveDataTable = ResponsiveDataTable;
 window.Http = Http;
 window.getUrlParameter = getUrlParameter;
-window.theme = theme;
-window.capitalize = capitalize;
+window.theme = theme; 

@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="light dark">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ title }}</title>
+     <link rel="stylesheet" href="/public/css/lila.css">
     {% if picocss %}
     <link rel="stylesheet" href="/public/css/pico.css">
     {% endif %}
@@ -17,7 +18,7 @@
     {% endfor %}
 </head>
 <body>
-    <main class="container">
+    <main class="container mt-4">
         {{ content | safe }}
     </main>
       <footer class="container  flex justify-center ">

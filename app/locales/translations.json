@@ -202,5 +202,53 @@
   "example_code": {
     "es": "Ejemplo de código",
     "en": "Example Code"
+  },
+  "star_on_github": {
+    "es": "Dale una ⭐ en GitHub",
+    "en": "Give it a ⭐ on GitHub"
+  },
+  "like_lila": {
+    "es": "¿Te gusta Lila Framework?",
+    "en": "Do you like Lila Framework?"
+  },
+  "Refresh": {
+    "es": "Refrescar",
+    "en": "Refresh"
+  },
+  "Save": {
+    "es": "Guardar",
+    "en": "Save"
+  },
+  "Create": {
+    "es": "Crear",
+    "en": "Create"
+  },
+  "Edit": {
+    "es": "Editar",
+    "en": "Edit"
+  },
+  "Delete": {
+    "es": "Eliminar",
+    "en": "Delete"
+  },
+  "Are you sure you want to delete this item?": {
+    "es": "¿Estás seguro de que deseas eliminar este elemento?",
+    "en": "Are you sure you want to delete this item?"
+  },
+  "Error occurred": {
+    "es": "Ocurrió un error",
+    "en": "Error occurred"
+  },
+  "Operation failed": {
+    "es": "La operación falló",
+    "en": "Operation failed"
+  },
+  "Operation successful": {
+    "es": "Operación exitosa",
+    "en": "Operation successful"
+  },
+  "changelogs":{
+    "es": "Puedes ver aqui las novedades y cambios , que hemos realizado en Lila Framework",
+    "en": "Changelogs and new features , that we have done in Lila Framework"
   }
 }
