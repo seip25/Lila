@@ -27,9 +27,9 @@ class Database:
             port = self.config.get("port", 3306)
             database = self.config.get("database", "db")
             db_type = "postgresql" if self.type in ["postgresql", "psgr"] else self.type
-            connector = "mysqlconnector" if self.type == "mysql" else "psycopg2"
+            connector = "mysqlconnector" if self.type == "mysql" else "psycopg"
             isolation_level = self.config.get("isolation_level", None)
-
+ 
             temp_engine = create_engine(
                 f"{db_type}+{connector}://{user}:{password}@{host}:{port}/postgres"
                 if db_type == "postgresql"
