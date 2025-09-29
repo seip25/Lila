@@ -58,7 +58,9 @@ def render(
             status_code=500,
         )
 
+
 markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
+
 
 def renderMarkdown(
     request: Request,
@@ -71,7 +73,16 @@ def renderMarkdown(
 ):
     file_path = os.path.join(PATH_TEMPLATES_MARKDOWN, f"{file}.md")
     if not os.path.exists(file_path):
-        return HTMLResponse("<h5>404</h5><p>Not found</p>", status_code=404)
+        not_found_path = os.path.join(PATH_TEMPLATES_HTML, "404.html")
+        if os.path.exists(not_found_path):
+            return templates.TemplateResponse(
+                request=request,
+                name="404.html",
+                context={"request": request},
+                status_code=404,
+            )
+        else:
+            return HTMLResponse("<h5>404</h5><p>Not found</p>", status_code=404)
 
     with open(file_path, "r", encoding="utf-8") as f:
         md_content = f.read()
@@ -81,7 +92,7 @@ def renderMarkdown(
         context_translate.update(t(file_name, request, lang_default))
 
     for key, val in context_translate.items():
-        md_content = md_content.replace(f"{{{{ translate[\"{key}\"] }}}}", val)
+        md_content = md_content.replace(f'{{{{ translate["{key}"] }}}}', val)
 
     html_content = markdown.markdown(md_content)
 
