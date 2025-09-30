@@ -2848,7 +2848,7 @@ def rest_crud_generate(
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code>:
                             </p>
                             <p>Ve a <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://127.0.0.1:8001/docs</code>,
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://127.0.0.1:8000/docs</code>,
                                 o como esté configurado en tu archivo .env (por HOST y PORT).</p>
                             <div>
                                 <h5 class="text-2xl font-semibold">GET - Obtener todos los usuarios</h5>
@@ -2935,10 +2935,31 @@ def rest_crud_generate(
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">user_id</code>
                                 o <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">id_user</code>,
-                                un ejemplo sería GET, PUT o DELETE como método a la url http://127.0.0.1:8001/api/products/1?user_id=20
+                                un ejemplo sería GET, PUT o DELETE como método a la url http://127.0.0.1:8000/api/products/1?user_id=20
                             </p>
                             <p>Donde valida que el ID del producto '1' existe pero también que pertenece al ID de usuario '20'.
                             </p>
+
+                            <h2 class="text-2xl mt-4 font-bold">Nuevos Parámetros para Generación de CRUD en HTML</h2>
+<p>
+    Además de generar el CRUD de la API REST, <code class="font-mono">rest_crud_generate</code> ahora acepta tres nuevos parámetros para crear un CRUD en HTML completamente funcional:
+</p>
+<ul>
+    <li><strong>generate_html: bool = True</strong> – Genera automáticamente un CRUD en HTML usando un datatable responsive de Lila. Útil para generar la interfaz solo en desarrollo.</li>
+    <li><strong>rewrite_template: bool = False</strong> – Si es True, sobrescribe templates existentes.</li>
+    <li><strong>url_html: str = None</strong> – Opcional. Permite especificar la URL de salida del HTML. Si no se provee, el HTML puede copiarse y usarse en cualquier ruta.</li>
+</ul>
+
+<p>
+    Esta funcionalidad permite generar CRUDs con <strong>create, update, delete, paginación, validaciones</strong> y utiliza el mismo REST CRUD API como backend. 
+    Es ideal para crear rápidamente múltiples CRUDs en HTML y backend para tu aplicación: con aproximadamente 30 líneas de código, ya tienes un CRUD en HTML funcional listo para pequeños ajustes o incluso listo para usar tal cual.
+</p>
+
+<p>
+    Puedes pasar <code class="font-mono">DEBUG</code> desde <code class="font-mono">from app.config import DEBUG</code> a <code class="font-mono">generate_html</code> para que solo se genere en desarrollo. 
+    Si pasas <code class="font-mono">generate_html=False</code>, el HTML no se generará automáticamente y puedes usarlo como desees.
+</p>
+
 
                         </article>
                         <hr />
