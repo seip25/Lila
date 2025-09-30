@@ -3375,6 +3375,36 @@ async def admin_route(request: Request):
                             <p class="container">
                                 <img src="img/admin_2.png" alt="admin" />
                             </p>
+                            <h2 class="  text-2xl font-semibold mt-4">Creating Administrator Users (Simple Command)</h2>
+<p>
+    In addition to the full panel creation command, you can now create individual administrators without affecting routes, middlewares, or existing configurations. 
+    This command is useful for quickly adding new admin users.
+</p>
+<div class="code-editor mt-4 mb-4">
+    <div class="editor-header">
+        <span class="editor-title">Terminal</span>
+        <div class="editor-controls">
+            <div class="control close"></div>
+            <div class="control minimize"></div>
+            <div class="control maximize"></div>
+        </div>
+    </div>
+    <div class="editor-content">
+        <pre>
+<code class="language-bash">
+# Create an administrator with specific username and password
+python -m cli.create_admin --username myadmin --password mysecretpassword
+
+# Create an administrator with a custom username and auto-generated password
+python -m cli.create_admin --username myadmin
+</code>
+        </pre>
+    </div>
+</div>
+<p>
+    <strong>Note:</strong> This command only adds the admin user to the database. It does not generate routes, middlewares, or templates, so it can be used even if the panel is already active or customized.
+</p>
+
                         </article>
                         <hr />
 
@@ -3383,7 +3413,7 @@ async def admin_route(request: Request):
                             <p>
                                 With the <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-minify</code>
-                                command you can minify your js, css and html files,
+                                command you can minify your js, css  files,
                                 which are in the <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public</code>
                                 and <code
@@ -3409,6 +3439,8 @@ python -m cli.minify
 </code></pre>
                                 </div>
                             </div>
+                            
+
                         </article>
                         <hr />
 

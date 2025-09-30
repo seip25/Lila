@@ -3142,6 +3142,38 @@ async def admin_route(request: Request):
                             <p class="container">
                                 <img src="../img/admin_2.png" alt="admin" />
                             </p>
+
+                            <h1 class="  text-2xl font-semibold mt-4">Creación de Usuarios Administradores (Comando Simple)</h1>
+<p>
+    Además del comando para crear el panel completo, ahora puedes crear administradores individuales sin afectar las rutas, middlewares o configuraciones existentes. 
+    Este comando es útil para añadir nuevos usuarios administradores de manera rápida.
+</p>
+<div class="code-editor mt-4 mb-4">
+    <div class="editor-header">
+        <span class="editor-title">Terminal</span>
+        <div class="editor-controls">
+            <div class="control close"></div>
+            <div class="control minimize"></div>
+            <div class="control maximize"></div>
+        </div>
+    </div>
+    <div class="editor-content">
+        <pre>
+<code class="language-bash">
+# Crear un administrador con nombre de usuario y contraseña específicos
+python -m cli.create_admin --username miadmin --password misecretopassword
+
+# Crear un administrador con usuario personalizado y contraseña generada automáticamente
+python -m cli.create_admin --username miadmin
+</code>
+        </pre>
+    </div>
+</div>
+<p>
+    <strong>Nota:</strong> Este comando solo agrega el usuario administrador en la base de datos. No genera rutas, middlewares ni plantillas, por lo que se puede usar incluso si el panel ya está activo o personalizado.
+</p>
+
+
                         </article>
                         <hr />
 
@@ -3150,7 +3182,7 @@ async def admin_route(request: Request):
                             <p>
                                 Con el comando <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-minify</code>
-                                puedes minificar tus archivos js, css y html, que se encuentran en las carpetas <code
+                                puedes minificar tus archivos js, css , que se encuentran en las carpetas <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public</code>
                                 y <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates</code>.
