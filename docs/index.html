@@ -1,271 +1,546 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Python Web Framework</title>
+    <meta
+      name="google-site-verification"
+      content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0"
+    />
+    <meta
+      name="description"
+      content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance."
+    />
+    <meta
+      name="keywords"
+      content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT"
+    />
+    <meta name="author" content="Lila Framework Team" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <link rel="canonical" href="https://seip25.github.io/Lila/" />
-  <title>Lila Framework - Python Web Framework</title>
-  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
-  <meta name="description"
-    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
-  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
-  <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta
+      property="og:description"
+      content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance."
+    />
+    <meta
+      property="og:image"
+      content="https://seip25.github.io/Lila/img/lila.png"
+    />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
 
-  <meta property="og:title" content="Lila Framework - Python Web Framework" />
-  <meta property="og:description"
-    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
-  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
-  <meta property="og:url" content="https://seip25.github.io/Lila/" />
-  <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Lila Framework - Python Web Framework"
+    />
+    <meta
+      name="twitter:description"
+      content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance."
+    />
+    <meta
+      name="twitter:image"
+      content="https://seip25.github.io/Lila/img/lila.png"
+    />
 
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
-  <meta name="twitter:description"
-    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
-  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
 
-  <meta name="language" content="en" />
-  <meta http-equiv="Content-Language" content="en" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="img/lila.png"
+      alt="Lila Framework Logo"
+    />
 
-  <link rel="icon" type="image/png" href="img/lila.png" alt="Lila Framework Logo" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              lila: "#A78BFA",
+            },
+          },
+        },
+      };
+    </script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class', 
-      theme: {
-        extend: {
-          colors: {
-            lila: '#A78BFA',
-          }
-        }
-      }
-    }
-  </script>
+    <link rel="stylesheet" href="css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="css/index.css" />
 
-  <link rel="stylesheet" href="css/atom-one-dark.min.css" />
-  <link rel="stylesheet" href="css/index.css" />
+    <script src="js/highlight.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", (event) => {
+        hljs.highlightAll();
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/anime.js"></script>
+  </head>
 
-  <script src="js/highlight.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-      hljs.highlightAll();
-    });
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
-  <script src="js/index.js"></script>
-  <script src="js/anime.js"></script>
-</head>
+  <body
+    class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased"
+  >
+    <header class="py-4 border-b dark:border-gray-800">
+      <nav class="container mx-auto px-4 flex justify-between items-center">
+        <div class="text-2xl font-bold"></div>
+        <div class="flex items-center space-x-6">
+          <button
+            id="theme-toggle-button"
+            type="button"
+            class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600"
+          >
+            <svg
+              id="theme-toggle-sun-icon"
+              class="h-6 w-6 hidden"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 12.122l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z"
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            <svg
+              id="theme-toggle-moon-icon"
+              class="h-6 w-6"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+              ></path>
+            </svg>
+          </button>
+          <ul class="flex items-center space-x-6">
+            <li>
+              <a
+                href="documentation.html"
+                class="hover:text-lila transition-colors duration-200"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                href="esp/"
+                class="hover:text-lila transition-colors duration-200"
+                >Español</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/seip25/Lila"
+                class="hover:text-lila transition-colors duration-200"
+                >Github</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
 
-<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased">
-  <header class="py-4 border-b dark:border-gray-800">
-    <nav class="container mx-auto px-4 flex justify-between items-center">
-     <div class="text-2xl font-bold">
-        
-     </div>
-          <div class="flex items-center space-x-6">
-   <button id="theme-toggle-button" type="button" class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600">
-          <svg id="theme-toggle-sun-icon" class="h-6 w-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 12.122l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-          <svg id="theme-toggle-moon-icon" class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-        </button>
-      <ul class="flex items-center space-x-6">
-        <li><a href="documentation.html" class="hover:text-lila transition-colors duration-200">Documentation</a></li>
-        <li><a href="esp/" class="hover:text-lila transition-colors duration-200">Español</a></li>
-        <li><a href="https://github.com/seip25/Lila" class="hover:text-lila transition-colors duration-200">Github</a></li>
-      </ul>
-    </div>
-    </nav>
-  </header>
-
-  <main class="container mx-auto px-4 py-12">
-    <div class="max-w-3xl mx-auto text-center">
-      <div class="flex flex-col items-center gap-4">
-        <div class="flex flex-col items-center justify-center gap-6  ">
-           
+    <main class="container mx-auto px-4 py-12">
+      <div class="max-w-3xl mx-auto text-center">
+        <div class="flex flex-col items-center gap-4">
+          <div class="flex flex-col items-center justify-center gap-6">
             <h1 class="text-5xl font-bold text-lila">Lila Framework</h1>
             <h2 class="text-xl text-gray-500 dark:text-gray-400 mt-2">
               A Python web framework for modern web development.
-            </h2> 
-        </div>
-        <div class="flex flex-col sm:flex-row gap-4 mt-8">
-          <a href="documentation.html">
-            <button class="w-full sm:w-auto bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md hover:opacity-90 transition-opacity duration-200">
-               Get Started
-            </button>
-          </a>
-          <a href="https://github.com/seip25/Lila" target="_blank">
-            <button class="w-full sm:w-auto  border border-gray-400 text-gray-600 dark:border-gray-100 dark:text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 flex items-center justify-center gap-2">
-             
-              View on GitHub
-            </button>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <section class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-      <div class="text-lg leading-relaxed">
-        <p>
-          <strong>Lila is a Python web framework</strong> built on
-          <a href="https://www.starlette.io/" class="text-lila hover:underline">Starlette</a> and
-          <a href="https://docs.pydantic.dev/latest/" class="text-lila hover:underline">Pydantic</a>. Designed
-          for developers who value simplicity, flexibility, and performance,
-          it empowers you to build
-          <strong>modern web applications</strong> and
-          <strong>RESTful APIs</strong> efficiently. With its modular
-          architecture, intuitive design, and built-in API tools, Lila is
-          perfect for both beginners and seasoned developers.
-        </p>
-        <p class="mt-4">
-          We currently have 
-          <a href="https://pepy.tech/projects/lila-framework" target="_blank" class="inline-block">
-             <img src="https://static.pepy.tech/badge/lila-framework" alt="PyPI Downloads">
-          </a> 
-          downloads on 
-          <a href="https://pypi.org/project/lila-framework/" target="_blank" class="text-lila hover:underline">PyPI (you can view the project here).</a>
-        </p>
-        <h3 class="mt-6 text-xl font-semibold">We also have automatic integration with React, with SEO for Google Bots or AI.</h3>
-        <p class="mt-2">We show you how easy it is to use migrations, the admin panel, React, and much more in Lila! (Remember, you can use Python 3 or Python)</p>
-      </div>
-
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden">
-        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-          <span class="text-gray-100">Install</span>
-          <div class="flex space-x-2">
-            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </h2>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4 mt-8">
+            <a href="documentation.html">
+              <button
+                class="w-full sm:w-auto bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md hover:opacity-90 transition-opacity duration-200"
+              >
+                Get Started
+              </button>
+            </a>
+            <a href="https://github.com/seip25/Lila" target="_blank">
+              <button
+                class="w-full sm:w-auto border border-gray-400 text-gray-600 dark:border-gray-100 dark:text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                View on GitHub
+              </button>
+            </a>
           </div>
         </div>
-        <div class="p-4 text-white">
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span>python -m venv venv</span></div>
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span>source venv/bin/activate <span class="text-gray-500"># On Windows, `venv\Scripts\activate`</span></span></div>
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span>pip install lila-framework</span></div>
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span>lila-init</span></div>
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span>python -m cli.migrations</span></div>
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span>python -m cli.create_panel_admin</span></div>
-          <div class="flex items-center"><span class="text-green-400 mr-2">$</span><span class="text-gray-400">python -m cli.react  # Optional</span></div>
-          <div class="inline-block w-2 h-4 bg-white animate-pulse" role="presentation"></div>
+      </div>
+
+      <section
+        class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+      >
+        <div class="text-lg leading-relaxed">
+          <p>
+            <strong>Lila is a Python web framework</strong> built on
+            <a
+              href="https://www.starlette.io/"
+              class="text-lila hover:underline"
+              >Starlette</a
+            >
+            and
+            <a
+              href="https://docs.pydantic.dev/latest/"
+              class="text-lila hover:underline"
+              >Pydantic</a
+            >. Designed for developers who value simplicity, flexibility, and
+            performance, it empowers you to build
+            <strong>modern web applications</strong> and
+            <strong>RESTful APIs</strong> efficiently. With its modular
+            architecture, intuitive design, and built-in API tools, Lila is
+            perfect for both beginners and seasoned developers.
+          </p>
+          <p class="mt-4">
+            We currently have
+            <a
+              href="https://pepy.tech/projects/lila-framework"
+              target="_blank"
+              class="inline-block"
+            >
+              <img
+                src="https://static.pepy.tech/badge/lila-framework"
+                alt="PyPI Downloads"
+              />
+            </a>
+            downloads on
+            <a
+              href="https://pypi.org/project/lila-framework/"
+              target="_blank"
+              class="text-lila hover:underline"
+              >PyPI (you can view the project here).</a
+            >
+          </p>
+          <h3 class="mt-6 text-xl font-semibold">
+            We also have automatic integration with React, with SEO for Google
+            Bots or AI.
+          </h3>
+          <p class="mt-2">
+            We show you how easy it is to use migrations, the admin panel,
+            React, and much more in Lila! (Remember, you can use Python 3 or
+            Python)
+          </p>
         </div>
-      </div>
-    </section>
 
-    <section id="features" class="mt-20">
-      <h2 class="text-4xl font-bold text-center mb-12">✨ Key Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🎯 Simplicity</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Intuitive and minimalist design. Lila is built to be easy to use,
-            with a clean and straightforward API that gets you started
-            quickly.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🔧 Flexibility</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Supports multiple databases (MySQL, SQLite, PostgreSQL) and adapts
-            to various environments. Use it for small projects or scale it up
-            for enterprise applications.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">⚡ Speed</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Built on Starlette, Lila delivers high performance for
-            asynchronous applications. Perfect for real-time APIs and
-            high-traffic websites.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🛡️ Robust Validation</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Uses Pydantic to ensure consistent and validated data. Define your
-            data models with confidence and avoid common errors.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">📊 Built-in Admin Panel</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Lila includes a fully customizable admin panel to kickstart your
-            projects. Monitor logs, manage data models, track server metrics,
-            and more—all designed to adapt to your unique needs.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🌍 Multi-language Support</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Integrated support for multilingual applications. Build apps that
-            cater to a global audience with ease.
-          </p>
-        </article>
-         <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🚀 Easy Migrations</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Quick and straightforward database configuration. Migrate your
-            data without hassle.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🔌 REST API CRUD</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Generate REST APIs with just a few lines of code. Includes field
-            validations and middleware support.
-          </p>
-        </article>
-        <article class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1">
-          <h3 class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100">🛡️ Robust Security</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Protect your app with IP blocking, URL filtering, and request
-            sanitization to prevent malicious attacks and suspicious requests.
-          </p>
-        </article>
-      </div>
-    </section>
+        <div
+          class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden"
+        >
+          <div
+            class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"
+          >
+            <span class="text-gray-100">Install</span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class="p-4 text-white">
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span
+              ><span>python -m venv venv</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span
+              ><span
+                >source venv/bin/activate
+                <span class="text-gray-500"
+                  ># On Windows, `venv\Scripts\activate`</span
+                ></span
+              >
+            </div>
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span
+              ><span>pip install lila-framework</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span><span>lila-init</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span
+              ><span>python -m cli.migrations</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span
+              ><span>python -m cli.create_panel_admin</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-green-400 mr-2">$</span
+              ><span class="text-gray-400">python -m cli.react # Optional</span>
+            </div>
+            <div
+              class="inline-block w-2 h-4 bg-white animate-pulse"
+              role="presentation"
+            ></div>
+          </div>
+        </div>
+      </section>
 
-    <section id="customization" class="mt-20 text-center">
-      <h2 class="text-4xl font-bold">🎨 Free Customization</h2>
-      <p class="max-w-3xl mx-auto mt-4 text-lg text-gray-600 dark:text-gray-400">
-        You can use Lila with any styling framework you prefer, such as
-        Tailwind CSS, Bootstrap, or others. Customize it to fit your
-        needs!
-      </p>
-    </section>
-  </main>
+      <section>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">
+          Lila automatically performs key tasks behind the scenes: secure data
+          encoding, HTML minification in every response without consuming memory
+          or CPU, and loading files, configurations, and translations only once.
+          Unlike other frameworks, it doesn’t constantly open and close files;
+          everything is optimized for maximum efficiency, security, speed, and
+          multilingual support. Just like installing React or running
+          <code>create_panel_admin</code>, Lila generates routes and middlewares
+          automatically, significantly reducing configuration effort, while
+          still allowing you to customize any aspect if you wish.
+        </p>
+      </section>
 
-  <footer class="container mx-auto px-4 py-12 mt-16 border-t dark:border-gray-700">
-    <div class="flex justify-center">
+      <section id="features" class="mt-20">
+        <h2 class="text-4xl font-bold text-center mb-12">✨ Key Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🎯 Simplicity
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Intuitive and minimalist design. Lila is built to be easy to use,
+              with a clean and straightforward API that gets you started
+              quickly.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🔧 Flexibility
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Supports multiple databases (MySQL, SQLite, PostgreSQL) and adapts
+              to various environments. Use it for small projects or scale it up
+              for enterprise applications.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              ⚡ Speed
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Built on Starlette, Lila delivers high performance for
+              asynchronous applications. Perfect for real-time APIs and
+              high-traffic websites.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🛡️ Robust Validation
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Uses Pydantic to ensure consistent and validated data. Define your
+              data models with confidence and avoid common errors.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              📊 Built-in Admin Panel
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Lila includes a fully customizable admin panel to kickstart your
+              projects. Monitor logs, manage data models, track server metrics,
+              and more—all designed to adapt to your unique needs.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🌍 Multi-language Support
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Integrated support for multilingual applications. Build apps that
+              cater to a global audience with ease.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🚀 Easy Migrations
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Quick and straightforward database configuration. Migrate your
+              data without hassle.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🔌 REST API CRUD
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Generate REST APIs with just a few lines of code. Includes field
+              validations and middleware support.
+            </p>
+          </article>
+          <article
+            class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:-translate-y-1"
+          >
+            <h3
+              class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+            >
+              🛡️ Robust Security
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Protect your app with IP blocking, URL filtering, and request
+              sanitization to prevent malicious attacks and suspicious requests.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="customization" class="mt-20 text-center">
+        <h2 class="text-4xl font-bold">🎨 Free Customization</h2>
+        <p
+          class="max-w-3xl mx-auto mt-4 text-lg text-gray-600 dark:text-gray-400"
+        >
+          You can use Lila with any styling framework you prefer, such as
+          Tailwind CSS, Bootstrap, or others. Customize it to fit your needs!
+        </p>
+      </section>
+    </main>
+
+    <footer
+      class="container mx-auto px-4 py-12 mt-16 border-t dark:border-gray-700"
+    >
+      <div class="flex justify-center">
         <ul class="text-center space-y-2">
-            <li><a class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline" href="documentation.html">📚 Documentation</a></li>
-            <li><a class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline" href="https://github.com/seip25/Lila" target="_blank">🐙 GitHub (Lila)</a></li>
-            <li><a class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline" href="https://seip25.github.io/Lila/" target="_blank">🌐 Website</a></li>
-            <li><a class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline" href="https://github.com/seip25/" target="_blank">
-                <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-                GitHub Personal</a>
-            </li>
-            <li><a class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline" href="https://www.linkedin.com/in/andres-paiva-silveira-88b65a207/" target="_blank">
-                <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                LinkedIn</a>
-            </li>
+          <li>
+            <a
+              class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline"
+              href="documentation.html"
+              >📚 Documentation</a
+            >
+          </li>
+          <li>
+            <a
+              class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline"
+              href="https://github.com/seip25/Lila"
+              target="_blank"
+              >🐙 GitHub (Lila)</a
+            >
+          </li>
+          <li>
+            <a
+              class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline"
+              href="https://seip25.github.io/Lila/"
+              target="_blank"
+              >🌐 Website</a
+            >
+          </li>
+          <li>
+            <a
+              class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline"
+              href="https://github.com/seip25/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="inline-block w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                ></path>
+              </svg>
+              GitHub Personal</a
+            >
+          </li>
+          <li>
+            <a
+              class="text-gray-600 dark:text-gray-400 hover:text-lila hover:underline"
+              href="https://www.linkedin.com/in/andres-paiva-silveira-88b65a207/"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="inline-block w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                ></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+              LinkedIn</a
+            >
+          </li>
         </ul>
-    </div>
+      </div>
 
-    <div class="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+      <div
+        class="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4"
+      >
         <a href="https://pepy.tech/projects/lila-framework" target="_blank">
-            <img src="https://static.pepy.tech/badge/lila-framework" alt="PyPI Downloads">
+          <img
+            src="https://static.pepy.tech/badge/lila-framework"
+            alt="PyPI Downloads"
+          />
         </a>
-        <a href="https://www.paypal.com/donate/?business=C65NYY5JGJZDS&no_recurring=0&item_name=Si+te+gusta+mi+trabajo%2C+puedes+apoyarme.%0ALas+donaciones+me+ayudan+a+dedicar+m%C3%A1s+tiempo+a+mejorar+este+proyecto&currency_code=USD" target="_blank">
-            <img src="https://img.shields.io/badge/Donar-PayPal-0070ba?style=flat&logo=paypal" alt="Donar">
+        <a
+          href="https://www.paypal.com/donate/?business=C65NYY5JGJZDS&no_recurring=0&item_name=Si+te+gusta+mi+trabajo%2C+puedes+apoyarme.%0ALas+donaciones+me+ayudan+a+dedicar+m%C3%A1s+tiempo+a+mejorar+este+proyecto&currency_code=USD"
+          target="_blank"
+        >
+          <img
+            src="https://img.shields.io/badge/Donar-PayPal-0070ba?style=flat&logo=paypal"
+            alt="Donar"
+          />
         </a>
-    </div>
+      </div>
 
-    <div class="text-center mt-8">
-      <p class="text-gray-500">&copy; 2025 Lila Framework. All rights reserved.</p>
-    </div>
-  </footer>
-</body>
-
+      <div class="text-center mt-8">
+        <p class="text-gray-500">
+          &copy; 2025 Lila Framework. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  </body>
 </html>
