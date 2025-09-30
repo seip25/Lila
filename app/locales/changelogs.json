@@ -50,5 +50,21 @@
   "rest_crud_generate_html_desc": {
     "es": "Genera un CRUD HTML con alta, baja, modificación y datatable responsive, con soporte multilenguaje",
     "en": "Generates an HTML CRUD with create, delete, edit and responsive datatable, with multilingual support"
+  },
+  "Minify_CLI": {
+    "es": "CLI para minificar",
+    "en": "CLI for minifying"
+  },
+  "We've improved the CLI for minifying": {
+    "es": "Hemos mejorado el cli para minify , con python -m cli.minify ahora minifca archivos .js y .css de una forma mejor..",
+    "en": "We've improved the CLI for minifying. Python -m cli.minify now minifies .js and .css files more efficiently.HTML is automatically compressed between requests with starlette-compress, thanks to the middleware in main.py.HTML is now compressed with Jinja2 for better SEO and, above all, faster browser speed."
+  },
+  "Compress HTML":{
+    "es": "Compresión de HTML",
+    "en": "Compress HTML"
+  },
+  "now always compress response html  and always and minifyin":{
+    "es":"Ahora se comprime siempre la respuesta(html) siempre y minificando el archivo .html.",
+    "en":"now always compress response html  and always and minifying."
   }
 }

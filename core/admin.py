@@ -195,32 +195,27 @@ def menu(models: list = []) -> str:
     for model in models:
         model_name = model.__name__.lower()
         model_plural = f"{model_name}s"
-        # m += f"<li><a href='/admin/{model_plural}' class='secondary mt-2'>{model_name.capitalize()}</a></li>"
-        m += f"<li><a href='/admin/{model_plural}' class='block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors'>{model_name.capitalize()}</a></li>"
+ 
+        m += f" <a href='/admin/{model_plural}' class='dropdown-item'>{model_name.capitalize()}</a>"
 
     return f"""
-    <header class="bg-white dark:bg-gray-800 shadow-md p-4">
-        <nav class="container mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="/admin/" class="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Admin Dashboard</a>
-            </div>
+    <header class="  shadow  ">
+        <nav class="container ">
+             <a href="/admin/"  >
+             <h3>
+             Admin Dashboard
+                </h3>
+             </a>
             
-            <div class="relative">
-                <details class="group">
-                    <summary class="flex items-center space-x-2 px-4 py-2 rounded-md cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                        <span>Menu</span>
-                        <svg class="w-4 h-4 transform group-open:rotate-180 transition-transform" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </summary>
-                    <ul class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10 p-2 space-y-1">
-                        {m}
-                        <li>
-                            <a href="/admin/logout" class="block px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">Logout</a>
-                        </li>
-                    </ul>
-                </details>
-            </div>
+             <div class="flex gap-4">
+                   <div class="dropdown">
+                        <button class="dropdown-toggle fill">Menu</button>
+                      <div class="dropdown-content bottom-right">
+                          {m}
+                            <a href="/admin/logout" class="dropdown-item">Logout</a>
+                       </div>
+                </div> 
+             </div>
         </nav>
     </header>
     """

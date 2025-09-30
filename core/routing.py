@@ -306,6 +306,7 @@ class Router:
         base_path: str = None,
         generate_html: bool = True,
         rewrite_tempalte : bool = False,
+        url_html : str = None,
     ) -> None:
         name = base_path or f"/{model_sql.__tablename__}"
         crud_routes = []
@@ -445,13 +446,12 @@ class Router:
                 columns_ += ", active"
                 values += ", :active"
 
-            query = (
-                f" INSERT INTO {model_sql.__tablename__} ({columns_}) VALUES ({values})"
-            )
+           
             try:
-                result = connection.query(query=query, params=params)
-                id = result.lastrowid if result else 0
-                result = True if result else False
+                instance=model_sql(**params)
+                session = connection.get_session()
+                id =connection.query_orm(model=model_sql, operation="insert", instance=instance, session=session)
+                result = True if id else False
                 status_code = 201 if result else 200
                 return JSONResponse(
                     {"success": result, "id": id}, status_code=status_code
@@ -460,7 +460,7 @@ class Router:
                 print(e)
                 Logger.error(f"Error rest_crud_generate , POST: {str(e)}")
                 return JSONResponse({"success": False}, status_code=500)
-
+            
         def search_id(self) -> bool | dict:
             columns = " , ".join(select) if select else "*"
             filters = f"active = 1" if active else ""
@@ -509,9 +509,19 @@ class Router:
             try:
                 body = await self.json()
                 model = model_pydantic(**body)
-            except Exception as e:
-                print(str(e))
-                return JSONResponse({"success": False, "msg": str(e)}, status_code=400)
+            except ValidationError as e:
+                errors = []
+                msg_errors = ""
+                for err in e.errors():
+                    field = err["loc"][0]
+                    msg = err["msg"]
+                    errors.append({field: msg})
+                    msg_errors += f"""{err['loc'][0]} : {msg} .    
+                    """
+                return JSONResponse(
+                    {"success": False, "errors": errors, "msg": msg_errors},
+                    status_code=400,
+                )
 
             values = (
                 "  ".join(f"{row}= :{row}" for row in columns)
@@ -545,12 +555,21 @@ class Router:
                     params[user_id_session] = user_id
                     filters += f" AND {user_id_session} = :{user_id_session}"
 
-            query = f" UPDATE {model_sql.__tablename__} SET {values} WHERE id= :id {filters}"
             id = self.path_params["id"]
             params["id"] = int(id)
-            result = connection.query(query=query, params=params)
-            result_update = True if result else False
-            return JSONResponse({"success": result_update})
+
+
+            try:
+                filters={"id":int(id)}
+                session=connection.get_session()
+                 
+                result =connection.query_orm(model=model_sql,operation="update",session=session,filters=filters,values=params)
+
+                result_update = True if result else False
+                return JSONResponse({"success": result_update})
+            except Exception as e:
+                Logger.error(f"Error rest_crud_generate , PUT: {str(e)}")
+                return JSONResponse({"success": False}, status_code=500)
 
         async def delete(self):
             response = await execute_middleware(self, type="delete")
@@ -652,7 +671,7 @@ class Router:
                 )
                 return response
 
-            name_html = f"/view/{model_sql.__tablename__}"
+            name_html = f"/{model_sql.__tablename__}/view" if url_html is None else url_html  
             router.routes.extend(
                 [
                     Route(
@@ -771,6 +790,8 @@ class Router:
         const dialog = document.getElementById('crud-dialog');
         document.getElementById('crud-title').textContent = mode  ;
         document.getElementById('crud-form').reset();
+        const form_messages = document.getElementById('form_messages');
+        form_messages.innerHTML = '';
         dialog.showModal();
         document.getElementById('crud-form').onsubmit = async (ev) => {{
             ev.preventDefault();
@@ -784,22 +805,44 @@ class Router:
 
             if(!response.ok) {{
                 const err = await response.json();
-                msg=err.msg || '{{{{translate['Error occurred']}}}} '+ response.status;
+                if (err.erros){{
+                    for(const e of err.errors) {{
+                        for(const k in e) {{
+                            msg += `<p class="text-red-600">${{k}} : ${{e[k]}}</p>`;
+                        }}
+                    }}
+                    form_messages.innerHTML = msg;
+                }}
+                else{{
+                  msg=err.msg || '{{{{translate['Error occurred']}}}} '+ response.status;
                 form_messages.innerHTML = `<p class="text-red-600">${{msg}}</p>`;
-                return;
+                }}
+              
+               
             }}
             const result = await response.json();
-            msg= result.msg || '{{{{translate['Operation failed']}}}}';
-            if(!result.success) {{
-                form_messages.innerHTML = `<p class="text-red-600">${{msg}}</p>`;
-                return;
+            if(result.errors){{
+                for(const e of result.errors) {{
+                    for(const k in e) {{
+                        msg += `<p class="text-red-600">${{k}} : ${{e[k]}}</p>`;
+                    }}
+                }}
+                form_messages.innerHTML = msg;
+              
             }}
-            else {{
-            msg =result.msg || '{{{{translate['Operation successful']}}}}'
-             form_messages.innerHTML = `<p class="text-green-600">${{msg}}</p>`;
-             ev.target.reset();
-                fetchData{model_name}();
-            }}
+            else{{
+                msg= result.msg || '{{{{translate['Operation failed']}}}}';
+                if(!result.success) {{
+                    form_messages.innerHTML = `<p class="text-red-600">${{msg}}</p>`;
+                    return;
+                }}
+                else {{
+                msg =result.msg || '{{{{translate['Operation successful']}}}}'
+                form_messages.innerHTML = `<p class="text-green-600">${{msg}}</p>`;
+                ev.target.reset();
+                    fetchData{model_name}();
+                }}
+           }} 
         
         }};
         }}

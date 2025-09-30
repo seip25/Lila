@@ -29,6 +29,12 @@ all_routes = list(itertools.chain(routes, api_routes))
 # Español: Marcador para las rutas de administrador en main.py.
 # admin_marker
 
+from app.routes.admin import Admin
+from app.models.user import User
+admin_routes = Admin(models=[User])
+all_routes = list(itertools.chain(routes, api_routes, admin_routes))
+    
+
 cors = None
 
 # English: CORS usage example
@@ -51,32 +57,13 @@ middlewares = [
     Middleware(URLBlockingMiddleware),
     Middleware(MaliciousExtensionMiddleware),
     Middleware(SensitivePathMiddleware),
-    Middleware(ErrorHandlerMiddleware),
+    Middleware(ErrorHandlerMiddleware)
+
 ]
 
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
 app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares)
-
-# English: To ensure SEO (bots, AI), caching, and HTML hydration, uncomment these lines.
-# Adding {% include "react/cache/index.html" %} to <div id="root">
-# Español :Para tener seo (bots,ia) ,cache y que react hidrate el html ,descomenta estas lineas.
-# Agregadando en <div id="root"> ,  {% include "react/cache/index.html"  %}
-
-# import subprocess
-# import sys
-
-# @app.on_event("startup")
-# async def startup_event():
-#     print("♻️ Prerender for react...")
-#     url_with_port =f" http://{HOST}:{PORT}"
-#     subprocess.Popen([
-#     sys.executable,
-#     "-m",
-#     "cli.prerender",
-#     "--url",
-#     url_with_port.strip()
-# ])
 
 
 # English: Asynchronous main function to run the application server.

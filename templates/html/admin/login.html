@@ -1,88 +1,73 @@
 <!DOCTYPE html>
 <html lang="{{lang}}">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel=icon type=image href=/public/img/lila.png alt="Admin Lila
+    Framework">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/public/css/lila.css" />
+  </head>
+  <body class="bg-surface min-h-screen p-4">
+    <main class="w-full flex justify-center items-center">
+      <article class="w-mx-500-px">
+        <h3 class="text-center">{{translate['login']}}</h3>
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label>User</label>
+            <input
+              type="text"
+              name="user"
+              id="user"
+              required
+              minlength="2"
+              maxlength="255"
+              placeholder="User"
+            />
+          </div>
+          <div>
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              required
+              minlength="2"
+              maxlength="255"
+              placeholder="Password"
+            />
+          </div>
+          <button type="submit" class="w-full">Send</button>
+        </form>
+      </article>
+    </main>
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel=icon type=image href=/public/img/lila.png alt="Admin Lila Framework">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .input-icon {
-      position: relative;
-    }
-
-    .input-icon .icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #d1d5db;
-
-    }
-  </style>
-</head>
-
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-  <main class="w-full max-w-md">
-    <article class="bg-white p-8 rounded-lg shadow-lg">
-      <h3 class="text-3xl font-bold text-center text-blue-600 mb-6">{{translate['login']}}</h3>
-      <form id="loginForm" class="space-y-4">
-        <div class="input-icon relative">
-          <svg class="icon w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor"
-            viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd">
-            </path>
-          </svg>
-          <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="User"
-            class="pl-10 pr-4 py-3 w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300" />
-        </div>
-        <div class="input-icon relative">
-          <svg class="icon w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor"
-            viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd"
-              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-              clip-rule="evenodd"></path>
-          </svg>
-          <input type="password" name="password" id="password" required minlength="2" maxlength="255"
-            placeholder="Password"
-            class="pl-10 pr-4 py-3 w-full rounded-md border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300" />
-        </div>
-        <button type="submit"
-          class="w-full bg-blue-600 text-white font-semibold py-3 rounded-md shadow-md hover:bg-blue-700 transition-all duration-300">
-          Send
-        </button>
-      </form>
-    </article>
-  </main>
-
-  <script>
-    document
-      .getElementById("loginForm")
-      .addEventListener("submit", async function (event) {
-        event.preventDefault();
-        const formData = Object.fromEntries(new FormData(event.target));
-        try {
-          const r = await fetch("/admin/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          });
-          const response = await r.json();
-          if (response.success) {
-            window.location.href = response.redirect;
-          } else {
-            document.getElementById("password").value = "";
-            alert(response.message || "Error");
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const formData = Object.fromEntries(new FormData(event.target));
+          try {
+            const r = await fetch("/admin/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            });
+            const response = await r.json();
+            if (response.success) {
+              window.location.href = response.redirect;
+            } else {
+              document.getElementById("password").value = "";
+              alert(response.message || "Error");
+            }
+          } catch (error) {
+            alert("Error");
+            console.error("Error:", error);
           }
-        } catch (error) {
-          alert("Error");
-          console.error("Error:", error);
-        }
-      });
-  </script>
-</body>
-
+        });
+    </script>
+  </body>
 </html>

@@ -6,6 +6,8 @@ from core.logger import Logger
 from pathlib import Path
 from app.config import PATH_TEMPLATE_NOT_FOUND
 from typing import List, Optional, Dict, Any
+from starlette_compress  import CompressMiddleware  
+from starlette.middleware import Middleware
 
 
 STATIC_EXTENSIONS = {'.js', '.css', '.jpg', '.jpeg', '.png', '.gif', '.ico', '.svg', '.woff', '.woff2', '.ttf', '.eot'}
@@ -22,6 +24,8 @@ class App(Starlette):
         routes = routes or []
         
         middleware = middleware or []
+        middleware = list(middleware)
+        middleware.append(Middleware(CompressMiddleware))
         
         super().__init__(debug=debug, routes=routes, middleware=middleware)
         

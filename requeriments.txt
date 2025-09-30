@@ -13,8 +13,9 @@ PyJWT==2.10.1
 psutil==7.1.0
 python-multipart==0.0.20
 typer==0.19.2
-jsmin==3.0.1
-cssmin==0.2.0
-htmlmin2==0.1.13
+rjsmin==1.2.4
+rcssmin ==1.2.1
+jinja2-htmlmin==1.0.1
+starlette-compress==1.6.1
 pillow==11.3.0
 psycopg==3.2.10

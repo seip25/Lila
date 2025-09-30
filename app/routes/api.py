@@ -10,7 +10,7 @@ from core.routing import (
 from pydantic import (
     EmailStr,
     BaseModel,
-    Field,
+    Field
 )  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 from app.helpers.helpers import get_user_by_token
 from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
@@ -78,10 +78,10 @@ from pydantic import BaseModel, EmailStr
 
 
 class UserModel(BaseModel):
-    email: EmailStr
+    email: EmailStr = Field(..., max_length=255)
     name: str = Field(..., min_length=3, max_length=255) 
     password: str = Field(..., min_length=3, max_length=255)
-
+    
 
 # Example execute middlewares for rest crud generate
 middlewares_user = {

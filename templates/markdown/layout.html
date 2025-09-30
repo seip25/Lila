@@ -7,9 +7,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ title }}</title>
      <link rel="stylesheet" href="/public/css/lila.css">
-    {% if picocss %}
-    <link rel="stylesheet" href="/public/css/pico.css">
-    {% endif %}
     {% for css in css_files %}
     <link rel="stylesheet" href="{{ css }}">
     {% endfor %}

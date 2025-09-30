@@ -1,8 +1,9 @@
-from sqlalchemy import create_engine, MetaData, text, inspect
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import create_engine, MetaData, text
+from sqlalchemy.exc import SQLAlchemyError,IntegrityError
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from typing import Optional
+from typing import Optional,Type,Dict,Any
 from core.logger import Logger
 
 Base = declarative_base()
@@ -38,9 +39,11 @@ class Database:
 
             with temp_engine.connect() as connection:
                 if db_type == "postgresql":
+                    connection = connection.execution_options(isolation_level="AUTOCOMMIT")
                     result = connection.execute(
                         text(f"SELECT 1 FROM pg_database WHERE datname = '{database}'")
                     )
+                     
                 else:  # MySQL
                     result = connection.execute(
                         text(f"SHOW DATABASES LIKE '{database}'")
@@ -126,6 +129,11 @@ class Database:
                             item = dict(getattr(row, "_mapping", {}))
                             return item
                     return None
+                if self.type in ["postgresql", "psgr"]:
+                    if query.strip().upper().startswith(("INSERT")):
+                        if result:
+                           result.lastrowid = result.fetchone()[0]
+                        return result
                 return result
         except SQLAlchemyError as e:
             print(f"Query error: {e}")
@@ -148,3 +156,76 @@ class Database:
                 print("Connection closed.")
             except SQLAlchemyError as e:
                 print(f"Close connection error: {e}")
+
+ 
+    def query_orm(
+        self,
+        model: Type[Any],
+        operation: str= "select",
+        instance: Optional[Any] = None,
+        session: Optional[Session] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        values: Optional[Dict[str, Any]] = None,
+        return_one: bool = False
+    ):
+        own_session = False
+        if session is None:
+            session = self.get_session()
+            own_session = True
+
+        try:
+            if operation == "insert":
+                if not instance:
+                    raise ValueError("Instance required for insert")
+                session.add(instance)
+                session.commit()
+                session.refresh(instance)
+                return instance.id  
+
+            elif operation == "select":
+                stmt = select(model)
+                if filters:
+                    for k, v in filters.items():
+                        stmt = stmt.where(getattr(model, k) == v)
+                results = session.execute(stmt).scalars()
+                return results.first() if return_one else results.all()
+
+            elif operation == "update":
+                if not values:
+                    raise ValueError("Values required for update")
+                stmt = update(model)
+                if filters:
+                    for k, v in filters.items():
+                        stmt = stmt.where(getattr(model, k) == v)
+                stmt = stmt.values(**values)
+                session.execute(stmt)
+                session.commit()
+                return True
+
+            elif operation == "delete":
+                stmt = delete(model)
+                if filters:
+                    for k, v in filters.items():
+                        stmt = stmt.where(getattr(model, k) == v)
+                session.execute(stmt)
+                session.commit()
+                return True
+
+            else:
+                raise ValueError(f"Unsupported operation: {operation}")
+
+        except IntegrityError as e:
+            session.rollback()
+            print(f"ORM Integrity error: {e}")
+            Logger.warning(f"ORM Integrity error: {e}")
+            return 0   
+
+        except SQLAlchemyError as e:
+            session.rollback()
+            print(f"ORM general error: {e}")
+            Logger.error(f"ORM general error: {e}")
+            return 0
+
+        finally:
+            if own_session:
+                session.close()
