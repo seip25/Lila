@@ -87,7 +87,7 @@ class Router:
         if methods is None:
             methods = ["GET"]
 
-        def swagger_docs(title: str, icon: str):
+        def swagger_docs(request : Request):
             html = f"""
             <html>
             <head>
@@ -119,7 +119,7 @@ class Router:
         self.routes.append(
             Route(
                 path=path,
-                endpoint=swagger_docs(title=title, icon=icon),
+                endpoint=swagger_docs,
                 methods=methods,
             )
         )
@@ -672,7 +672,7 @@ class Router:
                 return response
 
             name_html = f"/{model_sql.__tablename__}/view" if url_html is None else url_html  
-            router.routes.extend(
+            router.routes.append(
                 [
                     Route(
                         path=name_html,
