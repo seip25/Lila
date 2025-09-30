@@ -673,14 +673,13 @@ class Router:
 
             name_html = f"/{model_sql.__tablename__}/view" if url_html is None else url_html  
             router.routes.append(
-                [
+                 
                     Route(
                         path=name_html,
                         name=f"{name}_html",
                         methods=["GET"],
                         endpoint=funcHtml,
-                    )
-                ]
+                    ) 
             )
 
     def generate_html_template(self, model_name, columns, prefix_path="",rewrite_tempalte : bool=False):
