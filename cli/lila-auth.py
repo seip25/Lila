@@ -269,7 +269,7 @@ login_template_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/lila.css">
+    <link rel="stylesheet" href="/public/css/lila.css">
 </head>
 <body>
     <main class="flex justify-center items-center h-screen">
@@ -335,7 +335,7 @@ register_template_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/lila.css">
+    <link rel="stylesheet" href="/public/css/lila.css">
 </head>
 <body>
     <main class="flex justify-center items-center h-screen">
@@ -405,7 +405,7 @@ forgot_password_template_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/lila.css">
+    <link rel="stylesheet" href="/public/css/lila.css">
 </head>
 <body>
     <main class="flex justify-center items-center h-screen">
