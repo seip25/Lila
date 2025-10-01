@@ -107,7 +107,7 @@ from core.responses import JSONResponse
 from core.templates import render
 from core.session import Session
 from app.models.user import User
-from app.models.login_attempt import LoginAttempt,LogginAttemptHistory,LoginSuccessHistory
+from app.models.login_attempt import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory
 from app.connections import connection
 from app.helpers.helpers import translate_
 from pydantic import BaseModel, EmailStr,  Field
