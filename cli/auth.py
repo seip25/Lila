@@ -90,6 +90,10 @@ def _create_login_attempt_model():
 
 @app.command()
 def main(template: str = "True", route: str = "True"):
+    if connection is None:
+        subprocess.run(["python", "-m", "cli.migrations"], cwd=project_root)
+        typer.echo("Database connection established and migrations run.")
+    
     if template.lower() == "true":
         _create_templates()
 
@@ -148,6 +152,9 @@ async def login(request):
     try:
         login_attempt = db.query(LoginAttempt).filter_by(email=login_data.email).first()
         if login_attempt and login_attempt.is_locked():
+            login_attempt.attempts = 0
+            db.commit()
+            db.flush()
             return JSONResponse({"msg": translate_("Account locked. Try again in 5 minutes.", request)}, status_code=429)
 
         ip = request.client.host
@@ -160,7 +167,6 @@ async def login(request):
                 login_attempt.locked_at = None
                 db.commit()
                 db.flush() 
-
             
             details = f"Successful login for {login_data.email}"
             login_success = LoginSuccessHistory(email=login_data.email, ip_address=ip, device=device, details=details)
@@ -176,7 +182,7 @@ async def login(request):
             db.add(login_history)
             db.commit()
             db.flush()
-            
+
             if not login_attempt:
                 login_attempt = LoginAttempt(email=login_data.email)
                 db.add(login_attempt)
