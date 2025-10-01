@@ -1,11 +1,14 @@
-from sqlalchemy import Table, Column, Integer, String, TIMESTAMP,func
-from sqlalchemy.orm import Session
+from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from sqlalchemy.orm import Session, load_only
 from core.database import Base
 from app.connections import connection
+import secrets
+import hashlib
+import datetime
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
 ph = PasswordHasher()
-
 
 class User(Base):
     __tablename__ = "users"
@@ -17,30 +20,58 @@ class User(Base):
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-    # English : Example of how to use SQLAlchemy to make queries to the database
-    # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
+    @classmethod
+    def get_users(cls, db: Session, select: str = "id,email,name", limit: int = 1000):
+        columns_to_load = [c.strip() for c in select.split(',')]
+        return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+
+    @classmethod
+    def get_by_id(cls, db: Session, id: int):
+        return db.query(cls).filter(cls.id == id, cls.active == 1).first()
+
+    @classmethod
+    def check_login(cls, db: Session, email: str):
+        return db.query(cls).filter(cls.email == email, cls.active == 1).first()
+
+    @classmethod
+    def check_for_email(cls, db: Session, email: str) -> bool:
+        return db.query(cls).filter(cls.email == email).first() is not None
+
+    @classmethod
+    def insert(cls, db: Session, params: dict) -> 'User':
+        hashed_password = cls.hash_password(params["password"])
+        user = cls(
+            name=params["name"],
+            email=params["email"],
+            password=hashed_password,
+            token=hashlib.sha256(secrets.token_hex(16).encode()).hexdigest(),
+            active=1,
+            created_at=datetime.datetime.now()
+        )
+        db.add(user)
+        return user
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        return ph.hash(password)
+
+    @staticmethod
+    def validate_password(stored_hash: str, password: str) -> bool:
+        try:
+            return ph.verify(stored_hash, password)
+        except VerifyMismatchError:
+            return False
+
+    @classmethod
     def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
         result = connection.query(query=query,return_rows=True)
         return result 
+    @staticmethod
+    def get_all_without_orm(select: str = "id,email,name,created_at", limit: int = 1000) -> list:
+        return connection.query(query=f"SELECT {select}  FROM users WHERE active = 1 LIMIT {limit}", return_rows=True)
 
-    # English : Example of how to use SQLAlchemy to make queries to the database
-    # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
-    def get_by_id(id: int, select="id,email,name") -> dict:
-        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+    @staticmethod
+    def get_by_id_without_orm(id: int, select="id,email,name") -> dict:
         params = {"id": id}
-        row = connection.query(query=query, params=params,return_row=True)
-        return row
-
-    # English: Example using ORM abstraction in SQLAlchemy
-    # Español : Ejemplo usando abstracción de ORM en SQLAlchemy
-    @classmethod
-    def get_all_orm(cls, db: Session, limit: int = 1000):
-        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
-        return result
-
-
-# English : Example of how to use the class to make queries to the database
-# Español : Ejemplo de como usar la clase para realizar consultas a la base de datos
-# users = User.get_all()
-# user = User.get_by_id(1)
+        return connection.query(query=f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1", params=params, return_row=True)

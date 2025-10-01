@@ -21,5 +21,6 @@ config = {"type":"sqlite","database":"lila"} #lila.db
 connection = Database(config=config)
 connection.connect()
 
-#Use for orm sqlalchemy abstraction
-db_session=connection.get_session()
+#English : Example use for orm sqlalchemy abstraction
+#Español : Ejemplo de uso para orm sqlalchemy 
+#db_session=connection.get_session()

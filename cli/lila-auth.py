@@ -62,6 +62,11 @@ def _overwrite_user_model():
         file.write(user_model_content)
     typer.echo("User model overwritten successfully.")
 
+def _create_login_attempt_model():
+    model_path = os.path.join(project_root, "app/models/login_attempt.py")
+    with open(model_path, "w", encoding="utf-8") as file:
+        file.write(login_attempt_model_content)
+    typer.echo("LoginAttempt model created successfully.")
 
 @app.command()
 def main(template: str = "True", route: str = "True"):
@@ -72,14 +77,18 @@ def main(template: str = "True", route: str = "True"):
         _create_routes()
         _create_auth_file()
         _overwrite_user_model()
+        _create_login_attempt_model()
 
 auth_file_content = '''from lila.core.routing import Router
 from lila.core.responses import JSONResponse
 from lila.core.templates import render
 from lila.core.session import Session
 from app.models.user import User
+from app.models.login_attempt import LoginAttempt
+from app.connections import connection
 from app.helpers.helpers import translate_
 from pydantic import BaseModel, EmailStr, constr, Field
+import datetime
 
 class LoginModel(BaseModel):
     email: EmailStr
@@ -111,7 +120,6 @@ async def register_page(request):
 async def forgot_password_page(request):
     return render(request=request, template="auth/forgot-password")
 
-
 @router.post("/login")
 async def login(request):
     try:
@@ -120,59 +128,80 @@ async def login(request):
     except Exception as e:
         return JSONResponse({"msg": translate_("Invalid data", request)}, status_code=400)
 
-    check_login = User.check_login(email=login_data.email)
-    if check_login:
-        user = check_login
-        password_db = user["password"]
-        if User.validate_password(password_db, login_data.password):
+    db = connection.get_session()
+    try:
+        login_attempt = db.query(LoginAttempt).filter_by(email=login_data.email).first()
+        if login_attempt and login_attempt.is_locked():
+            return JSONResponse({"msg": translate_("Account locked. Try again in 5 minutes.", request)}, status_code=429)
+
+        user = User.check_login(db, email=login_data.email)
+        if user and User.validate_password(user.password, login_data.password):
+            if login_attempt:
+                login_attempt.attempts = 0
+                login_attempt.locked_at = None
+                db.commit()
+
             response = JSONResponse({"success": True, "msg": translate_("Login successful", request)})
-            user_token = user['token']
-            token = {"token": user_token}
+            token = {"token": user.token}
             Session.setSession(new_val=token, name_cookie="auth", response=response)
             return response
-
-    return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
-
+        else:
+            if not login_attempt:
+                login_attempt = LoginAttempt(email=login_data.email)
+                db.add(login_attempt)
+            
+            login_attempt.attempts += 1
+            if login_attempt.attempts >= 5:
+                login_attempt.locked_at = datetime.datetime.utcnow()
+            
+            db.commit()
+            return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
+    finally:
+        db.close()
 
 @router.post("/register")
 async def register(request):
+    db = connection.get_session()
     try:
         data = await request.json()
         model = RegisterModel(**data)
         validate = model.validate_passwords(request=request)
         if isinstance(validate, JSONResponse):
             return validate
+        
+        if User.check_for_email(db, email=model.email):
+            return JSONResponse({"success": False, "msg": translate_("Email already exists", request)}, status_code=400)
+
+        user = User.insert(db, {"name": model.name, "email": model.email, "password": model.password})
+        db.commit() 
+        if user:
+            return JSONResponse({"success": True, "msg": translate_("User created successfully", request)})
     except Exception as e:
+        db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error creating account, check your entered data", request)}, status_code=400)
-
-    if User.check_for_email(email=model.email):
-        return JSONResponse({"success": False, "msg": translate_("Email already exists", request)}, status_code=400)
-
-    result = User.insert({"name": model.name, "email": model.email, "password": model.password})
-    if result:
-        return JSONResponse({"success": True, "msg": translate_("User created successfully", request)})
+    finally:
+        db.close()
     
     return JSONResponse({"success": False, "msg": translate_("Error creating account", request)}, status_code=500)
-
 
 @router.post("/forgot-password")
 async def forgot_password(request):
     data = await request.json()
     email = data.get("email")
-
-    if User.check_for_email(email=email):
-        # In a real application, you would generate a unique token, save it, 
-        # and send an email with the reset link.
-        print(f"Password reset link for {email}: /reset-password?token=some_token")
+    db = connection.get_session()
+    try:
+        if User.check_for_email(db, email=email):
+            print(f"Password reset link for {email}: /reset-password?token=some_secure_token")
+    finally:
+        db.close()
 
     return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
 
 auth_routes = router.get_routes()
 '''
 
-user_model_content = '''from sqlalchemy import Column, Integer, String, TIMESTAMP
-from sqlalchemy.sql import func
-from sqlalchemy.orm import Session
+user_model_content = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from sqlalchemy.orm import Session, load_only
 from core.database import Base
 from app.connections import connection
 import secrets
@@ -182,7 +211,6 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 ph = PasswordHasher()
-
 
 class User(Base):
     __tablename__ = "users"
@@ -194,32 +222,39 @@ class User(Base):
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-    # English : Example of how to use SQLAlchemy to make queries to the database
-    # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
-    @staticmethod
-    def get_all(select: str = "id,email,name,created_at", limit: int = 1000) -> list:
-        query = f"SELECT {select}  FROM users WHERE active = 1 LIMIT {limit}"
-        result = connection.query(query=query, return_rows=True)
-        return result
-
-    # English : Example of how to use SQLAlchemy to make queries to the database
-    # Español : Ejemplo de como poder utilizar SQLAlchemy para hacer consultas a la base de datos
-    @staticmethod
-    def get_by_id(id: int, select="id,email,name") -> dict:
-        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
-        params = {"id": id}
-        row = connection.query(query=query, params=params, return_row=True)
-        return row
-
-    # English: Example using ORM abstraction in SQLAlchemy
-    # Español : Ejemplo usando abstracción de ORM en SQLAlchemy
     @classmethod
-    def get_all_orm(cls, db: Session, limit: int = 1000):
-        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
-        return result
+    def get_users(cls, db: Session, select: str = "id,email,name", limit: int = 1000):
+        columns_to_load = [c.strip() for c in select.split(',')]
+        return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
 
     @classmethod
-    def hash_password(cls, password: str):
+    def get_by_id(cls, db: Session, id: int):
+        return db.query(cls).filter(cls.id == id, cls.active == 1).first()
+
+    @classmethod
+    def check_login(cls, db: Session, email: str):
+        return db.query(cls).filter(cls.email == email, cls.active == 1).first()
+
+    @classmethod
+    def check_for_email(cls, db: Session, email: str) -> bool:
+        return db.query(cls).filter(cls.email == email).first() is not None
+
+    @classmethod
+    def insert(cls, db: Session, params: dict) -> 'User':
+        hashed_password = cls.hash_password(params["password"])
+        user = cls(
+            name=params["name"],
+            email=params["email"],
+            password=hashed_password,
+            token=hashlib.sha256(secrets.token_hex(16).encode()).hexdigest(),
+            active=1,
+            created_at=datetime.datetime.now()
+        )
+        db.add(user)
+        return user
+
+    @staticmethod
+    def hash_password(password: str) -> str:
         return ph.hash(password)
 
     @staticmethod
@@ -230,37 +265,36 @@ class User(Base):
             return False
 
     @classmethod
-    def insert(cls, params: dict) -> bool | dict:
-        params["token"] = hashlib.sha256(secrets.token_hex(16).encode()).hexdigest()
-        params["active"] = 1
-        params["password"] = cls.hash_password(params["password"])
-        params["created_at"] = datetime.datetime.now()
-        placeholders = ", ".join(f":{key}" for key in params.keys())
-        columns = ", ".join(params.keys())
-
-        query = f"INSERT INTO users ({columns}) VALUES ({placeholders})"
-        result = connection.query(query=query, params=params)
-        if result and result.lastrowid:
-            return {"token": params["token"], "id": result.lastrowid}
-        return False
+    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
+        result = connection.query(query=query,return_rows=True)
+        return result 
+    @staticmethod
+    def get_all_without_orm(select: str = "id,email,name,created_at", limit: int = 1000) -> list:
+        return connection.query(query=f"SELECT {select}  FROM users WHERE active = 1 LIMIT {limit}", return_rows=True)
 
     @staticmethod
-    def check_for_email(email: str) -> bool:
-        query = f"SELECT id FROM users WHERE email = :email LIMIT 1"
-        params = {"email": email}
-        result = connection.query(query=query, params=params, return_row=True)
-        return result is not None
+    def get_by_id_without_orm(id: int, select="id,email,name") -> dict:
+        params = {"id": id}
+        return connection.query(query=f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1", params=params, return_row=True)
+'''
 
-    @staticmethod
-    def check_login(email: str) -> dict | None:
-        query = f"SELECT id, token, password FROM users WHERE email = :email AND active = 1 LIMIT 1"
-        params = {"email": email}
-        return connection.query(query=query, params=params, return_row=True)
+login_attempt_model_content = '''from sqlalchemy import Column, Integer, String, DateTime
+from core.database import Base
+import datetime
 
-# English : Example of how to use the class to make queries to the database
-# Español : Ejemplo de como usar la clase para realizar consultas a la base de datos
-# users = User.get_all()
-# user = User.get_by_id(1)
+class LoginAttempt(Base):
+    __tablename__ = "login_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    attempts = Column(Integer, default=0)
+    locked_at = Column(DateTime, nullable=True)
+
+    def is_locked(self):
+        if not self.locked_at:
+            return False
+        return datetime.datetime.utcnow() < self.locked_at + datetime.timedelta(minutes=5)
 '''
 
 login_template_content = '''<!DOCTYPE html>
@@ -272,9 +306,9 @@ login_template_content = '''<!DOCTYPE html>
     <link rel="stylesheet" href="/public/css/lila.css">
 </head>
 <body>
-    <main class="flex justify-center items-center h-screen">
-        <div class="w-mx-500-px p-4 shadow">
-            <h3 class=" text-center mb-4">{{translate['Login']}}</h3>
+    <main class="flex justify-center items-center    container">
+        <article class="w-mx-500-px">
+            <h3 class=" text-center mb-4">{{translate['login']}}</h3>
 
             <form id="login-form">
                 <div class="mb-4">
@@ -285,36 +319,47 @@ login_template_content = '''<!DOCTYPE html>
                     <label for="password" >{{translate['password']}}</label>
                     <input type="password" id="password" name="password" class="w-full" required>
                 </div>
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-center mb-4">
                     <a href="/forgot-password" class="underline">{{translate['forgot your password']}}</a>
                 </div>
-                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">{{translate['Login']}}</button>
+                <button type="submit" class="w-full">{{translate['login']}}</button>
                  <div class="mt-4 text-center">
                     <p> <a href="/register" class="underline">{{translate['create account']}}</a></p>
                 </div>
                 <p id="error-message" class="text-red-500 mt-2 text-center"></p>
             </form>
-        </div>
+        </article>
+        
     </main>
+    <footer>
+             <div class="container mx-auto px-4 flex justify-between items-center">
+        <a
+          href="/set-language/es"
+          class="text-secondary underline"
+        >
+          Español (Esp)
+        </a>
+        <a
+          href="/set-language/en"
+          class="text-secondary underline"
+        >
+          English (US)
+        </a>
+      </div>
+        </footer>
     <script>
         document.getElementById('login-form').addEventListener('submit', async function(event) {
             event.preventDefault();
-
             const form = event.target;
             const formData = new FormData(form);
             const errorMessage = document.getElementById('error-message');
-
             try {
                 const response = await fetch('/login', {
                     method: 'POST',
                     body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: {'Content-Type': 'application/json'}
                 });
-
                 const result = await response.json();
-
                 if (response.ok && result.success) {
                     window.location.replace('/');
                 } else {
@@ -338,8 +383,8 @@ register_template_content = '''<!DOCTYPE html>
     <link rel="stylesheet" href="/public/css/lila.css">
 </head>
 <body>
-    <main class="flex justify-center items-center h-screen">
-        <div class="w-mx-500-px p-4 shadow">
+    <main class="flex justify-center items-center    container">
+        <article class="w-mx-500-px">
             <h3 class=" text-center mb-4">{{translate['create account']}}</h3>
             <form id="register-form">
                 <div class="mb-4">
@@ -358,33 +403,44 @@ register_template_content = '''<!DOCTYPE html>
                     <label for="password_2" >{{translate['confirm_password']}}</label>
                     <input type="password" id="password_2" name="password_2" class="w-full" required>
                 </div>
-                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">{{translate['register']}}</button>
+                <button type="submit" class="w-full">{{translate['register']}}</button>
                 <div class="mt-4 text-center">
                     <p>{{translate['Already have an account?']}} <a href="/login" class="underline">{{translate['login']}}</a></p>
                 </div>
                 <p id="error-message" class="text-red-500 mt-2 text-center"></p>
             </form>
-        </div>
+        </article>
+        
     </main>
+     <footer>
+             <div class="container mx-auto px-4 flex justify-between items-center">
+        <a
+          href="/set-language/es"
+          class="text-secondary underline"
+        >
+          Español (Esp)
+        </a>
+        <a
+          href="/set-language/en"
+          class="text-secondary underline"
+        >
+          English (US)
+        </a>
+      </div>
+        </footer>
     <script>
         document.getElementById('register-form').addEventListener('submit', async function(event) {
             event.preventDefault();
-
             const form = event.target;
             const formData = new FormData(form);
             const errorMessage = document.getElementById('error-message');
-
             try {
                 const response = await fetch('/register', {
                     method: 'POST',
                     body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: {'Content-Type': 'application/json'}
                 });
-
                 const result = await response.json();
-
                 if (response.ok && result.success) {
                     window.location.replace('/login');
                 } else {
@@ -408,8 +464,8 @@ forgot_password_template_content = '''<!DOCTYPE html>
     <link rel="stylesheet" href="/public/css/lila.css">
 </head>
 <body>
-    <main class="flex justify-center items-center h-screen">
-        <div class="w-mx-500-px p-4 shadow">
+    <main class="flex justify-center items-center    container">
+        <article class="w-mx-500-px">
             <h3 class=" text-center mb-4">{{translate['Recover password']}}</h3>
             <p>
                 <small>
@@ -421,36 +477,47 @@ forgot_password_template_content = '''<!DOCTYPE html>
                     <label for="email" >Email</label>
                     <input type="email" id="email" name="email" class="w-full" required>
                 </div>
-                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">{{translate['Send']}}</button>
+                <button type="submit" class="w-full">{{translate['Send']}}</button>
                 <div class="mt-4 text-center">
                     <p><a href="/login" class="underline">{{translate['login']}}</a></p>
                 </div>
                 <p id="message" class="mt-2 text-center"></p>
             </form>
-        </div>
+        </article>
+        
     </main>
+     <footer>
+             <div class="container mx-auto px-4 flex justify-between items-center">
+        <a
+          href="/set-language/es"
+          class="text-secondary underline"
+        >
+          Español (Esp)
+        </a>
+        <a
+          href="/set-language/en"
+          class="text-secondary underline"
+        >
+          English (US)
+        </a>
+      </div>
+        </footer>
     <script>
         document.getElementById('forgot-password-form').addEventListener('submit', async function(event) {
             event.preventDefault();
-
             const form = event.target;
             const formData = new FormData(form);
             const message = document.getElementById('message');
-
             try {
                 const response = await fetch('/forgot-password', {
                     method: 'POST',
                     body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: {'Content-Type': 'application/json'}
                 });
-
                 const result = await response.json();
-
                 if (response.ok) {
                     message.className = 'text-green-500 mt-2 text-center';
-                    message.textContent = result.msg  || 'If an account exists, a reset link has been sent.';
+                    message.textContent = result.msg;
                 } else {
                     message.className = 'text-red-500 mt-2 text-center';
                     message.textContent = result.msg  || 'An error occurred.';
