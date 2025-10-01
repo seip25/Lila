@@ -358,5 +358,21 @@
   "logout": {
     "es": "Cerrar sesión",
     "en": "Logout"
+  },
+  "new": {
+    "es": "Nueva",
+    "en": "New"
+  },
+  "Request new password reset link": {
+    "es": "Volver a enviar link",
+    "en": "Request new password reset link"
+  },
+  "Invalid or expired token": {
+    "es": "Token inválido o expirado",
+    "en": "Invalid or expired token"
+  },
+  "Your password reset link is invalid or has expired.": {
+    "es": "Tu enlace para restablecer la contraseña es inválido o ha expirado.",
+    "en": "Your password reset link is invalid or has expired."
   }
 }

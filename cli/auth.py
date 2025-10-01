@@ -16,6 +16,8 @@ def _create_templates():
         "login.html": login_template_content,
         "register.html": register_template_content,
         "forgot-password.html": forgot_password_template_content,
+        "change-password.html": change_password_template_content,
+        "invalid-token.html" : invalid_token_template_content
     }
 
     for filename, content in templates.items():
@@ -86,13 +88,13 @@ def _overwrite_user_model():
         file.write(user_model_content)
     typer.echo("User model overwritten successfully.")
 
-def _create_login_attempt_model():
-    model_path = os.path.join(project_root, "app/models/login_attempt.py")
+def _create_auth_model():
+    model_path = os.path.join(project_root, "app/models/auth.py")
     with open(model_path, "w", encoding="utf-8") as file:
-        file.write(login_attempt_model_content)
+        file.write(auth_model_content)
     marker = "# auth_marker"
     main_file = os.path.join(project_root, "cli/migrations.py")
-    code_import = """from app.models.login_attempt import LoginAttempt ,LoginAttemptHistory,LoginSuccessHistory"""
+    code_import = """from app.models.auth import LoginAttempt ,LoginAttemptHistory,LoginSuccessHistory"""
     with open(main_file, "r", encoding="utf-8") as file:
         content = file.read()
     if code_import not in content:
@@ -123,7 +125,7 @@ def main(template: str = "True", route: str = "True"):
         _create_auth_file()
         _create_dashboard_file()
         _overwrite_user_model()
-        _create_login_attempt_model()
+        _create_auth_model()
 
 auth_file_content = '''from core.routing import Router
 from core.responses import JSONResponse
@@ -131,9 +133,9 @@ from core.request import Request
 from core.templates import render
 from core.session import Session
 from app.models.user import User
-from app.models.login_attempt import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory
+from app.models.auth import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory,PasswordResetToken
 from app.connections import connection
-from app.helpers.helpers import translate_,responseValidationError
+from app.helpers.helpers import translate_,responseValidationError,generate_token_value
 from pydantic import BaseModel, EmailStr,  Field,ValidationError
 import datetime
 from app.middlewares.middlewares import session_active 
@@ -174,21 +176,34 @@ async def register_page(request):
 async def forgot_password_page(request):
     return render(request=request, template="auth/forgot-password")
 
+@router.get('/change-password')
+@session_active
+async def change_password_page(request):
+    email = request.query_params.get('email')
+    token = request.query_params.get('token')
+    db = connection.get_session()
+    try:
+        if not email or not token or not PasswordResetToken.validate_token(db, email, token):
+            return render(request=request, template="auth/invalid-token")
+        return render(request=request, template="auth/change-password", context={"email": email, "token": token})
+    finally:
+        db.close()
+
+
 @router.post("/login")
 async def login(request):
     try:
         data = await request.json()
         login_data = LoginModel(**data)
     except ValidationError as e:
-        return responseValidationError(e)
+         return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
 
     db = connection.get_session()
     try:
         login_attempt = db.query(LoginAttempt).filter_by(email=login_data.email).first()
         if login_attempt and login_attempt.is_locked():
             login_attempt.attempts = 0
-            db.commit()
-            db.flush()
+            db.commit() 
             return JSONResponse({"msg": translate_("Account locked. Try again in 5 minutes.", request)}, status_code=429)
 
         ip = request.client.host
@@ -200,13 +215,12 @@ async def login(request):
                 login_attempt.attempts = 0
                 login_attempt.locked_at = None
                 db.commit()
-                db.flush() 
+                  
             
             details = f"Successful login for {login_data.email}"
             login_success = LoginSuccessHistory(email=login_data.email, ip_address=ip, device=device, details=details)
             db.add(login_success)
-            db.commit()
-            db.flush()
+            db.commit() 
             response = JSONResponse({"success": True, "msg": translate_("Login successful", request)})
             user_session = {"token": user.token,"email":user.email,"name": user.name }
             Session.setSession(new_val=user_session, name_cookie="auth", response=response)
@@ -214,8 +228,7 @@ async def login(request):
         else:
             login_history = LoginAttemptHistory(email=login_data.email, ip_address=ip, device=device, details="Failed login attempt")
             db.add(login_history)
-            db.commit()
-            db.flush()
+            db.commit() 
 
             if not login_attempt:
                 login_attempt = LoginAttempt(email=login_data.email)
@@ -274,18 +287,69 @@ async def forgot_password(request):
     try:
         db = connection.get_session()
         email = data.get("email")
+        
         if User.check_for_email(db, email=email):
-            print(f"Password reset link for {email}: /reset-password?token=some_secure_token")
+            
+            token =generate_token_value()
+        
+            print(f"Password reset link for {email}: /reset-password?token={token}")
+        
+            return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
+        
+        return JSONResponse({"success":False,"msg": translate_("Operation failed.", request)})
     except Exception as e:
         print("ERROR REGISTER:", traceback.format_exc())
+        return JSONResponse({"success":False,"msg": translate_("Operation failed.", request)})
+        
     finally:
         db.close()
 
-    return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
+
+class ChangePasswordModel(BaseModel):
+    email: EmailStr
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=20)
+    confirm_password: str = Field(..., min_length=8, max_length=20)
+
+    def validate_passwords(self, request: Request):
+        if self.new_password != self.confirm_password:
+            return JSONResponse({"success": False, "msg": translate_("Passwords not match", request)})
+
+@router.post("/change-password")
+async def change_password(request):
+    try:
+        data = await request.json()
+        model = ChangePasswordModel(**data)
+        validate = model.validate_passwords(request=request)
+        if validate:
+            return validate
+    except ValidationError as e:
+        return responseValidationError(e)
+
+    db = connection.get_session()
+    try:
+        if not PasswordResetToken.validate_token(db, model.email, model.token):
+            return JSONResponse({"success": False, "msg": translate_("Invalid or expired token", request)}, status_code=400)
+
+        user = db.query(User).filter_by(email=model.email).first()
+        if not user:
+            return JSONResponse({"success": False, "msg": translate_("User not found", request)}, status_code=404)
+
+        user.password = User.hash_password(model.new_password)
+        db.commit()
+
+        db.query(PasswordResetToken).filter_by(email=model.email, token=model.token).delete()
+        db.commit()
+
+        return JSONResponse({"success": True, "msg": translate_("Password changed successfully", request)})
+    except Exception as e:
+        print("ERROR CHANGE_PASSWORD:", traceback.format_exc())
+        db.rollback()
+        return JSONResponse({"success": False, "msg": translate_("Error updating profile", request)}, status_code=400)
+    finally:
+        db.close()    
 
 auth_routes = router.get_routes()
-
-
 
 '''
 
@@ -368,7 +432,7 @@ class User(Base):
         return connection.query(query=f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1", params=params, return_row=True)
 '''
 
-login_attempt_model_content = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func,DateTime
+auth_model_content = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func,DateTime
 from sqlalchemy.orm import load_only
 from core.database import Base
 import datetime
@@ -433,6 +497,32 @@ class LoginSuccessHistory(Base):
             return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
         finally:
             db.close()
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(length=255), nullable=False, index=True)
+    token = Column(String(length=255), unique=True, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+
+    @classmethod
+    def create_token(cls, db, email, token, expires_minutes=30):
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_minutes)
+        reset_token = cls(email=email, token=token, created_at=datetime.datetime.utcnow(), expires_at=expires_at)
+        db.add(reset_token)
+        db.commit()
+        return reset_token
+
+    @classmethod
+    def validate_token(cls, db, email, token):
+        reset_token = db.query(cls).filter_by(email=email, token=token).first()
+        if not reset_token:
+            return False
+        if datetime.datetime.utcnow() > reset_token.expires_at:
+            return False
+        return True
 
 '''
 
@@ -671,6 +761,124 @@ forgot_password_template_content = '''<!DOCTYPE html>
 </html>
 '''
 
+
+invalid_token_template_content='''
+<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{translate['Invalid or expired token']}}</title>
+    <link rel="stylesheet" href="/public/css/lila.css">
+</head>
+<body>
+    <main class="flex justify-center items-center container">
+        <article class="w-mx-500-px text-center">
+            <h3 class="text-red-500 mb-4">{{translate['Invalid or expired token']}}</h3>
+            <p>{{translate['Your password reset link is invalid or has expired.']}}</p>
+            <div class="mt-4">
+                <a href="/forgot-password" class="underline text-indigo-500">{{translate['Request new password reset link']}}</a>
+            </div>
+        </article>
+    </main>
+    <footer>
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="/set-language/es" class="text-secondary underline">Español (Esp)</a>
+            <a href="/set-language/en" class="text-secondary underline">English (US)</a>
+        </div>
+    </footer>
+</body>
+</html>
+
+'''
+
+
+change_password_template_content = '''<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/public/css/lila.css">
+</head>
+<body>
+    <main class="flex justify-center items-center container">
+        <article class="w-mx-500-px">
+            <h3 class="text-center mb-4">{{translate['Change password']}}</h3>
+            <form id="change-password-form">
+                <div class="mb-4">
+                    <label for="current_password">{{translate['password']}} ({{translate['current']}})</label>
+                    <input type="password" id="current_password" name="current_password" class="w-full" required>
+                </div>
+                <div class="mb-4">
+                    <label for="new_password">{{translate['password']}} ({{translate['new']}})</label>
+                    <input type="password" id="new_password" name="new_password" class="w-full" required>
+                </div>
+                <div class="mb-4">
+                    <label for="confirm_password">{{translate['confirm_password']}}</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="w-full" required>
+                </div>
+                <button type="submit" class="w-full">{{translate['Save']}}</button>
+                <p id="message" class="mt-2 text-center"></p>
+            </form>
+            <div class="mt-4 text-center">
+                <p><a href="/login" class="underline">{{translate['login']}}</a></p>
+            </div>
+            <div class="mt-4 text-center">
+                <p><a href="/forgot-password" class="underline">{{translate['Recover password']}}</a></p>
+            </div>
+        </article>
+    </main>
+    <footer>
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="/set-language/es" class="text-secondary underline">Español (Esp)</a>
+            <a href="/set-language/en" class="text-secondary underline">English (US)</a>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('change-password-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const current_password = formData.get('current_password');
+            const new_password = formData.get('new_password');
+            const confirm_password = formData.get('confirm_password');
+            const message = document.getElementById('message');
+            const email = "{{email}}";
+            const token = "{{token}}";
+            if (new_password !== confirm_password) {
+                message.className = 'text-red-500 mt-2 text-center';
+                message.textContent = '{{translate["Passwords not match"]}}';
+                return;
+            }
+            try {
+                const response = await fetch('/change-password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email,
+                        token,
+                        new_password,
+                        confirm_password
+                    }),
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    message.className = 'text-green-500 mt-2 text-center';
+                    message.textContent = result.msg;
+                } else {
+                    message.className = 'text-red-500 mt-2 text-center';
+                    message.textContent = result.msg || 'An error occurred.';
+                }
+            } catch (error) {
+                message.className = 'text-red-500 mt-2 text-center';
+                message.textContent = 'Failed to connect to the server.';
+            }
+        });
+    </script>
+</body>
+</html>
+'''
 
 dashboard_template_content = '''<!DOCTYPE html>
 <html lang="{{lang}}" data-theme="light">
