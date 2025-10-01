@@ -298,7 +298,7 @@ class LoginAttempt(Base):
 '''
 
 login_template_content = '''<!DOCTYPE html>
-<html lang="{{lang}}">
+<html lang="{{lang}}" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -375,7 +375,7 @@ login_template_content = '''<!DOCTYPE html>
 '''
 
 register_template_content = '''<!DOCTYPE html>
-<html lang="{{lang}}">
+<html lang="{{lang}}" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -456,7 +456,7 @@ register_template_content = '''<!DOCTYPE html>
 '''
 
 forgot_password_template_content = '''<!DOCTYPE html>
-<html lang="{{lang}}">
+<html lang="{{lang}}" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
