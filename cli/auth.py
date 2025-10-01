@@ -133,8 +133,8 @@ from core.session import Session
 from app.models.user import User
 from app.models.login_attempt import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory
 from app.connections import connection
-from app.helpers.helpers import translate_
-from pydantic import BaseModel, EmailStr,  Field
+from app.helpers.helpers import translate_,responseValidationError
+from pydantic import BaseModel, EmailStr,  Field,ValidationError
 import datetime
 from app.middlewares.middlewares import session_active
 
@@ -157,17 +157,19 @@ class LoginModel(BaseModel):
 
 router = Router()
 
-@session_active
 @router.get("/login")
+@session_active
 async def login_page(request):
     return render(request=request, template="auth/login")
 
-@session_active
 @router.get("/register")
+@session_active
 async def register_page(request):
     return render(request=request, template="auth/register")
-@session_active
+
+    
 @router.get("/forgot-password")
+@session_active
 async def forgot_password_page(request):
     return render(request=request, template="auth/forgot-password")
 
@@ -176,8 +178,8 @@ async def login(request):
     try:
         data = await request.json()
         login_data = LoginModel(**data)
-    except Exception as e:
-        return JSONResponse({"msg": translate_("Invalid data", request)}, status_code=400)
+    except ValidationError as e:
+        return responseValidationError(e)
 
     db = connection.get_session()
     try:
@@ -229,14 +231,18 @@ async def login(request):
 
 @router.post("/register")
 async def register(request):
-    db = connection.get_session()
+    
     try:
         data = await request.json()
         model = RegisterModel(**data)
         validate = model.validate_passwords(request=request)
         if isinstance(validate, JSONResponse):
             return validate
-        
+    except ValidationError as e:
+        return responseValidationError(e)
+
+    try:
+        db = connection.get_session()    
         if User.check_for_email(db, email=model.email):
             return JSONResponse({"success": False, "msg": translate_("Email already exists", request)}, status_code=400)
 
@@ -483,7 +489,7 @@ login_template_content = '''<!DOCTYPE html>
                 });
                 const result = await response.json();
                 if (response.ok && result.success) {
-                    window.location.replace('/');
+                    window.location.replace('/dashboard');
                 } else {
                     errorMessage.textContent = result.msg  || 'An unknown error occurred.';
                 }
@@ -667,7 +673,7 @@ dashboard_template_content = '''<!DOCTYPE html>
     <header class="shadow">
     <nav class="container">
         <h3>
-        <a href="/" class="text-indigo-500 font-bold">Lila</a>
+        <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
         </h3>
         <div class="hidden-sm flex items-center gap-4">
             <a href="/dashboard" class="">{{translate['home']}}</a>
@@ -711,155 +717,218 @@ dashboard_template_content = '''<!DOCTYPE html>
 
 profile_template_content = '''<!DOCTYPE html>
 <html lang="{{lang}}" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}} - </title>
-    <link rel="stylesheet" href="/public/css/lila.css"> 
-</head>
-<body >
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}} -</title>
+    <link rel="stylesheet" href="/public/css/lila.css" />
+  </head>
+  <body>
     <header class="shadow">
-    <nav class="container">
+      <nav class="container">
         <h3>
-        <a href="/" class="text-indigo-500 font-bold">Lila</a>
+          <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
         </h3>
         <div class="hidden-sm flex items-center gap-4">
-            <a href="/dashboard" class="">{{translate['home']}}</a>
-            <a href="/profile">{{user.name}}</a>
-              <div class="dropdown">
-                <button class="fill dropdown-toggle">
-                    Menu
-                </button>
-                <div class="dropdown-content bottom-right">
-                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
-                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
-                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
-                </div>
+          <a href="/dashboard" class="">{{translate['home']}}</a>
+          <a href="/profile">{{user.name}}</a>
+          <div class="dropdown">
+            <button class="fill dropdown-toggle">Menu</button>
+            <div class="dropdown-content bottom-right">
+              <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+              <a href="/set-language/en" class="dropdown-item">English (US)</a>
+              <a href="/logout" class="dropdown-item"
+                >{{translate['logout']}}</a
+              >
             </div>
+          </div>
         </div>
         <div class="visible-sm fiex items-center">
-            <div class="dropdown">
-                <button class="fill dropdown-toggle">
-                    Menu
-                </button>
-                <div class="dropdown-content bottom-right">
-                    <a href="/dashboard" class="dropdown-item">{{translate['home']}}</a>
-                    <a href="/profile" class="dropdown-item">{{user.name}}</a>
-                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
-                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
-                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
-                </div>
+          <div class="dropdown">
+            <button class="fill dropdown-toggle">Menu</button>
+            <div class="dropdown-content bottom-right">
+              <a href="/dashboard" class="dropdown-item"
+                >{{translate['home']}}</a
+              >
+              <a href="/profile" class="dropdown-item">{{user.name}}</a>
+              <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+              <a href="/set-language/en" class="dropdown-item">English (US)</a>
+              <a href="/logout" class="dropdown-item"
+                >{{translate['logout']}}</a
+              >
             </div>
+          </div>
         </div>
-    </nav>
-     </header>
+      </nav>
+    </header>
     <main class="container mt-4">
-        <article >
-            <h1>{{translate['Profile']}}</h1>
-            <p><strong>{{translate['Name']}}:</strong> {{user.name}}</p>
-            <p><strong>Email:</strong> {{user.email}}</p>
+      <article>
+        <h1>{{translate['Profile']}}</h1>
+        <p><strong>{{translate['Name']}}:</strong> {{user.name}}</p>
+        <p><strong>Email:</strong> {{user.email}}</p>
 
-            <form id="update-profile-form" class="mt-4">
-                <div class="grid">
-                <div class="mb-4">
-                    <label for="name" >{{translate['name']}}</label>
-                    <input type="text" id="name" name="name" class="w-full" required value="{{user.name}}" >
-                </div>
-                <div class="mb-4">
-                    <label for="email" >Email</label>
-                    <input type="email" id="email" name="email" class="w-full" required value="{{user.email}}">
-                </div>
-                </div>
-                <div class="grid">
-                    <div class="mb-4">
-                        <label for="current_password">{{translate['password']}} ({{translate['current']}})</label>
-                        <input type="password" id="current_password" name="current_password" class="w-full" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="password_2" >{{translate['confirm_password']}}</label>
-                        <input type="password" id="password_2" name="password_2" class="w-full" required>
-                    </div>
-                 </div>
-                <div class="flex justify-end gap-4 mt-4">
-                    <button type="submit" class=" ">{{translate['Save']}}</button>
-                    <p id="message" class="mt-2 text-center"></p>
-                </div>
-            </form>
+        <form id="update-profile-form" class="mt-4">
+          <div class="grid">
+            <div class="mb-4">
+              <label for="name">{{translate['name']}}</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="w-full"
+                required
+                value="{{user.name}}"
+              />
+            </div>
+            <div class="mb-4">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="w-full"
+                required
+                value="{{user.email}}"
+              />
+            </div>
+          </div>
+          <div class="grid">
+            <div class="mb-4">
+              <label for="password"
+                >{{translate['password']}} ({{translate['current']}})</label
+              >
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="w-full"
+                required
+              />
+            </div>
+            <div class="mb-4">
+              <label for="password_2">{{translate['confirm_password']}}</label>
+              <input
+                type="password"
+                id="password_2"
+                name="password_2"
+                class="w-full"
+                required
+              />
+            </div>
+          </div>
+          <div class="flex justify-end gap-4 mt-4">
+            <button type="submit" class=" ">{{translate['Save']}}</button>
+            <p id="message" class="mt-2 text-center"></p>
+          </div>
+        </form>
 
-            <footer class="mt-4">
-                <form id="delete-account-form">
-                    <button type="button" class="ghost" id="show-delete-password">
-                        {{translate['Delete Account']}}
-                    </button>
-                <div id="delete-password-div" style="display:none;" class="mt-2">
-                    <label for="delete-password">{{translate['password']}}</label>
-                    <input type="password" id="delete-password" name="password" class="w-full" required>
-                    <button type="submit" class="danger w-full mt-2">{{translate['Delete Account']}}</button>
-                    <p id="delete-message" class="mt-2 text-center"></p>
+        <footer class="mt-4">
+          <form id="delete-account-form">
+            <button type="button" class="fill" id="show-delete-password">
+              {{translate['Delete Account']}}
+            </button>
+            <div id="delete-password-div" style="display: none" class="mt-2">
+              <div class="grid">
+                <div>
+                  <label for="delete-password">{{translate['password']}}</label>
+                  <input
+                    type="password"
+                    id="delete-password"
+                    name="password"
+                    class="w-full"
+                    required
+                  />
                 </div>
-                </form>
-            </footer>
-        </article>
+               <div></div>
+              </div>
+               <button type="submit" class="destructive  mt-2">
+                  {{translate['Delete Account']}}
+                </button>
+              <p id="delete-message" class="mt-2 text-center"></p>
+            </div>
+          </form>
+        </footer>
+      </article>
     </main>
     <script>
-        document.getElementById('update-profile-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const message = document.getElementById('message');
-            try {
-                const response = await fetch('/profile', {
-                    method: 'POST',
-                    body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {'Content-Type': 'application/json'}
-                });
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    message.className = 'text-green-500 mt-2 text-center';
-                    message.textContent = result.msg;
-                } else {
-                    message.className = 'text-red-500 mt-2 text-center';
-                    message.textContent = result.msg  || 'An error occurred.';
-                }
-            } catch (error) {
-                message.className = 'text-red-500 mt-2 text-center';
-                message.textContent = 'Failed to connect to the server.';
-            }
-        });
-
-     document.getElementById('delete-account-form').addEventListener('submit', async function(event) {
-        event.preventDefault();
-        if (!confirm('{{translate["Are your sure you want to delete your account? This action cannot be undone."]}}')) {
-            return;
-        }
-        const password = document.getElementById('delete-password').value;
-        const message = document.getElementById('delete-message');
-        if (!password) {
-            message.className = 'text-red-500 mt-2 text-center';
-            message.textContent = '{{translate["password"]}} {{translate["is required"]}}';
-            return;
-        }
-        try {
-            const response = await fetch('/delete-account', {
-                method: 'POST',
-                body: JSON.stringify({ password }),
-                headers: {'Content-Type': 'application/json'}
+      document
+        .getElementById("update-profile-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+          const message = document.getElementById("message");
+          try {
+            const response = await fetch("/profile", {
+              method: "POST",
+              body: JSON.stringify(Object.fromEntries(formData)),
+              headers: { "Content-Type": "application/json" },
             });
             const result = await response.json();
             if (response.ok && result.success) {
-                window.location.replace('/register');
+              message.className = "text-green-500 mt-2 text-center";
+              message.textContent = result.msg;
             } else {
-                message.className = 'text-red-500 mt-2 text-center';
-                message.textContent = result.msg || 'Failed to delete account.';
+              message.className = "text-red-500 mt-2 text-center";
+              message.textContent = result.msg || "An error occurred.";
             }
-        } catch (error) {
-            message.className = 'text-red-500 mt-2 text-center';
-            message.textContent = 'Failed to connect to the server.';
-        }
-    });
+          } catch (error) {
+            message.className = "text-red-500 mt-2 text-center";
+            message.textContent = "Failed to connect to the server.";
+          }
+        });
+
+      document
+        .getElementById("delete-account-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          if (
+            !confirm(
+              '{{translate["Are your sure you want to delete your account? This action cannot be undone."]}}'
+            )
+          ) {
+            return;
+          }
+          const password = document.getElementById("delete-password").value;
+          const message = document.getElementById("delete-message");
+          if (!password) {
+            message.className = "text-red-500 mt-2 text-center";
+            message.textContent =
+              '{{translate["password"]}} {{translate["is required"]}}';
+            return;
+          }
+          try {
+            const response = await fetch("/delete-account", {
+              method: "POST",
+              body: JSON.stringify({ password }),
+              headers: { "Content-Type": "application/json" },
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+              window.location.replace("/register");
+            } else {
+              message.className = "text-red-500 mt-2 text-center";
+              message.textContent = result.msg || "Failed to delete account.";
+            }
+          } catch (error) {
+            message.className = "text-red-500 mt-2 text-center";
+            message.textContent = "Failed to connect to the server.";
+          }
+        });
+
+        document.getElementById('show-delete-password').addEventListener('click', function(event) {
+            event.preventDefault();
+            const div = document.getElementById('delete-password-div');
+            if (div.style.display === 'none' || div.style.display === '') {
+                div.style.display = 'block';
+            } else {
+                div.style.display = 'none';
+            }
+        });
     </script>
-</body>
+  </body>
 </html>
+
 '''
 
 dashboard_file_content='''from core.routing import Router
@@ -869,8 +938,8 @@ from core.templates import render
 from core.session import Session
 from app.models.user import User
 from app.connections import connection
-from app.helpers.helpers import translate_
-from pydantic import BaseModel, EmailStr, Field
+from app.helpers.helpers import translate_, responseValidationError
+from pydantic import BaseModel, EmailStr, Field,ValidationError
 import datetime
 from app.middlewares.middlewares import login_required
 
@@ -881,7 +950,7 @@ class UpdateProfileModel(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=20)
     password_2: str = Field(..., min_length=8, max_length=20)
-    current_password: str = Field(..., min_length=8, max_length=20)
+    password: str = Field(..., min_length=8, max_length=20)
 
     def validate_passwords(self, request: Request):
         msg = translate_(key="Passwords not match", request=request)
@@ -915,14 +984,17 @@ async def logout_page(request):
 @router.post("/profile")
 @login_required
 async def update_profile(request):
-    db = connection.get_session()
+    
     try:
         data = await request.json()
         model = UpdateProfileModel(**data)
         validate = model.validate_passwords(request=request)
         if validate:
             return validate
-
+    except ValidationError as e:
+        return responseValidationError(e)
+    try:
+        db = connection.get_session()
         session_data = Session.unsign("auth", request)
         if not session_data:
             return JSONResponse({"success": False, "msg": translate_("Session expired", request)}, status_code=401)
@@ -931,7 +1003,7 @@ async def update_profile(request):
         if not user:
             return JSONResponse({"success": False, "msg": translate_("User not found", request)}, status_code=404)
 
-        if not User.validate_password(user.password, model.current_password):
+        if not User.validate_password(user.password, model.password):
             return JSONResponse({"success": False, "msg": translate_("Incorrect current password", request)}, status_code=401)
 
         user.name = model.name
@@ -952,10 +1024,14 @@ async def update_profile(request):
 @router.post("/delete-account")
 @login_required
 async def delete_account(request):
-    db = connection.get_session()
+    
     try:
         data = await request.json()
         model = DeleteAccountModel(**data)
+    except ValidationError as e:
+        return responseValidationError(e)
+    try:
+        db = connection.get_session()
         session_data = Session.unsign("auth", request)
         if not session_data:
             return JSONResponse({"success": False, "msg": translate_("Session expired", request)}, status_code=401)
