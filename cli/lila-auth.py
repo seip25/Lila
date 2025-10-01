@@ -101,15 +101,15 @@ router = Router()
 
 @router.get("/login")
 async def login_page(request):
-    return render(request=request, template="auth/login.html")
+    return render(request=request, template="auth/login")
 
 @router.get("/register")
 async def register_page(request):
-    return render(request=request, template="auth/register.html")
+    return render(request=request, template="auth/register")
 
 @router.get("/forgot-password")
 async def forgot_password_page(request):
-    return render(request=request, template="auth/forgot-password.html")
+    return render(request=request, template="auth/forgot-password")
 
 
 @router.post("/login")
@@ -269,7 +269,7 @@ login_template_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/static/lila.css">
+    <link rel="stylesheet" href="/public/lila.css">
 </head>
 <body>
     <main class="flex justify-center items-center h-screen">
@@ -335,7 +335,7 @@ register_template_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/static/lila.css">
+    <link rel="stylesheet" href="/public/lila.css">
 </head>
 <body>
     <main class="flex justify-center items-center h-screen">
@@ -405,7 +405,7 @@ forgot_password_template_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/static/lila.css">
+    <link rel="stylesheet" href="/public/lila.css">
 </head>
 <body>
     <main class="flex justify-center items-center h-screen">
