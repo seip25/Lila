@@ -19,26 +19,30 @@ class User(Base):
     token = Column(String(length=150), nullable=True)
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    @classmethod
+    def get_all(cls,select: str = "id,email,name", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            columns_to_load = [c.strip() for c in select.split(',')]
+            return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+        finally:
+            db.close()
+ 
 
     @classmethod
-    def get_users(cls, db: Session, select: str = "id,email,name", limit: int = 1000):
-        columns_to_load = [c.strip() for c in select.split(',')]
-        return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
-
-    @classmethod
-    def get_by_id(cls, db: Session, id: int):
+    async def get_by_id(cls, db: Session, id: int):
         return db.query(cls).filter(cls.id == id, cls.active == 1).first()
 
     @classmethod
-    def check_login(cls, db: Session, email: str):
-        return db.query(cls).filter(cls.email == email, cls.active == 1).first()
+    async def check_login(cls, db: Session, email: str):
+        return db.query(cls.password,cls.id,cls.email).filter(cls.email == email, cls.active == 1).first()
 
     @classmethod
-    def check_for_email(cls, db: Session, email: str) -> bool:
+    async def check_for_email(cls, db: Session, email: str) -> bool:
         return db.query(cls).filter(cls.email == email).first() is not None
 
     @classmethod
-    def insert(cls, db: Session, params: dict) -> 'User':
+    async def insert(cls, db: Session, params: dict) -> 'User':
         hashed_password = cls.hash_password(params["password"])
         user = cls(
             name=params["name"],
@@ -52,26 +56,26 @@ class User(Base):
         return user
 
     @staticmethod
-    def hash_password(password: str) -> str:
+    async def hash_password(password: str) -> str:
         return ph.hash(password)
 
     @staticmethod
-    def validate_password(stored_hash: str, password: str) -> bool:
+    async def validate_password(stored_hash: str, password: str) -> bool:
         try:
             return ph.verify(stored_hash, password)
         except VerifyMismatchError:
             return False
 
     @classmethod
-    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+    async def get_all_without_orm(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
         result = connection.query(query=query,return_rows=True)
         return result 
     @staticmethod
-    def get_all_without_orm(select: str = "id,email,name,created_at", limit: int = 1000) -> list:
+    async def get_all_without_orm(select: str = "id,email,name,created_at", limit: int = 1000) -> list:
         return connection.query(query=f"SELECT {select}  FROM users WHERE active = 1 LIMIT {limit}", return_rows=True)
 
     @staticmethod
-    def get_by_id_without_orm(id: int, select="id,email,name") -> dict:
+    async def get_by_id_without_orm(id: int, select="id,email,name") -> dict:
         params = {"id": id}
         return connection.query(query=f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1", params=params, return_row=True)

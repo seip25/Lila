@@ -1,6 +1,8 @@
 import typer
 from pathlib import Path
 import os
+import subprocess
+from app.connections import connection
 
 app = typer.Typer()
 
@@ -66,6 +68,24 @@ def _create_login_attempt_model():
     model_path = os.path.join(project_root, "app/models/login_attempt.py")
     with open(model_path, "w", encoding="utf-8") as file:
         file.write(login_attempt_model_content)
+    marker = "# auth_marker"
+    main_file = os.path.join(project_root, "cli/migrations.py")
+    code_import = """from app.models.login_attempt import LoginAttempt ,LoginAttemptHistory,LoginSuccessHistory"""
+    with open(main_file, "r", encoding="utf-8") as file:
+        content = file.read()
+    if code_import not in content:
+        content = content.replace(marker, f"{code_import}\n{marker}")
+        with open(main_file, "w", encoding="utf-8") as file:
+            file.write(content)
+    if marker not in content:
+        typer.echo(f"Marker '{marker}' not found in migrations.py. Please add it to enable automatic migrations for LoginAttempt model.")
+        return
+    result = subprocess.run(["python", "-m", "cli.migrations", "--refresh"], cwd=project_root) 
+    if result.returncode != 0:
+        typer.echo("Failed to run migrations. Please check the error messages above.")
+        return
+    
+
     typer.echo("LoginAttempt model created successfully.")
 
 @app.command()
@@ -79,12 +99,12 @@ def main(template: str = "True", route: str = "True"):
         _overwrite_user_model()
         _create_login_attempt_model()
 
-auth_file_content = '''from lila.core.routing import Router
-from lila.core.responses import JSONResponse
-from lila.core.templates import render
-from lila.core.session import Session
+auth_file_content = '''from core.routing import Router
+from core.responses import JSONResponse
+from core.templates import render
+from core.session import Session
 from app.models.user import User
-from app.models.login_attempt import LoginAttempt
+from app.models.login_attempt import LoginAttempt,LogginAttemptHistory,LoginSuccessHistory
 from app.connections import connection
 from app.helpers.helpers import translate_
 from pydantic import BaseModel, EmailStr,  Field
@@ -130,18 +150,33 @@ async def login(request):
         if login_attempt and login_attempt.is_locked():
             return JSONResponse({"msg": translate_("Account locked. Try again in 5 minutes.", request)}, status_code=429)
 
+        ip = request.client.host
+        device = request.headers.get("User-Agent", "Unknown")
+
         user = User.check_login(db, email=login_data.email)
         if user and User.validate_password(user.password, login_data.password):
             if login_attempt:
                 login_attempt.attempts = 0
                 login_attempt.locked_at = None
                 db.commit()
+                db.flush() 
 
+            
+            details = f"Successful login for {login_data.email}"
+            login_success = LoginSuccessHistory(email=login_data.email, ip_address=ip, device=device, details=details)
+            db.add(login_success)
+            db.commit()
+            db.flush()
             response = JSONResponse({"success": True, "msg": translate_("Login successful", request)})
             token = {"token": user.token}
             Session.setSession(new_val=token, name_cookie="auth", response=response)
             return response
         else:
+            login_history = LogginAttemptHistory(email=login_data.email, ip_address=ip, device=device, details="Failed login attempt")
+            db.add(login_history)
+            db.commit()
+            db.flush()
+            
             if not login_attempt:
                 login_attempt = LoginAttempt(email=login_data.email)
                 db.add(login_attempt)
@@ -219,9 +254,13 @@ class User(Base):
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     @classmethod
-    def get_users(cls, db: Session, select: str = "id,email,name", limit: int = 1000):
-        columns_to_load = [c.strip() for c in select.split(',')]
-        return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+    def get_all(cls,select: str = "id,email,name", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            columns_to_load = [c.strip() for c in select.split(',')]
+            return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+        finally:
+            db.close()
 
     @classmethod
     def get_by_id(cls, db: Session, id: int):
@@ -261,7 +300,7 @@ class User(Base):
             return False
 
     @classmethod
-    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+    def get_all_without_orm(select: str = "id,email,name", limit: int = 1000) -> list:
         query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
         result = connection.query(query=query,return_rows=True)
         return result 
@@ -275,22 +314,71 @@ class User(Base):
         return connection.query(query=f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1", params=params, return_row=True)
 '''
 
-login_attempt_model_content = '''from sqlalchemy import Column, Integer, String, DateTime
+login_attempt_model_content = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func,DateTime
+from sqlalchemy.orm import load_only
 from core.database import Base
 import datetime
+from app.connections import connection
 
 class LoginAttempt(Base):
     __tablename__ = "login_attempts"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String(length=255), unique=True, index=True, nullable=False)
     attempts = Column(Integer, default=0)
     locked_at = Column(DateTime, nullable=True)
 
-    def is_locked(self):
+    async def is_locked(self):
         if not self.locked_at:
             return False
         return datetime.datetime.utcnow() < self.locked_at + datetime.timedelta(minutes=5)
+    @classmethod
+    async def get_all(cls,select: str = "id,email,attempts,locked_at", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            columns_to_load = [c.strip() for c in select.split(',')]
+            return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+        finally:
+            db.close()
+
+class LoginAttemptHistory(Base):
+    __tablename__ = "login_attemp_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(length=255), nullable=False)
+    ip_address = Column(String(length=255), nullable=True)
+    device = Column(String(length=255), nullable=True)
+    details = Column(String(length=255), nullable=True)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    @classmethod
+    async def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            columns_to_load = [c.strip() for c in select.split(',')]
+            return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+        finally:
+            db.close()
+
+
+class LoginSuccessHistory(Base):
+    __tablename__ = "login_success_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(length=255), nullable=False)
+    ip_address = Column(String(length=255), nullable=True)
+    device = Column(String(length=255), nullable=True)
+    details = Column(String(length=255), nullable=True)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    @classmethod
+    async def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            columns_to_load = [c.strip() for c in select.split(',')]
+            return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+        finally:
+            db.close()
 '''
 
 login_template_content = '''<!DOCTYPE html>

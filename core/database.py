@@ -19,6 +19,8 @@ class Database:
         self.auto_commit = self.config.get("auto_commit", False)
         self.engine = None
         self.SessionLocal = None
+        self.auto_commit=self.config.get("auto_commit", False)
+        self.auto_flush=self.config.get("auto_flush", False)
 
     def connect(self) -> bool:
         if self.type in ["mysql", "postgresql", "psgr"]:
@@ -61,7 +63,7 @@ class Database:
                     execution_options={"autocommit": self.auto_commit},
                 )
                 self.SessionLocal = sessionmaker(
-                    autocommit=False, autoflush=False, bind=self.engine
+                    autocommit=self.auto_commit, autoflush=self.auto_flush, bind=self.engine
                 )
             except SQLAlchemyError as e:
                 print(f"Database connection error: {e}")
