@@ -136,7 +136,8 @@ from app.connections import connection
 from app.helpers.helpers import translate_,responseValidationError
 from pydantic import BaseModel, EmailStr,  Field,ValidationError
 import datetime
-from app.middlewares.middlewares import session_active
+from app.middlewares.middlewares import session_active 
+import traceback
 
 class RegisterModel(BaseModel):
     email: EmailStr
@@ -226,6 +227,8 @@ async def login(request):
             
             db.commit()
             return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
+    except Exception as e:
+        print("ERROR LOGIN:\n", traceback.format_exc())
     finally:
         db.close()
 
@@ -254,6 +257,7 @@ async def register(request):
             Session.setSession(new_val=user_session, name_cookie="auth", response=response)
             return response
     except Exception as e:
+        print("ERROR REGISTER:\n", traceback.format_exc())
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error creating account, check your entered data", request)}, status_code=400)
     finally:
@@ -263,18 +267,25 @@ async def register(request):
 
 @router.post("/forgot-password")
 async def forgot_password(request):
-    data = await request.json()
-    email = data.get("email")
-    db = connection.get_session()
     try:
+        data = await request.json() 
+    except Exception as e:
+        print("ERROR REGISTER:\n", traceback.format_exc())
+    try:
+        db = connection.get_session()
+        email = data.get("email")
         if User.check_for_email(db, email=email):
             print(f"Password reset link for {email}: /reset-password?token=some_secure_token")
+    except Exception as e:
+        print("ERROR REGISTER:\n", traceback.format_exc())
     finally:
         db.close()
 
     return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
 
 auth_routes = router.get_routes()
+
+
 
 '''
 
@@ -942,6 +953,7 @@ from app.helpers.helpers import translate_, responseValidationError
 from pydantic import BaseModel, EmailStr, Field,ValidationError
 import datetime
 from app.middlewares.middlewares import login_required
+import traceback
 
 router = Router()
 
@@ -983,8 +995,7 @@ async def logout_page(request):
 
 @router.post("/profile")
 @login_required
-async def update_profile(request):
-    
+async def update_profile(request):  
     try:
         data = await request.json()
         model = UpdateProfileModel(**data)
@@ -998,8 +1009,8 @@ async def update_profile(request):
         session_data = Session.unsign("auth", request)
         if not session_data:
             return JSONResponse({"success": False, "msg": translate_("Session expired", request)}, status_code=401)
-
-        user = db.query(User).filter_by(id=session_data["id"], active=1).first()
+        
+        user = db.query(User).filter_by(token=session_data["token"], active=1).first()
         if not user:
             return JSONResponse({"success": False, "msg": translate_("User not found", request)}, status_code=404)
 
@@ -1008,14 +1019,16 @@ async def update_profile(request):
 
         user.name = model.name
         user.email = model.email
-        user.password = User.hash_password(model.password)
+        if model.password: 
+            user.password = User.hash_password(model.password)
         db.commit()
 
         response = JSONResponse({"success": True, "msg": translate_("Profile updated successfully", request)})
-        new_session = {"id": user.id, "name": user.name, "email": user.email}
+        new_session = {"token": user.token, "name": user.name, "email": user.email}
         Session.setSession(new_val=new_session, name_cookie="auth", response=response)
         return response
     except Exception as e:
+        print("ERROR UPDATE_PROFILE:\n", traceback.format_exc())
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error updating profile", request)}, status_code=400)
     finally:
@@ -1036,7 +1049,7 @@ async def delete_account(request):
         if not session_data:
             return JSONResponse({"success": False, "msg": translate_("Session expired", request)}, status_code=401)
 
-        user = db.query(User).filter_by(id=session_data["id"], active=1).first()
+        user = db.query(User).filter_by(token=session_data["token"], active=1).first()
         if not user:
             return JSONResponse({"success": False, "msg": translate_("User not found", request)}, status_code=404)
 
@@ -1045,17 +1058,19 @@ async def delete_account(request):
 
         user.active = 0
         db.commit()
-        response = JSONResponse({"success": True, "msg": translate_("Account deleted successfully", request)})
-       
+        response = JSONResponse({"success": True, "msg": translate_("Account deleted successfully", request)}) 
         response.delete_cookie("auth")
         return response
     except Exception as e:
+        print("ERROR DELETE ACCOUNT:\n", traceback.format_exc())
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error deleting account", request)}, status_code=400)
     finally:
         db.close()
 
 dashboard_routes = router.get_routes()
+
+
 
 '''
 
