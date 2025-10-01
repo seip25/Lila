@@ -1,4 +1,4 @@
-# {{ translate["welcome"] }}
+# {{ translate["Welcome to My Website"] }}
 
 This is a simple **Markdown** example. 
 

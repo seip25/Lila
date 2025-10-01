@@ -179,13 +179,21 @@
     "en": "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one",
     "es": "¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña y podrás elegir una nueva."
   },
-  "Already have an account?":{
+  "Already have an account?": {
     "en": "Already have an account?",
     "es": "Ya tienes una cuenta?"
   },
-  "welcome": {
+  "Welcome to My Website": {
     "es": "Bienvenido a mi sitio web",
     "en": "Welcome to My Website"
+  },
+  "Welcome": {
+    "es": "Bienvenido",
+    "en": "Welcome"
+  },
+  "home": {
+    "es": "Inicio",
+    "en": "Home"
   },
   "features": {
     "es": "Características",
@@ -251,7 +259,7 @@
     "es": "Operación exitosa",
     "en": "Operation successful"
   },
-  "changelogs":{
+  "changelogs": {
     "es": "Puedes ver aqui las novedades y cambios , que hemos realizado en Lila Framework",
     "en": "Changelogs and new features , that we have done in Lila Framework"
   },
@@ -298,5 +306,53 @@
   "Incorrect email or password": {
     "es": "Correo electrónico o contraseña incorrectos",
     "en": "Incorrect email or password"
-  }
+  },
+  "Delete Account": {
+    "es": "Eliminar cuenta",
+    "en": "Delete Account"
+  },
+  "Are your sure you want to delete your account? This action cannot be undone.": {
+    "es": "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+    "en": "Are you sure you want to delete your account? This action cannot be undone."
+  },
+  "Account deleted successfully": {
+    "es": "Cuenta eliminada exitosamente",
+    "en": "Account deleted successfully"
+  },
+  "User not found": {
+    "es": "Usuario no encontrado",
+    "en": "User not found"
+  },
+  "Incorrect password": {
+    "es": "Contraseña incorrecta",
+    "en": "Incorrect password"
+  },
+  "Session expired": {
+    "es": "Sesión expirada",
+    "en": "Session expired"
+  },
+  "Error updating profile": {
+    "es": "Error al actualizar el perfil",
+    "en": "Error updating profile"
+  },
+  "Profile updated successfully": {
+    "es": "Perfil actualizado exitosamente",
+    "en": "Profile updated successfully"
+  },
+  "Incorrect current password": {
+    "es": "Contraseña actual incorrecta",
+    "en": "Incorrect current password"
+  },
+  "Error deleting account": {
+    "es": "Error al eliminar la cuenta",
+    "en": "Error deleting account"
+  },
+  "current":{
+    "es": "actual",
+    "en": "current"
+  },
+  "is required": {
+  "es": "es requerido",
+  "en": "is required"
+}
 }

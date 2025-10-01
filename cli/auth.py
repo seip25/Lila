@@ -23,7 +23,20 @@ def _create_templates():
         file_path.write_text(content,encoding="utf-8")
         print(f" Template created: {file_path}")
 
-    print("\n Auth templates generated successfully")
+    print("\n Auth templates generated successfull")
+    
+    template_dashboard_dir = Path("templates/html/dashboard")
+    template_dashboard_dir.mkdir(parents=True, exist_ok=True)
+    templates_dashboard={
+        "dashboard.html" : dashboard_template_content,
+        "profile.html": profile_template_content
+    }
+    for filename, content in templates_dashboard.items():
+        file_path = template_dashboard_dir / filename
+        file_path.write_text(content,encoding="utf-8")
+        print(f" Template created: {file_path}")
+    print("\n Dashboards templates generated successfull")
+    
 
 def _create_routes():
     main_file = os.path.join(project_root, "main.py")
@@ -38,12 +51,15 @@ def _create_routes():
 
     if "from app.routes.auth import auth_routes" in content:
         typer.echo("Auth routes already added.")
-        return
+    
+    typer.echo("Auth routes already addedd")
+        
 
     replace_text = f'''# {marker}
 from app.routes.auth import auth_routes
+from app.routes.dashboard import dashboard_routes
 import itertools
-all_routes = list(itertools.chain(routes, api_routes, auth_routes))'''
+all_routes = list(itertools.chain(routes, api_routes, auth_routes,dashboard_routes))'''
 
     new_content = content.replace(f"# {marker}", replace_text)
 
@@ -51,6 +67,12 @@ all_routes = list(itertools.chain(routes, api_routes, auth_routes))'''
         file.write(new_content)
 
     typer.echo("Auth routes added to main.py.")
+
+def _create_dashboard_file():
+    auth_file_path = os.path.join(project_root, "app/routes/dashboard.py")
+    with open(auth_file_path, "w", encoding="utf-8") as file:
+        file.write(dashboard_file_content)
+    typer.echo("Dashboard file created/updated successfully.")
 
 def _create_auth_file():
     auth_file_path = os.path.join(project_root, "app/routes/auth.py")
@@ -99,11 +121,13 @@ def main(template: str = "True", route: str = "True"):
     if route.lower() == "true":
         _create_routes()
         _create_auth_file()
+        _create_dashboard_file()
         _overwrite_user_model()
         _create_login_attempt_model()
 
 auth_file_content = '''from core.routing import Router
 from core.responses import JSONResponse
+from core.request import Request
 from core.templates import render
 from core.session import Session
 from app.models.user import User
@@ -112,6 +136,7 @@ from app.connections import connection
 from app.helpers.helpers import translate_
 from pydantic import BaseModel, EmailStr,  Field
 import datetime
+from app.middlewares.middlewares import session_active
 
 class RegisterModel(BaseModel):
     email: EmailStr
@@ -120,6 +145,11 @@ class RegisterModel(BaseModel):
     email: EmailStr
     password: str= Field(...,min_length=8, max_length=20)
     password_2: str =Field(...,min_length=8, max_length=20)
+    def validate_passwords(self, request: Request):
+        msg = translate_(key="Passwords not match", request=request)
+        if self.password != self.password_2:
+            response = JSONResponse({"success": False, "msg": msg})
+            return response
 
 class LoginModel(BaseModel):
     email: EmailStr
@@ -127,14 +157,16 @@ class LoginModel(BaseModel):
 
 router = Router()
 
+@session_active
 @router.get("/login")
 async def login_page(request):
     return render(request=request, template="auth/login")
 
+@session_active
 @router.get("/register")
 async def register_page(request):
     return render(request=request, template="auth/register")
-
+@session_active
 @router.get("/forgot-password")
 async def forgot_password_page(request):
     return render(request=request, template="auth/forgot-password")
@@ -174,10 +206,10 @@ async def login(request):
             db.flush()
             response = JSONResponse({"success": True, "msg": translate_("Login successful", request)})
             token = {"token": user.token}
-            Session.setSession(new_val=token, name_cookie="auth", response=response)
+            Session().setSession(new_val=token, name_cookie="auth", response=response)
             return response
         else:
-            login_history = LogginAttemptHistory(email=login_data.email, ip_address=ip, device=device, details="Failed login attempt")
+            login_history = LoginAttemptHistory(email=login_data.email, ip_address=ip, device=device, details="Failed login attempt")
             db.add(login_history)
             db.commit()
             db.flush()
@@ -185,7 +217,7 @@ async def login(request):
             if not login_attempt:
                 login_attempt = LoginAttempt(email=login_data.email)
                 db.add(login_attempt)
-            
+                db.flush()
             login_attempt.attempts += 1
             if login_attempt.attempts >= 5:
                 login_attempt.locked_at = datetime.datetime.utcnow()
@@ -304,11 +336,7 @@ class User(Base):
         except VerifyMismatchError:
             return False
 
-    @classmethod
-    def get_all_without_orm(select: str = "id,email,name", limit: int = 1000) -> list:
-        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        result = connection.query(query=query,return_rows=True)
-        return result 
+     
     @staticmethod
     def get_all_without_orm(select: str = "id,email,name,created_at", limit: int = 1000) -> list:
         return connection.query(query=f"SELECT {select}  FROM users WHERE active = 1 LIMIT {limit}", return_rows=True)
@@ -333,12 +361,12 @@ class LoginAttempt(Base):
     attempts = Column(Integer, default=0)
     locked_at = Column(DateTime, nullable=True)
 
-    async def is_locked(self):
+    def is_locked(self):
         if not self.locked_at:
             return False
         return datetime.datetime.utcnow() < self.locked_at + datetime.timedelta(minutes=5)
     @classmethod
-    async def get_all(cls,select: str = "id,email,attempts,locked_at", limit: int = 1000):
+    def get_all(cls,select: str = "id,email,attempts,locked_at", limit: int = 1000):
         db = connection.get_session()
         try:
             columns_to_load = [c.strip() for c in select.split(',')]
@@ -357,7 +385,7 @@ class LoginAttemptHistory(Base):
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     @classmethod
-    async def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
+    def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
         db = connection.get_session()
         try:
             columns_to_load = [c.strip() for c in select.split(',')]
@@ -377,13 +405,14 @@ class LoginSuccessHistory(Base):
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     @classmethod
-    async def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
+    def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
         db = connection.get_session()
         try:
             columns_to_load = [c.strip() for c in select.split(',')]
             return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
         finally:
             db.close()
+
 '''
 
 login_template_content = '''<!DOCTYPE html>
@@ -531,7 +560,7 @@ register_template_content = '''<!DOCTYPE html>
                 });
                 const result = await response.json();
                 if (response.ok && result.success) {
-                    window.location.replace('/login');
+                    window.location.replace('/dashboard');
                 } else {
                     errorMessage.textContent = result.msg  || 'Failed to register.';
                 }
@@ -621,5 +650,306 @@ forgot_password_template_content = '''<!DOCTYPE html>
 </html>
 '''
 
+
+dashboard_template_content = '''<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} </title>
+    <link rel="stylesheet" href="/public/css/lila.css"> 
+</head>
+<body >
+    <header>
+    <nav class="container">
+        <h3>
+        <a href="/" class="text-indigo-500 font-bold">Lila</a>
+        </h3>
+        <div class="hidden-sm flex items-center gap-4">
+            <a href="/" class="">{{translate['home']}}</a>
+            <a href="/profile">{{user.name}}</a>
+            <a href="/set-language/es"  >Español (Esp)</a>
+            <a href="/set-language/en" >English (US)</a>
+            <a href="/logout">{{translate['logout']}}</a>
+        </div>
+        <div class="visible-sm fiex items-center">
+            <div class="dropdown">
+                <button class="fill dropdown-toggle">
+                    Menu
+                </button>
+                <div class="dropdown-content bottom-right">
+                    <a href="/" class="dropdown-item">{{translate['home']}}</a>
+                    <a href="/profile" class="dropdown-item">{{user.name}}</a>
+                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
+                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    </header>
+    <main class="container mt-4">
+        <article >
+        <h1>{{translate['Welcome']}}, {{user.name}}!</h1>
+        </article>
+    </main>
+   
+</body>
+</html>
+'''
+
+profile_template_content = '''<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - </title>
+    <link rel="stylesheet" href="/public/css/lila.css"> 
+</head>
+<body >
+    <header>
+    <nav class="container">
+        <h3>
+        <a href="/" class="text-indigo-500 font-bold">Lila</a>
+        </h3>
+        <div class="hidden-sm flex items-center gap-4">
+            <a href="/" class="">{{translate['home']}}</a>
+            <a href="/profile">{{user.name}}</a>
+            <a href="/set-language/es"  >Español (Esp)</a>
+            <a href="/set-language/en" >English (US)</a>
+            <a href="/logout">{{translate['logout']}}</a>
+        </div>
+        <div class="visible-sm fiex items-center">
+            <div class="dropdown">
+                <button class="fill dropdown-toggle">
+                    Menu
+                </button>
+                <div class="dropdown-content bottom-right">
+                    <a href="/" class="dropdown-item">{{translate['home']}}</a>
+                    <a href="/profile" class="dropdown-item">{{user.name}}</a>
+                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
+                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+     </header>
+    <main class="container mt-4">
+        <article >
+            <h1>{{translate['Profile']}}</h1>
+            <p><strong>{{translate['Name']}}:</strong> {{user.name}}</p>
+            <p><strong>Email:</strong> {{user.email}}</p>
+
+            <form id="update-profile-form" class="mt-4">
+                 <div class="mb-4">
+                    <label for="name" >{{translate['name']}}</label>
+                    <input type="text" id="name" name="name" class="w-full" required>
+                </div>
+                <div class="mb-4">
+                    <label for="email" >Email</label>
+                    <input type="email" id="email" name="email" class="w-full" required>
+                </div>
+                <div class="mb-4">
+                    <label for="current_password">{{translate['password']}} ({{translate['current']}})</label>
+                    <input type="password" id="current_password" name="current_password" class="w-full" required>
+                </div>
+                 <div class="mb-4">
+                    <label for="password_2" >{{translate['confirm_password']}}</label>
+                    <input type="password" id="password_2" name="password_2" class="w-full" required>
+                </div>
+                <button type="submit" class="w-full">{{translate['Save']}}</button>
+                <p id="message" class="mt-2 text-center"></p>
+            </form>
+
+            <footer class="mt-4">
+                <form id="delete-account-form">
+                    <button type="button" class="ghost" id="show-delete-password">
+                        {{translate['Delete Account']}}
+                    </button>
+                <div id="delete-password-div" style="display:none;" class="mt-2">
+                    <label for="delete-password">{{translate['password']}}</label>
+                    <input type="password" id="delete-password" name="password" class="w-full" required>
+                    <button type="submit" class="danger w-full mt-2">{{translate['Delete Account']}}</button>
+                    <p id="delete-message" class="mt-2 text-center"></p>
+                </div>
+                </form>
+            </footer>
+        </article>
+    </main>
+    <script>
+        document.getElementById('update-profile-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const message = document.getElementById('message');
+            try {
+                const response = await fetch('/profile', {
+                    method: 'POST',
+                    body: JSON.stringify(Object.fromEntries(formData)),
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    message.className = 'text-green-500 mt-2 text-center';
+                    message.textContent = result.msg;
+                } else {
+                    message.className = 'text-red-500 mt-2 text-center';
+                    message.textContent = result.msg  || 'An error occurred.';
+                }
+            } catch (error) {
+                message.className = 'text-red-500 mt-2 text-center';
+                message.textContent = 'Failed to connect to the server.';
+            }
+        });
+
+     document.getElementById('delete-account-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        if (!confirm('{{translate["Are your sure you want to delete your account? This action cannot be undone."]}}')) {
+            return;
+        }
+        const password = document.getElementById('delete-password').value;
+        const message = document.getElementById('delete-message');
+        if (!password) {
+            message.className = 'text-red-500 mt-2 text-center';
+            message.textContent = '{{translate["password"]}} {{translate["is required"]}}';
+            return;
+        }
+        try {
+            const response = await fetch('/delete-account', {
+                method: 'POST',
+                body: JSON.stringify({ password }),
+                headers: {'Content-Type': 'application/json'}
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                window.location.replace('/register');
+            } else {
+                message.className = 'text-red-500 mt-2 text-center';
+                message.textContent = result.msg || 'Failed to delete account.';
+            }
+        } catch (error) {
+            message.className = 'text-red-500 mt-2 text-center';
+            message.textContent = 'Failed to connect to the server.';
+        }
+    });
+    </script>
+</body>
+</html>
+'''
+
+dashboard_file_content='''from core.routing import Router
+from core.responses import JSONResponse
+from core.request import Request
+from core.templates import render
+from core.session import Session
+from app.models.user import User
+from app.connections import connection
+from app.helpers.helpers import translate_
+from pydantic import BaseModel, EmailStr, Field
+import datetime
+from app.middlewares.middlewares import login_required
+
+router = Router()
+
+class UpdateProfileModel(BaseModel):
+    name: str = Field(..., min_length=2, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=20)
+    password_2: str = Field(..., min_length=8, max_length=20)
+    current_password: str = Field(..., min_length=8, max_length=20)
+
+    def validate_passwords(self, request: Request):
+        msg = translate_(key="Passwords not match", request=request)
+        if self.password != self.password_2:
+            return JSONResponse({"success": False, "msg": msg})
+        return None
+
+class DeleteAccountModel(BaseModel):
+    password: str = Field(..., min_length=8, max_length=20)
+
+@login_required
+@router.get("/dashboard")
+async def dashboard_page(request):
+    session_data = Session.unsign("auth", request)
+    context = {"user": session_data} if session_data else {}
+    return render(request=request, template="dashboard/dashboard", context=context)
+
+@login_required
+@router.get("/profile")
+async def profile_page(request):
+    session_data = Session.unsign("auth", request)
+    context = {"user": session_data} if session_data else {}
+    return render(request=request, template="dashboard/profile", context=context)
+
+@login_required
+@router.post("/profile")
+async def update_profile(request):
+    db = connection.get_session()
+    try:
+        data = await request.json()
+        model = UpdateProfileModel(**data)
+        validate = model.validate_passwords(request=request)
+        if validate:
+            return validate
+
+        session_data = Session.unsign("auth", request)
+        if not session_data:
+            return JSONResponse({"success": False, "msg": translate_("Session expired", request)}, status_code=401)
+
+        user = db.query(User).filter_by(id=session_data["id"], active=1).first()
+        if not user:
+            return JSONResponse({"success": False, "msg": translate_("User not found", request)}, status_code=404)
+
+        if not User.validate_password(user.password, model.current_password):
+            return JSONResponse({"success": False, "msg": translate_("Incorrect current password", request)}, status_code=401)
+
+        user.name = model.name
+        user.email = model.email
+        user.password = User.hash_password(model.password)
+        db.commit()
+
+        new_session = {"id": user.id, "name": user.name, "email": user.email}
+        response = JSONResponse({"success": True, "msg": translate_("Profile updated successfully", request)})
+        Session().setSession(new_val=new_session, name_cookie="auth", response=response)
+        return response
+    except Exception as e:
+        db.rollback()
+        return JSONResponse({"success": False, "msg": translate_("Error updating profile", request)}, status_code=400)
+    finally:
+        db.close()
+
+@login_required
+@router.post("/delete-account")
+async def delete_account(request):
+    db = connection.get_session()
+    try:
+        data = await request.json()
+        model = DeleteAccountModel(**data)
+        session_data = Session.unsign("auth", request)
+        if not session_data:
+            return JSONResponse({"success": False, "msg": translate_("Session expired", request)}, status_code=401)
+
+        user = db.query(User).filter_by(id=session_data["id"], active=1).first()
+        if not user:
+            return JSONResponse({"success": False, "msg": translate_("User not found", request)}, status_code=404)
+
+        if not User.validate_password(user.password, model.password):
+            return JSONResponse({"success": False, "msg": translate_("Incorrect password", request)}, status_code=401)
+
+        user.active = 0
+        db.commit()
+        response = JSONResponse({"success": True, "msg": translate_("Account deleted successfully", request)})
+       
+        response.delete_cookie("auth")
+        return response
+    except Exception as e:
+        db.rollback()
+        return JSONResponse({"success": False, "msg": translate_("Error deleting account", request)}, status_code=400)
+    finally:
+        db.close()
+
+dashboard_routes = router.get_routes()
+'''
 if __name__ == "__main__":
     app()
