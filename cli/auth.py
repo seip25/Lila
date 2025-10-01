@@ -85,7 +85,6 @@ def _create_login_attempt_model():
         typer.echo("Failed to run migrations. Please check the error messages above.")
         return
     
-
     typer.echo("LoginAttempt model created successfully.")
 
 @app.command()
