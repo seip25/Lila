@@ -205,8 +205,8 @@ async def login(request):
             db.commit()
             db.flush()
             response = JSONResponse({"success": True, "msg": translate_("Login successful", request)})
-            token = {"token": user.token}
-            Session().setSession(new_val=token, name_cookie="auth", response=response)
+            user_session = {"token": user.token,"email":user.email,"name": user.name }
+            Session.setSession(new_val=user_session, name_cookie="auth", response=response)
             return response
         else:
             login_history = LoginAttemptHistory(email=login_data.email, ip_address=ip, device=device, details="Failed login attempt")
@@ -243,7 +243,10 @@ async def register(request):
         user = User.insert(db, {"name": model.name, "email": model.email, "password": model.password})
         db.commit() 
         if user:
-            return JSONResponse({"success": True, "msg": translate_("User created successfully", request)})
+            response=JSONResponse({"success": True, "msg": translate_("User created successfully", request)})
+            user_session = {"token": user.token,"email":user.email,"name": user.name }
+            Session.setSession(new_val=user_session, name_cookie="auth", response=response)
+            return response
     except Exception as e:
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error creating account, check your entered data", request)}, status_code=400)
@@ -266,6 +269,7 @@ async def forgot_password(request):
     return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
 
 auth_routes = router.get_routes()
+
 '''
 
 user_model_content = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func
@@ -660,17 +664,24 @@ dashboard_template_content = '''<!DOCTYPE html>
     <link rel="stylesheet" href="/public/css/lila.css"> 
 </head>
 <body >
-    <header>
+    <header class="shadow">
     <nav class="container">
         <h3>
         <a href="/" class="text-indigo-500 font-bold">Lila</a>
         </h3>
         <div class="hidden-sm flex items-center gap-4">
-            <a href="/" class="">{{translate['home']}}</a>
+            <a href="/dashboard" class="">{{translate['home']}}</a>
             <a href="/profile">{{user.name}}</a>
-            <a href="/set-language/es"  >Español (Esp)</a>
-            <a href="/set-language/en" >English (US)</a>
-            <a href="/logout">{{translate['logout']}}</a>
+              <div class="dropdown">
+                <button class="fill dropdown-toggle">
+                    Menu
+                </button>
+                <div class="dropdown-content bottom-right">
+                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
+                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
+                </div>
+            </div>
         </div>
         <div class="visible-sm fiex items-center">
             <div class="dropdown">
@@ -678,7 +689,7 @@ dashboard_template_content = '''<!DOCTYPE html>
                     Menu
                 </button>
                 <div class="dropdown-content bottom-right">
-                    <a href="/" class="dropdown-item">{{translate['home']}}</a>
+                    <a href="/dashboard" class="dropdown-item">{{translate['home']}}</a>
                     <a href="/profile" class="dropdown-item">{{user.name}}</a>
                     <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
                     <a href="/set-language/en" class="dropdown-item">English (US)</a>
@@ -687,7 +698,7 @@ dashboard_template_content = '''<!DOCTYPE html>
             </div>
         </div>
     </nav>
-    </header>
+     </header>
     <main class="container mt-4">
         <article >
         <h1>{{translate['Welcome']}}, {{user.name}}!</h1>
@@ -707,17 +718,24 @@ profile_template_content = '''<!DOCTYPE html>
     <link rel="stylesheet" href="/public/css/lila.css"> 
 </head>
 <body >
-    <header>
+    <header class="shadow">
     <nav class="container">
         <h3>
         <a href="/" class="text-indigo-500 font-bold">Lila</a>
         </h3>
         <div class="hidden-sm flex items-center gap-4">
-            <a href="/" class="">{{translate['home']}}</a>
+            <a href="/dashboard" class="">{{translate['home']}}</a>
             <a href="/profile">{{user.name}}</a>
-            <a href="/set-language/es"  >Español (Esp)</a>
-            <a href="/set-language/en" >English (US)</a>
-            <a href="/logout">{{translate['logout']}}</a>
+              <div class="dropdown">
+                <button class="fill dropdown-toggle">
+                    Menu
+                </button>
+                <div class="dropdown-content bottom-right">
+                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
+                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
+                </div>
+            </div>
         </div>
         <div class="visible-sm fiex items-center">
             <div class="dropdown">
@@ -725,7 +743,7 @@ profile_template_content = '''<!DOCTYPE html>
                     Menu
                 </button>
                 <div class="dropdown-content bottom-right">
-                    <a href="/" class="dropdown-item">{{translate['home']}}</a>
+                    <a href="/dashboard" class="dropdown-item">{{translate['home']}}</a>
                     <a href="/profile" class="dropdown-item">{{user.name}}</a>
                     <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
                     <a href="/set-language/en" class="dropdown-item">English (US)</a>
@@ -742,24 +760,30 @@ profile_template_content = '''<!DOCTYPE html>
             <p><strong>Email:</strong> {{user.email}}</p>
 
             <form id="update-profile-form" class="mt-4">
-                 <div class="mb-4">
+                <div class="grid">
+                <div class="mb-4">
                     <label for="name" >{{translate['name']}}</label>
-                    <input type="text" id="name" name="name" class="w-full" required>
+                    <input type="text" id="name" name="name" class="w-full" required value="{{user.name}}" >
                 </div>
                 <div class="mb-4">
                     <label for="email" >Email</label>
-                    <input type="email" id="email" name="email" class="w-full" required>
+                    <input type="email" id="email" name="email" class="w-full" required value="{{user.email}}">
                 </div>
-                <div class="mb-4">
-                    <label for="current_password">{{translate['password']}} ({{translate['current']}})</label>
-                    <input type="password" id="current_password" name="current_password" class="w-full" required>
                 </div>
-                 <div class="mb-4">
-                    <label for="password_2" >{{translate['confirm_password']}}</label>
-                    <input type="password" id="password_2" name="password_2" class="w-full" required>
+                <div class="grid">
+                    <div class="mb-4">
+                        <label for="current_password">{{translate['password']}} ({{translate['current']}})</label>
+                        <input type="password" id="current_password" name="current_password" class="w-full" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password_2" >{{translate['confirm_password']}}</label>
+                        <input type="password" id="password_2" name="password_2" class="w-full" required>
+                    </div>
+                 </div>
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="submit" class=" ">{{translate['Save']}}</button>
+                    <p id="message" class="mt-2 text-center"></p>
                 </div>
-                <button type="submit" class="w-full">{{translate['Save']}}</button>
-                <p id="message" class="mt-2 text-center"></p>
             </form>
 
             <footer class="mt-4">
@@ -839,7 +863,7 @@ profile_template_content = '''<!DOCTYPE html>
 '''
 
 dashboard_file_content='''from core.routing import Router
-from core.responses import JSONResponse
+from core.responses import JSONResponse,RedirectResponse
 from core.request import Request
 from core.templates import render
 from core.session import Session
@@ -868,22 +892,28 @@ class UpdateProfileModel(BaseModel):
 class DeleteAccountModel(BaseModel):
     password: str = Field(..., min_length=8, max_length=20)
 
-@login_required
 @router.get("/dashboard")
+@login_required
 async def dashboard_page(request):
     session_data = Session.unsign("auth", request)
-    context = {"user": session_data} if session_data else {}
+    context = {"user": session_data} 
     return render(request=request, template="dashboard/dashboard", context=context)
 
-@login_required
 @router.get("/profile")
+@login_required
 async def profile_page(request):
     session_data = Session.unsign("auth", request)
-    context = {"user": session_data} if session_data else {}
+    context = {"user": session_data}  
     return render(request=request, template="dashboard/profile", context=context)
 
-@login_required
+@router.get('/logout')
+async def logout_page(request):
+    response=RedirectResponse('/login')
+    Session.deleteSession(response=response,name_cookie='auth')
+    return response
+
 @router.post("/profile")
+@login_required
 async def update_profile(request):
     db = connection.get_session()
     try:
@@ -909,9 +939,9 @@ async def update_profile(request):
         user.password = User.hash_password(model.password)
         db.commit()
 
-        new_session = {"id": user.id, "name": user.name, "email": user.email}
         response = JSONResponse({"success": True, "msg": translate_("Profile updated successfully", request)})
-        Session().setSession(new_val=new_session, name_cookie="auth", response=response)
+        new_session = {"id": user.id, "name": user.name, "email": user.email}
+        Session.setSession(new_val=new_session, name_cookie="auth", response=response)
         return response
     except Exception as e:
         db.rollback()
@@ -919,8 +949,8 @@ async def update_profile(request):
     finally:
         db.close()
 
-@login_required
 @router.post("/delete-account")
+@login_required
 async def delete_account(request):
     db = connection.get_session()
     try:
@@ -950,6 +980,9 @@ async def delete_account(request):
         db.close()
 
 dashboard_routes = router.get_routes()
+
 '''
+
+
 if __name__ == "__main__":
     app()

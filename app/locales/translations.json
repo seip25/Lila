@@ -347,12 +347,16 @@
     "es": "Error al eliminar la cuenta",
     "en": "Error deleting account"
   },
-  "current":{
+  "current": {
     "es": "actual",
     "en": "current"
   },
   "is required": {
-  "es": "es requerido",
-  "en": "is required"
-}
+    "es": "es requerido",
+    "en": "is required"
+  },
+  "logout": {
+    "es": "Cerrar sesión",
+    "en": "Logout"
+  }
 }
