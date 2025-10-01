@@ -14,6 +14,7 @@ from pydantic import (
 )  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
 from app.helpers.helpers import get_user_by_token
 from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
+from app.config import DEBUG
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
@@ -104,6 +105,7 @@ router.rest_crud_generate(
     delete_logic=True,
     active=True,
     middlewares=middlewares_user,
+    generate_html=DEBUG
 )
 
 

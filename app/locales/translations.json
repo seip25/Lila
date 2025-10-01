@@ -179,6 +179,10 @@
     "en": "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one",
     "es": "¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña y podrás elegir una nueva."
   },
+  "Already have an account?":{
+    "en": "Already have an account?",
+    "es": "Ya tienes una cuenta?"
+  },
   "welcome": {
     "es": "Bienvenido a mi sitio web",
     "en": "Welcome to My Website"
@@ -250,5 +254,49 @@
   "changelogs":{
     "es": "Puedes ver aqui las novedades y cambios , que hemos realizado en Lila Framework",
     "en": "Changelogs and new features , that we have done in Lila Framework"
+  },
+  "Invalid data": {
+    "es": "Datos inválidos",
+    "en": "Invalid data"
+  },
+  "Account locked. Try again in 5 minutes.": {
+    "es": "Cuenta bloqueada. Inténtalo de nuevo en 5 minutos.",
+    "en": "Account locked. Try again in 5 minutes."
+  },
+  "Invalid credentials": {
+    "es": "Credenciales inválidas",
+    "en": "Invalid credentials"
+  },
+  "Login successful": {
+    "es": "Inicio de sesión exitoso",
+    "en": "Login successful"
+  },
+  "Email already exists": {
+    "es": "El correo electrónico ya existe",
+    "en": "Email already exists"
+  },
+  "User created successfully": {
+    "es": "Usuario creado exitosamente",
+    "en": "User created successfully"
+  },
+  "If an account with that email exists, a password reset link has been sent.": {
+    "es": "Si existe una cuenta con ese correo electrónico, se ha enviado un enlace para restablecer la contraseña.",
+    "en": "If an account with that email exists, a password reset link has been sent."
+  },
+  "Passwords not match": {
+    "es": "Las contraseñas no coinciden",
+    "en": "Passwords not match"
+  },
+  "Error creating account, check your entered data": {
+    "es": "Error al crear la cuenta, comprueba los datos introducidos",
+    "en": "Error creating account, check your entered data"
+  },
+  "Error creating account": {
+    "es": "Error al crear la cuenta",
+    "en": "Error creating account"
+  },
+  "Incorrect email or password": {
+    "es": "Correo electrónico o contraseña incorrectos",
+    "en": "Incorrect email or password"
   }
 }
