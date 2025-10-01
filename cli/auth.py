@@ -228,7 +228,7 @@ async def login(request):
             db.commit()
             return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
     except Exception as e:
-        print("ERROR LOGIN:\n", traceback.format_exc())
+        print("ERROR LOGIN:", traceback.format_exc())
     finally:
         db.close()
 
@@ -257,7 +257,7 @@ async def register(request):
             Session.setSession(new_val=user_session, name_cookie="auth", response=response)
             return response
     except Exception as e:
-        print("ERROR REGISTER:\n", traceback.format_exc())
+        print("ERROR REGISTER:", traceback.format_exc())
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error creating account, check your entered data", request)}, status_code=400)
     finally:
@@ -270,14 +270,14 @@ async def forgot_password(request):
     try:
         data = await request.json() 
     except Exception as e:
-        print("ERROR REGISTER:\n", traceback.format_exc())
+        print("ERROR REGISTER:", traceback.format_exc())
     try:
         db = connection.get_session()
         email = data.get("email")
         if User.check_for_email(db, email=email):
             print(f"Password reset link for {email}: /reset-password?token=some_secure_token")
     except Exception as e:
-        print("ERROR REGISTER:\n", traceback.format_exc())
+        print("ERROR REGISTER:", traceback.format_exc())
     finally:
         db.close()
 
@@ -1028,7 +1028,7 @@ async def update_profile(request):
         Session.setSession(new_val=new_session, name_cookie="auth", response=response)
         return response
     except Exception as e:
-        print("ERROR UPDATE_PROFILE:\n", traceback.format_exc())
+        print("ERROR UPDATE_PROFILE:", traceback.format_exc())
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error updating profile", request)}, status_code=400)
     finally:
@@ -1062,7 +1062,7 @@ async def delete_account(request):
         response.delete_cookie("auth")
         return response
     except Exception as e:
-        print("ERROR DELETE ACCOUNT:\n", traceback.format_exc())
+        print("ERROR DELETE ACCOUNT:", traceback.format_exc())
         db.rollback()
         return JSONResponse({"success": False, "msg": translate_("Error deleting account", request)}, status_code=400)
     finally:
