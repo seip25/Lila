@@ -18,7 +18,7 @@ def _create_templates():
 
     for filename, content in templates.items():
         file_path = templates_dir / filename
-        file_path.write_text(content)
+        file_path.write_text(content,encoding="utf-8")
         print(f" Template created: {file_path}")
 
     print("\n Auth templates generated successfully")
@@ -87,24 +87,20 @@ from app.models.user import User
 from app.models.login_attempt import LoginAttempt
 from app.connections import connection
 from app.helpers.helpers import translate_
-from pydantic import BaseModel, EmailStr, constr, Field
+from pydantic import BaseModel, EmailStr,  Field
 import datetime
+
+class RegisterModel(BaseModel):
+    email: EmailStr
+    password: str
+    name: str = Field(..., min_length=2, max_length=50)
+    email: EmailStr
+    password: str= Field(...,min_length=8, max_length=20)
+    password_2: str =Field(...,min_length=8, max_length=20)
 
 class LoginModel(BaseModel):
     email: EmailStr
-    password: str
-
-class RegisterModel(BaseModel):
-    name: str = Field(..., min_length=2, max_length=50)
-    email: EmailStr
-    password: constr(min_length=8, max_length=20)
-    password_2: constr(min_length=8, max_length=20)
-
-    def validate_passwords(self, request):
-        if self.password != self.password_2:
-            msg = translate_("Passwords not match", request)
-            return JSONResponse({"success": False, "msg": msg}, status_code=400)
-        return None
+    password: str = Field(..., min_length=8, max_length=20)
 
 router = Router()
 
