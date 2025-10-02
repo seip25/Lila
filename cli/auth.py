@@ -9,6 +9,7 @@ app = typer.Typer()
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 def read_file(path):
+    path = os.path.join(project_root,path)
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -21,7 +22,7 @@ authenticated_template_content = read_file("cli/auth/templates/dashboard.html")
 profile_template_content = read_file("cli/auth/templates/profile.html")
 
 auth_file_content = read_file("cli/auth/routes/auth.py")
-dashboard_file_content = read_file("cli/auth/routes/dashboard.py")
+dashboard_file_content = read_file("cli/auth/routes/authenticated.py")
 
 user_model_content = read_file("cli/auth/models/user.py")
 auth_model_content = read_file("cli/auth/models/auth.py")
