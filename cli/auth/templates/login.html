@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/public/css/lila.css">
+</head>
+<body>
+    <main class="flex justify-center items-center    container">
+        <article class="w-mx-500-px">
+            <h3 class=" text-center mb-4">{{translate['login']}}</h3>
+
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" >Email</label>
+                    <input type="email" id="email" name="email" class="w-full" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" >{{translate['password']}}</label>
+                    <input type="password" id="password" name="password" class="w-full" required>
+                </div>
+                <div class="flex items-center justify-center mb-4">
+                    <a href="/forgot-password" class="underline">{{translate['forgot your password']}}</a>
+                </div>
+                <button type="submit" class="w-full">{{translate['login']}}</button>
+                 <div class="mt-4 text-center">
+                    <p> <a href="/register" class="underline">{{translate['create account']}}</a></p>
+                </div>
+                <p id="error-message" class="text-red-500 mt-2 text-center"></p>
+            </form>
+        </article>
+        
+    </main>
+    <footer>
+             <div class="container mx-auto px-4 flex justify-between items-center">
+        <a
+          href="/set-language/es"
+          class="text-secondary underline"
+        >
+          Español (Esp)
+        </a>
+        <a
+          href="/set-language/en"
+          class="text-secondary underline"
+        >
+          English (US)
+        </a>
+      </div>
+        </footer>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const errorMessage = document.getElementById('error-message');
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: JSON.stringify(Object.fromEntries(formData)),
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    window.location.replace('/dashboard');
+                } else {
+                    errorMessage.textContent = result.msg  || 'An unknown error occurred.';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Failed to connect to the server.';
+            }
+        });
+    </script>
+</body>
+</html>

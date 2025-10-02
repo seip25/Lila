@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{translate['Invalid or expired token']}}</title>
+    <link rel="stylesheet" href="/public/css/lila.css">
+</head>
+<body>
+    <main class="flex justify-center items-center container">
+        <article class="w-mx-500-px text-center">
+            <h3 class="text-red-500 mb-4">{{translate['Invalid or expired token']}}</h3>
+            <p>{{translate['Your password reset link is invalid or has expired.']}}</p>
+            <div class="mt-4">
+                <a href="/forgot-password" class="underline text-indigo-500">{{translate['Request new password reset link']}}</a>
+            </div>
+        </article>
+    </main>
+    <footer>
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="/set-language/es" class="text-secondary underline">Español (Esp)</a>
+            <a href="/set-language/en" class="text-secondary underline">English (US)</a>
+        </div>
+    </footer>
+</body>
+</html>

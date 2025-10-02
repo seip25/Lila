@@ -1,0 +1,52 @@
+'<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} </title>
+    <link rel="stylesheet" href="/public/css/lila.css"> 
+</head>
+<body >
+    <header class="shadow">
+    <nav class="container">
+        <h3>
+        <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
+        </h3>
+        <div class="hidden-sm flex items-center gap-4">
+            <a href="/dashboard" class="">{{translate['home']}}</a>
+            <a href="/profile">{{user.name}}</a>
+              <div class="dropdown">
+                <button class="fill dropdown-toggle">
+                    Menu
+                </button>
+                <div class="dropdown-content bottom-right">
+                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
+                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
+                </div>
+            </div>
+        </div>
+        <div class="visible-sm fiex items-center">
+            <div class="dropdown">
+                <button class="fill dropdown-toggle">
+                    Menu
+                </button>
+                <div class="dropdown-content bottom-right">
+                    <a href="/dashboard" class="dropdown-item">{{translate['home']}}</a>
+                    <a href="/profile" class="dropdown-item">{{user.name}}</a>
+                    <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+                    <a href="/set-language/en" class="dropdown-item">English (US)</a>
+                    <a href="/logout"  class="dropdown-item">{{translate['logout']}}</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+     </header>
+    <main class="container mt-4">
+        <article >
+        <h1>{{translate['Welcome']}}, {{user.name}}!</h1>
+        </article>
+    </main>
+   
+</body>
+</html>

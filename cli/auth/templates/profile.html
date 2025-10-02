@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}} -</title>
+    <link rel="stylesheet" href="/public/css/lila.css" />
+  </head>
+  <body>
+    <header class="shadow">
+      <nav class="container">
+        <h3>
+          <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
+        </h3>
+        <div class="hidden-sm flex items-center gap-4">
+          <a href="/dashboard" class="">{{translate['home']}}</a>
+          <a href="/profile">{{user.name}}</a>
+          <div class="dropdown">
+            <button class="fill dropdown-toggle">Menu</button>
+            <div class="dropdown-content bottom-right">
+              <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+              <a href="/set-language/en" class="dropdown-item">English (US)</a>
+              <a href="/logout" class="dropdown-item"
+                >{{translate['logout']}}</a
+              >
+            </div>
+          </div>
+        </div>
+        <div class="visible-sm fiex items-center">
+          <div class="dropdown">
+            <button class="fill dropdown-toggle">Menu</button>
+            <div class="dropdown-content bottom-right">
+              <a href="/dashboard" class="dropdown-item"
+                >{{translate['home']}}</a
+              >
+              <a href="/profile" class="dropdown-item">{{user.name}}</a>
+              <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+              <a href="/set-language/en" class="dropdown-item">English (US)</a>
+              <a href="/logout" class="dropdown-item"
+                >{{translate['logout']}}</a
+              >
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <main class="container mt-4">
+      <article>
+        <h1>{{translate['Profile']}}</h1>
+        <p><strong>{{translate['Name']}}:</strong> {{user.name}}</p>
+        <p><strong>Email:</strong> {{user.email}}</p>
+
+        <form id="update-profile-form" class="mt-4">
+          <div class="grid">
+            <div class="mb-4">
+              <label for="name">{{translate['name']}}</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="w-full"
+                required
+                value="{{user.name}}"
+              />
+            </div>
+            <div class="mb-4">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="w-full"
+                required
+                value="{{user.email}}"
+              />
+            </div>
+          </div>
+          <div class="grid">
+            <div class="mb-4">
+              <label for="password"
+                >{{translate['password']}} ({{translate['current']}})</label
+              >
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="w-full"
+                required
+              />
+            </div>
+            <div class="mb-4">
+              <label for="password_2">{{translate['confirm_password']}}</label>
+              <input
+                type="password"
+                id="password_2"
+                name="password_2"
+                class="w-full"
+                required
+              />
+            </div>
+          </div>
+          <div class="flex justify-end gap-4 mt-4">
+            <button type="submit" class=" ">{{translate['Save']}}</button>
+            <p id="message" class="mt-2 text-center"></p>
+          </div>
+        </form>
+
+        <footer class="mt-4">
+          <form id="delete-account-form">
+            <button type="button" class="fill" id="show-delete-password">
+              {{translate['Delete Account']}}
+            </button>
+            <div id="delete-password-div" style="display: none" class="mt-2">
+              <div class="grid">
+                <div>
+                  <label for="delete-password">{{translate['password']}}</label>
+                  <input
+                    type="password"
+                    id="delete-password"
+                    name="password"
+                    class="w-full"
+                    required
+                  />
+                </div>
+               <div></div>
+              </div>
+               <button type="submit" class="destructive  mt-2">
+                  {{translate['Delete Account']}}
+                </button>
+              <p id="delete-message" class="mt-2 text-center"></p>
+            </div>
+          </form>
+        </footer>
+      </article>
+    </main>
+    <script>
+      document
+        .getElementById("update-profile-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+          const message = document.getElementById("message");
+          try {
+            const response = await fetch("/profile", {
+              method: "POST",
+              body: JSON.stringify(Object.fromEntries(formData)),
+              headers: { "Content-Type": "application/json" },
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+              message.className = "text-green-500 mt-2 text-center";
+              message.textContent = result.msg;
+            } else {
+              message.className = "text-red-500 mt-2 text-center";
+              message.textContent = result.msg || "An error occurred.";
+            }
+          } catch (error) {
+            message.className = "text-red-500 mt-2 text-center";
+            message.textContent = "Failed to connect to the server.";
+          }
+        });
+
+      document
+        .getElementById("delete-account-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          if (
+            !confirm(
+              '{{translate["Are your sure you want to delete your account? This action cannot be undone."]}}'
+            )
+          ) {
+            return;
+          }
+          const password = document.getElementById("delete-password").value;
+          const message = document.getElementById("delete-message");
+          if (!password) {
+            message.className = "text-red-500 mt-2 text-center";
+            message.textContent =
+              '{{translate["password"]}} {{translate["is required"]}}';
+            return;
+          }
+          try {
+            const response = await fetch("/delete-account", {
+              method: "POST",
+              body: JSON.stringify({ password }),
+              headers: { "Content-Type": "application/json" },
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+              window.location.replace("/register");
+            } else {
+              message.className = "text-red-500 mt-2 text-center";
+              message.textContent = result.msg || "Failed to delete account.";
+            }
+          } catch (error) {
+            message.className = "text-red-500 mt-2 text-center";
+            message.textContent = "Failed to connect to the server.";
+          }
+        });
+
+        document.getElementById('show-delete-password').addEventListener('click', function(event) {
+            event.preventDefault();
+            const div = document.getElementById('delete-password-div');
+            if (div.style.display === 'none' || div.style.display === '') {
+                div.style.display = 'block';
+            } else {
+                div.style.display = 'none';
+            }
+        });
+    </script>
+  </body>
+</html>
