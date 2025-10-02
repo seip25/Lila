@@ -77,7 +77,6 @@ def _create_routes():
     replace_text = f'''# {marker}
 from app.routes.auth import auth_routes
 from app.routes.authenticated import authenticated_routes
-import itertools
 all_routes = list(itertools.chain(routes, api_routes, auth_routes,authenticated_routes))'''
 
     new_content = content.replace(f"# {marker}", replace_text)

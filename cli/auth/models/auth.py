@@ -108,3 +108,17 @@ class PasswordResetToken(Base):
         if datetime.datetime.utcnow() > reset_token.expires_at:
             return False
         return True
+    @classmethod
+    def get_all(cls,select: str = "id,email,expires_at,created_at", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            items = [
+                {col: getattr(row, col) for col in column_names}
+                for row in result
+            ]
+            return items
+        finally:
+            db.close()
