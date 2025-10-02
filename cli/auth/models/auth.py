@@ -20,8 +20,15 @@ class LoginAttempt(Base):
     def get_all(cls,select: str = "id,email,attempts,locked_at", limit: int = 1000):
         db = connection.get_session()
         try:
-            columns_to_load = [c.strip() for c in select.split(',')]
-            return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            items = [
+                {col: getattr(row, col) for col in column_names}
+                for row in result
+            ]
+            return items
+
         finally:
             db.close()
 
@@ -39,8 +46,14 @@ class LoginAttemptHistory(Base):
     def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
         db = connection.get_session()
         try:
-            columns_to_load = [c.strip() for c in select.split(',')]
-            return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            items = [
+                {col: getattr(row, col) for col in column_names}
+                for row in result
+            ]
+            return items
         finally:
             db.close()
 
@@ -59,8 +72,14 @@ class LoginSuccessHistory(Base):
     def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
         db = connection.get_session()
         try:
-            columns_to_load = [c.strip() for c in select.split(',')]
-            return db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            items = [
+                {col: getattr(row, col) for col in column_names}
+                for row in result
+            ]
+            return items
         finally:
             db.close()
 
@@ -83,7 +102,7 @@ class PasswordResetToken(Base):
 
     @classmethod
     def validate_token(cls, db, email, token):
-        reset_token = db.query(cls).filter_by(email=email, token=token).first()
+        reset_token = db.query(cls).filter_by(email=email, token=token).order_by(cls.created_at.desc()).first()
         if not reset_token:
             return False
         if datetime.datetime.utcnow() > reset_token.expires_at:

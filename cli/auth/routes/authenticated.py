@@ -33,14 +33,14 @@ class DeleteAccountModel(BaseModel):
 async def dashboard_page(request):
     session_data = Session.unsign("auth", request)
     context = {"user": session_data} 
-    return render(request=request, template="dashboard/dashboard", context=context)
+    return render(request=request, template="authenticated/dashboard", context=context)
 
 @router.get("/profile")
 @login_required
 async def profile_page(request):
     session_data = Session.unsign("auth", request)
     context = {"user": session_data}  
-    return render(request=request, template="dashboard/profile", context=context)
+    return render(request=request, template="authenticated/profile", context=context)
 
 @router.get('/logout')
 async def logout_page(request):

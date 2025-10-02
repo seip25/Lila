@@ -46,7 +46,7 @@ def _create_templates():
 
     print("\n Auth templates generated successfully")
 
-    template_dashboard_dir = Path("templates/html/dashboard")
+    template_dashboard_dir = Path("templates/html/authenticated")
     template_dashboard_dir.mkdir(parents=True, exist_ok=True)
     templates_dashboard = {
         "dashboard.html": authenticated_template_content,

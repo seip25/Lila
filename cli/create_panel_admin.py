@@ -78,7 +78,7 @@ def update_main_routes():
 from app.routes.admin import Admin
 from app.models.user import User
 admin_routes = Admin(models=[User])
-all_routes = list(itertools.chain(routes, api_routes, admin_routes))
+all_routes = list(itertools.chain(all_routes, admin_routes))
     """
 
     if not os.path.exists(main_file):

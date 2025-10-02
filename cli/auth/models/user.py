@@ -24,8 +24,16 @@ class User(Base):
     def get_all(cls,select: str = "id,email,name", limit: int = 1000):
         db = connection.get_session()
         try:
-            columns_to_load = [c.strip() for c in select.split(',')]
-            return db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result=db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+            items = [
+                {col: getattr(row, col) for col in column_names}
+                for row in result
+            ]
+            return items
+           
+         
         finally:
             db.close()
 

@@ -11,6 +11,7 @@ from pydantic import BaseModel, EmailStr,  Field,ValidationError
 import datetime
 from app.middlewares.middlewares import session_active 
 import traceback
+from app.config import DEBUG,HOST,PORT
 
 class RegisterModel(BaseModel):
     email: EmailStr
@@ -162,11 +163,13 @@ async def forgot_password(request):
         if User.check_for_email(db, email=email):
             
             token =generate_token_value()
-        
-            print(f"Password reset link for {email}: /reset-password?token={token}")
-        
-            return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
-        
+            create_token= PasswordResetToken.create_token(db,email,token)
+            if create_token:
+                if DEBUG:
+                    link= f"http://{HOST}:{PORT}/change-password?token={token}&email={email}"  
+                    print(f"Password reset link for {email}: {link}")
+                return JSONResponse({"msg": translate_("If an account with that email exists, a password reset link has been sent.", request)})
+             
         return JSONResponse({"success":False,"msg": translate_("Operation failed.", request)})
     except Exception as e:
         print("ERROR REGISTER:", traceback.format_exc())
