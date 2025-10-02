@@ -88,7 +88,7 @@ all_routes = list(itertools.chain(routes, api_routes, auth_routes,authenticated_
     typer.echo("Auth routes added to main.py.")
 
 def _create_dashboard_file():
-    auth_file_path = os.path.join(project_root, "app/routes/dashboard.py")
+    auth_file_path = os.path.join(project_root, "app/routes/authenticated.py")
     with open(auth_file_path, "w", encoding="utf-8") as file:
         file.write(dashboard_file_content)
     typer.echo("Dashboard file created/updated successfully.")

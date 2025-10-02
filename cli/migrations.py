@@ -4,7 +4,7 @@ from core.database import Base #Import Base  for migrations in models
 from app.models.user import User #Import models for migrations in models
 import typer
 import asyncio
-from app.models.login_attempt import LoginAttempt 
+
 # auth_marker
 
 app = typer.Typer()
