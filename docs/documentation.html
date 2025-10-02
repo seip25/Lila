@@ -108,6 +108,7 @@
                     <li><a href="#middlewares-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Middlewares</a></li>
                     <li><a href="#connections-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Connections</a></li>
                     <li><a href="#migrations-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Migrations</a></li>
+                    <li><a href="#auth-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Auth Cli </a></li>
                     <li><a href="#react-seo" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">React</a></li>
                     <li><a href="#rest_api_crud-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">API Rest CRUD</a></li>
                     <li><a href="#admin-panel-eng" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Admin Panel</a></li>
@@ -2558,7 +2559,58 @@ python -m cli.migrations --refresh
                             </div>
                         </article>
                         <hr />
+                        <article id="auth-eng" class="mt-8 mb-8">
+  <h1 class="text-2xl font-semibold">Auth Scaffold</h1>
+  <p>
+    In Lila Framework, you can now generate all authentication routes, templates, models, and
+    middlewares automatically using a single command. This helps you quickly set up login,
+    registration, password reset, and dashboard functionality without manually creating files.
+  </p>
+  <br />
 
+  <h2 class="text-xl">Features</h2>
+  <ul class="list-disc ml-6">
+    <li>Generates routes: <code>/login</code>, <code>/register</code>, <code>/forgot-password</code>,
+      <code>/invalid-token</code>, <code>/change-password</code></li>
+    <li>Creates the <code>dashboard</code> and <code>profile</code> pages</li>
+    <li>Includes middlewares, sessions, and validations using <strong>Pydantic</strong></li>
+    <li>Updates <code>main.py</code> and <code>cli/migrations.py</code> automatically</li>
+  </ul>
+
+  <h2 class="text-xl mt-4">Running Auth Scaffold</h2>
+  <p>Use the following commands in your terminal:</p>
+
+  <div class="code-editor mt-4 mb-4">
+    <div class="editor-header">
+      <span class="editor-title">Terminal Command</span>
+      <div class="editor-controls">
+        <div class="control close"></div>
+        <div class="control minimize"></div>
+        <div class="control maximize"></div>
+      </div>
+    </div>
+    <div class="editor-content">
+      <pre><code class="language-bash">
+# Run auth scaffold to generate routes, templates, models, and middlewares
+python -m cli.auth
+      </code></pre>
+    </div>
+  </div>
+
+  <h2 class="text-xl mt-4">Generated Files & Structure</h2>
+  <p>The scaffold will create/update:</p>
+  <ul class="list-disc ml-6">
+    <li><strong>Templates:</strong> login, register, forgot-password, change-password</li>
+    <li><strong>Models:</strong> updates <code>User</code> and creates <code>AuthModel</code></li>
+    <li><strong>Routes & Functions:</strong> handlers for each template/action</li>
+    <li><strong>Middlewares:</strong> session and validation handling</li>
+  </ul>
+
+  
+</article>
+
+
+                        <hr />
                         <article id="react-seo">
                             <h1 class="text-2xl font-semibold">React Integration with Lila</h1>
 
