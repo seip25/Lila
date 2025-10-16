@@ -21,6 +21,7 @@ jinja_env = Environment(
         remove_all_empty_space=True,
         reduce_boolean_attributes=True,
     ),
+    auto_reload=False,
     autoescape=True 
 )
 
