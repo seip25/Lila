@@ -46,7 +46,7 @@ class App(Starlette):
         middleware_compress = (
             CompressMiddleware if compress_type == "zstd" else GZipMiddleware
         )
-        print(middleware_compress)
+        
         middleware.append(Middleware(middleware_compress))
 
         if trusted_hosts:
