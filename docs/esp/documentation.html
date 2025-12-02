@@ -1000,6 +1000,132 @@ App.mount('app'); // id of the mounting div
                                     </div>
                                 </div>
                             </section>
+
+                            <section  >
+  <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">
+    Optimización de Recursos en Producción (Imágenes y CSS)
+  </h2>
+
+  <!-- OPTIMIZACIÓN DE IMÁGENES -->
+  <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-8 mb-4">
+    Imágenes Optimizadas con Jinja2
+  </h3>
+
+  <p class="text-gray-600 dark:text-gray-300 mb-6">
+    Lila optimiza automáticamente todas las imágenes para mejorar el rendimiento
+    y el SEO. Al usar la función <code>image()</code> en tus templates, el sistema
+    convierte las imágenes a formato <strong>WebP</strong>, las redimensiona si
+    es necesario y las comprime sin perder calidad visual.
+  </p>
+
+  <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
+    Uso en HTML (Jinja2)
+  </h4>
+
+  <div class="code-editor">
+    <div class="editor-header"><span>HTML</span></div>
+    <div class="editor-content">
+      <pre><code class="language-html">
+<img src="{{ image('img/lila.png') }}" alt="Lila" width="100" height="100" />
+      </code></pre>
+    </div>
+  </div>
+
+  <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
+    Qué sucede automáticamente
+  </h4>
+
+  <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
+    <li>La imagen se convierte a <strong>WebP</strong>.</li>
+    <li>Si supera los 1920px de ancho, se redimensiona.</li>
+    <li>Se comprime con calidad optimizada.</li>
+    <li>Se guarda en caché para futuros accesos.</li>
+  </ul>
+
+  <!-- OPTIMIZACIÓN DE CSS -->
+  <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4">
+    Minificación Automática de CSS
+  </h3>
+
+  <p class="text-gray-600 dark:text-gray-300 mb-6">
+    La función <code>public()</code> detecta automáticamente si existe una versión
+    minificada de tu archivo CSS. Si no existe, la genera automáticamente para
+    mejorar la velocidad de carga y el SEO.
+  </p>
+
+  <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
+    Uso en HTML (Jinja2)
+  </h4>
+
+  <div class="code-editor">
+    <div class="editor-header"><span>HTML</span></div>
+    <div class="editor-content">
+      <pre><code class="language-html">
+<link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+      </code></pre>
+    </div>
+  </div>
+
+  <h4 class="text-xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
+    Comportamiento Automático
+  </h4>
+
+  <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
+    <li>Si existe <code>lila.min.css</code>, se usa automáticamente.</li>
+    <li>Si no existe, se genera en tiempo real.</li>
+    <li>Los archivos minificados cargan más rápido.</li>
+  </ul>
+
+  <!-- CONTEXTO BASE -->
+  <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4">
+    Inyección de Contexto Base
+  </h3>
+
+  <p class="text-gray-600 dark:text-gray-300 mb-6">
+    Todo el sistema de optimización funciona gracias al contexto base que se
+    inyecta automáticamente a los templates Jinja2:
+  </p>
+
+  <div class="code-editor">
+    <div class="editor-header"><span>Python</span></div>
+    <div class="editor-content">
+      <pre><code class="language-python">
+def get_base_context(request, files_translate=[], lang_default=None):
+    context = {
+        "title": TITLE_PROJECT,
+        "version": VERSION_PROJECT,
+        "lang": lang_default if lang_default else lang(request),
+        "translate": t("translations", request, lang_default=lang_default),
+        "image": image,
+        "static": public,
+        "public": public
+    }
+
+    for file_name in files_translate:
+        context["translate"].update(
+            t(file_name, request, lang_default=lang_default)
+        )
+
+    return context
+      </code></pre>
+    </div>
+  </div>
+
+  <!-- BENEFICIOS -->
+  <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mt-10 mb-4">
+    Beneficios de Rendimiento y SEO
+  </h3>
+
+  <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
+    <li>✅ Carga de páginas más rápida</li>
+    <li>✅ Reducción de peso de archivos</li>
+    <li>✅ Mejor puntaje en Google Lighthouse</li>
+    <li>✅ Imágenes automáticas en WebP</li>
+    <li>✅ Optimización SEO transparente</li>
+    <li>✅ Sin configuración manual</li>
+  </ul>
+</section>
+
                         </article>
 
                         <hr class="my-10 border-gray-300 dark:border-gray-700" />
