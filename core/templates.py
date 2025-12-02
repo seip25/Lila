@@ -12,6 +12,10 @@ import markdown
 import os
 import traceback
 import sys
+from PIL import Image
+from pathlib import Path
+import rjsmin 
+import rcssmin 
 
 jinja_env = Environment(
     loader=minify_loader(
@@ -35,11 +39,14 @@ def get_base_context(
         "title": TITLE_PROJECT,
         "version": VERSION_PROJECT,
         "lang": lang_default if lang_default else lang(request),
-        "translate": t("translations", request, lang_default=lang_default),
+        "translate": t("translations", request, lang_default=lang_default), 
+        "image" :  image,
+        "static" : public,
+        "public" : public
     }
 
     for file_name in files_translate:
-        context["translate"].update(t(file_name, request, lang_default=lang_default))
+        context["translate"].update(t(file_name, request, lang_default=lang_default)) 
     return context
 
 
@@ -88,7 +95,15 @@ def render(
         error_details = error_details if DEBUG else ""
         msg = "Error rendering template" if DEBUG else "General error"
         return JSONResponse(
-            {"success": False, "message": msg, "error_details": error_details},
+            {"success": False, "message": msg,
+             "error_details": error_details,
+             "file": error_info['file'],
+             "line": error_info['line'],
+             "function": error_info['function'],
+             "error_type": error_info['error_type'],
+             "error_message": error_info['error_message'],
+             "traceback": error_info['traceback']
+             },
             status_code=500,
         )
  
@@ -138,3 +153,50 @@ def renderMarkdown(
     }
 
     return markdown_templates.TemplateResponse("layout.html", context)
+
+
+def image(file_path: str) -> str:
+    extension = file_path.split(".")[-1].lower()
+    file_path_webp = file_path.replace(f".{extension}", ".webp")
+    if (os.path.exists(os.path.join("static",file_path_webp))==False):
+        optimize_image(os.path.join("static",file_path))
+    return f"/public/{file_path_webp}"
+
+
+def optimize_image(file_path,  max_width=1920, quality=75) -> Path:
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+    
+    img = Image.open(file_path)
+     
+
+    if img.width > max_width:
+        ratio = max_width / float(img.width)
+        new_height = int(img.height * ratio)
+        img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
+    optimized_filename = f"{file_path.stem}.webp"
+    optimized_path = file_path.parent / optimized_filename
+    img.save(optimized_path, format="WEBP", optimize=True, quality=quality)
+
+    return optimized_path
+
+def public(file_path: str) -> str:
+    new_file_path = file_path
+    extension = file_path.split(".")[-1].lower()
+    if (extension in [ "css","js"]):
+        exists_min= os.path.exists(os.path.join("static",file_path.replace(f".{extension}", ".min.{extension}")))
+        if (exists_min==False):
+            with open(os.path.join("static",file_path), "r", encoding="utf-8") as f:
+                content = f.read()
+            if (extension == "css"):
+                minified_content = rcssmin.cssmin(content)
+            else:
+                minified_content = rjsmin.jsmin(content)
+            with open(os.path.join("static",file_path.replace(f".{extension}", f".min.{extension}")), "w", encoding="utf-8") as f:
+                f.write(minified_content)
+            new_file_path = file_path.replace(f".{extension}", f".min.{extension}")
+    if(extension in ["png", "jpg", "jpeg", "gif", "webp"]):
+        optimize_image(os.path.join("static",file_path))
+        new_file_path = file_path.replace(f".{extension}", ".webp")
+    return f"/public/{new_file_path}"
