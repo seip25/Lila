@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded',()=>{
-    Animations.easeOutBack('div,p,h1,h3,h4,h5,h2,article, i', 300);
+  //  Animations.easeOutBack('div,p,h1,h3,h4,h5,h2,article, i', 300);
 })
 
 const Animations = {
