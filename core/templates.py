@@ -1,7 +1,7 @@
 from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
-from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG
+from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT
 from app.helpers.helpers import theme, lang, translate as t
 from core.request import Request
 from core.responses import HTMLResponse, JSONResponse
@@ -25,8 +25,9 @@ jinja_env = Environment(
         remove_all_empty_space=True,
         reduce_boolean_attributes=True,
     ),
-    auto_reload=False,
-    autoescape=True 
+    auto_reload=DEBUG, 
+    autoescape=True,
+    
 )
 
 templates = Jinja2Templates( env=jinja_env)
@@ -42,7 +43,10 @@ def get_base_context(
         "translate": t("translations", request, lang_default=lang_default), 
         "image" :  image,
         "static" : public,
-        "public" : public
+        "public" : public,
+        "description" : DESCRIPTION_DEFAULT,
+        "keywords" : KEYWORDS_DEFAULT,
+        "author" : AUTHOR_DEFAULT,
     }
 
     for file_name in files_translate:
