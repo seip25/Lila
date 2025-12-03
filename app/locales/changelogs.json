@@ -1,4 +1,4 @@
- {
+{
   "changelogs": {
     "es": "Puedes ver aquí las novedades y cambios que hemos realizado en Lila Framework",
     "en": "Changelogs and new features that we have done in Lila Framework"
@@ -59,13 +59,13 @@
     "es": "Hemos mejorado el cli para minify , con python -m cli.minify ahora minifca archivos .js y .css de una forma mejor..",
     "en": "We've improved the CLI for minifying. Python -m cli.minify now minifies .js and .css files more efficiently.HTML is automatically compressed between requests with starlette-compress, thanks to the middleware in main.py.HTML is now compressed with Jinja2 for better SEO and, above all, faster browser speed."
   },
-  "Compress HTML":{
+  "Compress HTML": {
     "es": "Compresión de HTML",
     "en": "Compress HTML"
   },
-  "now always compress response html  and always and minifyin":{
-    "es":"Ahora se comprime siempre la respuesta(html) siempre y minificando el archivo .html.",
-    "en":"now always compress response html  and always and minifying."
+  "now always compress response html  and always and minifyin": {
+    "es": "Ahora se comprime siempre la respuesta(html) siempre y minificando el archivo .html.",
+    "en": "now always compress response html  and always and minifying."
   },
   "asset_optimization": {
     "es": "Optimización de Assets en Producción (Imágenes y CSS)",
@@ -102,5 +102,21 @@
   "public_function_desc": {
     "es": "Cuando usas public() con archivos CSS o JS, Lila verifica si existe una versión minificada (.min.css o .min.js). Si no existe, la crea automáticamente usando rcssmin y rjsmin, reduciendo el tamaño de los archivos y mejorando la velocidad de carga.",
     "en": "When you use public() with CSS or JS files, Lila checks if a minified version (.min.css or .min.js) exists. If not, it automatically creates one using rcssmin and rjsmin, reducing file size and improving load speed."
+  },
+  "cli_model": {
+    "es": "CLI para generar modelos",
+    "en": "CLI for generating models"
+  },
+  "description_cli_model": {
+    "es": "Permite generar modelos de datos con solo un comando ,ejemplo : python -m cli.model create --name Product --table products",
+    "en": "Allows generating data models with a single command, example: python -m cli.model create --name Product --table products"
+  },
+  "list_models": {
+    "es": "Lista de modelos,ejemplo : python -m cli.model list-models",
+    "en": "List of models, example: python -m cli.model list-models"
+  },
+  "usage_example_cli_model": {
+    "es": "Ejemplo de uso  ",
+    "en": "Usage Example  "
   }
 }
