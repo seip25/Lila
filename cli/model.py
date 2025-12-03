@@ -230,7 +230,7 @@ def create(
         table_name = table
     
     # Create models directory if it doesn't exist
-    models_dir = Path("/Users/seip/Downloads/Lila-main/app/models")
+    models_dir = Path("app/models")
     models_dir.mkdir(parents=True, exist_ok=True)
     
     # Generate filename (snake_case)
@@ -267,7 +267,7 @@ def create(
 @app.command()
 def list_models():
     """List all existing models in app/models/"""
-    models_dir = Path("/Users/seip/Downloads/Lila-main/app/models")
+    models_dir = Path("app/models")
     
     if not models_dir.exists():
         typer.echo("❌ Models directory not found!")
