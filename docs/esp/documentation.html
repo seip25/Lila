@@ -1969,57 +1969,57 @@ El modelo también incluye comentarios con ejemplos de todos los tipos de column
 </div>
 </div>
 <div class="editor-content">
-<pre><code class="language-python">de sqlalchemy importar Columna, Entero, Cadena, Marca de tiempo, función
-de sqlalchemy.orm importar Sesión, solo carga
-de core.database importar Base
-de app.connections importar conexión
+<pre><code class="language-python">from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from sqlalchemy.orm import Session, load_only
+from core.database import Base
+from app.connections import connection
 
-clase Producto(Base):
-__tablename__ = "productos"
+class Product(Base):
+    __tablename__ = "products"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(length=100), nullable=False)
+    active = Column(Integer, nullable=False, default=1)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-id = Columna(Entero, clave_principal=Verdadero, autoincremento=Verdadero)
-nombre = Columna(Cadena(longitud=100), (con valores nulos = Falso)
-activo = Columna(Entero, con valores nulos = Falso, valor predeterminado = 1)
-creado_en = Columna(TIMESTAMP, con valores nulos = Falso, valor predeterminado_del_servidor = func.now())
+    @classmethod
+    def get_all(cls, select: str = "id,name", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result = db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+            return [{col: getattr(row, col) for col in column_names} for row in result]
+        finally:
+            db.close()
 
-@classmethod
-def obtener_todo(cls, seleccionar: str = "id,nombre", límite: int = 1000):
-db = conexión.obtener_sesión()
-prueba:
-nombres_columna = [c.strip() para c en select.split(',')]
-columnas_a_cargar = [getattr(cls, c) para c en nombres_columna]
-resultado = db.consulta(cls).options(load_only(*columnas_a_cargar)).filter(cls.activo == 1).limit(limit).all()
-devuelve [{col: getattr(fila, col) para col en nombres_columna} para fila en resultado]
-finalmente:
-db.close()
+    @classmethod
+    def get_by_id(cls, db: Session, id: int):
+        return db.query(cls).filter(cls.id == id, cls.active == 1).first()
 
-@classmethod
-def get_by_id(cls, db: Sesión, id: int):
-devuelve db.query(cls).filter(cls.id == id, cls.active == 1).first()
+    @classmethod
+    def insert(cls, db: Session, params: dict) -&gt; 'Product':
+        record = cls(name=params.get("name"), active=params.get("active", 1))
+        db.add(record)
+        return record
 
-@classmethod
-def insert(cls, db: Sesión, parámetros: dict) -> 'Producto':
-registro = cls(nombre=parámetros.get("nombre"), activo=parámetros.get("activo", 1))
-db.add(registro)
-devuelve registro
+    @classmethod
+    def update(cls, db: Session, id: int, params: dict) -&gt; bool:
+        record = cls.get_by_id(db, id)
+        if record:
+            for key, value in params.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+            return True
+        return False
 
-@classmethod
-def update(cls, db: Sesión, id: int, parámetros: dict) -> bool:
-registro = cls.get_by_id(db, id)
-si registro:
-para clave, valor en params.items():
-si hasattr(registro, clave):
-setattr(registro, clave, valor)
-devuelve Verdadero
-devuelve Falso
-
-@classmethod
-def delete(cls, db: Sesión, id: int) -&gt; bool:
-registro = cls.get_by_id(db, id)
-si registro:
-registro.active = 0
-devuelve Verdadero
-devuelve Falso</code></pre>
+    @classmethod
+    def delete(cls, db: Session, id: int) -&gt; bool:
+        record = cls.get_by_id(db, id)
+        if record:
+            record.active = 0
+            return True
+        return False</code></pre>
 </div>
 </div>
 
