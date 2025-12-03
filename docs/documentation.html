@@ -1950,98 +1950,168 @@ all_translations = translate(
                                     </code></pre>
                                 </div>
                             </div>
+                              <article id="cli-model-generator-eng" class="mt-8 mb-8">
+        <h1>CLI Model Generator</h1>
+        <h5>Automatically generate SQLAlchemy model skeletons to speed up your development workflow.</h5>
+        <p>
+            The CLI Model Generator is a powerful command-line tool that creates complete SQLAlchemy model templates
+            with CRUD operations, ORM methods, and raw SQL examples. It saves time by providing a consistent structure
+            for all your models.
+        </p>
+
+        <h2>Available Commands</h2>
+        
+        <h5>Create a New Model</h5>
+        <div class="code-editor mt-4 mb-4">
+            <div class="editor-header">
+                <span class="editor-title">Terminal</span>
+                <div class="editor-controls">
+                    <div class="control close"></div>
+                    <div class="control minimize"></div>
+                    <div class="control maximize"></div>
+                </div>
+            </div>
+            <div class="editor-content">
+                <pre><code class="language-bash">python -m cli.model create --name ModelName
+# or with custom table name
+python -m cli.model create --name Product --table products</code></pre>
+            </div>
+        </div>
+
+        <h5>List All Models</h5>
+        <div class="code-editor mt-4 mb-4">
+            <div class="editor-header">
+                <span class="editor-title">Terminal</span>
+                <div class="editor-controls">
+                    <div class="control close"></div>
+                    <div class="control minimize"></div>
+                    <div class="control maximize"></div>
+                </div>
+            </div>
+            <div class="editor-content">
+                <pre><code class="language-bash">python -m cli.model list-models</code></pre>
+            </div>
+        </div>
+
+        <h2>Generated Model Structure</h2>
+        <p>
+            Each generated model includes basic columns (id, name, active, created_at) and complete CRUD methods.
+            The model also includes comments with examples of all available column types.
+        </p>
+
+        <div class="code-editor mt-4 mb-4">
+            <div class="editor-header">
+                <span class="editor-title">app/models/product.py</span>
+                <div class="editor-controls">
+                    <div class="control close"></div>
+                    <div class="control minimize"></div>
+                    <div class="control maximize"></div>
+                </div>
+            </div>
+            <div class="editor-content">
+                <pre><code class="language-python">from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from sqlalchemy.orm import Session, load_only
+from core.database import Base
+from app.connections import connection
+
+class Product(Base):
+    __tablename__ = "products"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(length=100), nullable=False)
+    active = Column(Integer, nullable=False, default=1)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    @classmethod
+    def get_all(cls, select: str = "id,name", limit: int = 1000):
+        db = connection.get_session()
+        try:
+            column_names = [c.strip() for c in select.split(',')]
+            columns_to_load = [getattr(cls, c) for c in column_names]
+            result = db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
+            return [{col: getattr(row, col) for col in column_names} for row in result]
+        finally:
+            db.close()
+
+    @classmethod
+    def get_by_id(cls, db: Session, id: int):
+        return db.query(cls).filter(cls.id == id, cls.active == 1).first()
+
+    @classmethod
+    def insert(cls, db: Session, params: dict) -&gt; 'Product':
+        record = cls(name=params.get("name"), active=params.get("active", 1))
+        db.add(record)
+        return record
+
+    @classmethod
+    def update(cls, db: Session, id: int, params: dict) -&gt; bool:
+        record = cls.get_by_id(db, id)
+        if record:
+            for key, value in params.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+            return True
+        return False
+
+    @classmethod
+    def delete(cls, db: Session, id: int) -&gt; bool:
+        record = cls.get_by_id(db, id)
+        if record:
+            record.active = 0
+            return True
+        return False</code></pre>
+            </div>
+        </div>
+
+        <h2>Usage Example</h2>
+        <div class="code-editor mt-4 mb-4">
+            <div class="editor-header">
+                <span class="editor-title">Example Usage</span>
+                <div class="editor-controls">
+                    <div class="control close"></div>
+                    <div class="control minimize"></div>
+                    <div class="control maximize"></div>
+                </div>
+            </div>
+            <div class="editor-content">
+                <pre><code class="language-python"># Get all products
+products = Product.get_all(select="id,name,price", limit=50)
+
+# Get product by ID
+db = connection.get_session()
+product = Product.get_by_id(db, 1)
+
+# Insert new product
+new_product = Product.insert(db, {"name": "Laptop", "price": 999.99})
+db.commit()
+
+# Update product
+Product.update(db, 1, {"name": "Gaming Laptop"})
+db.commit()
+
+# Soft delete
+Product.delete(db, 1)
+db.commit()
+db.close()</code></pre>
+            </div>
+        </div>
+
+        <h2>Complete Workflow</h2>
+        <ol>
+            <li>Create the model: <code>python -m cli.model create --name Product</code></li>
+            <li>Edit <code>app/models/product.py</code> to add custom columns</li>
+            <li>Import the model in <code>cli/migrations.py</code>: <code>from app.models.product import Product</code></li>
+            <li>Run migrations: <code>python -m cli.migrations migrate</code></li>
+        </ol>
+
+        <br>
+      
+    </article>
                         </article>
                         <hr />
 
 
-                        <article id="models-eng" class="mt-8 mb-8">
-                            <h1 class="text-2xl font-semibold">Models (SQLAlchemy)</h1>
-                            <h5 class="text-2xl font-semibold">Models are used to define the structure of data in
-                                the application.
-                            </h5>
-                            <p>
-                                <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy</a> as the default ORM
-                                for
-                                database management.
-                                SQLAlchemy allows creating database models,
-                                executing queries, and handling migrations
-                                efficiently.
-                            </p>
-
-                            <h2 class="text-xl">Using Models </h2>
-                            <p>
-                                The `Base` class, imported from `lila.core.database`, serves as the foundation for
-                                all models .
-                                Models inherit from `Base` to define database tables with SQLAlchemy.
-                            </p>
-
-                            <h2 class="text-xl">Example: User Model</h2>
-                            This example demonstrates how to create a `User` model using SQLAlchemy.
-                            The model defines a `users` table with columns such as `id`, `name`, `email`, `password`,
-                            `token`,
-                            `active`, and `created_at`.
-                            </h5>
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">app/models/user.py</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
-                                </div>
-                                <div class="editor-content">
-                                    <pre>
-
-        <code class="language-python">
-from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
-from lila.core.database import Base
-from app.connections import connection 
-
-class User(Base):
-    __tablename__='users'
-    id = Column(Integer, primary_key=True,autoincrement=True)
-    name=Column( String(length=50), nullable=False)
-    email=Column( String(length=50), unique=True)
-    password=Column(String(length=150), nullable=False)
-    token=Column(String(length=150), nullable=False)
-    active=Column( Integer, nullable=False,default=1)
-    created_at=Column( TIMESTAMP)
-
-#Example of how to use SQLAlchemy to make queries to the database
-    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
-        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        result = connection.query(query=query,return_rows=True)#Return rows 
-        return result 
-
-#Example of how to use SQLAlchemy to make queries to the database
-    def get_by_id(id: int, select="id,email,name") -> dict:
-        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
-        params = {"id": id}
-        row = connection.query(query=query, params=params,return_row=True)#Retrurn row
-        return row
-    
-    #Example using ORM abstraction in SQLAlchemy
-    @classmethod
-    def get_all_orm(cls, db: Session, limit: int = 1000):
-        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
-        return result
-    
-    
-#Example of how to use the class to make queries to the database
-users = User.get_all()
-user = User.get_by_id(1)
-                    </code>
-                    </pre>
-                                </div>
-                            </div>
-                            <br />
-                            <p>
-                                For details on SQLAlchemy, visit the official documentation:
-                                <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy Documentation</a>.
-                            </p>
-
-                        </article>
+                        me
                         <hr />
 
                         <article id="middlewares-eng" class="mt-8 mb-8">
