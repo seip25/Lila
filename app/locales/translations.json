@@ -1,4 +1,8 @@
 {
+  "A_modern_Starlette": {
+    "es": "Un Framework moderno, rápido y elegante construido sobre Starlette",
+    "en": "A modern, fast, and elegant web framework built on Starlette"
+  },
   "Send": {
     "es": "Enviar",
     "en": "Send"
