@@ -66,5 +66,41 @@
   "now always compress response html  and always and minifyin":{
     "es":"Ahora se comprime siempre la respuesta(html) siempre y minificando el archivo .html.",
     "en":"now always compress response html  and always and minifying."
+  },
+  "asset_optimization": {
+    "es": "Optimización de Assets en Producción (Imágenes y CSS)",
+    "en": "Asset Optimization in Production (Images & CSS)"
+  },
+  "asset_optimization_desc": {
+    "es": "Lila ahora optimiza automáticamente tus imágenes y archivos CSS para mejorar el rendimiento y SEO de tu aplicación.",
+    "en": "Lila now automatically optimizes your images and CSS files to improve performance and SEO of your application."
+  },
+  "optimized_images": {
+    "es": "Imágenes Optimizadas con Jinja2",
+    "en": "Optimized Images with Jinja2"
+  },
+  "optimized_images_desc": {
+    "es": "Lila optimiza automáticamente tus imágenes para un mejor rendimiento y SEO. Al usar la función image() en tus templates, el sistema convierte las imágenes al formato WebP, las redimensiona si es necesario y las comprime sin perder calidad visual.",
+    "en": "Lila automatically optimizes your images for better performance and SEO. When using the image() function in your templates, the system converts images to WebP format, resizes them if necessary, and compresses them without losing visual quality."
+  },
+  "automatic_css_minification": {
+    "es": "Minificación Automática de CSS",
+    "en": "Automatic CSS Minification"
+  },
+  "automatic_css_minification_desc": {
+    "es": "La función public() detecta automáticamente si existe una versión minificada de tu archivo CSS. Si no existe, el sistema la genera automáticamente, mejorando los tiempos de carga y el rendimiento SEO.",
+    "en": "The public() function automatically detects whether a minified version of your CSS file exists. If it does not, the system generates it automatically, improving load times and SEO performance."
+  },
+  "usage_example": {
+    "es": "Ejemplo de uso en HTML (Jinja2)",
+    "en": "Usage Example in HTML (Jinja2)"
+  },
+  "image_function_desc": {
+    "es": "La función image() convierte automáticamente las imágenes a WebP y las optimiza. La función public() minifica automáticamente archivos CSS y JS si no existe una versión .min.",
+    "en": "The image() function automatically converts images to WebP and optimizes them. The public() function automatically minifies CSS and JS files if a .min version doesn't exist."
+  },
+  "public_function_desc": {
+    "es": "Cuando usas public() con archivos CSS o JS, Lila verifica si existe una versión minificada (.min.css o .min.js). Si no existe, la crea automáticamente usando rcssmin y rjsmin, reduciendo el tamaño de los archivos y mejorando la velocidad de carga.",
+    "en": "When you use public() with CSS or JS files, Lila checks if a minified version (.min.css or .min.js) exists. If not, it automatically creates one using rcssmin and rjsmin, reducing file size and improving load speed."
   }
 }
