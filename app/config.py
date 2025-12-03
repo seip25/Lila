@@ -26,6 +26,9 @@ VERSION_PROJECT = 1
 DESCRIPTION_PROJECT = ""
 THEME_DEFAULT = "blue"
 LANG_DEFAULT = "en"
+DESCRIPTION_DEFAULT = getenv("DESCRIPTION_DEFAULT", "A Python web framework")
+KEYWORDS_DEFAULT = getenv("KEYWORDS_DEFAULT", "Python, web, framework")
+AUTHOR_DEFAULT = getenv("AUTHOR_DEFAULT", "Seip")
 
 
 #Security
