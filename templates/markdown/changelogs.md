@@ -1,5 +1,25 @@
 # {{ translate["changelogs"] }}
 
+## 8.1
+
+### {{ translate["cli_model"] }}
+
+{{ translate["description_cli_model"] }}
+
+**{{ translate["usage_example_cli_model"] }}:**
+
+```html
+python -m cli.model create --name Product --table products
+```
+
+{{ translate["list_models"] }}
+
+**{{ translate["usage_example_cli_model"] }}:**
+
+```html
+python -m cli.model list-models
+```
+
 ## 8.0
 
 ### {{ translate["asset_optimization"] }}
