@@ -1950,6 +1950,94 @@ all_translations = translate(
                                     </code></pre>
                                 </div>
                             </div>
+
+                              <article id="models-eng" class="mt-8 mb-8">
+                            <h1 class="text-2xl font-semibold">Models (SQLAlchemy)</h1>
+                            <h5 class="text-2xl font-semibold">Models are used to define the structure of data in
+                                the application.
+                            </h5>
+                            <p>
+                                <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy</a> as the default ORM
+                                for
+                                database management.
+                                SQLAlchemy allows creating database models,
+                                executing queries, and handling migrations
+                                efficiently.
+                            </p>
+
+                            <h2 class="text-xl">Using Models </h2>
+                            <p>
+                                The `Base` class, imported from `lila.core.database`, serves as the foundation for
+                                all models .
+                                Models inherit from `Base` to define database tables with SQLAlchemy.
+                            </p>
+
+                            <h2 class="text-xl">Example: User Model</h2>
+                            This example demonstrates how to create a `User` model using SQLAlchemy.
+                            The model defines a `users` table with columns such as `id`, `name`, `email`, `password`,
+                            `token`,
+                            `active`, and `created_at`.
+                            </h5>
+                            <div class="code-editor mt-4 mb-4">
+                                <div class="editor-header">
+                                    <span class="editor-title">app/models/user.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre>
+
+        <code class="language-python">
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
+from lila.core.database import Base
+from app.connections import connection 
+
+class User(Base):
+    __tablename__='users'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    name=Column( String(length=50), nullable=False)
+    email=Column( String(length=50), unique=True)
+    password=Column(String(length=150), nullable=False)
+    token=Column(String(length=150), nullable=False)
+    active=Column( Integer, nullable=False,default=1)
+    created_at=Column( TIMESTAMP)
+
+#Example of how to use SQLAlchemy to make queries to the database
+    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
+        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
+        result = connection.query(query=query,return_rows=True)#Return rows 
+        return result 
+
+#Example of how to use SQLAlchemy to make queries to the database
+    def get_by_id(id: int, select="id,email,name") -> dict:
+        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
+        params = {"id": id}
+        row = connection.query(query=query, params=params,return_row=True)#Retrurn row
+        return row
+    
+    #Example using ORM abstraction in SQLAlchemy
+    @classmethod
+    def get_all_orm(cls, db: Session, limit: int = 1000):
+        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
+        return result
+    
+    
+#Example of how to use the class to make queries to the database
+users = User.get_all()
+user = User.get_by_id(1)
+                    </code>
+                    </pre>
+                                </div>
+                            </div>
+                            <br />
+                            <p>
+                                For details on SQLAlchemy, visit the official documentation:
+                                <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy Documentation</a>.
+                            </p>
+                              </article>
                               <article id="cli-model-generator-eng" class="mt-8 mb-8">
         <h1>CLI Model Generator</h1>
         <h5>Automatically generate SQLAlchemy model skeletons to speed up your development workflow.</h5>
@@ -2108,11 +2196,7 @@ db.close()</code></pre>
       
     </article>
                         </article>
-                        <hr />
-
-
-                        me
-                        <hr />
+                        <hr /> 
 
                         <article id="middlewares-eng" class="mt-8 mb-8">
                             <h1 class="text-2xl font-semibold">Middlewares</h1>
