@@ -118,5 +118,61 @@
   "usage_example_cli_model": {
     "es": "Ejemplo de uso  ",
     "en": "Usage Example  "
+  },
+  "cli_scaffold_crud": {
+    "es": "CLI para generar CRUD completo (Scaffold)",
+    "en": "CLI for generating complete CRUD (Scaffold)"
+  },
+  "description_cli_scaffold_crud": {
+    "es": "Genera automáticamente rutas CRUD completas, templates HTML con DataTable y modales, y auto-importa las rutas en main.py. Valida que el modelo exista antes de generar el scaffold.",
+    "en": "Automatically generates complete CRUD routes, HTML templates with DataTable and modals, and auto-imports routes in main.py. Validates that the model exists before generating the scaffold."
+  },
+  "scaffold_features": {
+    "es": "Genera: rutas GET/POST/PUT/DELETE, template HTML con DataTable responsive, modales para crear/editar, validación Pydantic (comentada), y auto-importación en main.py",
+    "en": "Generates: GET/POST/PUT/DELETE routes, HTML template with responsive DataTable, create/edit modals, Pydantic validation (commented), and auto-import in main.py"
+  },
+  "enhanced_error_handling": {
+    "es": "Manejo de errores mejorado",
+    "en": "Enhanced error handling"
+  },
+  "enhanced_error_handling_desc": {
+    "es": "Páginas de error detalladas con traceback completo, información de archivo y línea, y diseño profesional. Los errores siempre se muestran en terminal para debugging.",
+    "en": "Detailed error pages with full traceback, file and line information, and professional design. Errors are always shown in terminal for debugging."
+  },
+  "features": {
+    "es": "Características",
+    "en": "Features"
+  },
+  "detailed_error_pages": {
+    "es": "Páginas de error HTML detalladas en modo DEBUG con traceback completo",
+    "en": "Detailed HTML error pages in DEBUG mode with full traceback"
+  },
+  "terminal_logging": {
+    "es": "Logging automático en terminal para todos los errores (siempre activo)",
+    "en": "Automatic terminal logging for all errors (always active)"
+  },
+  "debug_mode_control": {
+    "es": "Control por DEBUG en config.py - errores genéricos en producción",
+    "en": "DEBUG control in config.py - generic errors in production"
+  },
+  "auto_import_system": {
+    "es": "Sistema de auto-importación con markers",
+    "en": "Auto-import system with markers"
+  },
+  "auto_import_system_desc": {
+    "es": "Sistema mejorado de markers para auto-importar modelos y rutas automáticamente. Los CLI de model y scaffold_crud agregan imports automáticamente.",
+    "en": "Improved marker system to auto-import models and routes automatically. The model and scaffold_crud CLIs add imports automatically."
+  },
+  "markers_available": {
+    "es": "Markers disponibles",
+    "en": "Available markers"
+  },
+  "model_marker_desc": {
+    "es": "Para auto-importar modelos en cli/migrations.py",
+    "en": "For auto-importing models in cli/migrations.py"
+  },
+  "api_marker_desc": {
+    "es": "Para auto-importar rutas generadas por scaffold en main.py",
+    "en": "For auto-importing scaffold-generated routes in main.py"
   }
 }

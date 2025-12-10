@@ -1,5 +1,39 @@
 # {{ translate["changelogs"] }}
 
+## 8.2
+
+### {{ translate["cli_scaffold_crud"] }}
+
+{{ translate["description_cli_scaffold_crud"] }}
+
+**{{ translate["usage_example"] }}:**
+
+```bash
+python -m cli.scaffold_crud  --model Product
+python -m cli.scaffold_crud --model User --name users
+```
+
+{{ translate["scaffold_features"] }}
+
+### {{ translate["enhanced_error_handling"] }}
+
+{{ translate["enhanced_error_handling_desc"] }}
+
+**{{ translate["features"] }}:**
+
+- {{ translate["detailed_error_pages"] }}
+- {{ translate["terminal_logging"] }}
+- {{ translate["debug_mode_control"] }}
+
+### {{ translate["auto_import_system"] }}
+
+{{ translate["auto_import_system_desc"] }}
+
+**{{ translate["markers_available"] }}:**
+
+- `# model_marker` - {{ translate["model_marker_desc"] }}
+- `# api_marker` - {{ translate["api_marker_desc"] }}
+
 ## 8.1
 
 ### {{ translate["cli_model"] }}

@@ -19,6 +19,10 @@ import asyncio
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
 all_routes = list(itertools.chain(routes, api_routes))
 
+#English : Marker for the api routes in main.py (also used by scaffold generator)
+#Español: Marcardor para añadir automaticamente rutas api en main.py (también usado por generador de scaffold)
+# api_marker
+
 #English : Marker for the auth routes in main.py
 #Español: Marcardor para añadir automaticamente rutas auth en main.py
 # auth_marker
