@@ -135,7 +135,9 @@
                     <li><a href="#auth-eng"
                             class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Auth Cli </a>
                     </li>
-                    <li><a href="scaffold_crud-esp" class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Scaffold CRUD</a></li>
+                    <li><a href="#scaffold_crud-esp"
+                            class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Scaffold
+                            CRUD</a></li>
                     <li><a href="#react-seo"
                             class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">React</a></li>
                     <li><a href="#rest_api_crud-eng"
@@ -754,7 +756,8 @@ async def delete_item(request: Request):
                             <ul class="list-disc ml-6">
                                 <li>Use a <code class="code-inline">prefix</code> for versioned API endpoints.</li>
                                 <li>Use method-specific decorators like <code class="code-inline">@router.get</code>,
-                                    <code class="code-inline">@router.post</code>, etc.</li>
+                                    <code class="code-inline">@router.post</code>, etc.
+                                </li>
                                 <li>Automatically validate input and generate documentation using Pydantic models.</li>
                                 <li>Receive URL parameters and JSON bodies.</li>
                             </ul>
@@ -2259,7 +2262,8 @@ db.close()</code></pre>
                                     <li>Create the model: <code>python -m cli.model create --name Product</code></li>
                                     <li>Edit <code>app/models/product.py</code> to add custom columns</li>
                                     <li>Import the model in <code>cli/migrations.py</code>:
-                                        <code>from app.models.product import Product</code></li>
+                                        <code>from app.models.product import Product</code>
+                                    </li>
                                     <li>Run migrations: <code>python -m cli.migrations migrate</code></li>
                                 </ol>
 
@@ -3180,7 +3184,8 @@ python -m cli.auth
                             <ul class="list-disc ml-6">
                                 <li><strong>Templates:</strong> login, register, forgot-password, change-password</li>
                                 <li><strong>Models:</strong> updates <code>User</code> and creates
-                                    <code>AuthModel</code></li>
+                                    <code>AuthModel</code>
+                                </li>
                                 <li><strong>Routes & Functions:</strong> handlers for each template/action</li>
                                 <li><strong>Middlewares:</strong> session and validation handling</li>
                             </ul>
@@ -3192,34 +3197,36 @@ python -m cli.auth
                         <hr />
 
                         <article id="scaffold_crud-eng" class="space-y-6 md:space-y-8 py-8">
-    <div class="space-y-4">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-            CLI Scaffold Generator
-        </h1>
-        <p class="text-lg text-gray-700 dark:text-gray-300">
-            Generate complete CRUD functionality from existing models with a single command. The scaffold generator
-            creates routes, templates, and automatically imports everything into your application.
-        </p> 
-    </div>
+                            <div class="space-y-4">
+                                <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                                    CLI Scaffold Generator
+                                </h1>
+                                <p class="text-lg text-gray-700 dark:text-gray-300">
+                                    Generate complete CRUD functionality from existing models with a single command. The
+                                    scaffold generator
+                                    creates routes, templates, and automatically imports everything into your
+                                    application.
+                                </p>
+                            </div>
 
-    <div class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Basic Usage
-        </h2>
-        <p class="text-gray-700 dark:text-gray-300">
-            First, create your model using the model CLI, then generate the scaffold:
-        </p>
-    </div>
+                            <div class="space-y-4">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                    Basic Usage
+                                </h2>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    First, create your model using the model CLI, then generate the scaffold:
+                                </p>
+                            </div>
 
-    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
-        <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
-            <div class="size-3 rounded-full bg-red-500"></div>
-            <div class="size-3 rounded-full bg-yellow-400"></div>
-            <div class="size-3 rounded-full bg-green-500"></div>
-            <span class="ml-auto text-sm font-semibold text-gray-300">Scaffold Generator</span>
-        </div>
-        <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-            <pre class="language-bash">
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">Scaffold Generator</span>
+                                </div>
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Create a model first
 python -m cli.model create --name Product
@@ -3234,47 +3241,47 @@ python -m cli.scaffold_crud --model Product
 python -m cli.scaffold_crud --model Product --name products
 </code>
 </pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <div class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            What Gets Generated
-        </h2>
-        <p class="text-gray-700 dark:text-gray-300">
-            The scaffold generator creates a complete CRUD system:
-        </p>
-        <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
-            <li><code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
-                - Complete CRUD routes</li>
-            <li><code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/html/{name}/index.html</code>
-                - DataTable with modals</li>
-            <li>Auto-imports routes in <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-            </li>
-        </ul>
-    </div>
+                            <div class="space-y-4">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                    What Gets Generated
+                                </h2>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    The scaffold generator creates a complete CRUD system:
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
+                                    <li><code
+                                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
+                                        - Complete CRUD routes</li>
+                                    <li><code
+                                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/html/{name}/index.html</code>
+                                        - DataTable with modals</li>
+                                    <li>Auto-imports routes in <code
+                                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
+                                    </li>
+                                </ul>
+                            </div>
 
-    <div class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Generated Endpoints
-        </h2>
-        <p class="text-gray-700 dark:text-gray-300">
-            The following routes are automatically created:
-        </p>
-    </div>
+                            <div class="space-y-4">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                    Generated Endpoints
+                                </h2>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    The following routes are automatically created:
+                                </p>
+                            </div>
 
-    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
-        <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
-            <div class="size-3 rounded-full bg-red-500"></div>
-            <div class="size-3 rounded-full bg-yellow-400"></div>
-            <div class="size-3 rounded-full bg-green-500"></div>
-            <span class="ml-auto text-sm font-semibold text-gray-300">API Endpoints</span>
-        </div>
-        <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-            <pre class="language-http">
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                                <div class="flex items-center gap-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                                    <div class="size-3 rounded-full bg-red-500"></div>
+                                    <div class="size-3 rounded-full bg-yellow-400"></div>
+                                    <div class="size-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-auto text-sm font-semibold text-gray-300">API Endpoints</span>
+                                </div>
+                                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                                    <pre class="language-http">
 <code class="whitespace-pre-wrap">
 GET  /product              → HTML page with DataTable
 GET  /api/product          → JSON list of all products
@@ -3284,44 +3291,45 @@ PUT  /api/product/{id}     → Update product
 DELETE /api/product/{id}   → Soft delete (active=0)
 </code>
 </pre>
-        </div>
-    </div>
+                                </div>
+                            </div>
 
-    <div class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Features
-        </h2>
-        <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
-            <li>✅ Validates model exists before generating</li>
-            <li>✅ Responsive DataTable with search and pagination</li>
-            <li>✅ Create and Edit modals</li>
-            <li>✅ Soft delete functionality (active=0)</li>
-            <li>✅ Pydantic validation examples (commented)</li>
-            <li>✅ Multilingual support</li>
-            <li>✅ Auto-imports in main.py</li>
-        </ul>
-    </div>
+                            <div class="space-y-4">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                    Features
+                                </h2>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
+                                    <li>✅ Validates model exists before generating</li>
+                                    <li>✅ Responsive DataTable with search and pagination</li>
+                                    <li>✅ Create and Edit modals</li>
+                                    <li>✅ Soft delete functionality (active=0)</li>
+                                    <li>✅ Pydantic validation examples (commented)</li>
+                                    <li>✅ Multilingual support</li>
+                                    <li>✅ Auto-imports in main.py</li>
+                                </ul>
+                            </div>
 
-    <div class="space-y-4">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Customization
-        </h2>
-        <p class="text-gray-700 dark:text-gray-300">
-            After generation, you can customize:
-        </p>
-        <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
-            <li>Import in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-                generate route</li>
-            <li>Edit <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
-                to add business logic</li>
-            <li>Uncomment Pydantic models for validation</li>
-            <li>Customize the HTML template</li>
-            <li>Add custom middleware</li>
-        </ul>
-    </div>
-</article>
-<hr />
+                            <div class="space-y-4">
+                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                    Customization
+                                </h2>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    After generation, you can customize:
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
+                                    <li>Import in <code
+                                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
+                                        generate route</li>
+                                    <li>Edit <code
+                                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
+                                        to add business logic</li>
+                                    <li>Uncomment Pydantic models for validation</li>
+                                    <li>Customize the HTML template</li>
+                                    <li>Add custom middleware</li>
+                                </ul>
+                            </div>
+                        </article>
+                        <hr />
                         <article id="react-seo">
                             <h1 class="text-2xl font-semibold">React Integration with Lila</h1>
 
