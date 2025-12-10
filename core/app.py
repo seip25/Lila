@@ -4,7 +4,7 @@ from core.templates import render
 from starlette.middleware.cors import CORSMiddleware
 from core.logger import Logger
 from pathlib import Path
-from app.config import PATH_TEMPLATE_NOT_FOUND
+from app.config import PATH_TEMPLATE_NOT_FOUND,DEBUG
 from typing import List, Optional, Dict, Any
 from starlette_compress import CompressMiddleware
 from starlette.middleware.gzip import GZipMiddleware
