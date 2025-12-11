@@ -1612,6 +1612,8 @@ async def uploadFile(request: Request):
                                 </div>
                             </div>
 
+                           
+
                             <h2 class="text-xl">Formato de Respuesta</h2>
                             <p>El asistente devuelve una JSONResponse con esta estructura:</p>
                             <div class="code-editor mt-4 mb-4">
@@ -1653,6 +1655,28 @@ async def uploadFile(request: Request):
                                     </code></pre>
                                 </div>
                             </div>
+
+                            <div class="mb-8">
+                             <h3 class="text-xl text-blue-500 bg-blue-100 p-4  text-center rounded">Notas Importantes</h3>
+                            <p>Si utilizas windows o el archivo no se crea en el Path recuerda configurar en <code>app/config.py</code></p>
+                            <div class="code-editor  mb-4">
+                                <div class="editor-header">
+                                    <span class="editor-title">app/config.py</span>
+                                    <div class="editor-controls">
+                                        <div class="control close"></div>
+                                        <div class="control minimize"></div>
+                                        <div class="control maximize"></div>
+                                    </div>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-python">
+PATH_UPLOADS = path.join(os.getcwd(), "static", "img", "uploads")
+
+                                    </code></pre>
+
+                            </div>
+                           </div>
+                           </div>
                         </article>
                         <hr />
 

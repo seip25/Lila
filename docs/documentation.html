@@ -1732,6 +1732,31 @@ async def uploadFile(request: Request):
                                     </code></pre>
                                 </div>
                             </div>
+
+                            <div class="mb-8">
+                                <h3 class="text-xl text-blue-500 bg-blue-100 p-4 text-center rounded">Important Notes
+                                </h3>
+
+                                <p>If you are using Windows or the file is not created in the Path, remember to
+                                    configure it in <code>app/config.py</code></p>
+                                <div class="code-editor  mb-4">
+                                    <div class="editor-header">
+                                        <span class="editor-title">app/config.py</span>
+                                        <div class="editor-controls">
+                                            <div class="control close"></div>
+                                            <div class="control minimize"></div>
+                                            <div class="control maximize"></div>
+                                        </div>
+                                    </div>
+                                    <div class="editor-content">
+                                        <pre><code class="language-python">
+PATH_UPLOADS = path.join(os.getcwd(), "static", "img", "uploads")
+
+                                    </code></pre>
+
+                                    </div>
+                                </div>
+                            </div>
                         </article>
                         <hr />
 
