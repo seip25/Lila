@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
   theme();
 });
 // Language helper
-function lang(l = "es" || l.startsWith("es")) {
-  return document.documentElement.lang === l;
+function lang(l = "es") {
+  return document.documentElement.lang === l || document.documentElement.lang.startsWith("es");
 }
 
 
