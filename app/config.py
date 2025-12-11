@@ -17,7 +17,7 @@ PATH_TEMPLATE_NOT_FOUND = "templates/html/404.html"
 PATH_TEMPLATES_HTML ="templates/html/"
 PATH_TEMPLATES_MARKDOWN = "templates/markdown/"
 PATH_LOCALES = "app/locales"
-PATH_UPLOADS='/static/img/uploads'
+PATH_UPLOADS = path.join(os.getcwd(), "static", "img", "uploads")
 
 
 #Project
