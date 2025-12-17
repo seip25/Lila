@@ -10,7 +10,7 @@ import traceback
 import sys
 from typing import Any
 from app.config import PATH_SECURITY
-from app.config import SENSITIVE_PATHS
+from app.config import SENSITIVE_PATHS,DEBUG
 
 
 class BaseSecurityMiddleware(BaseHTTPMiddleware, ABC):
@@ -112,10 +112,44 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 Logger.error(f"Function: {error_info['function']}")
                 Logger.error(f"Message: {error_info['message']}")
                 Logger.error(f"Traceback:\n{error_info['traceback']}")
-
-            return JSONResponse(
-                {"error": "Internal Server Error", "success": False}, status_code=500
+            is_fetch = request.headers.get("x-fetch") == "true" 
+            msg = f""" 
+                {error_info['type']} in {error_info['file']}:{error_info['line']}
+                Function: {error_info['function']}
+                Message: {error_info['message']}
+                Traceback:
+                {error_info['traceback']}
+                """
+            if is_fetch:
+                if DEBUG:
+                    response = JSONResponse(
+                        {
+                            "error": msg,
+                            "success": False,
+                            "line": lineno,
+                            "function": function,
+                            "file": filename,
+                            "type": exc_type.__name__,
+                            "message": str(e),
+                            "traceback": traceback.format_exc(),
+                        },
+                        status_code=500,
+                    )
+                else:
+                    response = JSONResponse(
+                        {"error": "Internal Server Error", "success": False}, status_code=500
+                    )
+            else:
+                response= HTMLResponse(
+                    content=f"""<h1>Internal Server Error</h1><p>Something went wrong on our end. Please try again later.</p>
+                    <pre>{msg}</pre>
+                    """,
+                    status_code=500,
+                ) if DEBUG else HTMLResponse(
+                    content="<h1>Internal Server Error</h1><p>Something went wrong on our end. Please try again later.</p>",
+                    status_code=500,
             )
+            return response
 
 
 class IPBlockingMiddleware(BaseSecurityMiddleware):

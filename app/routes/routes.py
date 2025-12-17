@@ -10,11 +10,13 @@ from app.config import LANG_DEFAULT,HOST,PORT  # English: Importing the default 
 # Español: Creando una instancia del Router para definir las rutas
 router = Router()
 
-#marker_react
+
 
 # English: Mounting statics files ,in folder 'static',url ='/public'
 #  Español: Montando los archivos estaticos en la carpeta 'static',url ='/public'
 router.mount()
+
+#marker_react
 
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto
@@ -92,6 +94,7 @@ async def robots(request: Request):
     response = PlainTextResponse(content=response)
     response.headers["Content-Type"] = "text/plain"
     return response
+
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas

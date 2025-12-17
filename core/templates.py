@@ -16,6 +16,10 @@ from PIL import Image
 from pathlib import Path
 import rjsmin 
 import rcssmin 
+import json
+import uuid
+
+PROJECT_ROOT = os.getcwd()
 
 jinja_env = Environment(
     loader=minify_loader(
@@ -27,8 +31,69 @@ jinja_env = Environment(
     ),
     auto_reload=DEBUG, 
     autoescape=True,
-    
 )
+
+def react(component: str, props: dict = {}) -> str:
+    """
+    Renders a placeholder div for a React component.
+    """
+    id_ = 'react-' + uuid.uuid4().hex
+    props_json = json.dumps(props).replace('"', '&quot;')
+    return f'<div id="{id_}" data-react-component="{component}" data-props="{props_json}"></div>'
+
+def vite_assets() -> str:
+    """
+    Renders script tags for Vite.
+    In DEBUG mode: connects to the Vite dev server.
+    In Production: reads manifest.json to serve built assets.
+    """
+    is_dev = DEBUG
+    
+    # Check if we are really in dev mode for Vite (can be set independently ideally, but using DEBUG for now)
+    # Or check if vite server is reachable? For now, logic as per PHP impl.
+    
+    if is_dev:
+        return """
+        <script type="module">
+            import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
+            RefreshRuntime.injectIntoGlobalHook(window);
+            window.$RefreshReg$ = () => {};
+            window.$RefreshSig$ = () => (type) => type;
+            window.__vite_plugin_react_preamble_installed__ = true;
+        </script>
+        <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/public/build/react/main.jsx"></script>
+        """
+
+    manifest_path = os.path.join(PROJECT_ROOT, 'public', 'build', '.vite', 'manifest.json')
+    # fallback
+    if not os.path.exists(manifest_path):
+         manifest_path = os.path.join(PROJECT_ROOT, 'public', 'build', 'manifest.json')
+    
+    if os.path.exists(manifest_path):
+        with open(manifest_path, 'r') as f:
+            manifest = json.load(f)
+        
+        # entry point name in manifest usually matches input in vite config
+        # In CLI implementation later, we'll set entry to 'react/main.jsx'
+        entry_key = 'react/main.jsx'
+        
+        if entry_key in manifest:
+            file = manifest[entry_key]['file']
+            css_files = manifest[entry_key].get('css', [])
+            
+            html_parts = []
+            html_parts.append(f'<script type="module" src="/public/build/{file}"></script>')
+            for css_file in css_files:
+                html_parts.append(f'<link rel="stylesheet" href="/public/build/{css_file}">')
+            
+            return '\n'.join(html_parts)
+            
+    return '<!-- Vite Manifest not found -->'
+
+jinja_env.globals['react'] = react
+jinja_env.globals['vite_assets'] = vite_assets
+
 
 templates = Jinja2Templates( env=jinja_env)
  
@@ -308,8 +373,8 @@ def renderMarkdown(
 def image(file_path: str) -> str:
     extension = file_path.split(".")[-1].lower()
     file_path_webp = file_path.replace(f".{extension}", ".webp")
-    if (os.path.exists(os.path.join("static",file_path_webp))==False):
-        optimize_image(os.path.join("static",file_path))
+    if (os.path.exists(os.path.join("public",file_path_webp))==False):
+        optimize_image(os.path.join("public",file_path))
     return f"/public/{file_path_webp}"
 
 
@@ -335,18 +400,18 @@ def public(file_path: str) -> str:
     new_file_path = file_path
     extension = file_path.split(".")[-1].lower()
     if (extension in [ "css","js"]):
-        exists_min= os.path.exists(os.path.join("static",file_path.replace(f".{extension}", ".min.{extension}")))
+        exists_min= os.path.exists(os.path.join("public",file_path.replace(f".{extension}", ".min.{extension}")))
         if (exists_min==False):
-            with open(os.path.join("static",file_path), "r", encoding="utf-8") as f:
+            with open(os.path.join("public",file_path), "r", encoding="utf-8") as f:
                 content = f.read()
             if (extension == "css"):
                 minified_content = rcssmin.cssmin(content)
             else:
                 minified_content = rjsmin.jsmin(content)
-            with open(os.path.join("static",file_path.replace(f".{extension}", f".min.{extension}")), "w", encoding="utf-8") as f:
+            with open(os.path.join("public",file_path.replace(f".{extension}", f".min.{extension}")), "w", encoding="utf-8") as f:
                 f.write(minified_content)
             new_file_path = file_path.replace(f".{extension}", f".min.{extension}")
     if(extension in ["png", "jpg", "jpeg", "gif", "webp"]):
-        optimize_image(os.path.join("static",file_path))
+        optimize_image(os.path.join("public",file_path))
         new_file_path = file_path.replace(f".{extension}", ".webp")
     return f"/public/{new_file_path}"

@@ -64,7 +64,7 @@ class Router:
         return self.route(path, methods=["DELETE"], **kwargs)
 
     def mount(
-        self, path: str = "/public", directory: str = "static", name: str = "static"
+        self, path: str = "/public", directory: str = "public", name: str = "public"
     ) -> None:
 
         try:

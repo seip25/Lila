@@ -4,13 +4,37 @@ import os
 import sys
 import shlex
 import shutil
-import sys
+import json
 
 app = typer.Typer()
 
-# Project root path / Ruta raíz del proyecto
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = os.getcwd()
 
+def html_template ()->str:
+    html = """<!DOCTYPE html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="description" content="{{ description }}" />
+    <meta name="keywords" content="{{ keywords }}" />
+    <meta name="author" content="{{ author }}" />
+    <title>{{ title }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+    <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+    {{ vite_assets() | safe }}
+  </head>
+  <body>
+    <main class="mt-4 container">
+      <h1>Example React integration</h1>
+      <div>{{ react('Counter', {'start': 3}) | safe }}</div>
+    </main>
+  </body>
+</html>
+    """
+    return html
 
 async def run_command(command, cwd=None):
     """
@@ -24,7 +48,6 @@ async def run_command(command, cwd=None):
         stderr=asyncio.subprocess.STDOUT
     )
 
-    # Read and print output line by line / Leer e imprimir línea por línea
     while True:
         line = await process.stdout.readline()
         if not line:
@@ -34,305 +57,192 @@ async def run_command(command, cwd=None):
 
     return await process.wait()
 
-
-async def create_react_app(name: str):
+async def create_react_env(name: str):
     """
-    Create a new React app in the project root with Vite.
-    Crea una nueva app React en la raíz del proyecto con Vite.
+    Scaffold React environment in project root.
     """
-    file_path = os.path.join(project_root, "main.py")
-
-    # Check if main.py exists / Verificar si main.py existe
-    if not os.path.exists(file_path):
-        print("❌ You must first run lila-init in the terminal to create the lila application.\n"
-              "❌ Primero debes ejecutar lila-init en la terminal para crear la aplicación lila.")
-        return
-
-    # Path where the React app will be created / Ruta donde se creará la app React
-    project_dir = os.path.join(project_root, name)
-
-    # Step 1: Create React app with Vite / Paso 1: Crear app React con Vite
-    print(f"⚡ Creating React app '{name}' in {project_dir}...\n"
-          f"⚡ Creando la app React '{name}' en {project_dir}...\n")
-    #await run_command("npm install -g create-vite")
-    #exit_code = await run_command(f"npm create vite@latest {shlex.quote(project_dir)} -- --template react")
-    exit_code = await run_command(
-        f"npx --yes create-vite {shlex.quote(name)} --template react"
-        )
-
-
-    if exit_code != 0:
-        print("❌ Error creating React app / Error creando la app React.")
-        return
-
-    # Step 2: Install dependencies / Paso 2: Instalar dependencias
-    print("\n📦 Installing dependencies...\n"
-          "📦 Instalando dependencias...\n")
-    exit_code = await run_command("npm install", cwd=project_dir)
-    if exit_code != 0:
-        print("❌ Error installing dependencies / Error instalando dependencias.")
-        return
-
-    # Step 3: Configure vite.config.js / Paso 3: Configurar vite.config.js
-    vite_config_path = os.path.join(project_dir, "vite.config.js")
-    with open(vite_config_path, "w") as f:
-        f.write(
-            """import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
-
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: resolve(__dirname, '../templates/html/react'), 
-    emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        entryFileNames: `assets/[name].js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`
-      }
-    }
-  }
-})
-
-"""
-        )
-
-    # Step 4: Update CORS config in main.py / Paso 4: Actualizar configuración CORS en main.py
-    print("\n🔧 Updating CORS configuration in main.py...\n"
-          "🔧 Actualizando configuración CORS en main.py...\n")
-    marker = "react_marker"
-    replace_text = """
-#English: for development react
-#Espanol: para desarrollo react
-cors={
-    "origin": ["http://localhost:5173"],
-    "allow_credentials" : True,
-    "allow_methods":["*"],
-    "allow_headers": ["*"]
-}
- 
-    """
-
-    with open(file_path, "r",encoding="utf-8") as file:
-        content = file.read()
-
-    if marker in content:
-        new_content = content.replace(marker, f"{marker}\n{replace_text}")
-        with open(file_path, "w",encoding="utf-8") as file:
-            file.write(new_content)
-        print("✅ CORS configuration inserted / Configuración CORS insertada")
+    react_dir = os.path.join(project_root, name)
+    
+    print(f"⚡ Setting up React '{name}' environment in {project_root}...\n")
+    
+    package_json_path = os.path.join(project_root, "package.json")
+    if not os.path.exists(package_json_path):
+        package_json = {
+            "name": "lila-react-app",
+            "private": True,
+            "version": "0.0.0",
+            "type": "module",
+            "scripts": {
+                "dev": "vite",
+                "build": "vite build"
+            },
+            "dependencies": {
+                "react": "^18.3.1",
+                "react-dom": "^18.3.1"
+            },
+            "devDependencies": {
+                "@types/react": "^18.3.3",
+                "@types/react-dom": "^18.3.0",
+                "@vitejs/plugin-react": "^4.3.1",
+                "vite": "^5.4.1"
+            }
+        }
+        with open(package_json_path, "w", encoding="utf-8") as f:
+            json.dump(package_json, f, indent=2)
+        print("✅ Created package.json")
     else:
-        print("ℹ️ Marker not found / Marcador no encontrado")
+        print("ℹ️ package.json already exists (skipping creation)")
 
-    src_logo = os.path.join(project_root, "static/img/lila.png")
-    dest_logo = os.path.join(project_dir, "src/assets/lila.png")
-    os.makedirs(os.path.dirname(dest_logo), exist_ok=True)
-    shutil.copyfile(src_logo, dest_logo)
+    vite_config_path = os.path.join(project_root, "vite.config.js")
+    vite_config_content = f"""import {{ defineConfig }} from "vite";
+import react from "@vitejs/plugin-react";
+import {{ resolve }} from "path";
 
-    css_files = ["index.css", "App.css"]
-    for css_file in css_files:
-        path = os.path.join(project_dir, "src", css_file)
-        if os.path.exists(path):
-            os.remove(path)
+export default defineConfig({{
+  plugins: [react()],
+  base: "/public/build/",
+  build: {{
+    manifest: true,
+    outDir: "public/build",
+    emptyOutDir: true,
+    rollupOptions: {{
+      input: "./react/main.jsx",
+    }},
+  }},
+  server: {{
+    origin: "http://localhost:5173",
+    host: "localhost",
+    port: 5173,
+  }},
+}});
+"""
+    with open(vite_config_path, "w", encoding="utf-8") as f:
+        f.write(vite_config_content)
+    print("✅ Created vite.config.js")
 
-    app_jsx_path = os.path.join(project_dir, "src", "App.jsx")
-    react_app_default_lila = """
-    import { useState } from 'react'
-    import lilaLogo from './assets/lila.png'
+    os.makedirs(react_dir, exist_ok=True)
+    
+    main_jsx_path = os.path.join(react_dir, "main.jsx")
+    main_jsx_content = """import React from 'react'
+import ReactDOM from 'react-dom/client'
 
-function App() {
-  const [count, setCount] = useState(0)
+const modules = import.meta.glob('./components/*.jsx')
+
+const components = {}
+for (const path in modules) {
+  const name = path.match(/\\/([^\\/]+)\\.jsx$/)[1]
+  components[name] = modules[path]
+}
+
+const mountComponents = async () => {
+    const nodes = document.querySelectorAll('[data-react-component]')
+    
+    for (const node of nodes) {
+        const name = node.dataset.reactComponent
+        const props = JSON.parse(node.dataset.props || '{}')
+        
+        if (components[name]) {
+            const module = await components[name]()
+            const Component = module.default
+            
+            ReactDOM.createRoot(node).render(
+                <React.StrictMode>
+                    <Component {...props} />
+                </React.StrictMode>
+            )
+        } else {
+            console.error(`React Component '${name}' not found. Available: ${Object.keys(components).join(', ')}`)
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', mountComponents)
+"""
+    with open(main_jsx_path, "w", encoding="utf-8") as f:
+        f.write(main_jsx_content)
+    print(f"✅ Created {name}/main.jsx")
+
+    components_dir = os.path.join(react_dir, "components")
+    os.makedirs(components_dir, exist_ok=True)
+
+    counter_jsx_path = os.path.join(components_dir, "Counter.jsx")
+    counter_jsx_content = """import React, { useState } from 'react'
+
+export default function Counter({ start = 0 }) {
+  const [count, setCount] = useState(start)
 
   return (
-    <>
-      
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="flex space-x-4 mb-6">
-          <img src={lilaLogo} alt="Lila Logo" className="h-20 w-20" />
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100">React + Lila</h1>
-        </div>
-
-        <h5 className="text-xl text-center text-gray-800 dark:text-gray-300 mb-4">
-          English: All the power of React with Lila Framework, mixing the best
-          of both worlds, rendering the react index with lila and using the
-          interactivity of react, automatic middlewares, security, admin panel,
-          speed, performance, automatically generated rest crud api, and much
-          more.
-          <br />
-          <br />
-          Español: Todo el poder React con Lila Framework, pudiendo mezclar lo
-          mejor de ambos mundos, renderizando el index de react con lila y
-          usando la interactividad de react, middlewares automaticos,seguridad,
-          panel de admin, velocidad, rendimiento, api rest crud generada
-          automaticamente, y mucho mas.
-        </h5>
-
-        <p className="text-center text-gray-700 dark:text-gray-300 mb-4">
-        English: You can use react-router or whatever you want to handle routes with react,
-        modifying app/routes/routes.py to render the react index directly like this.<br />
-        Español: Puedes utilizar react-router o lo que quieras para manejar las rutas con react,
-        modificando app/routes/routes.py para que renderice el index de react directamente de esta forma.
-        <br />
-       <code className="block bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
-@router.route(path="/&#123;path:path&#125;", methods=["GET"])
-<br />
-async def home(request: Request):
-    <br />
-    &nbsp;&nbsp;response = render(
-    <br />
-    &nbsp;&nbsp;&nbsp;&nbsp;request=request, template="react/index"
-    <br />
-    &nbsp;&nbsp;)
-    <br />
-    &nbsp;&nbsp;return response
-    </code>
-        </p>
-
-        <p className="text-center text-gray-700 dark:text-gray-300 mb-4">
-            English: Remember that in <a href="/docs" target="_blank">docs</a> you can find the automatic documentation generated by Lila in app/routes/api.py.<br />
-
-            Español: Recuerda que en  <a href="/docs" target="_blank">docs</a> puedes encontrar la documentación
-            automatica generada por lila en app/routes/api.py .
-        </p>
-
-        <p className="text-center text-gray-700 dark:text-gray-300 mb-4">
-          English: You can use Lila to have SEO recognizable by Google Bots, AI with hydration,
-            and a caching system. Read the documentation with the example at 
-            <a href="https://seip25.github.io/Lila/documentation.html#react-seo" target="_blank" className="text-blue-500 hover:underline">
-            https://seip25.github.io/Lila/documentation.html#react-seo 
-             </a>
-            .<br />
-          
-          Español: Puedes usar Lila para tener SEO reconocible por Bots de Google,IA con hidratación
-            y sistema de caching , lee la documentación con el ejemplo en
-             <a href="https://seip25.github.io/Lila/esp/documentation.html#react-seo" target="_blank" className="text-blue-500 hover:underline">
-            https://seip25.github.io/Lila/esp/documentation.html#react-seo 
-             </a>.
-        
-        </p>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md mb-6">
-        <div className='flex items-center justify-center mb-4'>
-            <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition "
-            onClick={() => setCount(count + 1)}
-          >
-            Count is {count}
-          </button>
-          </div>
-          <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm">
-            Click to test interactivity / Haz click para probar la interactividad
-          </p>
-        </div>
-
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          🔗 Documentation: <a href="https://seip25.github.io/Lila/documentation.html" target="_blank" className="text-blue-500 hover:underline">https://seip25.github.io/Lila</a>
-        <br/>
-        🔗 Documentación: <a href="https://seip25.github.io/Lila/esp/documentation.html" target="_blank" className="text-blue-500 hover:underline">https://seip25.github.io/Lila</a>
-        </p>
-      </div>
-    </>
+    <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '300px' }}>
+      <h3>React Island: Counter</h3>
+      <p>Current count: <strong>{count}</strong></p>
+      <button 
+        onClick={() => setCount(count + 1)}
+        style={{ padding: '0.5rem 1rem', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+      >
+        Increment
+      </button>
+    </div>
   )
 }
-
-export default App
 """
-    with open(app_jsx_path, "w",encoding="utf-8") as f:
-        f.write(react_app_default_lila)
+    with open(counter_jsx_path, "w", encoding="utf-8") as f:
+        f.write(counter_jsx_content)
+    print(f"✅ Created {name}/components/Counter.jsx")
 
-    main_js_path = os.path.join(project_dir, "src", "main.jsx")
-    react_main_default_lila = """
-    import { StrictMode } from 'react'
-    import { createRoot } from 'react-dom/client'
+    print("\n📦 Installing npm dependencies...\n")
+    exit_code = await run_command("npm install", cwd=project_root)
     
-    import App from './App.jsx'
+    if exit_code == 0:
+        print("\n🎉 React environment ready! / ¡Entorno React listo!\n")
+        print("To start development server / Para iniciar servidor de desarrollo:")
+        print("➡️  python -m cli.react dev")
+        print("   OR / O")
+        print("➡️  npm run dev")
+    else:
+        print("❌ Error installing dependencies.")
 
-    createRoot(document.getElementById('root')).render(
-    <StrictMode>
-        <App />
-    </StrictMode>,
-    )
-    """
-    with open(main_js_path, "w", encoding="utf-8") as f:
-        f.write(react_main_default_lila)
-
-    index_html_path = os.path.join(project_dir, "index.html")
-    react_html_default_lila = """
-            <!doctype html>
-                <html lang="en">
-                <head>
-                <meta charset="UTF-8" />
-                <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>Vite + React</title>
-                <script src="https://cdn.tailwindcss.com"></script>
-                </head>
-                <body>
-                <div id="root">{% include "react/cache/index.html" ignore missing %} </div>
-                <script type="module" src="/src/main.jsx"></script>
-                </body>
-            </html>
-    """
-    with open(index_html_path, "r+", encoding="utf-8") as f:
-        f.write(react_html_default_lila)
-
-
-    file_routes= os.path.join(project_root, "app", "routes", "routes.py")
-    if os.path.exists(file_routes):
-        with open(file_routes, "r",encoding="utf-8") as file:
-            content = file.read()
-
-        if "marker_react" in content:
-            replace_text = """marker_react
-# English: Mounting the React app assets and defining the route to render the React index.
-# Espanol: Montando los assets de la app React y definiendo la ruta para renderizar el index de React.
-router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
-@router.route(path="/", methods=["GET"])
-async def home(request: Request):
-  response = render(request=request, template="react/index")
-  return response
-  """
-            new_content = content.replace("marker_react", replace_text)
-            with open(file_routes, "w",encoding="utf-8") as file:
-                file.write(new_content)
-    
-    print("\n🏗️ Building the React app...\n"
-      "🏗️ Construyendo la aplicación React...\n")
-    exit_code = await run_command("npm run build", cwd=project_dir)
-    if exit_code != 0:
-        print("❌ Error building React app / Error construyendo la app React.")
-        return
-
-
-    print("\n🎉 React app created successfully! / ¡App React creada exitosamente!\n")
-    print(f"➡ cd {name}")
-    print("➡ npm run dev  (start development server / iniciar servidor de desarrollo)")
-    print("➡ Open your browser at http://localhost:5173 / Abre tu navegador en http://localhost:5173")
-    print("➡ To build for production, run: npm run build / Para construir para producción, ejecuta: npm run build")
-    print("➡ Update your routes in app/routes/routes.py to include the React app for production/ Actualiza tus rutas en app/routes/routes.py para incluir la app React para producción")
-    print("""➡ Example/ Ejemplo: 
-router.mount(path="/assets",directory="templates/html/react/assets",name="react-assets")
-@router.route(path="/{path:path}", methods=["GET"])
-async def home(request: Request):
+    html_template_path = os.path.join(project_root, "templates/html/react.html")
+    route_react="""
+@router.get("/react")
+async def react(request: Request):
+    context ={
+        "url": f"http://{HOST}:{PORT}"
+    }
     response = render(
-        request=request, template="react/index"
-    )  
+        request=request, template="react",context=context
+    )
     return response
-    """)
-    print("\nYou can now start developing your React app! / ¡Ahora puedes comenzar a desarrollar tu app React!\n")
+    """
+    with open(html_template_path, "w", encoding="utf-8") as f:
+        f.write(html_template())
+    print("✅ Created templates/html/react.html")
+    marker_route_react="#marker_react"
+    routes_path = os.path.join(project_root, "app/routes/routes.py")
+    with open(routes_path, "r", encoding="utf-8") as f:
+        routes_content = f.read()
+    routes_content = routes_content.replace(marker_route_react, route_react)
+    with open(routes_path, "w", encoding="utf-8") as f:
+        f.write(routes_content)
+    print("✅ Updated app/routes/routes.py")
+    
+    
 
 @app.command()
-def create(name: str = 'react'):
-    """Create a new React application using Vite / Crear nueva app React usando Vite"""
-    asyncio.run(create_react_app(name))
+def create(name: str = "react"):
+    """
+    Setup React environment (Islands architecture).
+    Configura el entorno React (Arquitectura de Islas).
+    """
+    asyncio.run(create_react_env(name))
 
+@app.command()
+def dev():
+    """
+    Run Vite development server.
+    Ejecuta el servidor de desarrollo Vite.
+    """
+    print("🚀 Starting Vite dev server...")
+    asyncio.run(run_command("npm run dev", cwd=project_root))
 
 if __name__ == "__main__":
     app()
-
-
-
-
