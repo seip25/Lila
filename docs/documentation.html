@@ -138,7 +138,7 @@
                     <li><a href="#scaffold_crud-eng"
                             class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Scaffold
                             CRUD</a></li>
-                    <li><a href="#react-seo"
+                    <li><a href="#react"
                             class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">React</a></li>
                     <li><a href="#rest_api_crud-eng"
                             class="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">API Rest
@@ -3356,21 +3356,17 @@ DELETE /api/product/{id}   → Soft delete (active=0)
                             </div>
                         </article>
                         <hr />
-                        <article id="react-seo">
-                            <h1 class="text-2xl font-semibold">React Integration with Lila</h1>
+                        <article id="react">
+                            <h1 class="text-2xl font-semibold">React Islands Integration</h1>
 
                             <p>
-                                Lila provides a seamless integration with React, allowing you to develop your frontend
-                                with a
-                                modified Vite + React setup while keeping strong SEO capabilities, caching, and HTML
-                                hydration.
-                                This setup ensures your React app can be prerendered and recognized by Google Bots and
-                                AI.
+                                Lila provides a powerful "React Islands" architecture, allowing you to embed interactive React components directly into your Jinja2 templates.
+                                This approach combines the best of both worlds: the SEO and performance of server-side rendering with Lila, and the interactivity of React.
                             </p>
 
-                            <h5 class="text-2xl font-semibold">Starting a React Project in Lila</h5>
+                            <h5 class="text-2xl font-semibold">Installation</h5>
                             <p>
-                                To create or run a React project inside Lila, execute the following command:
+                                To set up the React environment in your project from the root directory, run:
                             </p>
 
                             <div class="code-editor mt-4 mb-4">
@@ -3379,321 +3375,91 @@ DELETE /api/product/{id}   → Soft delete (active=0)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
-# For Python 3 environments
-python3 -m cli.react [--name PROJECT_NAME]
-
-# Or if your default Python is python
-python -m cli.react [--name PROJECT_NAME]
+python -m cli.react create
             </code></pre>
                                 </div>
                             </div>
 
                             <p>
-                                <strong>Parameters:</strong><br>
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">--name</code>:
-                                Optional project name, default is <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"react"</code>.
+                                This will scaffold the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">package.json</code>, <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite.config.js</code>, and the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react/</code> directory structure.
                             </p>
 
-                            <h5 class="text-2xl font-semibold">Development CORS Configuration</h5>
+                            <h5 class="text-2xl font-semibold">Usage</h5>
                             <p>
-                                When running React in development mode, Lila automatically edits <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-                                to
-                                add the
-                                necessary CORS configuration. By default:
+                                Once installed, you can use the new Jinja2 helpers <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code> and <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react()</code>.
                             </p>
+
+                            <ul class="list-disc ml-6 mt-4 mb-4">
+                                <li><strong>vite_assets()</strong>: Injects the necessary script tags. In <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">DEBUG=True</code> mode, it connects to the Vite development server (HMR). In production, it loads the optimized assets from <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>.</li>
+                                <li><strong>react(component, props)</strong>: Mounts a specific React component.</li>
+                            </ul>
+
+                            <p>Example of a full HTML template:</p>
 
                             <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
-                                    <span class="editor-title">main.py CORS snippet</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-# English: for development react
-# Español: para desarrollo react
-cors = {
-    "origin": ["http://localhost:5173"],
-    "allow_credentials": True,
-    "allow_methods": ["*"],
-    "allow_headers": ["*"]
-}
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <h5 class="text-2xl font-semibold">Automatic Routes and Asset Mounting</h5>
-                            <p>
-                                Lila modifies <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/routes.py</code>
-                                automatically for your React build. This
-                                ensures
-                                the React build assets are served correctly and the index.html is rendered from the
-                                cache.
-                            </p>
-
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">routes.py Example</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-router.mount(path="/assets", directory="templates/html/react/assets", name="react-assets")
-
-@router.route(path="/{path:path}", methods=["GET"])
-async def home(request: Request):
-    response = render(request=request, template="react/index")
-    return response
-            </code></pre>
-                                </div>
-                            </div>
-                            <div>
-                                <h3>
-                                    Remember to modify the <code
-                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-                                    file when passing your routes
-                                    to initialize
-                                    the application, always pass <strong>api_routes</strong> first, or whatever you have
-                                    named it.
-                                    <br /> This is key to getting your API routes without colliding with the general
-                                    React route.
-                                    <code
-                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
-@router.route(path="/{path:path}", methods=["GET"])
-</code>
-                                    , where React, with React Router, or whatever you use, can handle all the routes.
-                                    <br /> Remaining this way in <code
-                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-
-                                </h3>
-                                <div class="code-editor mt-4 mb-4">
-                                    <div class="editor-header">
-                                        <span class="editor-title">main.py</span>
-                                    </div>
-                                    <div class="editor-content">
-                                        <pre>
-<code class="language-python">
-all_routes = list(itertools.chain( api_routes,routes))
-#First api_routes, then routes (where the general React route is)  
-</code>
-</pre>
-                                    </div>
-                                </div>
-
-                            </div>
-
-
-                            <h5 class="text-2xl font-semibold">Prerendering and Caching</h5>
-                            <p>
-                                To improve SEO, Lila supports prerendering your React pages and caching them. After
-                                building your
-                                React app with <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">npm run build</code>,
-                                you can generate the cached HTML:
-                            </p>
-
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">Generate Cache</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-bash">
-python -m cli.prerender --url http://localhost:8001
-# or python3 -m cli.prerender
-            </code></pre>
-                                </div>
-                            </div>
-
-                            <p>
-                                Then, in your <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react/index.html</code>
-                                dev file, include the cached HTML for SEO
-                                hydration:
-                            </p>
-
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">index.html snippet</span>
+                                    <span class="editor-title">templates/html/react.html</span>
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-html">
-<div id="root">{% include "react/cache/index.html" ignore missing %}</div>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="{{ lang }}"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+    &lt;meta name="color-scheme" content="light dark" /&gt;
+    &lt;meta http-equiv="X-UA-Compatible" content="ie=edge" /&gt;
+    &lt;meta name="description" content="{{ description }}" /&gt;
+    &lt;meta name="keywords" content="{{ keywords }}" /&gt;
+    &lt;meta name="author" content="{{ author }}" /&gt;
+    &lt;title&gt;{{ title }}&lt;/title&gt;
+    &lt;link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" /&gt;
+    &lt;link rel="stylesheet" href="{{ public('css/lila.css') }}" /&gt;
+    {{ vite_assets() | safe }}
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;main class="mt-4 container"&gt;
+      &lt;h1&gt;Example React integration&lt;/h1&gt;
+      &lt;div&gt;{{ react('Counter', {'start': 3}) | safe }}&lt;/div&gt;
+    &lt;/main&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
             </code></pre>
                                 </div>
                             </div>
 
-                            <h5 class="text-2xl font-semibold">Startup Integration in main.py</h5>
+                            <h5 class="text-2xl font-semibold">How it Works</h5>
                             <p>
-                                You can optionally execute the prerender automatically on server startup by uncommenting
-                                the
-                                following section in <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>:
+                                <strong>Development (DEBUG=True):</strong><br>
+                                The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code> helper injects scripts pointing to <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://localhost:5173</code>.
+                                You can start the dev server with:
                             </p>
-
                             <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
-                                    <span class="editor-title">main.py prerender on startup</span>
+                                    <span class="editor-title">Terminal</span>
                                 </div>
                                 <div class="editor-content">
-                                    <pre><code class="language-python">
-# import subprocess
-# import sys
-
-# @app.on_event("startup")
-# async def startup_event():
-#     print("♻️ Prerender for react...")
-#     url_with_port = f"http://{HOST}:{PORT}"
-#     subprocess.Popen([
-#         sys.executable,
-#         "-m",
-#         "cli.prerender",
-#         "--url",
-#         url_with_port.strip()
-#     ])
+                                     <pre><code class="language-bash">
+npm run dev
+# OR
+python -m cli.react dev
             </code></pre>
                                 </div>
                             </div>
 
-                            <h5 class="text-2xl font-semibold">SEO and Hydration</h5>
                             <p>
-                                By including the cached HTML in the <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">root</code>
-                                div, React will rehydrate the
-                                content on the
-                                client side. This gives you:
+                                <strong>Production (DEBUG=False):</strong><br>
+                                Run <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">npm run build</code> to compile your React code into <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>. 
+                                The helper will automatically detect the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">manifest.json</code> and load the hashed CSS and JS files for optimal performance.
                             </p>
-                            <ul>
-                                <li>Strong SEO recognition by Google Bots and AI.</li>
-                                <li>Faster first paint with pre-rendered HTML.</li>
-                                <li>Optional daily caching using a scheduled prerender task.</li>
+
+                            <h5 class="text-2xl font-semibold">Benefits</h5>
+                            <ul class="list-disc ml-6 mt-4">
+                                <li><strong>SEO with Jinja</strong>: Your main page content is rendered by Jinja, ensuring search engines can read it perfectly.</li>
+                                <li><strong>React Interactivity</strong>: Use React only where needed (Islands architecture).</li>
+                                <li><strong>Secure Sessions</strong>: You can rely on Lila's secure, signed sessions using <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code> for authentication, while the React components communicate with your API endpoints.</li>
                             </ul>
 
-                            <h5 class="text-2xl font-semibold">React Helpers and Context</h5>
-                            <p>
-                                You can pass context from Jinja2 templates to React using <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">&lt;script&gt;</code>
-                                tags in
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/html/react/index.html</code>.
-                                Useful for translations, configuration, or
-                                any
-                                dynamic data.
-                            </p>
-
-                            <h5 class="text-2xl font-semibold">Automatic API Documentation</h5>
-                            <p>
-                                Lila continues to generate API documentation automatically using Pydantic models. All
-                                helpers
-                                and middlewares can be combined seamlessly with React routes.
-                            </p>
-
-                            <h5 class="text-2xl font-semibold">Session Validation with React</h5>
-                            <p>
-                                In the backend, you can add a middleware to validate the session. You can also use JWT,
-                                but Session is more secure because it is signed by <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>.
-                            </p>
-                            <p>
-                                This way, you can validate requests and store public IDs, tokens, etc., to validate
-                                sessions, or you can use JWT or both.
-                                The main recommendation is to validate the session this way or with
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">login_required</code>,
-                                which is another middleware that can also be configured
-                                there.
-                                This way, Lila and React are connected for the developer. In production, thanks to the
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">if DEBUG</code>
-                                condition, it will be secure with the signature of
-                                <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>
-                                in the <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
-                                class.
-                            </p>
-
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">app/routes/api.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-from app.middlewares.middlewares import login_required_auth, check_token, check_session
-from lila.core.session import Session
-from app.config import DEBUG
-
-# Define a simple API route that supports GET method.
-@router.route(path="/api", methods=["GET"])
-async def api(request: Request):
-    """Api function"""
-    # Returns a simple JSON response for API verification.
-    response = JSONResponse({"api": True})
-    new_val={"id":20}
-    samesite="none" if DEBUG else "strict"
-    Session.setSession(new_val=new_val,name_cookie='auth',response=response,samesite=samesite)
-    return response
-
-
-# Define an API route that supports GET and POST methods.
-@router.route(path="/api/token", methods=["GET", "POST"])
-# Middleware to validate the JWT Token.
-@login_required_auth
-async def api_token(request: Request):
-    """Api Token function"""
-    print(Session.getSessionValue(request=request))
-    return JSONResponse({"api": True})
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">app/middlewares/middlewares.py</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
-def login_required_auth(func, key: str = "auth"):
-    @wraps(func)
-    async def wrapper(request, *args, **kwargs):
-        session_data = Session.getSession(request=request,key=key)
-        if not session_data:
-            return JSONResponse({"session": False, "success": False}, status_code=401)
-        return await func(request, *args, **kwargs)
-                                    </code></pre>
-                                </div>
-                            </div>
-
-                            <div class="code-editor mt-4 mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">React Component</span>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-javascript">
-import { useEffect } from 'react';
-
-function MyComponent() {
-  useEffect(() => {
-    const start = async () => {
-      const resp = await fetch('http://127.0.0.1:8000/api', { credentials: 'include' });
-
-      const resp_ = await fetch('http://127.0.0.1:8000/api/token', { credentials: 'include' });
-      const json = await resp_.json();
-
-      console.log(json);
-    };
-    start();
-  }, []);
-
-  return (
-    &lt;div&gt;
-      {/* Your component JSX */}
-    &lt;/div&gt;
-  );
-}
-                                    </code></pre>
-                                </div>
-                            </div>
                         </article>
                         <hr />
 
