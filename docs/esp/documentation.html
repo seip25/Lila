@@ -3362,6 +3362,41 @@ python -m cli.react dev
                                 <li><strong>Sesiones Seguras</strong>: Puedes confiar en las sesiones seguras y firmadas de Lila (<code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>) para la autenticación, mientras los componentes de React se comunican con tus puntos finales de API.</li>
                             </ul>
 
+ <h3 class="text-2xl font-semibold">React Render (componentes de renderizado con htmlResponse sin plantillas jinja)</h3>
+<p>
+Este método reactRender se utiliza para devolver el HTML directamente y cargar una página o componente de React con estilos, metaetiquetas, scripts personalizados y contenido/props.
+</p>
+      <div class="code-editor mt-4 mb-4">
+                                <div class="editor-header">
+                                    <span class="editor-title">ReactRender</span>
+                                </div>
+                                <div class="editor-content">
+                                     <pre><code class="language-python">
+from lila.core.templates import render,renderMarkdown,renderReact
+...
+router = Router()
+@router.get("/react-page")
+async def react_page(request: Request):
+    response = renderReact(component="Counter",
+    props={
+        "start": 5
+    } ,
+    options={
+        "title": "React Page",
+        "meta": [{
+          "name": "description",
+          "content": "A React page with a counter component"
+        }],
+        "styles": ["/public/css/lila.css"]
+    }                      
+    )
+    return response
+            </code></pre>
+                                </div>
+                            </div>
+
+
+
                         </article>
                         <hr />
 
