@@ -732,15 +732,14 @@ router.mount()
 
                         <article id="templates-esp" class="space-y-6 md:space-y-8 py-8">
                             <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                                Renderizado de Plantillas (Jinja2 + Lila JS)
+                                Renderizado de Plantillas (Jinja2  )
                             </h1>
                             <p class="text-lg text-gray-700 dark:text-gray-300">
                                 En Lila, puedes usar
                                 <strong class="font-semibold text-gray-900 dark:text-gray-100">Jinja2</strong> para
                                 renderizar
-                                HTML con datos del servidor o
-                                <strong class="font-semibold text-gray-900 dark:text-gray-100">Lila JS</strong> para
-                                crear componentes reactivos. Incluso puedes combinar ambos enfoques.
+                                HTML con datos del servidor  
+                                
                             </p>
 
                             <section class="space-y-6">
@@ -893,186 +892,9 @@ def render(
                                 </p>
                             </section>
 
-                            <section class="space-y-6">
-                                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Lila JS: Reactive
-                                    System</h2>
-                                <p class="text-gray-700 dark:text-gray-300">
-                                    Lila JS is a minimalist library for building reactive interfaces with plain
-                                    JavaScript.
-                                </p>
-                                <p>
-                                    <a href="https://seip25.github.io/Lila_js/" target="_blank"
-                                        class="text-blue-500 hover:text-blue-600 font-medium">Lila JS Documentation
-                                        →</a>
-                                </p>
+                        
 
-                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Key Concepts</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
-                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Reactive
-                                            State</h4>
-                                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                                            The state is a special object that automatically updates the interface when
-                                            its value changes.
-                                        </p>
-                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
-                                            <pre class="language-javascript"><code class="whitespace-pre-wrap">
-state: () => ({
-  email: '',
-  password: ''
-})
-</code></pre>
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
-                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Two-Way Data
-                                            Binding</h4>
-                                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                                            Link inputs and state using the
-                                            <code
-                                                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">data-model</code>
-                                            attribute.
-                                        </p>
-                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
-                                            <pre class="language-html"><code class="whitespace-pre-wrap">
-&lt;input data-model="email"&gt;
-&lt;span data-bind="email"&gt;&lt;/span&gt;
-</code></pre>
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
-                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Components
-                                        </h4>
-                                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                                            Reusable units with their own state, template, and actions.
-                                        </p>
-                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
-                                            <pre class="language-javascript"><code class="whitespace-pre-wrap">
-App.createComponent('login-component', {
-  template: 'login-template',
-  state: () => ({...}),
-  actions: {...}
-});
-</code></pre>
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg space-y-3">
-                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Routing</h4>
-                                        <p class="text-sm text-gray-700 dark:text-gray-300">Client-side navigation
-                                            between components.</p>
-                                        <div class="bg-gray-800 rounded-lg p-3 text-sm text-gray-200">
-                                            <pre class="language-javascript"><code class="whitespace-pre-wrap">
-App.defineRoute('/login', '&lt;login-component&gt;&lt;/login-component&gt;');
-App.mount('app'); // id of the mounting div
-</code></pre>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section class="rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                                <div class="p-8">
-                                    <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-8">
-                                        Advantages of This Approach</h2>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        <div
-                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                                            <h3
-                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                                <span
-                                                    class="p-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
-                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M12 2L19 22H5L12 2Z"></path>
-                                                        <path d="M12 2V22"></path>
-                                                        <path d="M2 15L22 15"></path>
-                                                    </svg>
-                                                </span>
-                                                Performance
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400">
-                                                Combines Jinja2's fast initial rendering with the smoothness of a Single
-                                                Page Application (SPA).
-                                            </p>
-                                        </div>
-
-                                        <div
-                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                                            <h3
-                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                                <span
-                                                    class="p-2 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
-                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                                        <circle cx="12" cy="7" r="4"></circle>
-                                                        <path d="M17 11L19 13L23 9"></path>
-                                                    </svg>
-                                                </span>
-                                                SEO Optimized
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400">Critical content is rendered
-                                                server-side for search engines, improving discoverability.</p>
-                                        </div>
-
-                                        <div
-                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                                            <h3
-                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                                <span
-                                                    class="p-2 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
-                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path
-                                                            d="M15 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z">
-                                                        </path>
-                                                        <path
-                                                            d="M9 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z">
-                                                        </path>
-                                                        <path
-                                                            d="M3 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z">
-                                                        </path>
-                                                        <path
-                                                            d="M21 4h-1a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-14a1 1 0 0 0-1-1z">
-                                                        </path>
-                                                    </svg>
-                                                </span>
-                                                Progressive
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400">
-                                                Start with Jinja2 for static content and add interactivity with Lila JS
-                                                only where it's needed.
-                                            </p>
-                                        </div>
-
-                                        <div
-                                            class="advantage bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                                            <h3
-                                                class="flex items-center gap-3 text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                                <span
-                                                    class="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
-                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <circle cx="12" cy="12" r="10"></circle>
-                                                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                                    </svg>
-                                                </span>
-                                                Simple
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400">No complex build configurations
-                                                or heavy dependencies required.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
+                        
 
                             <section>
                                 <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">
