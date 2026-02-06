@@ -1,4 +1,4 @@
- {
+{
   "changelogs": {
     "es": "Puedes ver aquí las novedades y cambios que hemos realizado en Lila Framework",
     "en": "Changelogs and new features that we have done in Lila Framework"
@@ -59,12 +59,120 @@
     "es": "Hemos mejorado el cli para minify , con python -m cli.minify ahora minifca archivos .js y .css de una forma mejor..",
     "en": "We've improved the CLI for minifying. Python -m cli.minify now minifies .js and .css files more efficiently.HTML is automatically compressed between requests with starlette-compress, thanks to the middleware in main.py.HTML is now compressed with Jinja2 for better SEO and, above all, faster browser speed."
   },
-  "Compress HTML":{
+  "Compress HTML": {
     "es": "Compresión de HTML",
     "en": "Compress HTML"
   },
-  "now always compress response html  and always and minifyin":{
-    "es":"Ahora se comprime siempre la respuesta(html) siempre y minificando el archivo .html.",
-    "en":"now always compress response html  and always and minifying."
+  "now always compress response html  and always and minifyin": {
+    "es": "Ahora se comprime siempre la respuesta(html) siempre y minificando el archivo .html.",
+    "en": "now always compress response html  and always and minifying."
+  },
+  "asset_optimization": {
+    "es": "Optimización de Assets en Producción (Imágenes y CSS)",
+    "en": "Asset Optimization in Production (Images & CSS)"
+  },
+  "asset_optimization_desc": {
+    "es": "Lila ahora optimiza automáticamente tus imágenes y archivos CSS para mejorar el rendimiento y SEO de tu aplicación.",
+    "en": "Lila now automatically optimizes your images and CSS files to improve performance and SEO of your application."
+  },
+  "optimized_images": {
+    "es": "Imágenes Optimizadas con Jinja2",
+    "en": "Optimized Images with Jinja2"
+  },
+  "optimized_images_desc": {
+    "es": "Lila optimiza automáticamente tus imágenes para un mejor rendimiento y SEO. Al usar la función image() en tus templates, el sistema convierte las imágenes al formato WebP, las redimensiona si es necesario y las comprime sin perder calidad visual.",
+    "en": "Lila automatically optimizes your images for better performance and SEO. When using the image() function in your templates, the system converts images to WebP format, resizes them if necessary, and compresses them without losing visual quality."
+  },
+  "automatic_css_minification": {
+    "es": "Minificación Automática de CSS",
+    "en": "Automatic CSS Minification"
+  },
+  "automatic_css_minification_desc": {
+    "es": "La función public() detecta automáticamente si existe una versión minificada de tu archivo CSS. Si no existe, el sistema la genera automáticamente, mejorando los tiempos de carga y el rendimiento SEO.",
+    "en": "The public() function automatically detects whether a minified version of your CSS file exists. If it does not, the system generates it automatically, improving load times and SEO performance."
+  },
+  "usage_example": {
+    "es": "Ejemplo de uso en HTML (Jinja2)",
+    "en": "Usage Example in HTML (Jinja2)"
+  },
+  "image_function_desc": {
+    "es": "La función image() convierte automáticamente las imágenes a WebP y las optimiza. La función public() minifica automáticamente archivos CSS y JS si no existe una versión .min.",
+    "en": "The image() function automatically converts images to WebP and optimizes them. The public() function automatically minifies CSS and JS files if a .min version doesn't exist."
+  },
+  "public_function_desc": {
+    "es": "Cuando usas public() con archivos CSS o JS, Lila verifica si existe una versión minificada (.min.css o .min.js). Si no existe, la crea automáticamente usando rcssmin y rjsmin, reduciendo el tamaño de los archivos y mejorando la velocidad de carga.",
+    "en": "When you use public() with CSS or JS files, Lila checks if a minified version (.min.css or .min.js) exists. If not, it automatically creates one using rcssmin and rjsmin, reducing file size and improving load speed."
+  },
+  "cli_model": {
+    "es": "CLI para generar modelos",
+    "en": "CLI for generating models"
+  },
+  "description_cli_model": {
+    "es": "Permite generar modelos de datos con solo un comando ,ejemplo : python -m cli.model create --name Product --table products",
+    "en": "Allows generating data models with a single command, example: python -m cli.model create --name Product --table products"
+  },
+  "list_models": {
+    "es": "Lista de modelos,ejemplo : python -m cli.model list-models",
+    "en": "List of models, example: python -m cli.model list-models"
+  },
+  "usage_example_cli_model": {
+    "es": "Ejemplo de uso  ",
+    "en": "Usage Example  "
+  },
+  "cli_scaffold_crud": {
+    "es": "CLI para generar CRUD completo (Scaffold)",
+    "en": "CLI for generating complete CRUD (Scaffold)"
+  },
+  "description_cli_scaffold_crud": {
+    "es": "Genera automáticamente rutas CRUD completas, templates HTML con DataTable y modales, y auto-importa las rutas en main.py. Valida que el modelo exista antes de generar el scaffold.",
+    "en": "Automatically generates complete CRUD routes, HTML templates with DataTable and modals, and auto-imports routes in main.py. Validates that the model exists before generating the scaffold."
+  },
+  "scaffold_features": {
+    "es": "Genera: rutas GET/POST/PUT/DELETE, template HTML con DataTable responsive, modales para crear/editar, validación Pydantic (comentada), y auto-importación en main.py",
+    "en": "Generates: GET/POST/PUT/DELETE routes, HTML template with responsive DataTable, create/edit modals, Pydantic validation (commented), and auto-import in main.py"
+  },
+  "enhanced_error_handling": {
+    "es": "Manejo de errores mejorado",
+    "en": "Enhanced error handling"
+  },
+  "enhanced_error_handling_desc": {
+    "es": "Páginas de error detalladas con traceback completo, información de archivo y línea, y diseño profesional. Los errores siempre se muestran en terminal para debugging.",
+    "en": "Detailed error pages with full traceback, file and line information, and professional design. Errors are always shown in terminal for debugging."
+  },
+  "features": {
+    "es": "Características",
+    "en": "Features"
+  },
+  "detailed_error_pages": {
+    "es": "Páginas de error HTML detalladas en modo DEBUG con traceback completo",
+    "en": "Detailed HTML error pages in DEBUG mode with full traceback"
+  },
+  "terminal_logging": {
+    "es": "Logging automático en terminal para todos los errores (siempre activo)",
+    "en": "Automatic terminal logging for all errors (always active)"
+  },
+  "debug_mode_control": {
+    "es": "Control por DEBUG en config.py - errores genéricos en producción",
+    "en": "DEBUG control in config.py - generic errors in production"
+  },
+  "auto_import_system": {
+    "es": "Sistema de auto-importación con markers",
+    "en": "Auto-import system with markers"
+  },
+  "auto_import_system_desc": {
+    "es": "Sistema mejorado de markers para auto-importar modelos y rutas automáticamente. Los CLI de model y scaffold_crud agregan imports automáticamente.",
+    "en": "Improved marker system to auto-import models and routes automatically. The model and scaffold_crud CLIs add imports automatically."
+  },
+  "markers_available": {
+    "es": "Markers disponibles",
+    "en": "Available markers"
+  },
+  "model_marker_desc": {
+    "es": "Para auto-importar modelos en cli/migrations.py",
+    "en": "For auto-importing models in cli/migrations.py"
+  },
+  "api_marker_desc": {
+    "es": "Para auto-importar rutas generadas por scaffold en main.py",
+    "en": "For auto-importing scaffold-generated routes in main.py"
   }
 }

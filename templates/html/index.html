@@ -1,405 +1,234 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}" class="light">
+<html lang="{{ lang }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="description" content="{{ description }}" />
+    <meta name="keywords" content="{{ keywords }}" />
+    <meta name="author" content="{{ author }}" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
-    <link rel="stylesheet" href="/public/css/lila.css" />
+    <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+    <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
   </head>
 
-  <body class="bg-surface min-h-screen flex flex-col">
-    <main class="container mx-auto px-4 py-8 flex-grow">
-      <article class="bg-white rounded-lg shadow-md p-6">
-        <header class="text-center mt-4  ">
-          <h3 class="text-3xl font-bold text-violet-400 mb-4">
-            {{ translate['Welcome to the Lila Framework'] }}
-          </h3>
-        </header>
-
-        <div class="max-w-none mt-4 ">
-          <p class="text-gray-700 mb-4">{{ translate['Hi'] }}!</p>
-          <p class="text-gray-700 mb-4">
+  <body>
+    <main>
+      <!-- Hero Section -->
+      <section class="hero border-none shadow-none">
+        <img src="{{ image('img/lila.png') }}" alt="Lila Framework" width="100" height="100" class="hero-logo" />
+        <h1 class="font-bold text-4xl">{{ translate['Welcome to the Lila Framework'] }}</h1>
+        <p class="text-center text-lg text-secondary">
+          {{ translate['Hi'] }}! 
+          {{ translate['A_modern_Starlette'] }}.
+        </p>
+        <div class="flex gap-2 justify-center flex-wrap">
+          <a href="/docs" role="button">
+            <span>📚</span>
             {{ translate['Go to docs'] }}
-            <a href="/docs" class="text-blue-600 hover:text-blue-800 underline"
-              >docs</a
-            >, {{ translate['view_api_docs'] }}
-          </p>
-          <p class="text-gray-700 mb-6">
-            {{ translate['go_to_markdown'] }}
-            <a
-              href="/markdown"
-              class="text-blue-600 hover:text-blue-800 underline"
-              >Markdown</a
-            >, {{ translate['view_markdown_example'] }}
-          </p>
-
-          <div class="bg-gray-100 p-4 rounded-lg mb-6">
-            <h5 class="text-lg font-semibold text-gray-800">
-              {{ translate['also_left_in'] }}
-              <code class="bg-gray-200 px-2 py-1 rounded text-sm"
-                >app/routes/api.py</code
-              >
-              {{ translate['and_in'] }}
-              <code class="bg-gray-200 px-2 py-1 rounded text-sm"
-                >app/routes/routes.py</code
-              >, {{ translate['examples_of_how_to_use'] }} {{
-              translate['routes_queries_crud'] }} ({{
-              translate['crud_with_30_lines'] }}, {{
-              translate['with_middlewares_validations'] }}, {{
-              translate['and_more'] }}!)
-            </h5>
-          </div>
-          <br />
-            <a   href="/changelogs"
-              target="_blank"
-              class="mt-4 mb-4 text-indigo-600 hover:text-indigo-800 underline"
-            >
-              {{ translate["changelogs"] }}
-            </a> 
-
-                    <div class="text-gray-700 mt-4 mb-4">
-            {{ translate["documentation"] }}
-            <a
-              href="https://seip25.github.io/Lila/documentation.html#"
-              target="_blank"
-              class="text-blue-600 hover:text-blue-800 underline"
-            >
-              link
-            </a>
-          </div> 
+          </a>
+          <a href="/changelogs" role="button" class="secondary">
+            <span>📝</span>
+            {{ translate['changelogs'] }}
+          </a>
+          <a href="/markdown" role="button" class="secondary">
+            <span>📄</span>
+            Markdown
+          </a>
         </div>
+      </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4 mb-4">
+      <!-- Info Box -->
+      <div class="container">
+        <article class="secondary">
+          <p style="margin: 0;">
+            {{ translate['also_left_in'] }}
+            <code>app/routes/api.py</code>
+            {{ translate['and_in'] }}
+            <code>app/routes/routes.py</code>, {{ translate['examples_of_how_to_use'] }} {{
+            translate['routes_queries_crud'] }} ({{
+            translate['crud_with_30_lines'] }}, {{
+            translate['with_middlewares_validations'] }}, {{
+            translate['and_more'] }}!)
+          </p>
+        </article>
+
+        <!-- Documentation Grid -->
+        <div class="grid gap-4 cols-2 m-3">
           <!-- English Section -->
-          <section class="bg-blue-50 rounded-lg p-6">
-            <header class="text-center mb-4">
-              <h6 class="text-xl font-semibold text-blue-800">English</h6>
+          <article class="docs-section">
+            <header>
+              <h2 class="docs-section-title">📖 English Documentation</h2>
             </header>
-            <ul class="space-y-2">
+            <ul class="docs-list">
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#install-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#install-eng" target="_blank" class="docs-link">
                   Installation
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#routes-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#routes-eng" target="_blank" class="docs-link">
                   Routes
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#static-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                  Static
+                <a href="https://seip25.github.io/Lila/documentation.html#static-eng" target="_blank" class="docs-link">
+                  Static Files
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#templates-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#templates-eng" target="_blank" class="docs-link">
                   Templates
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#react-seo"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                  React
+                <a href="https://seip25.github.io/Lila/documentation.html#react-seo" target="_blank" class="docs-link">
+                  React Integration
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#upload-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                  Uploads Files
+                <a href="https://seip25.github.io/Lila/documentation.html#upload-eng" target="_blank" class="docs-link">
+                  File Uploads
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#markdown-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#markdown-eng" target="_blank" class="docs-link">
                   Markdown/HTML
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#locales-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                  Internationalization (Translations)
+                <a href="https://seip25.github.io/Lila/documentation.html#locales-eng" target="_blank" class="docs-link">
+                  Internationalization
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#models-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#models-eng" target="_blank" class="docs-link">
                   Models
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#middlewares-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#middlewares-eng" target="_blank" class="docs-link">
                   Middlewares
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#connections-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                  Connections
+                <a href="https://seip25.github.io/Lila/documentation.html#connections-eng" target="_blank" class="docs-link">
+                  Database Connections
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#migrations-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#migrations-eng" target="_blank" class="docs-link">
                   Migrations
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#rest_api_crud-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-                  API Rest crud generate
+                <a href="https://seip25.github.io/Lila/documentation.html#rest_api_crud-eng" target="_blank" class="docs-link">
+                  REST API CRUD Generator
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#admin-panel-eng"
-                  target="_blank"
-                  class="text-blue-600 hover:text-blue-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/documentation.html#admin-panel-eng" target="_blank" class="docs-link">
                   Admin Panel
                 </a>
               </li>
             </ul>
-          </section>
+          </article>
 
-          <!-- Español Section -->
-          <section class="bg-green-50 rounded-lg p-6">
-            <header class="text-center mb-4">
-              <h6 class="text-xl font-semibold text-green-800">Español</h6>
+          <!-- Spanish Section -->
+          <article class="docs-section">
+            <header>
+              <h2 class="docs-section-title">📖 Documentación en Español</h2>
             </header>
-            <ul class="space-y-2">
+            <ul class="docs-list">
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#install-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#install-esp" target="_blank" class="docs-link">
                   Instalación
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#routes-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#routes-esp" target="_blank" class="docs-link">
                   Rutas
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#static-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  Archivos estáticos
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#static-esp" target="_blank" class="docs-link">
+                  Archivos Estáticos
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#templates-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#templates-esp" target="_blank" class="docs-link">
                   Templates
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#react-seo"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  React
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#react-seo" target="_blank" class="docs-link">
+                  Integración con React
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/documentation.html#upload-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  Uploads de archivos
+                <a href="https://seip25.github.io/Lila/documentation.html#upload-esp" target="_blank" class="docs-link">
+                  Carga de Archivos
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#markdown-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#markdown-esp" target="_blank" class="docs-link">
                   Markdown/HTML
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#locales-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  Internalización (Traducciones)
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#locales-esp" target="_blank" class="docs-link">
+                  Internacionalización
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#models-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#models-esp" target="_blank" class="docs-link">
                   Modelos
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#middlewares-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#middlewares-esp" target="_blank" class="docs-link">
                   Middlewares
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#connections-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  Connections
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#connections-esp" target="_blank" class="docs-link">
+                  Conexiones a Base de Datos
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#migrations-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#migrations-esp" target="_blank" class="docs-link">
                   Migraciones
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#rest_api_crud-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  Generación sencilla de CRUD de API Rest
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#rest_api_crud-esp" target="_blank" class="docs-link">
+                  Generador de CRUD REST API
                 </a>
               </li>
               <li>
-                <a
-                  href="https://seip25.github.io/Lila/esp/documentation.html#admin-panel-esp"
-                  target="_blank"
-                  class="text-green-600 hover:text-green-800 hover:underline flex items-center underline"
-                >
-                  <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                  Panel de Admin
+                <a href="https://seip25.github.io/Lila/esp/documentation.html#admin-panel-esp" target="_blank" class="docs-link">
+                  Panel de Administración
                 </a>
               </li>
             </ul>
-          </section>
+          </article>
         </div>
-        <div class=" text-center mt-4">
-          <p class="text-gray-700">
-            {{ translate['like_lila'] }}
-            <a
-              href="https://github.com/seip25/lila"
-              target="_blank"
-              class="text-violet-500 hover:text-violet-700 font-semibold"
-            >
-              ⭐ {{ translate['star_on_github'] }}
-            </a>
-          </p>
-        </div>
-      </article>
+      </div>
     </main>
 
-    <footer class="bg-gray-100 py-4 mt-auto">
-      <div class="container mx-auto px-4 flex justify-between items-center">
-        <a
-          href="/set-language/es"
-          class="text-gray-600 hover:text-gray-800 transition-colors font-medium"
-        >
-          Español (Esp)
-        </a>
-        <a
-          href="/set-language/en"
-          class="text-gray-600 hover:text-gray-800 transition-colors font-medium"
-        >
-          English (US)
-        </a>
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <div class="flex gap-1">
+          <a href="/set-language/es" class="lang-link">🇪🇸 Español</a>
+          <a href="/set-language/en" class="lang-link">🇺🇸 English</a>
+        </div>
+        <div>
+          <a href="https://github.com/seip25/lila" target="_blank" class="github-star">
+            ⭐ {{ translate['star_on_github'] }}
+          </a>
+        </div>
       </div>
     </footer>
   </body>

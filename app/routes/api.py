@@ -71,44 +71,6 @@ async def login(request: Request):
     response = JSONResponse({"email": email, "password": password, "success": True})
     return response
 
-
-# Example generate API REST CRUD with 'rest_crud_generate'
-from app.connections import connection
-from app.models.user import User
-from pydantic import BaseModel, EmailStr
-
-
-class UserModel(BaseModel):
-    email: EmailStr = Field(..., max_length=255)
-    name: str = Field(..., min_length=3, max_length=255) 
-    password: str = Field(..., min_length=3, max_length=255)
-    
-
-# Example execute middlewares for rest crud generate
-middlewares_user = {
-    "get": [],
-    "post": [],
-    "get_id": [],
-    "put": [],
-    "delete": [
-        #check_session
-    ],  # Example of passing middlewares to the function  'rest_crud_generate'
-    "html": [],
-}
-# Rest crud generate ,base models SQl and models pydantic
-router.rest_crud_generate(
-    router=router,
-    connection=connection,
-    model_sql=User,
-    model_pydantic=UserModel,
-    select=["id","name", "email"], 
-    delete_logic=True,
-    active=True,
-    middlewares=middlewares_user,
-    generate_html=DEBUG
-)
-
-
 # English: Enable Swagger UI for API documentation.
 # Español: Habilita Swagger UI para la documentación de la API.
 router.swagger_ui()

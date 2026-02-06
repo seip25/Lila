@@ -7,6 +7,9 @@ import asyncio
 
 # auth_marker
 
+from app.models.product import Product
+# model_marker
+
 app = typer.Typer()
 
 #English:Example of creating migrations for 'users'

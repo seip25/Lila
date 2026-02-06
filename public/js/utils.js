@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // Language helper
 function lang(l = "es") {
-  return document.documentElement.lang === l;
+  return document.documentElement.lang === l || document.documentElement.lang.startsWith("es");
 }
 
 
@@ -224,7 +224,12 @@ class ResponsiveDataTable {
 
         const dd = document.createElement('dd');
         const cellValue = item[column.key];
-        dd.textContent = cellValue || '-';
+
+        if (cellValue && typeof cellValue === 'string' && /<[a-z][\s\S]*>/i.test(cellValue)) {
+          dd.innerHTML = cellValue;
+        } else {
+          dd.textContent = cellValue || '-';
+        }
 
         details.appendChild(dt);
         details.appendChild(dd);

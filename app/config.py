@@ -17,15 +17,18 @@ PATH_TEMPLATE_NOT_FOUND = "templates/html/404.html"
 PATH_TEMPLATES_HTML ="templates/html/"
 PATH_TEMPLATES_MARKDOWN = "templates/markdown/"
 PATH_LOCALES = "app/locales"
-PATH_UPLOADS='/static/img/uploads'
+PATH_UPLOADS = path.join(os.getcwd(), "static", "img", "uploads")
 
 
 #Project
-TITLE_PROJECT = "Lila project"
-VERSION_PROJECT = 1
-DESCRIPTION_PROJECT = ""
-THEME_DEFAULT = "blue"
-LANG_DEFAULT = "en"
+TITLE_PROJECT = getenv("TITLE_PROJECT", "Lila project")
+VERSION_PROJECT = getenv("VERSION_PROJECT", 1)
+DESCRIPTION_PROJECT = getenv("DESCRIPTION_PROJECT", "")
+THEME_DEFAULT = getenv("THEME_DEFAULT", "blue")
+LANG_DEFAULT = getenv("LANG_DEFAULT", "en")
+DESCRIPTION_DEFAULT = getenv("DESCRIPTION_DEFAULT", "A Python web framework")
+KEYWORDS_DEFAULT = getenv("KEYWORDS_DEFAULT", "Python, web, framework")
+AUTHOR_DEFAULT = getenv("AUTHOR_DEFAULT", "Seip")
 
 
 #Security
