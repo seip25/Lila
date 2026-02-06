@@ -1,6 +1,30 @@
 # {{ translate["changelogs"] }}
 
-## 8.2
+## 9.1
+### ReactRender function 
+
+
+## 8.9 
+### Fix bug upload dir ('static')
+
+## 8.8 
+### Fix bug middleware Logger
+
+## 8.7
+
+### {{ translate["cli_react"] }}
+
+{{ translate["description_cli_react"] }}
+
+**{{ translate["usage_example"] }}:**
+
+```bash
+python -m cli.react create
+```
+
+## 8.5
+
+### {{ translate["resolved_problem_core"] }}
 
 ### {{ translate["cli_scaffold_crud"] }}
 

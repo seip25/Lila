@@ -174,5 +174,17 @@
   "api_marker_desc": {
     "es": "Para auto-importar rutas generadas por scaffold en main.py",
     "en": "For auto-importing scaffold-generated routes in main.py"
+  },
+  "resolved_problem_core": {
+    "es": "Problemas resueltos en el núcleo de Lila en cli/scaffold_crud  ",
+    "en": "Resolved problems in Lila core for cli/scaffold_crud  "
+  },
+  "cli_react": {
+    "es": "CLI para React",
+    "en": "CLI for React"
+  },
+  "description_cli_react": {
+    "es": "Lila ahora ofrece una poderosa arquitectura de Islas React, permitiéndote incrustar componentes interactivos de React directamente en tus plantillas Jinja2. Este enfoque combina lo mejor de ambos mundos: el SEO y el rendimiento del renderizado del lado del servidor con Lila, y la interactividad de React.",
+    "en": "Lila now offers a powerful Island React architecture, allowing you to embed interactive React components directly in your Jinja2 templates. This approach combines the best of both worlds: SEO and server-side rendering performance with Lila, and the interactivity of React."
   }
 }
