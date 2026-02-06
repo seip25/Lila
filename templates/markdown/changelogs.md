@@ -1,4 +1,6 @@
 # {{ translate["changelogs"] }}
+## 9.2 
+### Support new version Starlette
 
 ## 9.1
 ### ReactRender function 
