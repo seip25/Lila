@@ -13,7 +13,7 @@ DEBUG = getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 
 PATH_LOG_BASE_DIR = "app/logs"
 PATH_SECURITY = "app/security/"
-PATH_TEMPLATE_NOT_FOUND = "templates/html/404.html"
+PATH_TEMPLATE_NOT_FOUND = "lila/404"
 PATH_TEMPLATES_HTML ="templates/html/"
 PATH_TEMPLATES_MARKDOWN = "templates/markdown/"
 PATH_LOCALES = "app/locales"

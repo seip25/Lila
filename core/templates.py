@@ -335,11 +335,11 @@ def renderMarkdown(
 ):
     file_path = os.path.join(PATH_TEMPLATES_MARKDOWN, f"{file}.md")
     if not os.path.exists(file_path):
-        not_found_path = os.path.join(PATH_TEMPLATES_HTML, "404.html")
+        not_found_path = os.path.join(PATH_TEMPLATES_HTML, "lila/404.html")
         if os.path.exists(not_found_path):
             return templates.TemplateResponse(
                 request=request,
-                name="404.html",
+                name="lila/404.html",
                 context={"request": request},
                 status_code=404,
             )

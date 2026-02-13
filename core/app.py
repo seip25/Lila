@@ -4,7 +4,7 @@ from core.templates import render
 from starlette.middleware.cors import CORSMiddleware
 from core.logger import Logger
 from pathlib import Path
-from app.config import PATH_TEMPLATE_NOT_FOUND,DEBUG
+from app.config import PATH_TEMPLATE_NOT_FOUND,DEBUG,PATH_TEMPLATES_HTML
 from typing import List, Optional, Dict, Any
 from starlette_compress import CompressMiddleware
 from starlette.middleware.gzip import GZipMiddleware
@@ -83,9 +83,9 @@ class App(Starlette):
                 f"404 Not Found: {request.url.path} - {await Logger.request(request=request)}"
             )
 
-        template_path = Path(PATH_TEMPLATE_NOT_FOUND)
+        template_path = Path(f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}.html")
         if template_path.exists():
-            return render(request=request, template="404")
+            return render(request=request, template=PATH_TEMPLATE_NOT_FOUND)
         return HTMLResponse(
             "<h1>404 Not Found</h1><p>The requested resource was not found on this server.</p>",
             status_code=404,
