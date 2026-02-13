@@ -1,235 +1,260 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <meta name="description" content="{{ description }}" />
-    <meta name="keywords" content="{{ keywords }}" />
-    <meta name="author" content="{{ author }}" />
-    <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
-    <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
-  </head>
 
-  <body>
-    <main>
-      <!-- Hero Section -->
-      <section class="hero border-none shadow-none">
-        <img src="{{ image('img/lila.png') }}" alt="Lila Framework" width="100" height="100" class="hero-logo" />
-        <h1 class="font-bold text-4xl">{{ translate['Welcome to the Lila Framework'] }}</h1>
-        <p class="text-center text-lg text-secondary">
-          {{ translate['Hi'] }}! 
-          {{ translate['A_modern_Starlette'] }}.
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="{{ description }}" />
+  <meta name="keywords" content="{{ keywords }}" />
+  <meta name="author" content="{{ author }}" />
+  <title>{{ title }}</title>
+  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+  <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+</head>
+
+<body>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero border-none shadow-none">
+      <img src="{{ image('img/lila.png') }}" alt="Lila Framework" width="100" height="100" class="hero-logo" />
+      <h1 class="font-bold text-4xl">{{ translate['Welcome to the Lila Framework'] }}</h1>
+      <p class="text-center text-lg text-secondary">
+        {{ translate['Hi'] }}!
+        {{ translate['A_modern_Starlette'] }}.
+      </p>
+      <div class="flex gap-2 justify-center flex-wrap">
+        <a href="/docs" role="button">
+          <span>📚</span>
+          {{ translate['Go to docs'] }}
+        </a>
+        <a href="/changelogs" role="button" class="secondary">
+          <span>📝</span>
+          {{ translate['changelogs'] }}
+        </a>
+        <a href="/markdown" role="button" class="secondary">
+          <span>📄</span>
+          Markdown
+        </a>
+        <a href="/debug" role="button" class="secondary">
+          <span>🐛</span>
+          Debug
+        </a>
+      </div>
+    </section>
+
+    <!-- Info Box -->
+    <div class="container">
+      <article class="secondary">
+        <p style="margin: 0;">
+          {{ translate['also_left_in'] }}
+          <code>app/routes/api.py</code>
+          {{ translate['and_in'] }}
+          <code>app/routes/routes.py</code>, {{ translate['examples_of_how_to_use'] }} {{
+          translate['routes_queries_crud'] }} ({{
+          translate['crud_with_30_lines'] }}, {{
+          translate['with_middlewares_validations'] }}, {{
+          translate['and_more'] }}!)
         </p>
-        <div class="flex gap-2 justify-center flex-wrap">
-          <a href="/docs" role="button">
-            <span>📚</span>
-            {{ translate['Go to docs'] }}
-          </a>
-          <a href="/changelogs" role="button" class="secondary">
-            <span>📝</span>
-            {{ translate['changelogs'] }}
-          </a>
-          <a href="/markdown" role="button" class="secondary">
-            <span>📄</span>
-            Markdown
-          </a>
-        </div>
-      </section>
+      </article>
 
-      <!-- Info Box -->
-      <div class="container">
-        <article class="secondary">
-          <p style="margin: 0;">
-            {{ translate['also_left_in'] }}
-            <code>app/routes/api.py</code>
-            {{ translate['and_in'] }}
-            <code>app/routes/routes.py</code>, {{ translate['examples_of_how_to_use'] }} {{
-            translate['routes_queries_crud'] }} ({{
-            translate['crud_with_30_lines'] }}, {{
-            translate['with_middlewares_validations'] }}, {{
-            translate['and_more'] }}!)
-          </p>
+      <!-- Documentation Grid -->
+      <div class="grid gap-4 cols-2 m-3">
+        <!-- English Section -->
+        <article class="docs-section">
+          <header>
+            <h2 class="docs-section-title">📖 English Documentation</h2>
+          </header>
+          <ul class="docs-list">
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#install-eng" target="_blank" class="docs-link">
+                Installation
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#routes-eng" target="_blank" class="docs-link">
+                Routes
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#static-eng" target="_blank" class="docs-link">
+                Static Files
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#templates-eng" target="_blank"
+                class="docs-link">
+                Templates
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#react-seo" target="_blank" class="docs-link">
+                React Integration
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#upload-eng" target="_blank" class="docs-link">
+                File Uploads
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#markdown-eng" target="_blank" class="docs-link">
+                Markdown/HTML
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#locales-eng" target="_blank" class="docs-link">
+                Internationalization
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#models-eng" target="_blank" class="docs-link">
+                Models
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#middlewares-eng" target="_blank"
+                class="docs-link">
+                Middlewares
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#connections-eng" target="_blank"
+                class="docs-link">
+                Database Connections
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#migrations-eng" target="_blank"
+                class="docs-link">
+                Migrations
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#rest_api_crud-eng" target="_blank"
+                class="docs-link">
+                REST API CRUD Generator
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#admin-panel-eng" target="_blank"
+                class="docs-link">
+                Admin Panel
+              </a>
+            </li>
+          </ul>
         </article>
 
-        <!-- Documentation Grid -->
-        <div class="grid gap-4 cols-2 m-3">
-          <!-- English Section -->
-          <article class="docs-section">
-            <header>
-              <h2 class="docs-section-title">📖 English Documentation</h2>
-            </header>
-            <ul class="docs-list">
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#install-eng" target="_blank" class="docs-link">
-                  Installation
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#routes-eng" target="_blank" class="docs-link">
-                  Routes
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#static-eng" target="_blank" class="docs-link">
-                  Static Files
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#templates-eng" target="_blank" class="docs-link">
-                  Templates
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#react-seo" target="_blank" class="docs-link">
-                  React Integration
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#upload-eng" target="_blank" class="docs-link">
-                  File Uploads
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#markdown-eng" target="_blank" class="docs-link">
-                  Markdown/HTML
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#locales-eng" target="_blank" class="docs-link">
-                  Internationalization
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#models-eng" target="_blank" class="docs-link">
-                  Models
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#middlewares-eng" target="_blank" class="docs-link">
-                  Middlewares
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#connections-eng" target="_blank" class="docs-link">
-                  Database Connections
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#migrations-eng" target="_blank" class="docs-link">
-                  Migrations
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#rest_api_crud-eng" target="_blank" class="docs-link">
-                  REST API CRUD Generator
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#admin-panel-eng" target="_blank" class="docs-link">
-                  Admin Panel
-                </a>
-              </li>
-            </ul>
-          </article>
-
-          <!-- Spanish Section -->
-          <article class="docs-section">
-            <header>
-              <h2 class="docs-section-title">📖 Documentación en Español</h2>
-            </header>
-            <ul class="docs-list">
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#install-esp" target="_blank" class="docs-link">
-                  Instalación
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#routes-esp" target="_blank" class="docs-link">
-                  Rutas
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#static-esp" target="_blank" class="docs-link">
-                  Archivos Estáticos
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#templates-esp" target="_blank" class="docs-link">
-                  Templates
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#react-seo" target="_blank" class="docs-link">
-                  Integración con React
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/documentation.html#upload-esp" target="_blank" class="docs-link">
-                  Carga de Archivos
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#markdown-esp" target="_blank" class="docs-link">
-                  Markdown/HTML
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#locales-esp" target="_blank" class="docs-link">
-                  Internacionalización
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#models-esp" target="_blank" class="docs-link">
-                  Modelos
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#middlewares-esp" target="_blank" class="docs-link">
-                  Middlewares
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#connections-esp" target="_blank" class="docs-link">
-                  Conexiones a Base de Datos
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#migrations-esp" target="_blank" class="docs-link">
-                  Migraciones
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#rest_api_crud-esp" target="_blank" class="docs-link">
-                  Generador de CRUD REST API
-                </a>
-              </li>
-              <li>
-                <a href="https://seip25.github.io/Lila/esp/documentation.html#admin-panel-esp" target="_blank" class="docs-link">
-                  Panel de Administración
-                </a>
-              </li>
-            </ul>
-          </article>
-        </div>
+        <!-- Spanish Section -->
+        <article class="docs-section">
+          <header>
+            <h2 class="docs-section-title">📖 Documentación en Español</h2>
+          </header>
+          <ul class="docs-list">
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#install-esp" target="_blank"
+                class="docs-link">
+                Instalación
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#routes-esp" target="_blank"
+                class="docs-link">
+                Rutas
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#static-esp" target="_blank"
+                class="docs-link">
+                Archivos Estáticos
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#templates-esp" target="_blank"
+                class="docs-link">
+                Templates
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#react-seo" target="_blank"
+                class="docs-link">
+                Integración con React
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/documentation.html#upload-esp" target="_blank" class="docs-link">
+                Carga de Archivos
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#markdown-esp" target="_blank"
+                class="docs-link">
+                Markdown/HTML
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#locales-esp" target="_blank"
+                class="docs-link">
+                Internacionalización
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#models-esp" target="_blank"
+                class="docs-link">
+                Modelos
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#middlewares-esp" target="_blank"
+                class="docs-link">
+                Middlewares
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#connections-esp" target="_blank"
+                class="docs-link">
+                Conexiones a Base de Datos
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#migrations-esp" target="_blank"
+                class="docs-link">
+                Migraciones
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#rest_api_crud-esp" target="_blank"
+                class="docs-link">
+                Generador de CRUD REST API
+              </a>
+            </li>
+            <li>
+              <a href="https://seip25.github.io/Lila/esp/documentation.html#admin-panel-esp" target="_blank"
+                class="docs-link">
+                Panel de Administración
+              </a>
+            </li>
+          </ul>
+        </article>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <!-- Footer -->
-    <footer>
-      <div class="footer-content">
-        <div class="flex gap-1">
-          <a href="/set-language/es" class="lang-link">🇪🇸 Español</a>
-          <a href="/set-language/en" class="lang-link">🇺🇸 English</a>
-        </div>
-        <div>
-          <a href="https://github.com/seip25/lila" target="_blank" class="github-star">
-            ⭐ {{ translate['star_on_github'] }}
-          </a>
-        </div>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="flex gap-1">
+        <a href="/set-language/es" class="lang-link">🇪🇸 Español</a>
+        <a href="/set-language/en" class="lang-link">🇺🇸 English</a>
       </div>
-    </footer>
-  </body>
+      <div>
+        <a href="https://github.com/seip25/lila" target="_blank" class="github-star">
+          ⭐ {{ translate['star_on_github'] }}
+        </a>
+      </div>
+    </div>
+  </footer>
+</body>
+
 </html>

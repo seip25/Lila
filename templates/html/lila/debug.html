@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debug Request in Lila</title>
+  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+  <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+  <script src="{{public('js/utils.js')}}"></script>
+</head>
+
+<body class=" bg-surface flex flex-col items-center justify-center min-h-screen">
+
+  <main class="container">
+    <article class="mt-8">
+      <header>
+        <div class="flex justify-between ">
+          <div>
+            <h3>Hi! welcome to debug </h5>
+              <p>Here you can see all the requests that have been made to the server.</p>
+          </div>
+          <div class="justify-end">
+            <button onclick="deleteDebug()">Reset </button>
+          </div>
+        </div>
+      </header>
+      <div id="routes"></div>
+      <!-- <table id="routes">
+        <thead>
+          <tr>
+            <th>Path</th>
+            <th>Method</th>
+            <th>IP</th>
+            <th>RAM</th>
+            <th>CPU</th>
+            <th>Time Execution</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody id="routes_body">
+          {% for debug in routes %}
+
+          <tr>
+            <td>{{ debug.path }}</td>
+            <td>{{ debug.method }}</td>
+            <td>{{ debug.ip }}</td>
+            <td>{{ debug.ram | safe}}</td>
+            <td>{{ debug.cpu }}</td>
+            <td>{{ debug.time_execution }}</td>
+            <td>{{ debug.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table> -->
+    </article>
+
+
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      updateTable();
+    });
+    let timer = null;
+
+    async function deleteDebug() {
+      const response = await fetch('/debug?delete=true', {
+        method: 'DELETE'
+      })
+      if (response.ok) {
+        updateTable()
+      }
+    }
+
+    async function updateTable() {
+      const response = await fetch('/debug?fetch=true')
+      if (response.ok) {
+        const routes = await response.json()
+
+        const dataTable = new ResponsiveDataTable('routes', {
+          data: routes,
+          columns: [
+            { title: "Path", key: "path" },
+            { title: "Method", key: "method" },
+            { title: "IP", key: "ip" },
+            { title: "RAM", key: "ram" },
+            { title: "CPU", key: "cpu" },
+            { title: "Time Execution", key: "time_execution" },
+            { title: "Created At", key: "created_at" }
+          ],
+          rowsPerPage: 5,
+          search: true,
+          pagination: true,
+          responsive: true,
+          summaryFields: ['id']
+        });
+      }
+    }
+    timer = setInterval(updateTable, 5000);
+  </script>
+</body>
+
+</html>
