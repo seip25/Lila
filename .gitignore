@@ -175,3 +175,5 @@ cython_debug/
 
 
 .log
+public/js/utils.min.js
+public/css/lila.min.css
