@@ -3295,7 +3295,7 @@ from lila.core.templates import render,renderMarkdown,renderReact
 router = Router()
 @router.get("/react-page")
 async def react_page(request: Request):
-    response = renderReact(component="Counter",
+    response = renderReact(request=request,component="Counter",
     props={
         "start": 5
     } ,
