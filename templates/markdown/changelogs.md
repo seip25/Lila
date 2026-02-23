@@ -3,11 +3,13 @@
 ## 9.2
 ### DEBUG ROUTE 
 ### {{ translate["debug_route_desc"] }}
-http://127.0.0.1:8000/debug/
+[View](http://127.0.0.1:8000/debug/)
+[Docs](https://seip25.github.io/Lila/documentation.html#debug)
 
 ## 9.1
 ### ReactRender function 
 #### {{ translate["react_render_desc"] }}
+[Docs](https://seip25.github.io/Lila/documentation.html#react)
 
 
 ## 8.9 
