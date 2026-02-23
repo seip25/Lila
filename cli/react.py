@@ -10,6 +10,29 @@ app = typer.Typer()
 
 project_root = os.getcwd()
 
+def html_template_base()->str:
+    html = """<!DOCTYPE html>
+<html lang="{{ lang }}" >
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="description" content="{{ description }}" />
+    <meta name="keywords" content="{{ keywords }}" />
+    <meta name="author" content="{{ author }}" />
+    <title>{{ title }}</title>
+    {{head | safe}}
+    {{ vite_assets() | safe }}
+  </head>
+  <body class="{{classBody}}">
+        <div id="root" data-react-component="{{component}}" data-props="{{props}}"></div>
+  </body>
+</html>
+    """
+    return html
+
+
 def html_template ()->str:
     html = """<!DOCTYPE html>
 <html lang="{{ lang }}">
@@ -24,13 +47,14 @@ def html_template ()->str:
     <title>{{ title }}</title>
     <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
     <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
-    {{ vite_assets() | safe }}
+    
   </head>
   <body>
     <main class="mt-4 container">
       <h1>Example React integration</h1>
       <div>{{ react('Counter', {'start': 3}) | safe }}</div>
     </main>
+    {{ vite_assets() | safe }}
   </body>
 </html>
     """
@@ -110,13 +134,16 @@ function generateLilaPythonManifest() {{
                 return;
             }}
             const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-            let content=`return {{\n`;
+            let content=`manifest={{ \n`;
+            
             for (const [key, value] of Object.entries(manifest)) {{
-                content += `    "${{key}}": "${{value}}",\n`;
+                const name = value["name"];
+                const file = value["file"];
+                content += `    "${{name}}": "${{file}}",
             }}
             content += `}}`;
             fs.writeFileSync(lilaOutPath, content);
-            console.log('✅ Created build_manifest.py');
+            console.log('✅ Created app/build_manifest.py');
 
         }} 
      }};
@@ -131,7 +158,8 @@ export default defineConfig({{
   base: "/public/build/",
   build: {{
     manifest: true,
-    outDir: "public/build",
+    outDir: 'public/build',
+    publicDir: 'public',
     emptyOutDir: true,
     rollupOptions: {{
       input: "./react/main.jsx",
@@ -253,6 +281,9 @@ async def react(request: Request):
         f.write(routes_content)
     print("✅ Updated app/routes/routes.py")
     
+    html_template_path_lila=os.path.join(project_root,"templates/html/lila/react_base.html")
+    with open(html_template_path_lila, "w", encoding="utf-8") as f:
+        f.write(html_template_base())
     
 
 @app.command()
