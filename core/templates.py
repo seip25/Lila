@@ -1,7 +1,7 @@
 from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
-from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT
+from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT,LANG_DEFAULT
 from app.helpers.helpers import theme, lang, translate as t
 from core.request import Request
 from core.responses import HTMLResponse, JSONResponse
@@ -33,6 +33,8 @@ jinja_env = Environment(
     autoescape=True,
 )
 
+MANIFEST_BUILD:dict[str,str]={}
+
 def react(component: str, props: dict = {}) -> str:
     """
     Renders a placeholder div for a React component.
@@ -40,6 +42,40 @@ def react(component: str, props: dict = {}) -> str:
     id_ = 'react-' + uuid.uuid4().hex
     props_json = json.dumps(props).replace('"', '&quot;')
     return f'<div id="{id_}" data-react-component="{component}" data-props="{props_json}"></div>'
+
+def renderReact(request:Request,component:str, props:dict = {}, options:dict = {}) :
+    """
+    Renders a placeholder div for a React component with html template.
+    """
+    
+    meta = options.get('meta', [])
+    scripts= options.get('scripts', [])
+    styles= options.get('styles', [])
+    meta_tags = '\n'.join([f'<meta name="{m["name"]}" content="{m["content"]}">' for m in meta])
+    style_tags = '\n'.join([f'<link rel="stylesheet" href="{s}">' for s in styles])
+    script_tags = '\n'.join([f'<script src="{s}"></script>' for s in scripts])
+    lang = options.get('lang', LANG_DEFAULT)
+    title = options.get('title', TITLE_PROJECT)
+    description=options.get('description',DESCRIPTION_DEFAULT)
+    author=options.get('author',AUTHOR_DEFAULT)
+    keywords=options.get('keywords',KEYWORDS_DEFAULT) 
+    props_json=json.dumps(props) 
+    context={
+        "component":component,
+        "props":props_json,
+        "title":title,
+        "keywords":keywords,
+        "description":description,
+        "author":author, 
+        "lang":lang,
+        "head":f"""{meta_tags}
+{style_tags}
+{script_tags} 
+"""
+    }
+    return render(request=request,template="lila/react_base",context=context)
+
+
 
 def vite_assets() -> str:
     """
@@ -63,33 +99,39 @@ def vite_assets() -> str:
         </script>
         <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
         <script type="module" src="http://localhost:5173/public/build/react/main.jsx"></script>
-        """
+        """ 
+    global MANIFEST_BUILD
+    if not MANIFEST_BUILD  :
+        try:
+            from app.build_manifest import manifest
+        except ImportError:
+            print("You must run 'npm run build' before starting the application.")
+            manifest = {}
+        MANIFEST_BUILD=manifest
 
-    manifest_path = os.path.join(PROJECT_ROOT, 'public', 'build', '.vite', 'manifest.json')
-    # fallback
-    if not os.path.exists(manifest_path):
-         manifest_path = os.path.join(PROJECT_ROOT, 'public', 'build', 'manifest.json')
+    if not MANIFEST_BUILD:
+        return "<!-- Vite build not found -->"
     
-    if os.path.exists(manifest_path):
-        with open(manifest_path, 'r') as f:
-            manifest = json.load(f)
-        
-        # entry point name in manifest usually matches input in vite config
-        # In CLI implementation later, we'll set entry to 'react/main.jsx'
-        entry_key = 'react/main.jsx'
-        
-        if entry_key in manifest:
-            file = manifest[entry_key]['file']
-            css_files = manifest[entry_key].get('css', [])
-            
-            html_parts = []
-            html_parts.append(f'<script type="module" src="/public/build/{file}"></script>')
-            for css_file in css_files:
-                html_parts.append(f'<link rel="stylesheet" href="/public/build/{css_file}">')
-            
-            return '\n'.join(html_parts)
-            
-    return '<!-- Vite Manifest not found -->'
+    entry_name="file"
+    entry = MANIFEST_BUILD.get(entry_name)
+    css=MANIFEST_BUILD.get("css",[])
+
+    if not entry:
+        return f"<!-- Entry '{entry_name}' not found -->"
+
+    html_parts = []
+
+    html_parts.append(
+        f'<script type="module" src="/public/build/{entry}"></script>'
+    )
+
+    for css_file in css:
+        html_parts.append(
+            f'<link rel="stylesheet" href="/public/build/{css_file}">'
+        )
+    return "\n".join(html_parts)
+    
+ 
 
 jinja_env.globals['react'] = react
 jinja_env.globals['vite_assets'] = vite_assets

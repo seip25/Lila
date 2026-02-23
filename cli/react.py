@@ -22,10 +22,11 @@ def html_template_base()->str:
     <meta name="keywords" content="{{ keywords }}" />
     <meta name="author" content="{{ author }}" />
     <title>{{ title }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ public('img/favicon.ico') }}" />
     {{head | safe}}
     {{ vite_assets() | safe }}
   </head>
-  <body class="{{classBody}}">
+  <body >
         <div id="root" data-react-component="{{component}}" data-props="{{props}}"></div>
   </body>
 </html>
@@ -126,8 +127,8 @@ import fs from 'fs';
 function generateLilaPythonManifest() {{
      return {{ 
         name : 'generate-lila-manifest',
-        clouseBundle(){{
-            const manifestPath = resolve(process.cwd(), 'public/build/manifest.json');
+        closeBundle(){{
+            const manifestPath = resolve(process.cwd(), 'public/build/.vite/manifest.json');
             const lilaOutPath= resolve(process.cwd(), 'app/build_manifest.py');
             if (!fs.existsSync(manifestPath)) {{
                 console.error('manifest.json not found');
@@ -139,7 +140,7 @@ function generateLilaPythonManifest() {{
             for (const [key, value] of Object.entries(manifest)) {{
                 const name = value["name"];
                 const file = value["file"];
-                content += `    "${{name}}": "${{file}}",
+                content += `    "${{name}}": "${{file}}" ,`;
             }}
             content += `}}`;
             fs.writeFileSync(lilaOutPath, content);
@@ -181,6 +182,7 @@ export default defineConfig({{
     main_jsx_path = os.path.join(react_dir, "main.jsx")
     main_jsx_content = """import React from 'react'
 import ReactDOM from 'react-dom/client'
+import "./globals.css"
 
 const modules = import.meta.glob('./components/*.jsx')
 
@@ -217,6 +219,12 @@ document.addEventListener('DOMContentLoaded', mountComponents)
     with open(main_jsx_path, "w", encoding="utf-8") as f:
         f.write(main_jsx_content)
     print(f"✅ Created {name}/main.jsx")
+
+    main_css_path=os.path.join(react_dir,"globals.css")
+    
+    with open(main_css_path, "w", encoding="utf-8") as f:
+        f.write(" ")
+    print(f"✅ Created {name}/globals.css")
 
     components_dir = os.path.join(react_dir, "components")
     os.makedirs(components_dir, exist_ok=True)
