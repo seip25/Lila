@@ -97,9 +97,37 @@ async def create_react_env(name: str):
     vite_config_content = f"""import {{ defineConfig }} from "vite";
 import react from "@vitejs/plugin-react";
 import {{ resolve }} from "path";
+import fs from 'fs';
+
+function generateLilaPythonManifest() {{
+     return {{ 
+        name : 'generate-lila-manifest',
+        clouseBundle(){{
+            const manifestPath = resolve(process.cwd(), 'public/build/manifest.json');
+            const lilaOutPath= resolve(process.cwd(), 'app/build_manifest.py');
+            if (!fs.existsSync(manifestPath)) {{
+                console.error('manifest.json not found');
+                return;
+            }}
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+            let content=`return {{\n`;
+            for (const [key, value] of Object.entries(manifest)) {{
+                content += `    "${{key}}": "${{value}}",\n`;
+            }}
+            content += `}}`;
+            fs.writeFileSync(lilaOutPath, content);
+            console.log('✅ Created build_manifest.py');
+
+        }} 
+     }};
+}}
+ 
 
 export default defineConfig({{
-  plugins: [react()],
+  plugins: [
+    react(),
+    generateLilaPythonManifest()
+  ],
   base: "/public/build/",
   build: {{
     manifest: true,

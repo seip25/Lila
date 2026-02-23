@@ -16,7 +16,17 @@ router = Router()
 #  Español: Montando los archivos estaticos en la carpeta 'static',url ='/public'
 router.mount()
 
-#marker_react
+
+@router.get("/react")
+async def react(request: Request):
+    context ={
+        "url": f"http://{HOST}:{PORT}"
+    }
+    response = render(
+        request=request, template="react",context=context
+    )
+    return response
+    
 
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto

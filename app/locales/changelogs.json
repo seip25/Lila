@@ -174,5 +174,21 @@
   "api_marker_desc": {
     "es": "Para auto-importar rutas generadas por scaffold en main.py",
     "en": "For auto-importing scaffold-generated routes in main.py"
+  },
+  "debug_route_desc": {
+    "es": "Ruta de debug para ver información de la aplicación, cpu/ram, tiempo de ejecucion, etc",
+    "en": "Debug route to see application information, cpu/ram, execution time, etc"
+  },
+  "react_render_desc": {
+    "es": "Función para renderizar react pages o islands",
+    "en": "Function to render react pages or islands"
+  },
+  "cli_react": {
+    "es": "CLI para generar componentes React",
+    "en": "CLI for generating React components"
+  },
+  "description_cli_react": {
+    "es": "Permite generar componentes React con solo un comando, ejemplo : python -m cli.react create --name Product --table products",
+    "en": "Allows generating React components with a single command, example: python -m cli.react create --name Product --table products"
   }
 }

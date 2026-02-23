@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ title }}</title>
-     <link rel="stylesheet" href="/public/css/lila.css">
-    {% for css in css_files %}
-    <link rel="stylesheet" href="{{ css }}">
-    {% endfor %}
-    {% for js in js_files %}
-    <script src="{{ js }}"></script>
-    {% endfor %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/public/css/lila.css">
+  {% for css in css_files %}
+  <link rel="stylesheet" href="{{ css }}">
+  {% endfor %}
+  {% for js in js_files %}
+  <script src="{{ js }}"></script>
+  {% endfor %}
 </head>
+
 <body>
-    <main class="container mt-4">
-        {{ content | safe }}
-    </main>
-      <footer class="container  flex justify-center ">
+  <main class="container mt-4">
+    <article class="shadow">
+      {{ content | safe }}
+    </article>
+  </main>
+  <footer class="container  flex justify-center ">
     <div class=" flex justify-between gap-4">
       <a href="/set-language/es" class="text-gray-600  ">
         Español (Esp)
@@ -29,4 +33,5 @@
     </div>
   </footer>
 </body>
+
 </html>

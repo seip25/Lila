@@ -177,3 +177,9 @@ cython_debug/
 .log
 public/js/utils.min.js
 public/css/lila.min.css
+
+# Vite
+.vite
+node_modules
+public/build
+package-lock.json

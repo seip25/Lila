@@ -1,6 +1,36 @@
 # {{ translate["changelogs"] }}
 
-## 8.2
+## 9.2
+### DEBUG ROUTE 
+### {{ translate["debug_route_desc"] }}
+http://127.0.0.1:8000/debug/
+
+## 9.1
+### ReactRender function 
+#### {{ translate["react_render_desc"] }}
+
+
+## 8.9 
+### Fix bug upload dir ('static')
+
+## 8.8 
+### Fix bug middleware Logger
+
+## 8.7
+
+### {{ translate["cli_react"] }}
+
+{{ translate["description_cli_react"] }}
+
+**{{ translate["usage_example"] }}:**
+
+```bash
+python -m cli.react create
+```
+
+## 8.5
+
+### {{ translate["resolved_problem_core"] }}
 
 ### {{ translate["cli_scaffold_crud"] }}
 
