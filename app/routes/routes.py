@@ -1,7 +1,7 @@
 # Import necessary modules and functions from the core and middlewares
 from core.request import Request  # English: Importing Request class to handle HTTP requests | Español: Importando la clase Request para manejar las solicitudes HTTP
 from core.routing import Router # English: Importing Router class to define and manage routes | Español: Importando la clase Router para definir y manejar rutas
-from core.templates import render,renderMarkdown# English: Importing functions for rendering templates and Markdown files | Español: Importando funciones para renderizar plantillas y archivos Markdown
+from core.templates import render,renderMarkdown,renderReact# English: Importing functions for rendering templates and Markdown files | Español: Importando funciones para renderizar plantillas y archivos Markdown
 from core.session import Session # English: Importing Session class for session handling | Español: Importando la clase Session para el manejo de sesiones
 from core.responses import RedirectResponse,PlainTextResponse# English: Importing RedirectResponse to handle HTTP redirects | Español: Importando RedirectResponse para manejar redirecciones HTTP
 from app.config import LANG_DEFAULT,HOST,PORT  # English: Importing the default language setting from the environment | Español: Importando la configuración de idioma por defecto desde el entorno
@@ -10,23 +10,11 @@ from app.config import LANG_DEFAULT,HOST,PORT  # English: Importing the default 
 # Español: Creando una instancia del Router para definir las rutas
 router = Router()
 
-
+#marker_react
 
 # English: Mounting statics files ,in folder 'static',url ='/public'
 #  Español: Montando los archivos estaticos en la carpeta 'static',url ='/public'
 router.mount()
-
-
-@router.get("/react")
-async def react(request: Request):
-    context ={
-        "url": f"http://{HOST}:{PORT}"
-    }
-    response = render(
-        request=request, template="react",context=context
-    )
-    return response
-    
 
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto
@@ -93,6 +81,7 @@ async def changelogs(request: Request):
     response =renderMarkdown(request=request, file="changelogs",translate_files=["changelogs"])
     return response
 
+
 # English: Example route for robots.txt
 # Español: Ejemplo de ruta para robots.txt
 @router.get("/robots.txt")
@@ -104,7 +93,6 @@ async def robots(request: Request):
     response = PlainTextResponse(content=response)
     response.headers["Content-Type"] = "text/plain"
     return response
-
 
 # English: Get all the defined routes
 #  Español: Obtiene todas las rutas definidas
