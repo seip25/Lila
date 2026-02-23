@@ -140,7 +140,12 @@ function generateLilaPythonManifest() {{
             for (const [key, value] of Object.entries(manifest)) {{
                 const name = value["name"];
                 const file = value["file"];
-                content += `    "${{name}}": "${{file}}" ,`;
+                if (name == "main") {{
+                content += `    "file": "${{file}}" ,`;
+                if(value["css"]){{
+                    content +=`'css' : [${{value["css"].map(c => `'${{c}}'`).join(', ')}}],\n`;
+                }}
+                }}
             }}
             content += `}}`;
             fs.writeFileSync(lilaOutPath, content);
@@ -267,6 +272,24 @@ export default function Counter({ start = 0 }) {
 
     html_template_path = os.path.join(project_root, "templates/html/react.html")
     route_react="""
+
+@router.get("/react-page")
+async def react_page(request: Request):
+    response = renderReact(request=request,component="Counter",
+    props={
+        "start": 5
+    } ,
+    options={
+        "title": "React Page",
+        "meta": [{
+          "name": "description",
+          "content": "A React page with a counter component"
+        }],
+        "styles": ["/public/css/lila.css"]
+    }                      
+    )
+    return response
+
 @router.get("/react")
 async def react(request: Request):
     context ={

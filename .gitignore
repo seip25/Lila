@@ -183,3 +183,4 @@ public/css/lila.min.css
 node_modules
 public/build
 package-lock.json
+app/build_manifest.py
