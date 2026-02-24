@@ -3838,6 +3838,8 @@ WorkingDirectory=/ruta/a/tu/proyecto
 ExecStart=/ruta/a/tu/proyecto/start_lila.sh
 Restart=always
 RestartSec=10
+Environment=PATH=/path/to/your/project/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PYTHONPATH=/path/to/your/project
 
 [Install]
 WantedBy=multi-user.target
