@@ -1,5 +1,13 @@
 # {{ translate["changelogs"] }}
 
+## 9.5
+### new templates auth 
+[Docs](https://seip25.github.io/Lila/documentation.html#auth-eng)
+
+
+## 9.4 
+### Fix bug debug
+
 ## 9.2
 ### DEBUG ROUTE 
 ### {{ translate["debug_route_desc"] }}
