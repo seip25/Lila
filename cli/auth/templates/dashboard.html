@@ -1,4 +1,4 @@
-'<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{lang}}" data-theme="light">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/public/css/lila.css"> 
 </head>
 <body >
-    <header class="shadow">
+    <header class=" py-4">
     <nav class="container">
         <h3>
         <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
@@ -40,13 +40,16 @@
                 </div>
             </div>
         </div>
+
+           
     </nav>
+    
      </header>
     <main class="container mt-4">
-        <article >
-        <h1>{{translate['Welcome']}}, {{user.name}}!</h1>
-        </article>
+        <div class="container mt-4" >
+        <h3 class="text-xl">{{translate['Welcome']}}, {{user.name}}!</h3>
+        </div>
     </main>
-   
+
 </body>
 </html>
