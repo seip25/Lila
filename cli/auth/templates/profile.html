@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="/public/css/lila.css" />
   </head>
   <body>
-    <header class="shadow">
+    <header class=" py-4">
       <nav class="container">
-        <h3>
-          <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
-        </h3>
+        <h1 class="text-2xl">
+          <a href="/dashboard" class=" font-bold">Lila</a>
+        </h1>
         <div class="hidden-sm flex items-center gap-4">
           <a href="/dashboard" class="">{{translate['home']}}</a>
           <a href="/profile">{{user.name}}</a>
@@ -45,7 +45,7 @@
       </nav>
     </header>
     <main class="container mt-4">
-      <article>
+      <div class="container mt-4">
         <h1>{{translate['Profile']}}</h1>
         <p><strong>{{translate['Name']}}:</strong> {{user.name}}</p>
         <p><strong>Email:</strong> {{user.email}}</p>
@@ -131,7 +131,7 @@
             </div>
           </form>
         </footer>
-      </article>
+      </div>
     </main>
     <script>
       document
