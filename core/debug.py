@@ -6,6 +6,7 @@ from sqlalchemy import Column, Integer, String, TIMESTAMP, func,inspect
 import psutil
 import time
 from core.logger import Logger 
+import os
 
 
 class DebugModel(Base):
@@ -44,25 +45,30 @@ class DebugMiddleware(BaseHTTPMiddleware) :
             path_=request.url.path
             if path_ != "/debug" and path_ != "/debug/" : 
                 try:
+                    process = psutil.Process(os.getpid())
+                    mem_before = process.memory_info().rss
+                    cpu_times_before = process.cpu_times()
+                    cpu_before = cpu_times_before.user + cpu_times_before.system
                     start_time = time.time()
                     response = await call_next(request)
                     end_time = time.time() 
                     time_execution = f"{end_time - start_time:.6f}s"  
                     ram = psutil.virtual_memory() or "Unknown" 
-                    ram_used = f"{str(round(ram.used/(1024*1024),2))}MB"
+                    mem_after = process.memory_info().rss
+                    mem_diff = mem_after - mem_before
+                    mem_diff_mb = round(mem_diff / (1024 * 1024), 4)
+                    ram_used = f"{mem_diff_mb}MB"
                     ram_total = f"{str(round(ram.total/(1024*1024),2))}MB"
                     ram_percent = f"{str(round(ram.percent,2))}%"
-                    cpu = f"{psutil.cpu_percent() or "Unknown" }%"
+                    cpu_times_after = process.cpu_times()
+                    cpu_after = cpu_times_after.user + cpu_times_after.system
+                    cpu_diff = cpu_after - cpu_before
+                    cpu_diff_ms = round(cpu_diff * 1000, 4)
+                    cpu = f"{cpu_diff_ms} ms"
                     status_code = response.status_code
-                    if status_code >= 200 and status_code <= 299:
-                        status_code = f"🟢 {status_code}"
-                    elif status_code >= 400 and status_code <= 499:
-                        status_code = f"🟡 {status_code}"
-                    elif status_code >= 500 and status_code <= 599:
-                        status_code = f"🔴 {status_code}"
                     user_agent = request.headers.get("user-agent") or "Unknown" 
                     ip = request.client.host or "Unknown" 
-                    ram =f"""{ram_used}(Used)<br>{ram_total}(Total)<br>{ram_percent}(Percent)"""
+                    ram =ram_used
                     type="route"
                     assets=[
                         "css",
