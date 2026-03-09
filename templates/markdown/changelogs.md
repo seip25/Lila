@@ -1,30 +1,43 @@
+
+
 # {{ translate["changelogs"] }}
 
+## 9.6
+### {{ translate["fix_context_update"] }}
+{{ translate["fix_context_update_desc"] }}
+
 ## 9.5
-### new templates auth 
+### {{ translate["new_templates_auth"] }}
+{{ translate["new_templates_auth_desc"] }}
+
 [Docs](https://seip25.github.io/Lila/documentation.html#auth-eng)
 
 
 ## 9.4 
-### Fix bug debug
+### {{ translate["fix_bug_debug"] }}
+{{ translate["fix_bug_debug_desc"] }}
 
 ## 9.2
-### DEBUG ROUTE 
-### {{ translate["debug_route_desc"] }}
+### {{ translate["debug_route"] }}
+{{ translate["debug_route_desc"] }}
+
 [View](http://127.0.0.1:8000/debug/)
 [Docs](https://seip25.github.io/Lila/documentation.html#debug)
 
 ## 9.1
-### ReactRender function 
-#### {{ translate["react_render_desc"] }}
+### {{ translate["react_render_function"] }}
+{{ translate["react_render_desc"] }}
+
 [Docs](https://seip25.github.io/Lila/documentation.html#react)
 
 
 ## 8.9 
-### Fix bug upload dir ('static')
+### {{ translate["fix_bug_upload_dir"] }}
+{{ translate["fix_bug_upload_dir_desc"] }}
 
 ## 8.8 
-### Fix bug middleware Logger
+### {{ translate["fix_bug_middleware_logger"] }}
+{{ translate["fix_bug_middleware_logger_desc"] }}
 
 ## 8.7
 

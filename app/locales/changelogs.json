@@ -3,6 +3,54 @@
     "es": "Puedes ver aquí las novedades y cambios que hemos realizado en Lila Framework",
     "en": "Changelogs and new features that we have done in Lila Framework"
   },
+  "fix_context_update": {
+    "es": "Corrección en el Contexto de Templates",
+    "en": "Fix in Template Context"
+  },
+  "fix_context_update_desc": {
+    "es": "Se solucionó un problema de prioridad al mezclar el contexto por defecto con el contexto específico de la vista, asegurando que los metatags, títulos y descripciones personalizados se apliquen correctamente.",
+    "en": "Fixed a priority issue when merging default context with view-specific context, ensuring custom metatags, titles, and descriptions apply correctly."
+  },
+  "new_templates_auth": {
+    "es": "Nuevos templates de autenticación",
+    "en": "New authentication templates"
+  },
+  "new_templates_auth_desc": {
+    "es": "Se agregaron nuevos templates listos para usar para el flujo de autenticación, mejorando la velocidad de desarrollo.",
+    "en": "Added new ready-to-use templates for the authentication flow, improving development speed."
+  },
+  "fix_bug_debug": {
+    "es": "Corrección de error en modo Debug",
+    "en": "Fix bug in Debug mode"
+  },
+  "fix_bug_debug_desc": {
+    "es": "Se solucionó un problema en el trazado de errores para asegurar que la página de debug funcione correctamente en todos los entornos.",
+    "en": "Fixed an issue in error tracking to ensure the debug page works correctly in all environments."
+  },
+  "debug_route": {
+    "es": "Nueva ruta de Debug",
+    "en": "New Debug route"
+  },
+  "react_render_function": {
+    "es": "Nueva función ReactRender",
+    "en": "New ReactRender function"
+  },
+  "fix_bug_upload_dir": {
+    "es": "Corrección de la ruta de subida ('static')",
+    "en": "Fix upload directory path ('static')"
+  },
+  "fix_bug_upload_dir_desc": {
+    "es": "Se solucionó un error relacionado a la resolución del directorio principal al subir archivos estáticos.",
+    "en": "Fixed an error related to the main directory resolution when uploading static files."
+  },
+  "fix_bug_middleware_logger": {
+    "es": "Corrección en Middleware de Logger",
+    "en": "Fix in Logger Middleware"
+  },
+  "fix_bug_middleware_logger_desc": {
+    "es": "Se ha solucionado un error en el registro de peticiones del Middleware Logger para una traza más precisa.",
+    "en": "Fixed a request logging error in the Logger Middleware for a more accurate trace."
+  },
   "create_panel_admin": {
     "es": "Crear panel de administración",
     "en": "Create admin panel"
