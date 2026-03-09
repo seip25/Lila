@@ -22,7 +22,7 @@ def html_template_base()->str:
     <meta name="keywords" content="{{ keywords }}" />
     <meta name="author" content="{{ author }}" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ public('img/favicon.ico') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
     {{head | safe}}
     {{ vite_assets() | safe }}
   </head>
@@ -46,7 +46,7 @@ def html_template ()->str:
     <meta name="keywords" content="{{ keywords }}" />
     <meta name="author" content="{{ author }}" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
     <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
     
   </head>

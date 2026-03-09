@@ -72,7 +72,7 @@ def renderReact(request:Request,component:str, props:dict = {}, options:dict = {
 {style_tags}
 {script_tags} 
 """
-    }
+    } 
     return render(request=request,template="lila/react_base",context=context)
 
 
@@ -173,10 +173,10 @@ def render(
         template_file = f"{template}.html"
         default_context = get_base_context(
             request=request, files_translate=files_translate, lang_default=lang_default
-        )
-        context.update(default_context)
+        ) 
+        default_context.update(context)
         return templates.TemplateResponse(
-            request=request, name=template_file, context=context
+            request=request, name=template_file, context=default_context
         )
     except Exception as e:
         exc_type, exc_value, exc_tb = sys.exc_info()
