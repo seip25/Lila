@@ -3,7 +3,7 @@ import os
 import subprocess
 from app.connections import connection
 from argon2 import PasswordHasher
-from app.helpers.helpers import generate_token_value
+from app.helpers.security import generate_token_value
 
 app = typer.Typer()
 ph = PasswordHasher()

@@ -1,7 +1,7 @@
 import psutil
 import os
 import json
-from app.helpers.helpers import lang
+from app.helpers.translate import lang
 from core.responses import  RedirectResponse, JSONResponse
 from core.request import Request
 from core.routing import Router

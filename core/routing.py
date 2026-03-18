@@ -11,7 +11,7 @@ from app.config import (
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel, ValidationError
 from argon2 import PasswordHasher
-from app.helpers.helpers import generate_token_value, get_user_by_token
+from app.helpers.security import generate_token_value, get_user_by_token
 from core.logger import Logger
 import datetime
 import re

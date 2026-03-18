@@ -1,4 +1,5 @@
-from app.helpers.helpers import LANG_DEFAULT
+from app.helpers.translate import lang
+from app.config import LANG_DEFAULT
 from core.session import Session
 from core.request import Request
 

@@ -2,10 +2,9 @@ from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT,LANG_DEFAULT
-from app.helpers.helpers import theme, lang, translate as t
+from app.helpers.translate import  lang, translate as t
 from core.request import Request
 from core.responses import HTMLResponse, JSONResponse
-from app.helpers.helpers import lang
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
 from core.logger import Logger
 import markdown

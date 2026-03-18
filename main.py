@@ -3,12 +3,11 @@ from app.routes.routes import routes
 from app.routes.api import routes as api_routes
 from core.middleware import Middleware
 from app.config import PORT, HOST, DEBUG
-from app.middlewares.defaults import (
-    LoggingMiddleware,
-    IPBlockingMiddleware,
-    URLBlockingMiddleware,
-    MaliciousExtensionMiddleware,
-    SensitivePathMiddleware,
+from app.middlewares.security import (
+    LoggingMiddleware, 
+    SecurityHeadersMiddleware,
+    SecurityShieldMiddleware,
+    RateLimitMiddleware,
     ErrorHandlerMiddleware,
 )
 import itertools
@@ -49,10 +48,9 @@ cors = None
 
 middlewares = [
     Middleware(LoggingMiddleware),
-    Middleware(IPBlockingMiddleware),
-    Middleware(URLBlockingMiddleware),
-    Middleware(MaliciousExtensionMiddleware),
-    Middleware(SensitivePathMiddleware),
+    Middleware(SecurityHeadersMiddleware),
+    Middleware(SecurityShieldMiddleware),
+    Middleware(RateLimitMiddleware),
     Middleware(ErrorHandlerMiddleware)
 ]
 

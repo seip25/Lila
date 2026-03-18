@@ -1,18 +1,8 @@
-from core.request import (
-    Request,
-)  # English: Handles HTTP requests in the application. | Español: Maneja solicitudes HTTP en la aplicación.
-from core.responses import (
-    JSONResponse,
-)  # English: Simplifies sending JSON responses. | Español: Simplifica el envío de respuestas JSON.
-from core.routing import (
-    Router,
-)  # English: Manages routing for API endpoints. | Español: Administra las rutas para los puntos finales de la API.
-from pydantic import (
-    EmailStr,
-    BaseModel,
-    Field
-)  # English: Validates and parses data models for input validation. | Español: Valida y analiza modelos de datos para la validación de entradas.
-from app.helpers.helpers import get_user_by_token
+from core.request import Request
+from core.responses import JSONResponse
+from core.routing import Router
+from pydantic import EmailStr,BaseModel
+from app.helpers.security import get_user_by_token
 from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
 from app.config import DEBUG
 
@@ -53,9 +43,7 @@ class ExampleModel(BaseModel):
 # Español: Define una ruta "api/example", utilizando ExampleModel para la validación de entradas,con documentación automatica pasandole el parametro "model"("model=ExampleModel")
 @router.post(path="/example", model=ExampleModel)
 async def login(request: Request):
-    """Example function get request json form"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
-    # English: Asynchronously parse JSON body from the request.
-    # Español: Analiza asíncronamente el cuerpo JSON de la solicitud.
+    """Example function get request json form"""
     body = await request.json()
     try:
         # English: Validate input data against the ExampleModel.

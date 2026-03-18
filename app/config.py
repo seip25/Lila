@@ -12,7 +12,6 @@ DEBUG = getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 
 
 PATH_LOG_BASE_DIR = "app/logs"
-PATH_SECURITY = "app/security/"
 PATH_TEMPLATE_NOT_FOUND = "lila/404"
 PATH_TEMPLATES_HTML ="templates/html/"
 PATH_TEMPLATES_MARKDOWN = "templates/markdown/"
@@ -23,23 +22,8 @@ PATH_UPLOADS = path.join(os.getcwd(), "static", "img", "uploads")
 #Project
 TITLE_PROJECT = getenv("TITLE_PROJECT", "Lila project")
 VERSION_PROJECT = getenv("VERSION_PROJECT", 1)
-DESCRIPTION_PROJECT = getenv("DESCRIPTION_PROJECT", "")
-THEME_DEFAULT = getenv("THEME_DEFAULT", "blue")
+DESCRIPTION_PROJECT = getenv("DESCRIPTION_PROJECT", "") 
 LANG_DEFAULT = getenv("LANG_DEFAULT", "en")
 DESCRIPTION_DEFAULT = getenv("DESCRIPTION_DEFAULT", "A Python web framework")
 KEYWORDS_DEFAULT = getenv("KEYWORDS_DEFAULT", "Python, web, framework")
 AUTHOR_DEFAULT = getenv("AUTHOR_DEFAULT", "Seip")
-
-
-#Security
-SENSITIVE_PATHS = [
-    "/admin",
-    "/config",
-    "/env",
-    "/.env",
-    "/.git",
-    "/wp-admin",
-    "/wp-login",
-    "/database",
-    "/backup",
-]

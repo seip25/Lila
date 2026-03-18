@@ -2,7 +2,7 @@ from core.session import Session
 from core.responses import RedirectResponse, JSONResponse
 from core.request import Request
 from functools import wraps
-from app.helpers.helpers import get_token,generate_token
+from app.helpers.security import get_token
 
 
 def login_required(func, key: str = "auth", url_return="/login"):
@@ -33,6 +33,7 @@ async def check_session(request: Request, key: str='auth', return_JsonResponse: 
         if return_JsonResponse:
             return JSONResponse({"session": False, "success": False}, status_code=401)
         return None
+        request.state.session = session_data
     return session_data
 
 
@@ -48,13 +49,22 @@ def validate_token(func):
 
 
 async def check_token(request: Request):
-    token = request.headers.get("Authorization")
-    if not token:
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
         return JSONResponse(
-            {"session": False, "message": "Invalid token"}, status_code=401
+            {"session": False, "message": "Missing Authorization header"}, status_code=401
         )
     
-    token = get_token(token=token)
-    if isinstance(token, JSONResponse):
-        return token
+    if not auth_header.startswith("Bearer "):
+        return JSONResponse(
+            {"session": False, "message": "Invalid token format. Use Bearer <token>"}, status_code=401
+        )
+
+    token_str = auth_header.split(" ")[1]
+    token_data = get_token(token=token_str)
+    if isinstance(token_data, JSONResponse):
+        return token_data
+    
+    request.state.user = token_data
     return True
+ 
