@@ -1377,7 +1377,7 @@ MAX_FILE_SIZE: int        # Tamaño máximo de archivo en bytes (defecto: 10MB)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from app.helpers.helpers import upload
+from app.helpers.files import upload
 
 @router.route("/upload", methods=["POST"])
 async def uploadFile(request: Request):
@@ -1669,7 +1669,7 @@ async def home(request: Request):
                             <p>Para cargar un archivo de localización, utiliza la función <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
                                 de <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app.helpers.helpers</code>.
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app.helpers.translate</code>.
                                 Puedes acceder a las traducciones usando:
                             </p>
                             <ul>
@@ -1745,7 +1745,7 @@ async def home(request: Request):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from app.helpers.helpers import translate_
+from app.helpers.translate import translate_
 
 msg_error_login = translate_(
     key="Incorrect email or password", 
@@ -1769,7 +1769,7 @@ msg_error_login = translate_(
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-python">
-from app.helpers.helpers import translate
+from app.helpers.translate import translate
 
 all_translations = translate(
     request=request, 
@@ -2071,7 +2071,7 @@ db.close()</code></pre>
                                 que se utiliza para validar un token JWT gracias a los helpers <code
                                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">get_token</code>
                                 importados en <code
-                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">from app.helpers.helpers import get_token</code>.
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">from app.helpers.security import get_token</code>.
                             </p>
                             <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
@@ -2090,7 +2090,7 @@ from lila.core.session import Session
 from lila.core.responses import RedirectResponse,JSONResponse
 from lila.core.request import Request
 from functools import wraps
-from app.helpers.helpers import get_token
+from app.helpers.security import get_token
 
 def login_required(func,key:str='auth',url_return='/login'):
     @wraps(func)
