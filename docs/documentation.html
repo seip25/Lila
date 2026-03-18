@@ -2530,7 +2530,7 @@ except Exception as e:
                                     Lila Framework provides powerful CLI tools to speed up development. All commands
                                     follow the pattern
                                     <code
-                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">python -m cli.{command}</code>
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-{command}</code>
                                 </p>
                             </div>
 
@@ -2555,13 +2555,13 @@ except Exception as e:
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Create a new model
-python -m cli.model create --name Product
+lila-model create --name Product
 
 # Create with custom table name
-python -m cli.model create --name Product --table products
+lila-model create --name Product --table products
 
 # List all models
-python -m cli.model list-models
+lila-model list-models
 </code>
 </pre>
                                 </div>
@@ -2588,10 +2588,10 @@ python -m cli.model list-models
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Generate scaffold from model
-python -m cli.scaffold_crud --model Product
+lila-scaffold-crud --model Product
 
 # Custom route name
-python -m cli.scaffold_crud --model Product --name products
+lila-scaffold-crud --model Product --name products
 </code>
 </pre>
                                 </div>
@@ -2618,10 +2618,10 @@ python -m cli.scaffold_crud --model Product --name products
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Run migrations
-python -m cli.migrations migrate
+lila-migrations migrate
 
 # Refresh (drop and recreate all tables)
-python -m cli.migrations migrate --refresh
+lila-migrations migrate --refresh
 </code>
 </pre>
                                 </div>
@@ -2648,7 +2648,7 @@ python -m cli.migrations migrate --refresh
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Generate auth system
-python -m cli.auth main
+lila-auth main
 </code>
 </pre>
                                 </div>
@@ -2675,10 +2675,10 @@ python -m cli.auth main
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Create admin user
-python -m cli.create_admin --password mypassword
+lila-create-admin --password mypassword
 
 # Create admin panel
-python -m cli.create_panel_admin --password mypassword
+lila-create-panel-admin --password mypassword
 </code>
 </pre>
                                 </div>
@@ -2705,7 +2705,7 @@ python -m cli.create_panel_admin --password mypassword
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Minify all CSS and JS files
-python -m cli.minify
+lila-minify
 </code>
 </pre>
                                 </div>
@@ -2732,10 +2732,10 @@ python -m cli.minify
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Setup React  
-python -m cli.react create
+lila-react create
 
 # Run react development server
-python -m cli.react dev 
+lila-react dev 
 </code>
 </pre>
                                 </div>
