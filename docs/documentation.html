@@ -1977,9 +1977,9 @@ user = User.get_by_id(1)
                                         </div>
                                     </div>
                                     <div class="editor-content">
-                                        <pre><code class="language-bash">python -m cli.model create --name ModelName
+                                        <pre><code class="language-bash">lila-model create --name ModelName
 # or with custom table name
-python -m cli.model create --name Product --table products</code></pre>
+lila-model create --name Product --table products</code></pre>
                                     </div>
                                 </div>
 
@@ -1994,7 +1994,7 @@ python -m cli.model create --name Product --table products</code></pre>
                                         </div>
                                     </div>
                                     <div class="editor-content">
-                                        <pre><code class="language-bash">python -m cli.model list-models</code></pre>
+                                        <pre><code class="language-bash">lila-model list-models</code></pre>
                                     </div>
                                 </div>
 
@@ -2104,12 +2104,10 @@ db.close()</code></pre>
 
                                 <h2>Complete Workflow</h2>
                                 <ol>
-                                    <li>Create the model: <code>python -m cli.model create --name Product</code></li>
+                                    <li>Create the model: <code>lila-model create --name Product</code></li>
                                     <li>Edit <code>app/models/product.py</code> to add custom columns</li>
-                                    <li>Import the model in <code>cli/migrations.py</code>:
-                                        <code>from app.models.product import Product</code>
-                                    </li>
-                                    <li>Run migrations: <code>python -m cli.migrations migrate</code></li>
+                                    <li>The model will be automatically loaded for migrations (no manual import needed).</li>
+                                    <li>Run migrations: <code>lila-migrations migrate</code></li>
                                 </ol>
 
                                 <br>
@@ -2815,7 +2813,7 @@ mysql_connection = connection
 
                             <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
-                                    <span class="editor-title">cli/migrations.py</span>
+                                    <span class="editor-title">app/models/tables.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2825,15 +2823,10 @@ mysql_connection = connection
                                 <div class="editor-content">
                                     <pre><code class="language-python">
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
-from app.connections import connection
-import typer
-import asyncio
+from lila.core.database import Base  # Import Base
 
-app = typer.Typer()
-
-# Example of creating migrations for 'users'
 table_users = Table(
-    'users', connection.metadata,
+    'users', Base.metadata, # IMPORTANT: Use Base.metadata
     Column('id', Integer, primary_key=True, autoincrement=True),
     Column('name', String(length=50), nullable=False),
     Column('email', String(length=50), unique=True),
@@ -2842,28 +2835,6 @@ table_users = Table(
     Column('active', Integer, default=1, nullable=False),
     Column('created_at', TIMESTAMP),
 )
-
-async def migrate_async(connection, refresh: bool = False) -> bool:
-    try:
-        if refresh:
-            connection.metadata.drop_all(connection.engine)
-        connection.prepare_migrate([table_users])  # for tables
-        connection.migrate()
-        print("Migrations completed")
-        return True
-    except RuntimeError as e:
-        print(e)
-        return False
-
-@app.command()
-def migrate(refresh: bool = False):
-    """Run database migrations"""
-    success = asyncio.run(migrate_async(connection, refresh))
-    if not success:
-        raise typer.Exit(code=1)
-
-if __name__ == "__main__":
-    app()
                                     </code></pre>
                                 </div>
                             </div>
@@ -2899,51 +2870,19 @@ class User(Base):
                                 </div>
                             </div>
 
-                            <div class="code-editor mt-4 mb-4">
+                            <h5>Run Migrations</h5>
+                            <p>Once your model is defined in <code>app/models/</code>, Lila will automatically load it to register it in the database. Simply run:</p>
+                            <div class="code-editor mt-2 mb-4">
                                 <div class="editor-header">
-                                    <span class="editor-title">cli/migrations.py (Models version)</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
+                                    <span class="editor-title">Terminal</span>
                                 </div>
                                 <div class="editor-content">
-                                    <pre><code class="language-python">
-from app.connections import connection
-from lila.core.database import Base  # Import Base for migrations in models
-from app.models.user import User  # Import models for migrations
-import typer
-import asyncio
-
-app = typer.Typer()
-
-async def migrate_async(connection, refresh: bool = False) -> bool:
-    try:
-        if refresh:
-            connection.metadata.drop_all(connection.engine)
-        connection.migrate(use_base=True)  # for models
-        print("Migrations completed")
-        return True
-    except RuntimeError as e:
-        print(e)
-        return False
-
-@app.command()
-def migrate(refresh: bool = False):
-    """Run database migrations"""
-    success = asyncio.run(migrate_async(connection, refresh))
-    if not success:
-        raise typer.Exit(code=1)
-
-if __name__ == "__main__":
-    app()
-                                    </code></pre>
+                                    <pre><code class="language-bash">lila-migrations migrate</code></pre>
                                 </div>
                             </div>
 
                             <h2 class="text-xl">Running Migrations</h2>
-                            <p>To execute migrations, use the following command in your code:</p>
+                            <p>To execute migrations, use the following command in your terminal:</p>
 
                             <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
@@ -2957,10 +2896,10 @@ if __name__ == "__main__":
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
 # Basic migration
-python -m cli.migrations 
+lila-migrations 
 
 # Refresh all tables (drop and recreate)
-python -m cli.migrations --refresh
+lila-migrations --refresh
                                     </code></pre>
                                 </div>
                             </div>
@@ -3019,7 +2958,7 @@ python -m cli.migrations --refresh
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
 # Run auth scaffold to generate routes, templates, models, and middlewares
-python -m cli.auth
+lila-auth
       </code></pre>
                                 </div>
                             </div>
@@ -3074,17 +3013,17 @@ python -m cli.auth
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Create a model first
-python -m cli.model create --name Product
+lila-model create --name Product
 
  
 # Generate complete CRUD scaffold
-python -m cli.scaffold_crud --model Product
+lila-scaffold-crud --model Product
 
 # Custom route name
-python -m cli.scaffold_crud --model Product --name products
+lila-scaffold-crud --model Product --name products
 
 #execute migrations refresh
-python -m cli.migrations --refresh
+lila-migrations --refresh
 </code>
 </pre>
                                 </div>
@@ -3197,7 +3136,7 @@ DELETE /api/product/{id}   → Soft delete (active=0)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
-python -m cli.react create
+lila-react create
             </code></pre>
                                 </div>
                             </div>
@@ -3281,7 +3220,7 @@ python -m cli.react create
                                     <pre><code class="language-bash">
 npm run dev
 # OR
-python -m cli.react dev
+lila-react dev
             </code></pre>
                                 </div>
                             </div>
@@ -3388,7 +3327,7 @@ async def react_page(request: Request):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="bash">
-python -m cli.migrations 
+lila-migrations 
 
 </code>
 </pre>
@@ -3728,7 +3667,7 @@ all_routes = list(itertools.chain(routes, api_routes,admin_routes))
                                 <div class="editor-content">
                                     <pre>
                 <code class="language-bash">
-python -m cli.migrations
+lila-migrations
                 </code>
             </pre>
                                 </div>
@@ -3751,10 +3690,10 @@ python -m cli.migrations
                                     <pre>
                 <code class="language-bash">
 # Default usage (random password generated)
-python -m cli.create_panel_admin
+lila-create-panel-admin
 
 # With custom username and password
-python -m cli.create_panel_admin --user myadmin --password mysecurepassword
+lila-create-panel-admin --user myadmin --password mysecurepassword
                 </code>
             </pre>
                                 </div>
@@ -3876,10 +3815,10 @@ async def admin_route(request: Request):
                                     <pre>
 <code class="language-bash">
 # Create an administrator with specific username and password
-python -m cli.create_admin --username myadmin --password mysecretpassword
+lila-create-admin --username myadmin --password mysecretpassword
 
 # Create an administrator with a custom username and auto-generated password
-python -m cli.create_admin --username myadmin
+lila-create-admin --username myadmin
 </code>
         </pre>
                                 </div>
@@ -3918,9 +3857,7 @@ python -m cli.create_admin --username myadmin
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
-lila-minify 
-#Or
-python -m cli.minify
+lila-minify
 </code></pre>
                                 </div>
                             </div>
