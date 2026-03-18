@@ -3,10 +3,10 @@
 
 <head>
     <meta charset=UTF-8>
-    <link rel=icon type=image href="{{ public('img/lila.png') }}" alt="Admin Lila Framework">
+    <link rel=icon type=image href="img/lila.png" alt="Admin Lila Framework">
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+    <link rel="stylesheet" href="../css/lila.css" />
     <script src=https://cdn.jsdelivr.net/npm/chart.js></script>
     <style>
         :root {
@@ -102,17 +102,14 @@
                 <h4 class="text-xl  mb-4 mt-4">Server Metrics</h4>
                 <div class="grid   gap-4">
                     <div class="space-y-2">
-                        <p>Lila Framework Memory Used: <span id="lilaMemory" class="font-semibold">{{
-                                lila_memory|round(0) }}</span> MB</p>
-                        <p>Lila Framework CPU Used: <span id="lilaCpuUsage" class="font-semibold">{{
-                                lila_cpu_usage|round(0) }}</span> %</p>
-                        <p>Server Memory Used: <span id="systemUsedMemory" class="font-semibold">{{
-                                system_used_memory|round(0) }}</span> MB / <span id="systemTotalMemory"
+                        <p>Lila Framework Memory Used: <span id="lilaMemory" class="font-semibold">{{lila_memory|round(0) }}</span> MB</p>
+                        <p>Lila Framework CPU Used: <span id="lilaCpuUsage" class="font-semibold">{{lila_cpu_usage|round(0) }}</span> %</p>
+                        <p>Server Memory Used: <span id="systemUsedMemory" class="font-semibold">{{system_used_memory|round(0) }}</span> MB / <span id="systemTotalMemory"
                                 class="font-semibold">{{ system_total_memory|round(0) }}</span> MB</p>
                         <p>Server CPU Used: <span id="cpuUsage" class="font-semibold">{{ cpu_usage|round(0) }}</span> %
                         </p>
                     </div>
-                    <div class="grid   gap-4">
+                    <div class="grid  gap-4">
                         <div>
                             <canvas id="memoryDoughnutChart"></canvas>
                         </div>
@@ -166,8 +163,7 @@
                     labels: ['Used Memory', 'Free Memory'],
                     datasets: [{
                         label: 'Memory Usage',
-                        data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }
-            }],
+                        data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
                 backgroundColor: ['#ef4444', '#3b82f6']  
                     }]
                 }

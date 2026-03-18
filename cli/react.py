@@ -2,8 +2,6 @@ import typer
 import asyncio
 import os
 import sys
-import shlex
-import shutil
 import json
 
 app = typer.Typer()
@@ -168,8 +166,8 @@ export default defineConfig({{
     publicDir: 'public',
     emptyOutDir: true,
     rollupOptions: {{
-      input: "./react/main.jsx",
-    }},
+      input: "./resources/main.jsx",
+    }}, 
   }},
   server: {{
     origin: "http://localhost:5173",
@@ -275,7 +273,7 @@ export default function Counter({ start = 0 }) {
 
 @router.get("/react-page")
 async def react_page(request: Request):
-    response = renderReact(request=request,component="Counter",
+    response =renderReact(request=request,component="Counter",
     props={
         "start": 5
     } ,
@@ -295,7 +293,7 @@ async def react(request: Request):
     context ={
         "url": f"http://{HOST}:{PORT}"
     }
-    response = render(
+    response =render(
         request=request, template="react",context=context
     )
     return response
@@ -318,7 +316,7 @@ async def react(request: Request):
     
 
 @app.command()
-def create(name: str = "react"):
+def create(name: str = "resources"):
     """
     Setup React environment (Islands architecture).
     Configura el entorno React (Arquitectura de Islas).

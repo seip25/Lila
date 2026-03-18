@@ -13,6 +13,7 @@ from app.middlewares.security import (
 import itertools
 import uvicorn
 import asyncio
+import os
 
 # English: Combining application and API routes into a single list.
 # Español: Combinando las rutas de la aplicación y la API en una única lista.
@@ -24,11 +25,17 @@ all_routes = list(itertools.chain(routes, api_routes))
 
 #English : Marker for the auth routes in main.py
 #Español: Marcardor para añadir automaticamente rutas auth en main.py
-# auth_marker
+# auth_marker 
 
 # English: Marker for the admin routes in main.py.
 # Español: Marcador para las rutas de administrador en main.py.
 # admin_marker
+
+from app.routes.admin import Admin
+from app.models.user import User
+admin_routes = Admin(models=[User])
+all_routes = list(itertools.chain(all_routes, admin_routes))
+    
    
 cors = None
 
@@ -61,10 +68,11 @@ app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares)
 async def main():
     # English: Starting the Uvicorn server with the application instance.
     # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
 
 if __name__ == "__main__":
     try:
+        #os.environ["PYTHON_JIT"] = "1"
         asyncio.run(main())
     except KeyboardInterrupt:
         print("Shutting down the application...")

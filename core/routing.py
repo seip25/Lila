@@ -80,9 +80,9 @@ class Router:
         self,
         path: str = "/docs",
         methods: list[str] | None = None,
-        swagger_url: str = "/public/swagger",
+        swagger_url: str = "swagger",
         title: str = "Lila API Documentation",
-        icon: str = "/public/img/lila.png",
+        icon: str = "img/lila.png",
     ) -> None:
         if methods is None:
             methods = ["GET"]
@@ -700,9 +700,9 @@ class Router:
     <meta name="color-scheme" content="light dark" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>{model_name.capitalize()} CRUD</title>
-    <link rel="icon" type="image/x-icon" href="/public/img/lila.png" />
-    <link rel="stylesheet" href="/public/css/lila.css" />
-    <script src="/public/js/utils.js"></script>
+    <link rel="icon" type="image/x-icon" href="img/lila.png" />
+    <link rel="stylesheet" href="css/lila.css" />
+    <script src="js/utils.js"></script>
     </head>
     <body>
     <header class="shadow">

@@ -10,11 +10,7 @@ from app.config import LANG_DEFAULT,HOST,PORT
 router = Router()
 
 #marker_react
-
-# English: Mounting statics files ,in folder 'public',url ='/public'
-#  Español: Montando los archivos estaticos en la carpeta 'public',url ='/public'
-router.mount()
-
+ 
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto
 @router.get("/")

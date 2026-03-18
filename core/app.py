@@ -15,6 +15,8 @@ from core.debug import db_session_debug
 from core.routing import Router
 from itertools import chain
 from core.request import Request
+from starlette.routing import Route, Mount
+from starlette.staticfiles import StaticFiles
 
 STATIC_EXTENSIONS = {
     ".js",
@@ -42,6 +44,9 @@ class App(Starlette):
         middleware: List = None,
         compress_type: str = "gzip",
         trusted_hosts: Optional[List[str]] = None,
+        public_folder: str = "public",
+        public_url: str = "/",
+        public_name:str="public",
     ):
         routes = routes or []
 
@@ -93,7 +98,9 @@ class App(Starlette):
                     template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
                     return render(request=request,template=template)
             debug_routes=routerDebug.get_routes()
-            routes=list(chain(routes,debug_routes))
+            routes=list(chain(routes,debug_routes,[
+                Mount(public_url, app=StaticFiles(directory=public_folder), name=public_name)
+            ]))
 
         super().__init__(debug=debug, routes=routes, middleware=middleware)
 

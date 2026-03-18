@@ -201,7 +201,7 @@ def menu(models: list = []) -> str:
     return f"""
     <header class="  shadow  ">
         <nav class="container ">
-             <a href="/admin/"  >
+             <a href="/admin"  >
              <h3>
              Admin Dashboard
                 </h3>

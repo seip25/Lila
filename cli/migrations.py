@@ -1,4 +1,4 @@
-from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
 from app.connections import connection
 from core.database import Base #Import Base  for migrations in models
 from app.models.user import User #Import models for migrations in models
@@ -6,8 +6,7 @@ import typer
 import asyncio
 
 # auth_marker
-
-from app.models.product import Product
+ 
 # model_marker
 
 app = typer.Typer()

@@ -1,4 +1,4 @@
-from app.config import  LANG_DEFAULT, PATH_LOCALES
+from app.config import  LANG_DEFAULT, PATH_LOCALES,DEBUG
 from core.session import Session
 from core.request import Request 
 import json
@@ -18,6 +18,8 @@ def load_translations(file_name: str) -> dict:
         return data
     except Exception:
         _TRANSLATIONS_CACHE[file_name] = {}
+        if DEBUG:
+            print(f"Error loading translations for {file_name}")
         return {}
 
 def lang(request: Request) -> str:

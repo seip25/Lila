@@ -1,0 +1,12 @@
+{
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.git": true,  
+        "**/node_modules": true,
+        "**/.DS_Store": true,  
+        "LICENSE":true,
+        "README.md":true
+
+    }
+}
