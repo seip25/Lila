@@ -732,14 +732,14 @@ router.mount()
 
                         <article id="templates-esp" class="space-y-6 md:space-y-8 py-8">
                             <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                                Renderizado de Plantillas (Jinja2  )
+                                Renderizado de Plantillas (Jinja2 )
                             </h1>
                             <p class="text-lg text-gray-700 dark:text-gray-300">
                                 En Lila, puedes usar
                                 <strong class="font-semibold text-gray-900 dark:text-gray-100">Jinja2</strong> para
                                 renderizar
-                                HTML con datos del servidor  
-                                
+                                HTML con datos del servidor
+
                             </p>
 
                             <section class="space-y-6">
@@ -892,9 +892,9 @@ def render(
                                 </p>
                             </section>
 
-                        
 
-                        
+
+
 
                             <section>
                                 <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">
@@ -1434,7 +1434,7 @@ async def uploadFile(request: Request):
                                 </div>
                             </div>
 
-                           
+
 
                             <h2 class="text-xl">Formato de Respuesta</h2>
                             <p>El asistente devuelve una JSONResponse con esta estructura:</p>
@@ -1479,26 +1479,28 @@ async def uploadFile(request: Request):
                             </div>
 
                             <div class="mb-8">
-                             <h3 class="text-xl text-blue-500 bg-blue-100 p-4  text-center rounded">Notas Importantes</h3>
-                            <p>Si utilizas windows o el archivo no se crea en el Path recuerda configurar en <code>app/config.py</code></p>
-                            <div class="code-editor  mb-4">
-                                <div class="editor-header">
-                                    <span class="editor-title">app/config.py</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
+                                <h3 class="text-xl text-blue-500 bg-blue-100 p-4  text-center rounded">Notas Importantes
+                                </h3>
+                                <p>Si utilizas windows o el archivo no se crea en el Path recuerda configurar en
+                                    <code>app/config.py</code></p>
+                                <div class="code-editor  mb-4">
+                                    <div class="editor-header">
+                                        <span class="editor-title">app/config.py</span>
+                                        <div class="editor-controls">
+                                            <div class="control close"></div>
+                                            <div class="control minimize"></div>
+                                            <div class="control maximize"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="editor-content">
-                                    <pre><code class="language-python">
+                                    <div class="editor-content">
+                                        <pre><code class="language-python">
 PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
 
                                     </code></pre>
 
+                                    </div>
+                                </div>
                             </div>
-                           </div>
-                           </div>
                         </article>
                         <hr />
 
@@ -1888,9 +1890,9 @@ user = User.get_by_id(1)
                                         </div>
                                     </div>
                                     <div class="editor-content">
-                                        <pre><code class="language-bash">python -m cli.model create --name NombreModelo
+                                        <pre><code class="language-bash">lila-model create --name NombreModelo
 # o con nombre de tabla personalizado
-python -m cli.model create --name Producto --table products</code></pre>
+lila-model create --name Producto --table products</code></pre>
                                     </div>
                                 </div>
 
@@ -1905,7 +1907,7 @@ python -m cli.model create --name Producto --table products</code></pre>
                                         </div>
                                     </div>
                                     <div class="editor-content">
-                                        <pre><code class="language-bash">python -m cli.model list-models</code></pre>
+                                        <pre><code class="language-bash">lila-model list-models</code></pre>
                                     </div>
                                 </div>
 
@@ -2016,12 +2018,12 @@ db.close()</code></pre>
 
                     <h2>Flujo de trabajo completo</h2>
                     <ol>
-                        <li>Crear el modelo: <code>python -m cli.model create --name Producto</code></li>
+                        <li>Crear el modelo: <code>lila-model create --name Producto</code></li>
                         <li>Edita <code>app/models/product.py</code> para agregar columnas personalizadas</li>
                         <li>Importa el modelo en <code>cli/migrations.py</code>:
                             <code>from app.models.product import Product</code>
                         </li>
-                        <li>Ejecuta migraciones: <code>python -m cli.migrations migrate</code></li>
+                        <li>Ejecuta migraciones: <code>lila-migrations migrate</code></li>
 
 
                         <br>
@@ -2438,7 +2440,7 @@ except Exception as e:
                                     Todos los comandos siguen
                                     el patrón
                                     <code
-                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">python -m cli.{comando}</code>
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-{comando}</code>
                                 </p>
                             </div>
 
@@ -2463,13 +2465,13 @@ except Exception as e:
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Crear un nuevo modelo
-python -m cli.model create --name Product
+lila-model create --name Product
 
 # Crear con nombre de tabla personalizado
-python -m cli.model create --name Product --table products
+lila-model create --name Product --table products
 
 # Listar todos los modelos
-python -m cli.model list-models
+lila-model list-models
 </code>
 </pre>
                                 </div>
@@ -2496,10 +2498,10 @@ python -m cli.model list-models
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Generar scaffold desde modelo
-python -m cli.scaffold_crud --model Product
+lila-scaffold-crud --model Product
 
 # Nombre de ruta personalizado
-python -m cli.scaffold_crud --model Product --name products
+lila-scaffold-crud --model Product --name products
 </code>
 </pre>
                                 </div>
@@ -2526,10 +2528,10 @@ python -m cli.scaffold_crud --model Product --name products
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Ejecutar migraciones
-python -m cli.migrations migrate
+lila-migrations migrate
 
 # Refrescar (eliminar y recrear todas las tablas)
-python -m cli.migrations migrate --refresh
+lila-migrations migrate --refresh
 </code>
 </pre>
                                 </div>
@@ -2556,7 +2558,7 @@ python -m cli.migrations migrate --refresh
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Generar sistema de autenticación
-python -m cli.auth main
+lila-auth main
 </code>
 </pre>
                                 </div>
@@ -2583,10 +2585,10 @@ python -m cli.auth main
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Crear usuario administrador
-python -m cli.create_admin --password mypassword
+lila-create-admin --password mypassword
 
 # Crear panel de administración
-python -m cli.create_panel_admin --password mypassword
+lila-create-panel-admin --password mypassword
 </code>
 </pre>
                                 </div>
@@ -2613,7 +2615,7 @@ python -m cli.create_panel_admin --password mypassword
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Minificar todos los archivos CSS y JS
-python -m cli.minify
+lila-minify
 </code>
 </pre>
                                 </div>
@@ -2640,10 +2642,10 @@ python -m cli.minify
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Instalar React y configurar en el proyecto
-python -m cli.react create
+lila-react create
 
 # Iniciar servidor de desarrollo React
-python -m cli.react dev
+lila-react dev
 </code>
 </pre>
                                 </div>
@@ -2863,10 +2865,10 @@ if __name__ == "__main__":
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
 # Migración básica
-python -m cli.migrations 
+lila-migrations 
 
 # Refrescar todas las tablas (eliminar y recrear)
-python -m cli.migrations --refresh
+lila-migrations --refresh
                                     </code></pre>
                                 </div>
                             </div>
@@ -2925,7 +2927,7 @@ python -m cli.migrations --refresh
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
 # Ejecuta el scaffold de auth para generar rutas, templates, modelos y middlewares
-python -m cli.auth
+lila-auth
       </code></pre>
                                 </div>
                             </div>
@@ -2977,18 +2979,18 @@ python -m cli.auth
                                     <pre class="language-bash">
 <code class="whitespace-pre-wrap">
 # Crear un modelo primero
-python -m cli.model create --name Product
+lila-model create --name Product
 
  
 
 # Generar scaffold CRUD completo
-python -m cli.scaffold_crud --model Product
+lila-scaffold-crud --model Product
 
 # Nombre de ruta personalizado
-python -m cli.scaffold_crud --model Product --name products
+lila-scaffold-crud --model Product --name products
 
 #Ejecutar migraciones con refresh
-python -m cli.migrations --refresh
+lila-migrations --refresh
 </code>
 </pre>
                                 </div>
@@ -3084,8 +3086,10 @@ DELETE /api/product/{id}   → Borrado lógico (active=0)
                             <h1 class="text-2xl font-semibold">Integración de Islas React</h1>
 
                             <p>
-                                Lila ofrece una poderosa arquitectura de "Islas React", permitiéndote incrustar componentes interactivos de React directamente en tus plantillas Jinja2.
-                                Este enfoque combina lo mejor de ambos mundos: el SEO y el rendimiento del renderizado del lado del servidor con Lila, y la interactividad de React.
+                                Lila ofrece una poderosa arquitectura de "Islas React", permitiéndote incrustar
+                                componentes interactivos de React directamente en tus plantillas Jinja2.
+                                Este enfoque combina lo mejor de ambos mundos: el SEO y el rendimiento del renderizado
+                                del lado del servidor con Lila, y la interactividad de React.
                             </p>
 
                             <h5 class="text-2xl font-semibold">Instalación</h5>
@@ -3099,23 +3103,38 @@ DELETE /api/product/{id}   → Borrado lógico (active=0)
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="language-bash">
-python -m cli.react create
+lila-react create
             </code></pre>
                                 </div>
                             </div>
 
                             <p>
-                                Esto generará el esquema de <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">package.json</code>, <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite.config.js</code> y la estructura del directorio <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react/</code>.
+                                Esto generará el esquema de <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">package.json</code>,
+                                <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite.config.js</code>
+                                y la estructura del directorio <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react/</code>.
                             </p>
 
                             <h5 class="text-2xl font-semibold">Uso</h5>
                             <p>
-                                Una vez instalado, puedes usar los nuevos ayudantes de Jinja2 <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code> y <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react()</code>.
+                                Una vez instalado, puedes usar los nuevos ayudantes de Jinja2 <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code>
+                                y <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react()</code>.
                             </p>
 
                             <ul class="list-disc ml-6 mt-4 mb-4">
-                                <li><strong>vite_assets()</strong>: Inyecta las etiquetas de script necesarias. En modo <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">DEBUG=True</code>, se conecta al servidor de desarrollo de Vite (HMR). En producción, carga los activos optimizados desde <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>.</li>
-                                <li><strong>react(component, props)</strong>: Monta un componente de React específico.</li>
+                                <li><strong>vite_assets()</strong>: Inyecta las etiquetas de script necesarias. En modo
+                                    <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">DEBUG=True</code>,
+                                    se conecta al servidor de desarrollo de Vite (HMR). En producción, carga los activos
+                                    optimizados desde <code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>.
+                                </li>
+                                <li><strong>react(component, props)</strong>: Monta un componente de React específico.
+                                </li>
                             </ul>
 
                             <p>Ejemplo de una plantilla HTML completa:</p>
@@ -3155,7 +3174,10 @@ python -m cli.react create
                             <h5 class="text-2xl font-semibold">Cómo Funciona</h5>
                             <p>
                                 <strong>Desarrollo (DEBUG=True):</strong><br>
-                                El ayudante <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code> inyecta scripts apuntando a <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://localhost:5173</code>.
+                                El ayudante <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code>
+                                inyecta scripts apuntando a <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://localhost:5173</code>.
                                 Puedes iniciar el servidor de desarrollo con:
                             </p>
                             <div class="code-editor mt-4 mb-4">
@@ -3163,37 +3185,51 @@ python -m cli.react create
                                     <span class="editor-title">Terminal</span>
                                 </div>
                                 <div class="editor-content">
-                                     <pre><code class="language-bash">
+                                    <pre><code class="language-bash">
 npm run dev
 # O
-python -m cli.react dev
+lila-react dev
             </code></pre>
                                 </div>
                             </div>
 
                             <p>
                                 <strong>Producción (DEBUG=False):</strong><br>
-                                Ejecuta <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">npm run build</code> para compilar tu código React en <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>. 
-                                El ayudante detectará automáticamente el archivo <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">manifest.json</code> y cargará los archivos CSS y JS hasheados para un rendimiento óptimo.
+                                Ejecuta <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">npm run build</code>
+                                para compilar tu código React en <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>.
+                                El ayudante detectará automáticamente el archivo <code
+                                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">manifest.json</code>
+                                y cargará los archivos CSS y JS hasheados para un rendimiento óptimo.
                             </p>
 
                             <h5 class="text-2xl font-semibold">Beneficios</h5>
                             <ul class="list-disc ml-6 mt-4">
-                                <li><strong>SEO con Jinja</strong>: El contenido de tu página principal es renderizado por Jinja, asegurando que los motores de búsqueda puedan leerlo perfectamente.</li>
-                                <li><strong>Interactividad React</strong>: Usa React solo donde sea necesario (arquitectura de Islas).</li>
-                                <li><strong>Sesiones Seguras</strong>: Puedes confiar en las sesiones seguras y firmadas de Lila (<code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>) para la autenticación, mientras los componentes de React se comunican con tus puntos finales de API.</li>
+                                <li><strong>SEO con Jinja</strong>: El contenido de tu página principal es renderizado
+                                    por Jinja, asegurando que los motores de búsqueda puedan leerlo perfectamente.</li>
+                                <li><strong>Interactividad React</strong>: Usa React solo donde sea necesario
+                                    (arquitectura de Islas).</li>
+                                <li><strong>Sesiones Seguras</strong>: Puedes confiar en las sesiones seguras y firmadas
+                                    de Lila (<code
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>)
+                                    para la autenticación, mientras los componentes de React se comunican con tus puntos
+                                    finales de API.</li>
                             </ul>
 
- <h3 class="text-2xl font-semibold mt-4 mb-4">React Render (componentes de renderizado con htmlResponse sin plantillas jinja)</h3>
-<p class="mt-4 mb-4">
-Este método reactRender se utiliza para devolver el HTML directamente y cargar una página o componente de React con estilos, metaetiquetas, scripts personalizados y contenido/props.
-</p>
-      <div class="code-editor mt-4 mb-4">
+                            <h3 class="text-2xl font-semibold mt-4 mb-4">React Render (componentes de renderizado con
+                                htmlResponse sin plantillas jinja)</h3>
+                            <p class="mt-4 mb-4">
+                                Este método reactRender se utiliza para devolver el HTML directamente y cargar una
+                                página o componente de React con estilos, metaetiquetas, scripts personalizados y
+                                contenido/props.
+                            </p>
+                            <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">ReactRender</span>
                                 </div>
                                 <div class="editor-content">
-                                     <pre><code class="language-python">
+                                    <pre><code class="language-python">
 from lila.core.templates import render,renderMarkdown,renderReact
 ...
 router = Router()
@@ -3255,7 +3291,7 @@ async def react_page(request: Request):
                                 </div>
                                 <div class="editor-content">
                                     <pre><code class="bash">
-python -m cli.migrations 
+lila-migrations 
 
 </code>
 </pre>
@@ -3587,7 +3623,7 @@ all_routes = list(itertools.chain(routes, api_routes,admin_routes))
                                 <div class="editor-content">
                                     <pre>
                 <code class="language-bash">
-python -m cli.migrations
+lila-migrations
                 </code>
             </pre>
                                 </div>
@@ -3611,10 +3647,10 @@ python -m cli.migrations
                                     <pre>
                 <code class="language-bash">
 # Uso predeterminado (se genera una contraseña aleatoria)
-python -m cli.create_panel_admin
+lila-create-panel-admin
 
 # Con nombre de usuario y contraseña personalizados
-python -m cli.create_panel_admin --user miadmin --password misecretopassword
+lila-create-panel-admin --user miadmin --password misecretopassword
                 </code>
             </pre>
                                 </div>
@@ -3734,10 +3770,10 @@ async def admin_route(request: Request):
                                     <pre>
 <code class="language-bash">
 # Crear un administrador con nombre de usuario y contraseña específicos
-python -m cli.create_admin --username miadmin --password misecretopassword
+lila-create-admin --username miadmin --password misecretopassword
 
 # Crear un administrador con usuario personalizado y contraseña generada automáticamente
-python -m cli.create_admin --username miadmin
+lila-create-admin --username miadmin
 </code>
         </pre>
                                 </div>
@@ -3777,7 +3813,7 @@ python -m cli.create_admin --username miadmin
                                     <pre><code class="language-bash">
 lila-minify
 #O
-python -m cli.minify
+lila-minify
 </code></pre>
                                 </div>
                             </div>
