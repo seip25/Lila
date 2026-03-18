@@ -782,7 +782,7 @@ async def delete_item(request: Request):
                                 <p class="text-gray-700 dark:text-gray-300">
                                     The default parameters are:
                                     <code
-                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">path: str = '/public', directory: str = 'static', name: str = 'static'</code>
+                                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">path: str = '/public', directory: str = 'public', name: str = 'public'</code>
                                 </p>
                             </div>
 
@@ -799,7 +799,7 @@ async def delete_item(request: Request):
 from lila.core.routing import Router
 # Creating an instance of the Router
 router = Router()
-# Mounting the static files in the 'static' folder, with URL '/public' by default
+# Mounting the static files in the 'public' folder, with URL '/public' by default
 router.mount()
 </code>
 </pre>
