@@ -2020,9 +2020,7 @@ db.close()</code></pre>
                     <ol>
                         <li>Crear el modelo: <code>lila-model create --name Producto</code></li>
                         <li>Edita <code>app/models/product.py</code> para agregar columnas personalizadas</li>
-                        <li>Importa el modelo en <code>cli/migrations.py</code>:
-                            <code>from app.models.product import Product</code>
-                        </li>
+                        <li>El modelo se cargará automáticamente para las migraciones (no es necesario importar manualmente).</li>
                         <li>Ejecuta migraciones: <code>lila-migrations migrate</code></li>
 
 
@@ -2722,7 +2720,7 @@ mysql_connection = connection
 
                             <div class="code-editor mt-4 mb-4">
                                 <div class="editor-header">
-                                    <span class="editor-title">cli/migrations.py</span>
+                                    <span class="editor-title">app/models/tables.py</span>
                                     <div class="editor-controls">
                                         <div class="control close"></div>
                                         <div class="control minimize"></div>
@@ -2732,15 +2730,10 @@ mysql_connection = connection
                                 <div class="editor-content">
                                     <pre><code class="language-python">
 from sqlalchemy import Table, Column, Integer, String, TIMESTAMP
-from app.connections import connection
-import typer
-import asyncio
+from lila.core.database import Base  # Importar Base
 
-app = typer.Typer()
-
-# Ejemplo de creación de migraciones para 'users'
 table_users = Table(
-    'users', connection.metadata,
+    'users', Base.metadata, # IMPORTANTE: Usar Base.metadata
     Column('id', Integer, primary_key=True, autoincrement=True),
     Column('name', String(length=50), nullable=False),
     Column('email', String(length=50), unique=True),
@@ -2749,28 +2742,6 @@ table_users = Table(
     Column('active', Integer, default=1, nullable=False),
     Column('created_at', TIMESTAMP),
 )
-
-async def migrate_async(connection, refresh: bool = False) -> bool:
-    try:
-        if refresh:
-            connection.metadata.drop_all(connection.engine)
-        connection.prepare_migrate([table_users])  # para tablas
-        connection.migrate()
-        print("Migraciones completadas")
-        return True
-    except RuntimeError as e:
-        print(e)
-        return False
-
-@app.command()
-def migrate(refresh: bool = False):
-    """Ejecutar migraciones de base de datos"""
-    success = asyncio.run(migrate_async(connection, refresh))
-    if not success:
-        raise typer.Exit(code=1)
-
-if __name__ == "__main__":
-    app()
                                     </code></pre>
                                 </div>
                             </div>
@@ -2807,46 +2778,14 @@ class User(Base):
                                 </div>
                             </div>
 
-                            <div class="code-editor mt-4 mb-4">
+                            <h5>Ejecutar Migraciones</h5>
+                            <p>Una vez definido tu modelo en <code>app/models/</code>, Lila lo cargará automáticamente para registrarlo en la base de datos. Simplemente ejecuta:</p>
+                            <div class="code-editor mt-2 mb-4">
                                 <div class="editor-header">
-                                    <span class="editor-title">cli/migrations.py (Versión de Modelos)</span>
-                                    <div class="editor-controls">
-                                        <div class="control close"></div>
-                                        <div class="control minimize"></div>
-                                        <div class="control maximize"></div>
-                                    </div>
+                                    <span class="editor-title">Terminal</span>
                                 </div>
                                 <div class="editor-content">
-                                    <pre><code class="language-python">
-from app.connections import connection
-from lila.core.database import Base  # Importar Base para migraciones en modelos
-from app.models.user import User  # Importar modelos para migraciones
-import typer
-import asyncio
-
-app = typer.Typer()
-
-async def migrate_async(connection, refresh: bool = False) -> bool:
-    try:
-        if refresh:
-            connection.metadata.drop_all(connection.engine)
-        connection.migrate(use_base=True)  # para modelos
-        print("Migraciones completadas")
-        return True
-    except RuntimeError as e:
-        print(e)
-        return False
-
-@app.command()
-def migrate(refresh: bool = False):
-    """Ejecutar migraciones de base de datos"""
-    success = asyncio.run(migrate_async(connection, refresh))
-    if not success:
-        raise typer.Exit(code=1)
-
-if __name__ == "__main__":
-    app()
-                                    </code></pre>
+                                    <pre><code class="language-bash">lila-migrations migrate</code></pre>
                                 </div>
                             </div>
 
@@ -2909,7 +2848,7 @@ lila-migrations --refresh
                                 </li>
                                 <li>Crea las páginas de <code>dashboard</code> y <code>profile</code></li>
                                 <li>Incluye middlewares, sesiones y validaciones usando <strong>Pydantic</strong></li>
-                                <li>Actualiza automáticamente <code>main.py</code> y <code>cli/migrations.py</code></li>
+                                <li>Actualiza automáticamente <code>main.py</code> y aplica las migraciones si es necesario</li>
                             </ul>
 
                             <h2 class="text-xl mt-4">Ejecutando el Auth Scaffold</h2>
