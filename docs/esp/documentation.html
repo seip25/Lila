@@ -518,6 +518,7 @@ async def api_token(request: Request):
                                 <div class="editor-content bg-gray-900 dark:bg-black">
                                     <pre><code class="language-python">
 from pydantic import EmailStr, BaseModel 
+from app.helpers.validate import responseValidationError
 
 class ExampleModel(BaseModel):
     email: EmailStr  # Valida que sea un email válido.
@@ -529,7 +530,7 @@ async def login(request: Request):
     try:
         input = ExampleModel(**body)  # Validación automática con Pydantic.
     except Exception as e:
-        return JSONResponse({"success": False, "msg": f"JSON inválido: {e}"}, status_code=400) 
+        return responseValidationError(e) 
     return JSONResponse({"email": input.email, "password": input.password})
             </code></pre>
                                 </div>
