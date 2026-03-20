@@ -2106,7 +2106,8 @@ db.close()</code></pre>
                                 <ol>
                                     <li>Create the model: <code>lila-model create --name Product</code></li>
                                     <li>Edit <code>app/models/product.py</code> to add custom columns</li>
-                                    <li>The model will be automatically loaded for migrations (no manual import needed).</li>
+                                    <li>The model will be automatically loaded for migrations (no manual import needed).
+                                    </li>
                                     <li>Run migrations: <code>lila-migrations migrate</code></li>
                                 </ol>
 
@@ -2871,7 +2872,8 @@ class User(Base):
                             </div>
 
                             <h5>Run Migrations</h5>
-                            <p>Once your model is defined in <code>app/models/</code>, Lila will automatically load it to register it in the database. Simply run:</p>
+                            <p>Once your model is defined in <code>app/models/</code>, Lila will automatically load it
+                                to register it in the database. Simply run:</p>
                             <div class="code-editor mt-2 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal</span>
@@ -3224,6 +3226,37 @@ lila-react dev
             </code></pre>
                                 </div>
                             </div>
+                            <h5 class="text-2xl font-semibold">
+                                Re-rendering React Islands
+                            </h5>
+                            <p>
+                                You can trigger a re-render of your React islands from standard JavaScript (e.g., from
+                                Twig
+                                templates, jQuery, or other non-React components) using the global function
+                                <code>window.renderReactComponent(name)</code>.
+                            </p>
+                            <p>
+                                This is useful for updating components that rely on shared client-side data like
+                                <code>localStorage</code> from other independent DOM elements without needing a complete
+                                page
+                                reload.
+                            </p>
+
+                            <div class="code-editor mt-4 mb-4">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+//Example in client
+// Re-render all React components on the page
+renderReactComponent();
+
+// Re-render only components named 'CartBadge'
+renderReactComponent('CartBadge');
+            </code></pre>
+                                </div>
+                            </div>
 
                             <p>
                                 <strong>Production (DEBUG=False):</strong><br>
@@ -3249,7 +3282,7 @@ lila-react dev
                                 </li>
                             </ul>
                             <h3 class="text-2xl font-semibold mt-4 mb-4">React Render (render components with
-                                htmlResponse without templates jinja</h3>
+                                htmlResponse without templates jinj)</h3>
                             <p class="mt-4">
                                 This reactRender method is used to return the HTML directly and load a React page or
                                 component,
@@ -3266,17 +3299,16 @@ from lila.core.templates import render,renderMarkdown,renderReact
 router = Router()
 @router.get("/react-page")
 async def react_page(request: Request):
-    response = renderReact(request=request,component="Counter",
+    response =renderReact(request=request,component="Counter",
     props={
         "start": 5
     } ,
     options={
         "title": "React Page",
-        "meta": [{
-          "name": "description",
-          "content": "A React page with a counter component"
-        }],
-        "styles": ["/public/css/lila.css"]
+        "description": "A React page with a counter component",
+        "keywords": "React, counter, component",
+        "author": "Lila",
+        "styles": ["css/lila.css"]
     }                      
     )
     return response
