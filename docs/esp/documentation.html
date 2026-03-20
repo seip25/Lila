@@ -1482,7 +1482,8 @@ async def uploadFile(request: Request):
                                 <h3 class="text-xl text-blue-500 bg-blue-100 p-4  text-center rounded">Notas Importantes
                                 </h3>
                                 <p>Si utilizas windows o el archivo no se crea en el Path recuerda configurar en
-                                    <code>app/config.py</code></p>
+                                    <code>app/config.py</code>
+                                </p>
                                 <div class="code-editor  mb-4">
                                     <div class="editor-header">
                                         <span class="editor-title">app/config.py</span>
@@ -2020,7 +2021,8 @@ db.close()</code></pre>
                     <ol>
                         <li>Crear el modelo: <code>lila-model create --name Producto</code></li>
                         <li>Edita <code>app/models/product.py</code> para agregar columnas personalizadas</li>
-                        <li>El modelo se cargará automáticamente para las migraciones (no es necesario importar manualmente).</li>
+                        <li>El modelo se cargará automáticamente para las migraciones (no es necesario importar
+                            manualmente).</li>
                         <li>Ejecuta migraciones: <code>lila-migrations migrate</code></li>
 
 
@@ -2779,7 +2781,8 @@ class User(Base):
                             </div>
 
                             <h5>Ejecutar Migraciones</h5>
-                            <p>Una vez definido tu modelo en <code>app/models/</code>, Lila lo cargará automáticamente para registrarlo en la base de datos. Simplemente ejecuta:</p>
+                            <p>Una vez definido tu modelo en <code>app/models/</code>, Lila lo cargará automáticamente
+                                para registrarlo en la base de datos. Simplemente ejecuta:</p>
                             <div class="code-editor mt-2 mb-4">
                                 <div class="editor-header">
                                     <span class="editor-title">Terminal</span>
@@ -2848,7 +2851,8 @@ lila-migrations --refresh
                                 </li>
                                 <li>Crea las páginas de <code>dashboard</code> y <code>profile</code></li>
                                 <li>Incluye middlewares, sesiones y validaciones usando <strong>Pydantic</strong></li>
-                                <li>Actualiza automáticamente <code>main.py</code> y aplica las migraciones si es necesario</li>
+                                <li>Actualiza automáticamente <code>main.py</code> y aplica las migraciones si es
+                                    necesario</li>
                             </ul>
 
                             <h2 class="text-xl mt-4">Ejecutando el Auth Scaffold</h2>
@@ -3131,6 +3135,38 @@ lila-react dev
             </code></pre>
                                 </div>
                             </div>
+                            <h5 class="text-2xl font-semibold">
+                                Re-rendering React Islands
+                            </h5>
+                            <p>
+                                Puedes volver a renderizar tus islas de React desde JavaScript estándar (por ejemplo,
+                                desde
+                                plantillas Twig, jQuery u otros componentes que no sean de React) usando la función
+                                global
+                                <code>window.renderReactComponent(name)</code>.
+                            </p>
+                            <p>
+                                Esto es útil para actualizar componentes que dependen de datos compartidos del lado del
+                                cliente como
+                                <code>localStorage</code> desde otros elementos DOM independientes sin necesidad de una
+                                recarga completa de la página.
+                            </p>
+
+                            <div class="code-editor mt-4 mb-4">
+                                <div class="editor-header">
+                                    <span class="editor-title">Terminal</span>
+                                </div>
+                                <div class="editor-content">
+                                    <pre><code class="language-javascript">
+//Example in client
+// Re-render all React components on the page
+renderReactComponent();
+
+// Re-render only components named 'CartBadge'
+renderReactComponent('CartBadge');
+            </code></pre>
+                                </div>
+                            </div>
 
                             <p>
                                 <strong>Producción (DEBUG=False):</strong><br>
@@ -3174,17 +3210,16 @@ from lila.core.templates import render,renderMarkdown,renderReact
 router = Router()
 @router.get("/react-page")
 async def react_page(request: Request):
-    response = renderReact(request=request,component="Counter",
+    response =renderReact(request=request,component="Counter",
     props={
         "start": 5
     } ,
     options={
         "title": "React Page",
-        "meta": [{
-          "name": "description",
-          "content": "A React page with a counter component"
-        }],
-        "styles": ["/public/css/lila.css"]
+        "description": "A React page with a counter component",
+        "keywords": "React, counter, component",
+        "author": "Lila",
+        "styles": ["css/lila.css"]
     }                      
     )
     return response
