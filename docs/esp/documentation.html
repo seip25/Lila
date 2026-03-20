@@ -3314,6 +3314,7 @@ middlewares_user = {
 
 # Generar automáticamente CRUD con validaciones y configuraciones
 router.rest_crud_generate(
+    router=router,                                 
     connection=connection,  # Conexión a la base de datos
     model_sql=User,  # Modelo SQLAlchemy
     model_pydantic=UserModel,  # Modelo Pydantic
