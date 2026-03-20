@@ -3384,39 +3384,40 @@ from lila.core.request import Request
 from lila.core.responses import JSONResponse
 from lila.core.routing import Router
 from pydantic import EmailStr, BaseModel
-from app.middlewares.middlewares import validate_token, check_token, check_session
-from app.connections import connection  # Database connection with SQLAlchemy
-from app.models.user import User  # SQLAlchemy 'User' model
+from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
+from app.connections import connection  # Conexión a la base de datos con SQLAlchemy
+from app.models.user import User  # Modelo 'User' de SQLAlchemy
 
-router = Router()# Initialize the router instance for managing API app.routes.
+router = Router()# Inicializa la instancia del enrutador para gestionar las rutas de la API.
 
 
-# Pydantic model for validations when creating or modifying a user.
+# Modelo Pydantic para validaciones al crear o modificar un usuario.
 class UserModel(BaseModel):
     email: EmailStr
     name: str
     token: str
     password: str
 
-# Middleware definitions for CRUD operations
+# Definiciones de middlewares para operaciones CRUD
 middlewares_user = {
     "get": [],
     "post": [], 
     "get_id": [],
     "put": [],
-    "delete": [check_session, check_token],#Example middlewares for web session 'check_session' and jwt 'check_token'
+    "delete": [check_session, check_token],#Ejemplo de middlewares para sesión web 'check_session' y jwt 'check_token'
+    "html":[login_required] # Si generate_html es True en router.rest_crud_generate
 }
 
-# Automatically generate CRUD with validations and configurations
+# Generar automáticamente CRUD con validaciones y configuraciones
 router.rest_crud_generate(
-    router=router,
-    connection=connection,  # Database connection
-    model_sql=User,  # SQLAlchemy model
-    model_pydantic=UserModel,  # Pydantic model
-    select=["name", "email", "id", "created_at", "active"],  # Fields to select in queries
-    delete_logic=True,  # Enables logical deletion (updates 'active = 0' instead of deleting records)
-    active=True,  # Automatically filters active records ('active = 1')
-    middlewares=middlewares_user,  # Custom middlewares for each CRUD action
+    router=router,                                 
+    connection=connection,  # Conexión a la base de datos
+    model_sql=User,  # Modelo SQLAlchemy
+    model_pydantic=UserModel,  # Modelo Pydantic
+    select=["name", "email", "id", "created_at", "active"],  # Campos a seleccionar en las consultas
+    delete_logic=True,  # Habilita el borrado lógico (actualiza 'active = 0' en lugar de eliminar registros)
+    active=True,  # Filtra automáticamente los registros activos ('active = 1')
+    middlewares=middlewares_user,  # Middlewares personalizados para cada acción CRUD
 )
                             </code></pre>
                                 </div>
