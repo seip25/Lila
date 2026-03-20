@@ -3289,7 +3289,7 @@ from lila.core.request import Request
 from lila.core.responses import JSONResponse
 from lila.core.routing import Router
 from pydantic import EmailStr, BaseModel
-from app.middlewares.middlewares import validate_token, check_token, check_session
+from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
 from app.connections import connection  # Conexión a la base de datos con SQLAlchemy
 from app.models.user import User  # Modelo 'User' de SQLAlchemy
 
@@ -3310,6 +3310,7 @@ middlewares_user = {
     "get_id": [],
     "put": [],
     "delete": [check_session, check_token],#Ejemplo de middlewares para sesión web 'check_session' y jwt 'check_token'
+    "html":[login_required] # If generate_html is True
 }
 
 # Generar automáticamente CRUD con validaciones y configuraciones
