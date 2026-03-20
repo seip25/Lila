@@ -476,6 +476,7 @@ from lila.core.request import Request  # Handles HTTP requests in the applicatio
 from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
 from app.helpers.security import get_user_by_id_and_token
 from app.middlewares.middlewares import validate_token
+ from app.helpers.validate import responseValidationError #import helper to response error for pydantic (opcional)
 
 router = Router()
             </code></pre>
@@ -539,7 +540,8 @@ async def api_token(request: Request):
                                 </div>
                                 <div class="editor-content bg-gray-900 dark:bg-black">
                                     <pre><code class="language-python">
-from pydantic import EmailStr, BaseModel 
+from pydantic import EmailStr, BaseModel
+from app.helpers.validate import responseValidationError
 
 class ExampleModel(BaseModel):
     email: EmailStr  # Ensures a valid email.
@@ -551,7 +553,7 @@ async def login(request: Request):
     try:
         input = ExampleModel(**body)  # Automatic validation with Pydantic.
     except Exception as e:
-        return JSONResponse({"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400) 
+        return responseValidationError(e) 
     return JSONResponse({"email": input.email, "password": input.password})
             </code></pre>
                                 </div>
