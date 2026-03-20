@@ -1,3 +1,8 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import asyncio
 import os
@@ -20,7 +25,7 @@ def html_template_base()->str:
     <meta name="keywords" content="{{ keywords }}" />
     <meta name="author" content="{{ author }}" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
     {{head | safe}}
     {{ vite_assets() | safe }}
   </head>
@@ -44,8 +49,8 @@ def html_template ()->str:
     <meta name="keywords" content="{{ keywords }}" />
     <meta name="author" content="{{ author }}" />
     <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
-    <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="css/lila.css" />
     
   </head>
   <body>
@@ -183,41 +188,45 @@ export default defineConfig({{
     os.makedirs(react_dir, exist_ok=True)
     
     main_jsx_path = os.path.join(react_dir, "main.jsx")
-    main_jsx_content = """import React from 'react'
-import ReactDOM from 'react-dom/client'
-import "./globals.css"
+    main_jsx_content = """import { createRoot } from 'react-dom/client';
 
-const modules = import.meta.glob('./components/*.jsx')
+const componentModules = import.meta.glob('./pages/*.jsx');
+const mountedRoots = new Map();
 
-const components = {}
-for (const path in modules) {
-  const name = path.match(/\\/([^\\/]+)\\.jsx$/)[1]
-  components[name] = modules[path]
-}
+/**
+ * Renders or re-renders React components found in the DOM.
+ * 
+ * @param {string} [name='all'] - The name of the component to render (matching data-react-component). Use "all" to render everything.
+ */
+window.renderReactComponent = async (name = 'all') => {
+  document.querySelectorAll('[data-react-component]').forEach(async (el) => {
+    const componentName = el.dataset.reactComponent;
+    console.log(componentName);
+    if (name !== 'all' && componentName !== name) return;
 
-const mountComponents = async () => {
-    const nodes = document.querySelectorAll('[data-react-component]')
-    
-    for (const node of nodes) {
-        const name = node.dataset.reactComponent
-        const props = JSON.parse(node.dataset.props || '{}')
-        
-        if (components[name]) {
-            const module = await components[name]()
-            const Component = module.default
-            
-            ReactDOM.createRoot(node).render(
-                <React.StrictMode>
-                    <Component {...props} />
-                </React.StrictMode>
-            )
-        } else {
-            console.error(`React Component '${name}' not found. Available: ${Object.keys(components).join(', ')}`)
+    const props = JSON.parse(el.dataset.props || '{}');
+    const importer = componentModules[`./pages/${componentName}.jsx`];
+
+    if (importer) {
+      try {
+        const module = await importer();
+        const Component = module.default;
+
+        if (!mountedRoots.has(el)) {
+          mountedRoots.set(el, createRoot(el));
         }
+        mountedRoots.get(el).render(<Component {...props} key={Math.random()} />);
+      } catch (error) {
+        console.error(`Failed to render React component: ${componentName}`, error);
+      }
     }
-}
+  });
+};
 
-document.addEventListener('DOMContentLoaded', mountComponents)
+document.addEventListener('DOMContentLoaded', () => {
+  window.renderReactComponent();
+});
+
 """
     with open(main_jsx_path, "w", encoding="utf-8") as f:
         f.write(main_jsx_content)
@@ -229,7 +238,7 @@ document.addEventListener('DOMContentLoaded', mountComponents)
         f.write(" ")
     print(f"✅ Created {name}/globals.css")
 
-    components_dir = os.path.join(react_dir, "components")
+    components_dir = os.path.join(react_dir, "pages")
     os.makedirs(components_dir, exist_ok=True)
 
     counter_jsx_path = os.path.join(components_dir, "Counter.jsx")
@@ -254,7 +263,7 @@ export default function Counter({ start = 0 }) {
 """
     with open(counter_jsx_path, "w", encoding="utf-8") as f:
         f.write(counter_jsx_content)
-    print(f"✅ Created {name}/components/Counter.jsx")
+    print(f"✅ Created {name}/pages/Counter.jsx")
 
     print("\n📦 Installing npm dependencies...\n")
     exit_code = await run_command("npm install", cwd=project_root)
@@ -279,11 +288,10 @@ async def react_page(request: Request):
     } ,
     options={
         "title": "React Page",
-        "meta": [{
-          "name": "description",
-          "content": "A React page with a counter component"
-        }],
-        "styles": ["/public/css/lila.css"]
+        "description": "A React page with a counter component",
+        "keywords": "React, counter, component",
+        "author": "Lila",
+        "styles": ["css/lila.css"]
     }                      
     )
     return response
