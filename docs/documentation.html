@@ -549,12 +549,10 @@ class ExampleModel(BaseModel):
 
 @router.route(path='/api/example', methods=['POST'], model=ExampleModel)
 async def login(request: Request):
-    body = await request.json()
-    try:
-        input = ExampleModel(**body)  # Automatic validation with Pydantic.
-    except Exception as e:
-        return responseValidationError(e) 
-    return JSONResponse({"email": input.email, "password": input.password})
+    # Validation is automatic! 
+    # Validated data is injected into request.state.data
+    user_data = request.state.data
+    return JSONResponse({"email": user_data.email, "status": "validated"})
             </code></pre>
                                 </div>
                             </div>
@@ -726,8 +724,8 @@ class CreateItemModel(BaseModel):
 @router.post("/items", model=CreateItemModel)
 async def create_item(request: Request):
     """Create a new item."""
-    body = await request.json()
-    input_data = CreateItemModel(**body)
+    # Data is already validated and available in request.state.data
+    input_data = request.state.data
     return JSONResponse({"name": input_data.name, "description": input_data.description})
 
 # ---------------- PUT Example ----------------
@@ -739,8 +737,8 @@ class UpdateItemModel(BaseModel):
 async def update_item(request: Request):
     """Update an existing item by ID."""
     item_id = request.path_params.get("item_id")
-    body = await request.json()
-    input_data = UpdateItemModel(**body)
+    # Data is already validated and available in request.state.data
+    input_data = request.state.data
     return JSONResponse({"item_id": item_id, "updated_name": input_data.name})
 
 # ---------------- DELETE Example ----------------
