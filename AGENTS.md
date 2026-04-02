@@ -52,6 +52,29 @@ lila/
 - `router.swagger_ui()` / `router.openapi_json()`: Auto-generated API documentation.
 - Path parameters: `/{id}` with type conversion.
 
+### Pydantic (`app/routes/api.py`)
+- Example data model using Pydantic. 
+- Defines an "api/example" route, using ExampleModel for input validation, with automatic documentation passing the "model" parameter ("model=ExampleModel").
+- Get request input in request.state.data
+```python
+from pydantic import BaseModel, EmailStr
+
+class ExampleModel(BaseModel):
+    email: EmailStr   .
+    password: str  
+
+ 
+@router.post(path="/example", model=ExampleModel)
+async def login(request: Request):
+    """Example function get request json form"""
+    input =request.state.data 
+
+    email = input.email
+    password = input.password
+    response = JSONResponse({"email": email, "password": password, "success": True})
+    return response
+```
+
 ### Database (`core/database.py`)
 
 - `Database(config)`: Supports `sqlite`, `mysql`, `postgresql`/`psgr`. Auto-creates database if not exists.

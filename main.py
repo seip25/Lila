@@ -2,7 +2,7 @@ from lila.core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
 from lila.core.middleware import Middleware
-from app.config import PORT, HOST, DEBUG
+from app.config import PORT, HOST, DEBUG,JIT
 from app.middlewares.security import (
     LoggingMiddleware, 
     SecurityHeadersMiddleware,
@@ -32,11 +32,6 @@ all_routes = list(itertools.chain(routes, api_routes))
 # Español: Marcador para las rutas de administrador en main.py.
 # admin_marker
 
-from app.routes.admin import Admin
-from app.models.user import User
-admin_routes = Admin(models=[User])
-all_routes = list(itertools.chain(all_routes, admin_routes))
-    
    
 cors = None
 
@@ -54,11 +49,17 @@ cors = None
 # Español:necesario para el comando cli modificar cors de react para desarrollo
 # react_marker
 
+#English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
+#Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
+# middlewares = [
+#     Middleware(LoggingMiddleware),
+#     Middleware(SecurityHeadersMiddleware),
+#     Middleware(SecurityShieldMiddleware),
+#     Middleware(RateLimitMiddleware),
+#     Middleware(ErrorHandlerMiddleware)
+#      ]
+
 middlewares = [
-    Middleware(LoggingMiddleware),
-    Middleware(SecurityHeadersMiddleware),
-    Middleware(SecurityShieldMiddleware),
-    Middleware(RateLimitMiddleware),
     Middleware(ErrorHandlerMiddleware)
 ]
 
@@ -73,7 +74,8 @@ def main():
 
 if __name__ == "__main__":
     try:
-        #os.environ["PYTHON_JIT"] = "1"
+        if JIT:
+            os.environ["PYTHON_JIT"] = "1"
         main()
     except KeyboardInterrupt:
         print("Shutting down the application...")
