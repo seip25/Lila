@@ -1,3 +1,8 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import os
 from pathlib import Path
@@ -6,7 +11,7 @@ import sys
 
 app = typer.Typer()
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = os.getcwd()
 
 
 def capitalize_first(text: str) -> str:
@@ -94,10 +99,10 @@ def generate_route_file(model_name: str, route_name: str, table_name: str, colum
     route_content = f'''# English: Routes for {model_name} CRUD operations
 # Español: Rutas para operaciones CRUD de {model_name}
 
-from core.request import Request
-from core.routing import Router
-from core.templates import render
-from core.responses import JSONResponse
+from lila.core.request import Request
+from lila.core.routing import Router
+from lila.core.templates import render
+from lila.core.responses import JSONResponse
 from app.connections import connection
 from app.models.{to_snake_case(model_name)} import {model_name}
 from pydantic import BaseModel, ValidationError
@@ -534,6 +539,7 @@ def add_route_import_to_main(route_name: str, model_name: str) -> bool:
     return True
 
 
+@app.command()
 def main(
     model: str = typer.Option(None, "--model", "-m", help="Name of the model class (e.g., User, Product)"),
     name: str = typer.Option(None, "--name", "-n", help="Name for routes and templates (defaults to snake_case of model)")
@@ -651,4 +657,4 @@ def main(
 
 
 if __name__ == "__main__":
-    typer.run(main)
+    app()

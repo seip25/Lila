@@ -1,8 +1,8 @@
-from core.routing import Router
-from core.responses import JSONResponse
-from core.request import Request
-from core.templates import render
-from core.session import Session
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse
+from lila.core.request import Request
+from lila.core.templates import render
+from lila.core.session import Session
 from app.models.user import User
 from app.models.auth import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory,PasswordResetToken
 from app.connections import connection
@@ -64,13 +64,9 @@ async def change_password_page(request):
         db.close()
 
 
-@router.post("/login")
+@router.post("/login",model=LoginModel)
 async def login(request):
-    try:
-        data = await request.json()
-        login_data = LoginModel(**data)
-    except ValidationError as e:
-         return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
+    login_data=request.state.data
 
     db = connection.get_session()
     try:
@@ -116,20 +112,16 @@ async def login(request):
             return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
     except Exception as e:
         print("ERROR LOGIN:", traceback.format_exc())
+        return JSONResponse({"success": False, "msg": translate_("Incorrect email or password", request)}, status_code=401)
     finally:
         db.close()
 
-@router.post("/register")
+@router.post("/register",model=RegisterModel)
 async def register(request):
-    
-    try:
-        data = await request.json()
-        model = RegisterModel(**data)
-        validate = model.validate_passwords(request=request)
-        if isinstance(validate, JSONResponse):
-            return validate
-    except ValidationError as e:
-        return responseValidationError(e)
+    model = request.state.data
+    validate = model.validate_passwords(request=request)
+    if isinstance(validate, JSONResponse):
+        return validate
 
     try:
         db = connection.get_session()    
@@ -191,16 +183,12 @@ class ChangePasswordModel(BaseModel):
         if self.new_password != self.confirm_password:
             return JSONResponse({"success": False, "msg": translate_("Passwords not match", request)})
 
-@router.post("/change-password")
+@router.post("/change-password",model=ChangePasswordModel)
 async def change_password(request):
-    try:
-        data = await request.json()
-        model = ChangePasswordModel(**data)
-        validate = model.validate_passwords(request=request)
-        if validate:
-            return validate
-    except ValidationError as e:
-        return responseValidationError(e)
+    model = request.state.data
+    validate = model.validate_passwords(request=request)
+    if validate:
+        return validate
 
     db = connection.get_session()
     try:

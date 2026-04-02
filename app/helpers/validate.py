@@ -1,4 +1,4 @@
-from core.responses import JSONResponse
+from lila.core.responses import JSONResponse
 
 
 def responseValidationError(e):

@@ -3,15 +3,15 @@ from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT
 from app.helpers.translate import lang, translate as t
-from core.request import Request
-from core.responses import HTMLResponse, JSONResponse
+from lila.core.request import Request
+from lila.core.responses import HTMLResponse, JSONResponse
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
-from core.logger import Logger
+from lila.core.logger import Logger
 import markdown
 import os
 import traceback
 import sys
-import json
+import orjson
 import uuid
 
 PROJECT_ROOT = os.getcwd()
@@ -30,18 +30,24 @@ jinja_env = Environment(
 
 MANIFEST_BUILD: dict[str, str] = {}
 
-def react(component: str, props: dict = {}) -> str:
+def react(component: str, props: dict = None) -> str:
     """
     Generates a mounting point for a React component with serialized props.
     """
+    if props is None:
+        props = {}
     id_ = 'react-' + uuid.uuid4().hex
-    props_json = json.dumps(props).replace('"', '&quot;')
+    props_json = orjson.dumps(props).decode().replace('"', '&quot;')
     return f'<div id="{id_}" data-react-component="{component}" data-props="{props_json}"></div>'
 
-def renderReact(request: Request, component: str, props: dict = {}, options: dict = {}):
+def renderReact(request: Request, component: str, props: dict = None, options: dict = None):
     """
     Renders a base HTML template configured to initialize a React component.
     """
+    if props is None:
+        props = {}
+    if options is None:
+        options = {}
     meta = options.get('meta', [])
     scripts = options.get('scripts', [])
     styles = options.get('styles', [])
@@ -52,7 +58,7 @@ def renderReact(request: Request, component: str, props: dict = {}, options: dic
     
     context = {
         "component": component,
-        "props": json.dumps(props),
+        "props": orjson.dumps(props).decode(),
         "title": options.get('title', TITLE_PROJECT),
         "keywords": options.get('keywords', KEYWORDS_DEFAULT),
         "description": options.get('description', DESCRIPTION_DEFAULT),
@@ -76,7 +82,7 @@ def vite_assets() -> str:
             window.__vite_plugin_react_preamble_installed__ = true;
         </script>
         <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
-        <script type="module" src="http://localhost:5173/public/build/react/main.jsx"></script>
+        <script type="module" src="http://localhost:5173/public/build/resources/main.jsx"></script>
         """
     
     global MANIFEST_BUILD
@@ -94,9 +100,9 @@ def vite_assets() -> str:
     if not entry:
         return ""
 
-    html_parts = [f'<script type="module" src="/public/build/{entry}"></script>']
+    html_parts = [f'<script type="module" src="/build/{entry}"></script>']
     for css_file in css:
-        html_parts.append(f'<link rel="stylesheet" href="/public/build/{css_file}">')
+        html_parts.append(f'<link rel="stylesheet" href="/build/{css_file}">')
         
     return "\n".join(html_parts)
 
@@ -126,10 +132,14 @@ def get_base_context(request: Request, files_translate: list[str] = [], lang_def
         "author": AUTHOR_DEFAULT,
     }
 
-def render(request: Request, template: str, context: dict = {}, files_translate: list[str] = [], lang_default: str = None):
+def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
     """
     Renders an HTML template with unified context and error handling.
     """
+    if context is None:
+        context = {}
+    if files_translate is None:
+        files_translate = []
     try:
         full_context = get_base_context(request, files_translate, lang_default)
         full_context.update(context)
@@ -152,10 +162,16 @@ def handle_render_error(template: str, e: Exception):
         return HTMLResponse(content=f"<h1>{error_name}</h1><pre>{tb_str}</pre>", status_code=500)
     return JSONResponse({"success": False, "message": "Internal server error"}, status_code=500)
 
-def renderMarkdown(request: Request, file: str, css_files: list = [], js_files: list = [], lang_default: str = None, translate_files: list[str] = []):
+def renderMarkdown(request: Request, file: str, css_files: list = None, js_files: list = None, lang_default: str = None, translate_files: list[str] = None):
     """
     Converts a markdown file to HTML and wraps it in a layout template.
     """
+    if css_files is None:
+        css_files = []
+    if js_files is None:
+        js_files = []
+    if translate_files is None:
+        translate_files = []
     file_path = os.path.join(PATH_TEMPLATES_MARKDOWN, f"{file}.md")
     if not os.path.exists(file_path):
         return HTMLResponse("<h5>404</h5><p>Not found</p>", status_code=404)
@@ -164,8 +180,7 @@ def renderMarkdown(request: Request, file: str, css_files: list = [], js_files: 
         md_content = f.read()
 
     context = get_base_context(request, translate_files, lang_default)
-    
-    # Simple Jinja-like replacement for MD
+     
     for key, val in context["translate"].items():
         md_content = md_content.replace(f'{{{{ translate["{key}"] }}}}', str(val))
 

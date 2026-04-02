@@ -1,8 +1,8 @@
-from core.routing import Router
-from core.responses import JSONResponse,RedirectResponse
-from core.request import Request
-from core.templates import render
-from core.session import Session
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse,RedirectResponse
+from lila.core.request import Request
+from lila.core.templates import render
+from lila.core.session import Session
 from app.models.user import User
 from app.connections import connection
 from app.helpers.translate import translate_
@@ -49,17 +49,11 @@ async def logout_page(request):
     Session.deleteSession(response=response,name_cookie='auth')
     return response
 
-@router.post("/profile")
+@router.post("/profile",model=UpdateProfileModel)
 @login_required
 async def update_profile(request):  
-    try:
-        data = await request.json()
-        model = UpdateProfileModel(**data)
-        validate = model.validate_passwords(request=request)
-        if validate:
-            return validate
-    except ValidationError as e:
-        return responseValidationError(e)
+    model=request.state.data
+
     try:
         db = connection.get_session()
         session_data = Session.unsign("auth", request)
@@ -75,8 +69,8 @@ async def update_profile(request):
 
         user.name = model.name
         user.email = model.email
-        if model.password: 
-            user.password = User.hash_password(model.password)
+        if model.password_2: 
+            user.password = User.hash_password(model.password_2)
         db.commit()
 
         response = JSONResponse({"success": True, "msg": translate_("Profile updated successfully", request)})
@@ -89,16 +83,11 @@ async def update_profile(request):
         return JSONResponse({"success": False, "msg": translate_("Error updating profile", request)}, status_code=400)
     finally:
         db.close()
-
-@router.post("/delete-account")
+ 
+@router.post("/delete-account",model=DeleteAccountModel)
 @login_required
 async def delete_account(request):
-    
-    try:
-        data = await request.json()
-        model = DeleteAccountModel(**data)
-    except ValidationError as e:
-        return responseValidationError(e)
+    model=request.state.data
     try:
         db = connection.get_session()
         session_data = Session.unsign("auth", request)

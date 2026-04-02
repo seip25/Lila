@@ -19,3 +19,4 @@ jinja2-htmlmin==1.0.1
 starlette-compress==1.6.1
 pillow==11.3.0
 psycopg==3.2.10
+orjson==3.11.7

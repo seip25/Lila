@@ -1,10 +1,11 @@
-from core.request import Request
-from core.responses import JSONResponse
-from core.routing import Router
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+from lila.core.routing import Router
 from pydantic import EmailStr,BaseModel
 from app.helpers.security import get_user_by_token
 from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
 from app.config import DEBUG
+from app.helpers.validate import responseValidationError 
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
@@ -44,15 +45,7 @@ class ExampleModel(BaseModel):
 @router.post(path="/example", model=ExampleModel)
 async def login(request: Request):
     """Example function get request json form"""
-    body = await request.json()
-    try:
-        # English: Validate input data against the ExampleModel.
-        # Español: Valida los datos de entrada contra ExampleModel.
-        input = ExampleModel(**body)
-    except Exception as e:
-        return JSONResponse(
-            {"success": False, "msg": f"Invalid JSON Body: {e}"}, status_code=400
-        )
+    input =request.state.data 
 
     email = input.email
     password = input.password

@@ -1,9 +1,9 @@
-import json
+import orjson
 from app.config import SECRET_KEY
-from itsdangerous import BadSignature, URLSafeTimedSerializer,SignatureExpired
-from core.request import Request
-from typing import Any, Union, Optional, Dict, List
-from core.logger import Logger
+from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
+from lila.core.request import Request
+from typing import Union, Optional, Dict, List
+from lila.core.logger import Logger
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
@@ -23,7 +23,7 @@ class Session:
     ) -> bool:
         try:
             if isinstance(new_val, (dict, list)):
-                new_val = json.dumps(new_val)
+                new_val = orjson.dumps(new_val).decode()
             else:
                 new_val = str(new_val)
 
@@ -43,7 +43,6 @@ class Session:
             return True
         except (TypeError, ValueError, Exception) as e:
             Logger.error(f"Error setting session: {str(e)}")
-            print(f"Error session {str(e)}")
             return False
 
     @staticmethod
@@ -54,6 +53,7 @@ class Session:
     def unsign(
         key: str, request: Request, max_age: Optional[int] = None
     ) -> Union[Dict, List, str, None]:
+        """Unsign and return the session data for the given cookie key."""
         session_data = request.cookies.get(key)
         if not session_data:
             return None
@@ -61,19 +61,18 @@ class Session:
         try:
             unsigned_data = serializer.loads(session_data, max_age=max_age)
             try:
-                return json.loads(unsigned_data)
-            except json.JSONDecodeError:
+                return orjson.loads(unsigned_data)
+            except orjson.JSONDecodeError:
                 return unsigned_data
 
+        except SignatureExpired:
+            Logger.warning(f"Session expired for cookie: {key}")
+            return None
         except BadSignature:
-            msg = f"Invalid session signature for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
+            Logger.warning(f"Invalid session signature for cookie: {key}")
             return None
         except Exception as e:
-            msg = f"Error unsigning session: {str(e)}"
-            print(msg)
-            Logger.error(msg)
+            Logger.error(f"Error unsigning session: {str(e)}")
             return None
 
     @staticmethod
@@ -82,38 +81,12 @@ class Session:
             response.delete_cookie(name_cookie)
             return True
         except Exception as e:
-            msg = f"Error deleting session: {str(e)}"
-            print(e)
-            Logger.error(msg)
+            Logger.error(f"Error deleting session: {str(e)}")
             return False
-        
+
     @staticmethod
     def getSessionValue(
-         request: Request,key: str='auth', max_age: Optional[int] = 3600
+        request: Request, key: str = "auth", max_age: Optional[int] = 3600
     ) -> Union[Dict, List, str, None]:
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
-
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-            try:
-                return json.loads(unsigned_data)
-            except json.JSONDecodeError:
-                return unsigned_data
-
-        except BadSignature:
-            msg = f"Invalid session signature for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except SignatureExpired:
-            msg = f"Session expired for cookie: {key}"
-            print(msg)
-            Logger.warning(msg)
-            return None
-        except Exception as e:
-            msg = f"Error unsigning session: {str(e)}"
-            print(msg)
-            Logger.error(msg)
-            return None
+        """Convenience wrapper around unsign with a default max_age."""
+        return Session.unsign(key=key, request=request, max_age=max_age)

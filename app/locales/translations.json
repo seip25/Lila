@@ -32,7 +32,7 @@
     "en": "Hi"
   },
   "Welcome to the Lila Framework": {
-    "es": "Bienvenido a Framework Lila",
+    "es": "Bienvenido a Lila Framework",
     "en": "Welcome to the Lila Framework"
   },
   "documentation": {
@@ -138,6 +138,10 @@
   "confirm_password": {
     "es": "Confirmar contraseña",
     "en": "Confirm password"
+  },
+  "new_password": {
+    "es": "Nueva contraseña",
+    "en": "New password"
   },
   "name": {
     "es": "Nombre",

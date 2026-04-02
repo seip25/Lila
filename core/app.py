@@ -1,8 +1,8 @@
 from starlette.applications import Starlette
-from core.responses import HTMLResponse,JSONResponse
-from core.templates import render
+from lila.core.responses import HTMLResponse,JSONResponse
+from lila.core.templates import render
 from starlette.middleware.cors import CORSMiddleware
-from core.logger import Logger
+from lila.core.logger import Logger
 from pathlib import Path
 from app.config import PATH_TEMPLATE_NOT_FOUND,DEBUG,PATH_TEMPLATES_HTML
 from typing import List, Optional, Dict, Any
@@ -10,11 +10,10 @@ from starlette_compress import CompressMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
-from core.debug import DebugMiddleware,DebugModel 
-from core.debug import db_session_debug
-from core.routing import Router
+from lila.core.debug import DebugMiddleware, DebugModel, db
+from lila.core.routing import Router
 from itertools import chain
-from core.request import Request
+from lila.core.request import Request
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 
@@ -46,7 +45,9 @@ class App(Starlette):
         trusted_hosts: Optional[List[str]] = None,
         public_folder: str = "public",
         public_url: str = "/",
-        public_name:str="public",
+        public_name: str = "public",
+        on_startup: list = None,
+        on_shutdown: list = None,
     ):
         routes = routes or []
 
@@ -64,45 +65,61 @@ class App(Starlette):
             )
         if debug and DEBUG:
             middleware.append(Middleware(DebugMiddleware))
-            routerDebug=Router("debug")
+            routerDebug = Router("debug")
+
             @routerDebug.get("/")
-            async def debug(request:Request):
+            async def debug(request: Request):
                 if DEBUG:
-                    debugs = db_session_debug.query(DebugModel).order_by(DebugModel.created_at.desc()).all()
-                    debugs_list = []
-                    for debug in debugs:
-                        debugs_list.append({
-                            "path": debug.path,
-                            "method": debug.method,
-                            "ip": debug.ip,
-                            "ram": debug.ram,
-                            "cpu": debug.cpu,
-                            "time_execution": debug.time_execution,
-                            "created_at": debug.created_at.strftime("%Y-%m-%d %H:%M:%S")
-                        })
-                    is_fetch =request.query_params.get("fetch",False)
+                    session = db.get_session()
+                    try:
+                        debugs = session.query(DebugModel).order_by(DebugModel.created_at.desc()).all()
+                        debugs_list = [
+                            {
+                                "path": d.path,
+                                "method": d.method,
+                                "ip": d.ip,
+                                "ram": d.ram,
+                                "cpu": d.cpu,
+                                "time_execution": d.time_execution,
+                                "created_at": d.created_at.strftime("%Y-%m-%d %H:%M:%S") if d.created_at else ""
+                            }
+                            for d in debugs
+                        ]
+                    finally:
+                        session.close()
+                    is_fetch = request.query_params.get("fetch", False)
                     if is_fetch:
-                        return JSONResponse(data=debugs_list)
-                    response=render(request=request,template="lila/debug")
+                        return JSONResponse(content=debugs_list)
+                    response = render(request=request, template="lila/debug")
                     return response
-                else:
-                    template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
-                    return render(request=request,template=template)
+                template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
+                return render(request=request, template=template)
+
             @routerDebug.delete("/")
-            async def delete_debug(request:Request):
+            async def delete_debug(request: Request):
                 if DEBUG:
-                    db_session_debug.query(DebugModel).delete()
-                    db_session_debug.commit()
-                    return JSONResponse(data={"message": "Debug deleted successfully"})
-                else:
-                    template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
-                    return render(request=request,template=template)
-            debug_routes=routerDebug.get_routes()
-            routes=list(chain(routes,debug_routes,[
+                    session = db.get_session()
+                    try:
+                        session.query(DebugModel).delete()
+                        session.commit()
+                    finally:
+                        session.close()
+                    return JSONResponse(content={"message": "Debug deleted successfully"})
+                template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
+                return render(request=request, template=template)
+
+            debug_routes = routerDebug.get_routes()
+            routes = list(chain(routes, debug_routes, [
                 Mount(public_url, app=StaticFiles(directory=public_folder), name=public_name)
             ]))
-
-        super().__init__(debug=debug, routes=routes, middleware=middleware)
+        else:
+            routes=list(chain(routes,[
+                Mount(public_url, app=StaticFiles(directory=public_folder), name=public_name)
+            ]))
+        super().__init__(
+            debug=debug, routes=routes, middleware=middleware,
+            on_startup=on_startup, on_shutdown=on_shutdown
+        )
 
         try:
             self.add_exception_handler(404, self._404_page)

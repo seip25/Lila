@@ -238,5 +238,37 @@
   "description_cli_react": {
     "es": "Permite generar componentes React con solo un comando, ejemplo : python -m cli.react create --name Product --table products",
     "en": "Allows generating React components with a single command, example: python -m cli.react create --name Product --table products"
+  },
+  "cli_global_commands": {
+    "es": "Comandos CLI Globales",
+    "en": "Global CLI Commands"
+  },
+  "cli_global_commands_desc": {
+    "es": "Los scripts del CLI ahora se ejecutan directamente como comandos del sistema (ej: lila-auth) y operan en el directorio de trabajo del usuario.",
+    "en": "CLI scripts now run directly as system commands (e.g., lila-auth) and operate in the user's working directory."
+  },
+  "support_orjson": {
+    "es": "Soporte para orjson",
+    "en": "Support for orjson"
+  },
+  "support_orjson_desc": {
+    "es": "Se agregó soporte para orjson, una librería para serializar y deserializar JSON de forma más rápida.",
+    "en": "Added support for orjson, a library for serializing and deserializing JSON more quickly."
+  },
+  "fix_middlewares": {
+    "es": "Corrección en Middlewares",
+    "en": "Fix in Middlewares"
+  },
+  "fix_middlewares_desc": {
+    "es": "Se corrigió un problema en los Middlewares que causaba errores en algunas rutas.",
+    "en": "Fixed an issue in the Middlewares that caused errors in some routes."
+  },
+  "validation_automatic_in_routes": {
+    "es": "Validación automática en rutas",
+    "en": "Automatic validation in routes"
+  },
+  "validation_automatic_in_routes_desc": {
+    "es": "Se agregó validación automática en las rutas para asegurar que los datos sean correctos.",
+    "en": "Added automatic validation in routes to ensure data is correct."
   }
 }

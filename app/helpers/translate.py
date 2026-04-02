@@ -1,7 +1,7 @@
 from app.config import  LANG_DEFAULT, PATH_LOCALES,DEBUG
-from core.session import Session
-from core.request import Request 
-import json
+from lila.core.session import Session
+from lila.core.request import Request 
+import orjson
 from pathlib import Path 
 
 _TRANSLATIONS_CACHE: dict[str, dict] = {}
@@ -12,8 +12,9 @@ def load_translations(file_name: str) -> dict:
 
     file_path = Path(PATH_LOCALES) / f"{file_name}.json"
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        from lila.core.responses import orjson_loads
+        with open(file_path, "rb") as f:
+            data = orjson_loads(f.read())
         _TRANSLATIONS_CACHE[file_name] = data 
         return data
     except Exception:
@@ -47,3 +48,38 @@ def translate_(
         msg = t[key]
         return msg if msg not in [None, ""] else key
     return key
+
+async def set_lang(request: Request, lang: str) ->None:
+    Session.setSessionValue(key="lang", value=lang, request=request)
+    
+PYDANTIC_MESSAGES_ES = {
+    "field required": "Este campo es obligatorio",
+    "value_error.missing": "Falta este campo",
+    "value_error.number.not_gt": "El valor debe ser mayor a {limit_value}",
+    "string_too_short": "Debe tener al menos {min_length} caracteres",
+    "string_too_long": "No puede superar los {max_length} caracteres",
+    "value_is_not_a_valid_integer": "Debe ser un número entero válido",
+    "value_is_not_a_valid_email": "Formato de correo electrónico no válido",
+    "missing":"Falta este campo",
+    "string_type":"Debe ser una cadena de texto",
+    "string_min_length":"Debe tener al menos {min_length} caracteres",
+    "string_max_length":"No puede superar los {max_length} caracteres",
+    "value_error.any_str.min_length":"Debe tener al menos {min_length} caracteres",
+    "value_error.any_str.max_length":"No puede superar los {max_length} caracteres",
+    "value_error.email":"Formato de correo electrónico no válido",
+    "value_error.email.code":"Formato de correo electrónico no válido",
+    "value_error.email.code":"Formato de correo electrónico no válido"
+}
+
+def translate_pydantic_error(error: dict, target_lang: str) -> str:
+    if target_lang != "es":
+        return error["msg"]
+    
+    err_type = error.get("type")
+    msg = PYDANTIC_MESSAGES_ES.get(err_type, error.get("msg"))
+    if "ctx" in error:
+        try:
+            return msg.format(**error["ctx"])
+        except:
+            pass
+    return msg

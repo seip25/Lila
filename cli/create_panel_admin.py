@@ -1,3 +1,8 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import os
 import subprocess
@@ -8,16 +13,16 @@ from app.helpers.security import generate_token_value
 app = typer.Typer()
 ph = PasswordHasher()
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = os.getcwd()
 
 def ensure_connection_or_migrate():
     try:
         connection.engine.connect()
-        result = subprocess.run(["python", "-m", "cli.migrations"])
+        result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
         return True
     except Exception:
         typer.echo("Database connection failed. Running migrations...")
-        result = subprocess.run(["python", "-m", "cli.migrations"])
+        result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
         return result.returncode == 0
 
 def check_and_create_table():

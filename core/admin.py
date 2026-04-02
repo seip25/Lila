@@ -1,16 +1,15 @@
 import psutil
 import os
-import json
+from lila.core.responses import orjson_dumps
 from app.helpers.translate import lang
-from core.responses import  RedirectResponse, JSONResponse
-from core.request import Request
-from core.routing import Router
-from core.session import Session
+from lila.core.responses import  RedirectResponse, JSONResponse
+from lila.core.request import Request
+from lila.core.routing import Router
+from lila.core.session import Session
 from app.connections import connection
 from argon2 import PasswordHasher
 from functools import wraps
-from core.responses import convert_to_serializable
-from core.templates import render
+from lila.core.templates import render
 from app.config import PATH_LOG_BASE_DIR as PATH_LOG_BASE_DIR_ADMIN
  
 connection = connection
@@ -99,7 +98,7 @@ async def admin_login(request: Request):
             admin = authenticate(username=username, password=password)
             if admin:
                 response = JSONResponse(
-                    {"success": True, "redirect": "/admin"}, serialize=False
+                    {"success": True, "redirect": "/admin"} 
                 )
                 admin_val = {"id": admin["id"]}
                 Session.setSession(
@@ -132,8 +131,8 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
                 logs[log_folder] = {}
                 for log_file in os.listdir(log_folder_path):
                     if log_file.endswith(".log"):
-                        with open(os.path.join(log_folder_path, log_file), "r") as f:
-                            logs[log_folder][log_file] = f.readlines()
+                        with open(os.path.join(log_folder_path, log_file), "r", encoding="utf-8") as f:
+                            logs[log_folder][log_file] = f.readlines()[-500:]
 
         logs_html = f"""
         <details class="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-600">
@@ -252,14 +251,13 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
         @admin_required
         async def model_list(request: Request, model=model, model_name=model_name):
             items = model.get_all()
-            items = convert_to_serializable(items)
 
             headers = items[0].keys() if items else []
             html_lang = lang(request=request)
 
             context = {
                 "request": request,
-                "items_json": json.dumps(items),
+                "items_json": orjson_dumps(items).decode(),
                 "model_name": model_name,
                 "headers": headers,
                 "html_lang": html_lang,

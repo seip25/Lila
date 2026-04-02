@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func,DateTime
 from sqlalchemy.orm import load_only
-from core.database import Base
+from lila.core.database import Base
 import datetime
 from app.connections import connection
 

@@ -7,7 +7,8 @@ import typer
 import asyncio
 import os
 import sys
-import json
+import orjson
+from lila.core.responses import orjson_dumps
 
 app = typer.Typer()
 
@@ -105,18 +106,18 @@ async def create_react_env(name: str):
                 "build": "vite build"
             },
             "dependencies": {
-                "react": "^18.3.1",
-                "react-dom": "^18.3.1"
+              "react": "^19.2.4",
+              "react-dom": "^19.2.4"
             },
             "devDependencies": {
-                "@types/react": "^18.3.3",
+               "@types/react": "^18.3.3",
                 "@types/react-dom": "^18.3.0",
                 "@vitejs/plugin-react": "^4.3.1",
                 "vite": "^5.4.1"
             }
         }
-        with open(package_json_path, "w", encoding="utf-8") as f:
-            json.dump(package_json, f, indent=2)
+        with open(package_json_path, "wb") as f:
+            f.write(orjson.dumps(package_json, option=orjson.OPT_INDENT_2))
         print("✅ Created package.json")
     else:
         print("ℹ️ package.json already exists (skipping creation)")
@@ -248,16 +249,17 @@ export default function Counter({ start = 0 }) {
   const [count, setCount] = useState(start)
 
   return (
-    <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '300px' }}>
+     <main className='container'>
+     <article className="mt-8 max-w-sm">
       <h3>React Island: Counter</h3>
       <p>Current count: <strong>{count}</strong></p>
       <button 
-        onClick={() => setCount(count + 1)}
-        style={{ padding: '0.5rem 1rem', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        onClick={() => setCount(count + 1)} 
       >
         Increment
       </button>
-    </div>
+    </article>
+   </main>
   )
 }
 """

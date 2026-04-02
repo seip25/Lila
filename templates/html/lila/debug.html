@@ -37,7 +37,7 @@
     let timer = null;
 
     async function deleteDebug() {
-      const response = await fetch('/debug?delete=true', {
+      const response = await fetch('/debug/?delete=true', {
         method: 'DELETE'
       })
       if (response.ok) {
@@ -61,7 +61,7 @@
             { title: "Time Execution", key: "time_execution" },
             { title: "Created At", key: "created_at" }
           ],
-          rowsPerPage: 5,
+          rowsPerPage: 10,
           search: true,
           pagination: true,
           responsive: true,

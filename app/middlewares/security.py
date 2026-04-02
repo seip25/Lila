@@ -1,12 +1,16 @@
 from starlette.middleware.base import BaseHTTPMiddleware
-from core.responses import HTMLResponse, JSONResponse
-from core.request import Request
-from core.logger import Logger
+from lila.core.responses import HTMLResponse, JSONResponse
+from lila.core.request import Request
+from lila.core.logger import Logger
 from datetime import datetime, timedelta
 from app.config import DEBUG
 import traceback
 import sys 
 
+
+import re
+from pydantic import ValidationError
+import pydantic
 
 BLOCKED_PATHS =[
   "/RDWeb/Pages/",
@@ -41,8 +45,9 @@ BLOCKED_PATHS =[
    "/etc/",
    "/vicidial/help_documentation.txt",
   "/sito/wp-includes/wlwmanifest.xml",
-
 ]
+ 
+BLOCKED_REGEX = re.compile("|".join(map(re.escape, BLOCKED_PATHS)), re.IGNORECASE)
 
 BLOCKED_IPS = {}
 
@@ -59,10 +64,9 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
             else:
                 del BLOCKED_IPS[client_ip]
 
-        url_path = request.url.path.lower()
-        is_malicious = any(p.lower() in url_path for p in BLOCKED_PATHS)
-
-        if is_malicious:
+        url_path = request.url.path
+        
+        if BLOCKED_REGEX.search(url_path):
             BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
             Logger.warning(f"IP {client_ip} blocked for 10m. Malicious path: {url_path}")
             if DEBUG:
@@ -120,69 +124,77 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         except Exception as e:
+            if isinstance(e, pydantic.ValidationError):
+                errors = [{err["loc"][0]: err["msg"]} for err in e.errors()]
+                msg_errors = " . ".join([f"{err['loc'][0]}: {err['msg']}" for err in e.errors()])
+                return JSONResponse(
+                    {"success": False, "errors": errors, "msg": msg_errors},
+                    status_code=400,
+                )
+
             exc_type, exc_value, exc_tb = sys.exc_info()
+
+            error_info = {
+                "type": exc_type.__name__ if exc_type else "UnknownError",
+                "message": str(e),
+                "file": "unknown",
+                "line": 0,
+                "traceback": traceback.format_exc(),
+            }
 
             if exc_tb:
                 tb = exc_tb
                 while tb.tb_next:
                     tb = tb.tb_next
-
                 frame = tb.tb_frame
-                filename = frame.f_code.co_filename
-                lineno = tb.tb_lineno
+                error_info["file"] = frame.f_code.co_filename
+                error_info["line"] = tb.tb_lineno
+                error_info["function"] = frame.f_code.co_name
 
-                error_info = {
-                    "type": exc_type.__name__,
-                    "message": str(e),
-                    "file": filename,
-                    "line": lineno,
-                    "traceback": traceback.format_exc(),
-                }
+            Logger.error(
+                f"Error: {error_info['type']} in {error_info['file']}:{error_info['line']}"
+            )
+            Logger.error(f"Message: {error_info['message']}")
+            Logger.error(f"Traceback:\n{error_info['traceback']}")
 
-                Logger.error(
-                    f"Error: {error_info['type']} in {error_info['file']}:{error_info['line']}"
-                )
-                Logger.error(f"Function: {error_info['function']}")
-                Logger.error(f"Message: {error_info['message']}")
-                Logger.error(f"Traceback:\n{error_info['traceback']}")
             is_fetch = request.headers.get("x-fetch") == "true" 
             msg = f""" 
                 {error_info['type']} in {error_info['file']}:{error_info['line']}
-                Function: {error_info['function']}
                 Message: {error_info['message']}
                 Traceback:
                 {error_info['traceback']}
                 """
+            
             if is_fetch:
                 if DEBUG:
-                    response = JSONResponse(
+                    return JSONResponse(
                         {
                             "error": msg,
                             "success": False,
-                            "line": lineno,
-                            "function": function,
-                            "file": filename,
-                            "type": exc_type.__name__,
+                            "line": error_info["line"],
+                            "function": error_info.get("function", "unknown"),
+                            "file": error_info["file"],
+                            "type": error_info["type"],
                             "message": str(e),
-                            "traceback": traceback.format_exc(),
+                            "traceback": error_info["traceback"],
                         },
                         status_code=500,
                     )
                 else:
-                    response = JSONResponse(
+                    return JSONResponse(
                         {"error": "Internal Server Error", "success": False}, status_code=500
                     )
             else:
-                response= HTMLResponse(
-                    content=f"""<h1>Internal Server Error</h1><p>Something went wrong on our end. Please try again later.</p>
-                    <pre>{msg}</pre>
-                    """,
-                    status_code=500,
-                ) if DEBUG else HTMLResponse(
-                    content="<h1>Internal Server Error</h1><p>Something went wrong on our end. Please try again later.</p>",
-                    status_code=500,
-            )
-            return response
+                if DEBUG:
+                    return HTMLResponse(
+                        content=f"<h1>Internal Server Error</h1><p>Something went wrong on our end.</p><pre>{msg}</pre>",
+                        status_code=500,
+                    )
+                else:
+                    return HTMLResponse(
+                        content="<h1>Internal Server Error</h1><p>Something went wrong on our end. Please try again later.</p>",
+                        status_code=500,
+                    )
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):

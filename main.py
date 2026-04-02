@@ -1,7 +1,7 @@
-from core.app import App
+from lila.core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-from core.middleware import Middleware
+from lila.core.middleware import Middleware
 from app.config import PORT, HOST, DEBUG
 from app.middlewares.security import (
     LoggingMiddleware, 
@@ -10,6 +10,7 @@ from app.middlewares.security import (
     RateLimitMiddleware,
     ErrorHandlerMiddleware,
 )
+from lila.core.logger import delete_old_logs
 import itertools
 import uvicorn
 import asyncio
@@ -63,9 +64,9 @@ middlewares = [
 
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
-app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares)
+app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
 
-async def main():
+def main():
     # English: Starting the Uvicorn server with the application instance.
     # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
     uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
@@ -73,7 +74,7 @@ async def main():
 if __name__ == "__main__":
     try:
         #os.environ["PYTHON_JIT"] = "1"
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
         print("Shutting down the application...")
         pass

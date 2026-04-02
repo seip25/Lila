@@ -1,3 +1,8 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 # lila/cli/scaffold.py
 import shutil
 import os
@@ -7,11 +12,11 @@ from pathlib import Path
 SCAFFOLD_ITEMS = {
     "main.py": "main.py",
     "app": "app",
-    "cli": "cli",
-    "static": "static",
+    "public": "public",
     "templates": "templates",
     "uploads": "uploads",
-     ".env": ".env",
+    ".env": ".env",
+    "AGENTS.md": "AGENTS.md",
 }
 
 def copy_item(
@@ -148,7 +153,4 @@ https://seip25.github.io/Lila
 
 
 if __name__ == "__main__":
-    print(
-        "Este script está pensado para ejecutarse como 'lila-init' después de instalar 'lila-framework'. / "
-        "This script is intended to be run as 'lila-init' after installing 'lila-framework'."
-    )
+    main()

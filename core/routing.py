@@ -1,7 +1,7 @@
-from starlette.routing import Route, Mount
+from starlette.routing import Route, Mount, WebSocketRoute
 from starlette.staticfiles import StaticFiles
-from core.responses import HTMLResponse, JSONResponse, RedirectResponse
-from core.request import Request
+from lila.core.responses import HTMLResponse, JSONResponse, RedirectResponse
+from lila.core.request import Request
 from app.config import (
     TITLE_PROJECT,
     VERSION_PROJECT,
@@ -12,12 +12,13 @@ from typing import Any, Type, Optional, List
 from pydantic import BaseModel, ValidationError
 from argon2 import PasswordHasher
 from app.helpers.security import generate_token_value, get_user_by_token
-from core.logger import Logger
+from app.helpers.translate import lang,translate_pydantic_error
+from lila.core.logger import Logger
 import datetime
 import re
 from functools import wraps
 from pathlib import Path
-from core.templates import render
+from lila.core.templates import render
 import asyncio
 
 ph = PasswordHasher()
@@ -29,23 +30,60 @@ class Router:
         self.docs = []
         self.prefix = prefix
 
-    def route(self, path: str, methods: list[str] = ["GET"], model=None) -> None:
-        try:
-            real_path = self.normalize_path(prefix=self.prefix, path=path)
+    def route(self, path: str, methods: list[str] = None, model: Type[BaseModel] = None) -> None:
+        if methods is None:
+            methods = ["GET"]
+        
+        real_path = self.normalize_path(prefix=self.prefix, path=path)
 
-            def decorator(func):
-                self.routes.append(
-                    Route(path=real_path, endpoint=func, methods=methods)
-                )
-                if model is not None:
-                    self.docs.append({"path": real_path, "model": model})
+        def decorator(func):
+            @wraps(func)
+            async def validation_wrapper(request: Request):
+                current_lang=lang(request=request)
+                if model and request.method in ["POST", "PUT", "PATCH"]:
+                    try:
+                        body = await request.json()
+                        validated_data = model(**body)
+                        request.state.data = validated_data
+                    except ValidationError as e:
+                        return self.response_validation_error(e,current_lang)
+                    except Exception:
+                        msg = "Invalid JSON Body" if current_lang == "en" else "JSON inválido"
+                        return JSONResponse({"success": False, "msg": msg}, status_code=400)
+                
+                if asyncio.iscoroutinefunction(func):
+                    return await func(request)
+                return func(request)
 
-                return func
+            self.routes.append(
+                Route(path=real_path, endpoint=validation_wrapper, methods=methods)
+            )
+            
+            if model is not None:
+                self.docs.append({"path": real_path, "model": model})
 
-            return decorator
-        except RuntimeError as e:
-            Logger.error(f"Error : {str(e)}")
-            print(f"Error : {e}")
+            return func
+        return decorator
+
+    def response_validation_error(self, e: ValidationError, language: str="en"):
+        errors_list = []
+        msg_parts = []
+        
+        for err in e.errors():
+            field = err["loc"][-1] 
+            translated_msg = translate_pydantic_error(err, language)
+            
+            errors_list.append({str(field): translated_msg})
+            msg_parts.append(f"{field}: {translated_msg}")
+
+        return JSONResponse(
+            {
+                "success": False, 
+                "errors": errors_list, 
+                "msg": " . ".join(msg_parts)
+            },
+            status_code=400,
+        )
 
     def normalize_path(self, prefix: str, path: str) -> str:
         full = f"/{prefix.strip('/')}/{path.strip('/')}"
@@ -72,6 +110,17 @@ class Router:
         except RuntimeError as e:
             Logger.error(f"Error : {str(e)}")
             print(f"Error :{e}")
+
+    def patch(self, path: str, **kwargs):
+        return self.route(path, methods=["PATCH"], **kwargs)
+
+    def websocket(self, path: str):
+        """Register a WebSocket endpoint."""
+        def decorator(func):
+            real_path = self.normalize_path(prefix=self.prefix, path=path)
+            self.routes.append(WebSocketRoute(path=real_path, endpoint=func))
+            return func
+        return decorator
 
     def get_routes(self) -> list:
         return self.routes
@@ -375,18 +424,7 @@ class Router:
                 body = await self.json()
                 model = model_pydantic(**body)
             except ValidationError as e:
-                errors = []
-                msg_errors = ""
-                for err in e.errors():
-                    field = err["loc"][0]
-                    msg = err["msg"]
-                    errors.append({field: msg})
-                    msg_errors += f"""{err['loc'][0]} : {msg} .  """
-
-                return JSONResponse(
-                    {"success": False, "errors": errors, "msg": msg_errors},
-                    status_code=400,
-                )
+                return self.response_validation_error(e)
             except Exception as e:
                 Logger.warning(f"Error rest_crud_generate - POST: {str(e)}")
                 return JSONResponse(
@@ -462,13 +500,13 @@ class Router:
                 return JSONResponse({"success": False}, status_code=500)
             
         def search_id(self) -> bool | dict:
-            columns = " , ".join(select) if select else "*"
-            filters = f"active = 1" if active else ""
-            filters += " AND  id =:id" if filters else "  id = :id"
+            columns_ = " , ".join(select) if select else "*"
+            filters = "active = 1" if active else ""
+            filters += " AND id = :id" if filters else "id = :id"
             if "user_id" in model_pydantic.model_fields.keys():
-                filters += " AND user_id:user_id"
+                filters += " AND user_id = :user_id"
             elif "id_user" in model_pydantic.model_fields.keys():
-                filters += " AND id_user:id_user"
+                filters += " AND id_user = :id_user"
 
             id = int(self.path_params["id"])
             params = {"user_id": 0, "id": id}
@@ -481,7 +519,7 @@ class Router:
                     params[user_id_session] = user_id
                     filters += f" AND {user_id_session} = :{user_id_session}"
 
-            query = f"SELECT {columns} FROM {model_sql.__tablename__} WHERE {filters} "
+            query = f"SELECT {columns_} FROM {model_sql.__tablename__} WHERE {filters}"
             results = connection.query(query=query, params=params, return_row=True)
             return results
 
@@ -510,24 +548,13 @@ class Router:
                 body = await self.json()
                 model = model_pydantic(**body)
             except ValidationError as e:
-                errors = []
-                msg_errors = ""
-                for err in e.errors():
-                    field = err["loc"][0]
-                    msg = err["msg"]
-                    errors.append({field: msg})
-                    msg_errors += f"""{err['loc'][0]} : {msg} .    
-                    """
-                return JSONResponse(
-                    {"success": False, "errors": errors, "msg": msg_errors},
-                    status_code=400,
-                )
+                return self.response_validation_error(e)
 
             values = (
-                "  ".join(f"{row}= :{row}" for row in columns)
+                " , ".join(f"{row} = :{row}" for row in columns)
                 if columns
                 else " , ".join(
-                    f"{row}=:{row}" for row in list(model_pydantic.model_fields.keys())
+                    f"{row} = :{row}" for row in list(model_pydantic.model_fields.keys())
                 )
             )
             params = {
@@ -545,7 +572,7 @@ class Router:
             if "hash" in params:
                 params["hash"] = generate_token_value()
 
-            filters = ""
+            orm_filters = {"id": int(self.path_params["id"])}
 
             if user_id_session:
                 user_id = get_user_id_session(self)
@@ -553,18 +580,14 @@ class Router:
                     return user_id
                 if user_id is not None:
                     params[user_id_session] = user_id
-                    filters += f" AND {user_id_session} = :{user_id_session}"
-
-            id = self.path_params["id"]
-            params["id"] = int(id)
-
+                    orm_filters[user_id_session] = user_id
 
             try:
-                filters={"id":int(id)}
-                session=connection.get_session()
-                 
-                result =connection.query_orm(model=model_sql,operation="update",session=session,filters=filters,values=params)
-
+                session = connection.get_session()
+                result = connection.query_orm(
+                    model=model_sql, operation="update",
+                    session=session, filters=orm_filters, values=params
+                )
                 result_update = True if result else False
                 return JSONResponse({"success": result_update})
             except Exception as e:
@@ -577,7 +600,7 @@ class Router:
                 return response
             result = search_id(self)
             if result is None:
-                JSONResponse({"success": False}, status_code=404)
+                return JSONResponse({"success": False}, status_code=404)
 
             id = int(self.path_params["id"])
             params = {"id": id, "user_id": 0}
@@ -663,7 +686,7 @@ class Router:
                             result = await dummy(request)
                         else:
                             result = await mw(request)
-                        if result is not None:
+                        if isinstance(result, (JSONResponse, HTMLResponse, RedirectResponse)):
                             return result
 
                 response = render(
@@ -673,7 +696,6 @@ class Router:
 
             name_html = f"/{model_sql.__tablename__}/view" if url_html is None else url_html  
             router.routes.append(
-                 
                     Route(
                         path=name_html,
                         name=f"{name}_html",
@@ -692,7 +714,6 @@ class Router:
         url = f"{prefix_path}/{model_name}".replace("//", "/")
 
         template_content = f"""<!DOCTYPE html>
-     <!DOCTYPE html>
 <html lang="{{{{ lang }}}}" class="light">
   <head>
     <meta charset="UTF-8" />
@@ -804,7 +825,7 @@ class Router:
 
             if(!response.ok) {{
                 const err = await response.json();
-                if (err.erros){{
+                if (err.errors){{
                     for(const e of err.errors) {{
                         for(const k in e) {{
                             msg += `<p class="text-red-600">${{k}} : ${{e[k]}}</p>`;
@@ -816,8 +837,7 @@ class Router:
                   msg=err.msg || '{{{{translate['Error occurred']}}}} '+ response.status;
                 form_messages.innerHTML = `<p class="text-red-600">${{msg}}</p>`;
                 }}
-              
-               
+                return;
             }}
             const result = await response.json();
             if(result.errors){{

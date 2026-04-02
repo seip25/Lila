@@ -1,6 +1,6 @@
-from core.session import Session
-from core.responses import RedirectResponse, JSONResponse
-from core.request import Request
+from lila.core.session import Session
+from lila.core.responses import RedirectResponse, JSONResponse
+from lila.core.request import Request
 from functools import wraps
 from app.helpers.security import get_token
 

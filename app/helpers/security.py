@@ -1,10 +1,10 @@
 from app.config import   SECRET_KEY 
-from core.request import Request
-from core.responses import JSONResponse 
+from lila.core.request import Request
+from lila.core.responses import JSONResponse 
 import jwt
 import hashlib
 import secrets
-from datetime import datetime, timedelta 
+from datetime import datetime, timedelta, timezone
 
  
 
@@ -13,7 +13,7 @@ def generate_token_value(hex: int = 16) -> str:
 
 
 def generate_token(name: str, value: str = None, minutes: int = 1440) -> str:
-    options = {name: value, "exp": datetime.utcnow() + timedelta(minutes=minutes)}
+    options = {name: value, "exp": datetime.now(timezone.utc) + timedelta(minutes=minutes)}
     options[name] = value if value else generate_token_value()
     token = jwt.encode(options, SECRET_KEY, algorithm="HS256")
     return token

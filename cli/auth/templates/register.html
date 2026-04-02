@@ -1,61 +1,56 @@
 <!DOCTYPE html>
 <html lang="{{lang}}" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/css/lila.css">
+    <link rel="stylesheet" href="css/lila.css">
 </head>
+
 <body>
     <main class="flex justify-center items-center    container">
         <div class="w-mx-500-px">
             <h3 class=" text-center mb-4">{{translate['create account']}}</h3>
             <form id="register-form">
                 <div class="mb-4">
-                    <label for="name" >{{translate['name']}}</label>
+                    <label for="name">{{translate['name']}}</label>
                     <input type="text" id="name" name="name" class="w-full" required>
                 </div>
                 <div class="mb-4">
-                    <label for="email" >Email</label>
+                    <label for="email">Email</label>
                     <input type="email" id="email" name="email" class="w-full" required>
                 </div>
                 <div class="mb-4">
-                    <label for="password" >{{translate['password']}}</label>
+                    <label for="password">{{translate['password']}}</label>
                     <input type="password" id="password" name="password" class="w-full" required>
                 </div>
-                 <div class="mb-4">
-                    <label for="password_2" >{{translate['confirm_password']}}</label>
+                <div class="mb-4">
+                    <label for="password_2">{{translate['confirm_password']}}</label>
                     <input type="password" id="password_2" name="password_2" class="w-full" required>
                 </div>
                 <button type="submit" class="w-full">{{translate['register']}}</button>
                 <div class="mt-4 text-center">
-                    <p>{{translate['Already have an account?']}} <a href="/login" class="underline">{{translate['login']}}</a></p>
+                    <p>{{translate['Already have an account?']}} <a href="/login"
+                            class="underline">{{translate['login']}}</a></p>
                 </div>
                 <p id="error-message" class="text-red-500 mt-2 text-center"></p>
             </form>
         </div>
-        
+
     </main>
-     <div class="mt-8 mb-4">
-             <div class="container mx-auto px-4 flex justify-between items-center">
-        <a
-          href="/set-language/es"
-         role="button"
-         class="fill"
-        >
-          Español (Esp)
-        </a>
-        <a
-          href="/set-language/en"
-         role="button"
-         class="fill"
-        >
-          English (US)
-        </a>
-      </div>
+    <div class="mt-8 mb-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="/set-language/es" role="button" class="fill">
+                Español (Esp)
+            </a>
+            <a href="/set-language/en" role="button" class="fill">
+                English (US)
+            </a>
         </div>
+    </div>
     <script>
-        document.getElementById('register-form').addEventListener('submit', async function(event) {
+        document.getElementById('register-form').addEventListener('submit', async function (event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
@@ -64,13 +59,13 @@
                 const response = await fetch('/register', {
                     method: 'POST',
                     body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {'Content-Type': 'application/json'}
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 const result = await response.json();
                 if (response.ok && result.success) {
                     window.location.replace('/dashboard');
                 } else {
-                    errorMessage.textContent = result.msg  || 'Failed to register.';
+                    errorMessage.textContent = result.msg || 'Failed to register.';
                 }
             } catch (error) {
                 errorMessage.textContent = 'Failed to connect to the server.';
@@ -78,4 +73,5 @@
         });
     </script>
 </body>
+
 </html>
