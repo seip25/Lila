@@ -2677,10 +2677,6 @@ aside h6 {
   margin-bottom: 1rem;
 }
 
-.mb-8 {
-  margin-bottom: 2rem;
-}
-
 .mb-auto {
   margin-bottom: auto;
 }
@@ -5163,17 +5159,4 @@ a[role="button"] .ripple {
   .lila-drawer-toggle {
     display: inline-flex;
   }
-}
-.w-3 {
-  width: 0.5rem;
-}
-.h-3 {
-  height: 0.5rem;
-}
-.mx-1 {
-  margin-left: 0.25rem;
-  margin-right: 0.25rem;
-}
-.text-lila {
-  color: #a78bfa;
 }
