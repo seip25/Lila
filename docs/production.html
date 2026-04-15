@@ -158,19 +158,8 @@ chmod +x /path/your_project/start_lila.sh
         </div>
       </div>
 
-      <h3>🪟 Windows Server
-      </h3>
-      <p>
-        On Windows, you can use the Task Scheduler to run your application at startup.
-      </p>
-      <ol>
-        <li>Create a `.bat` or `.ps1` script to start your application.</li>
-        <li>Open Task Scheduler and create a new task that runs at system startup.</li>
-        <li>Set the action to run your script.</li>
-      </ol>
-
-      <h3>🔒 Disable Debug
-        Mode</h3>
+       <h4>5. Disable Debug
+        Mode</h4>
       <p>
         In your `.env` file, make sure to set `DEBUG=False` for production.
       </p>
@@ -190,6 +179,74 @@ DEBUG=False
                         </code></pre>
         </div>
       </div>
+
+
+   <h4>6. Configure Nginx (Optional)</h4>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">/etc/nginx/sites-available/your-domain.com</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content p-4 text-gray-300">
+          <pre><code class="language-ini">
+server {
+    listen 80;
+    listen [::]:80;
+    server_name your-domain.com www.your-domain.com;
+
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name your-domain.com www.your-domain.com;
+
+    # SSL Certificates
+    ssl_certificate /etc/nginx/ssl/your-domain.com/your-domain.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/your-domain.com/your-domain.com.key;
+
+    # Lila Framework Reverse Proxy in port 3002
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_http_version 1.1;
+        
+        # WebSockets and Connection Headers
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts for long-running connections
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+    }
+}
+          </code></pre>
+        </div>
+      </div>
+
+     
+      <h3>🪟 Windows Server
+      </h3>
+      <p>
+        On Windows, you can use the Task Scheduler to run your application at startup.
+      </p>
+      <ol>
+        <li>Create a `.bat` or `.ps1` script to start your application.</li>
+        <li>Open Task Scheduler and create a new task that runs at system startup.</li>
+        <li>Set the action to run your script.</li>
+      </ol>
+
+
     </article>
   </main>
   <script src="../js/highlight.min.js"></script>
