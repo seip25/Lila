@@ -1,0 +1,369 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Python Web Framework</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+  <header>
+    <nav>
+      <h1>
+        <a href="../index.html" class="text-blue">Lila Framework</a>
+      </h1>
+      <div>
+        <a href="https://github.com/seip25/Lila" role="button">Github</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <aside></aside>
+
+    <article id="templates-eng">
+      <h1>🎨 Template Rendering (Jinja2)</h1>
+      <p>
+        In Lila, you can use
+        <strong>Jinja2</strong>
+        to render HTML with server data
+      </p>
+
+      <div>
+        <p>
+          Jinja2 is the default for rendering HTML templates. You can pass
+          data like translations, values, lists, or dictionaries using the
+          <code>context</code>
+          parameter.
+        </p>
+
+        <h3>
+          Basic Usage in Routes
+        </h3>
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+              Template
+            </span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class=" ">
+            <pre><code class="language-python">
+from lila.core.templates import render
+
+@router.get(path="/")
+async def home(request: Request):
+  context = {}
+  
+  response = render(
+    request=request,
+    template="index",
+    context=context
+  )
+  # Renders the 'index' template
+  
+  return response
+</code>
+</pre>
+          </div>
+        </div>
+
+        <h3>
+          The
+          <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+          Function
+        </h3>
+        <p>
+          The
+          <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+          function is located in
+          <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.templates</code>:
+        </p>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400">
+              Template
+            </span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class=" ">
+            <pre><code class="language-python">
+def render(
+  request: Request,
+  template: str,
+  context: dict = {},
+  theme_: bool = True,
+  translate: bool = True,
+  files_translate: list = [],
+  lang_default: str = None,
+  templates=templates
+)
+</code>
+</pre>
+          </div>
+        </div>
+
+        <h3 class="text-2xl font-semibold">Parameter Description</h3>
+        <ul class="rounded bg-surface py-4 px-4">
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>request:</strong>
+            <p>
+              The
+              <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">Request</code>
+              object.
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>template (str):</strong>
+            <p>
+              Template name (without the
+              <code
+                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.html</code>
+              extension).
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>context (dict):</strong>
+            <p>
+              Data to pass to the template (dictionaries, lists, etc.).
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>theme_ (bool, default=True):</strong>
+            <p>
+              Applies the default visual theme.
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>translate (bool, default=True):</strong>
+            <p>
+              Enables the built-in translation system.
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>files_translate (list):</strong>
+            <p>
+              List of additional translation files.
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>lang_default (str):</strong>
+            <p>
+              Forced default language (ideal for SEO in routes like
+              <code
+                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/es</code>,
+              <code
+                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/en</code>,
+              etc.).
+            </p>
+          </li>
+          <li class="flex flex-col md:flex-row md:items-start">
+            <strong>templates:</strong>
+            <p>
+              Base template collection used by Lila.
+            </p>
+          </li>
+        </ul>
+        <p>
+          In Lila, you can also use
+          <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+          to pass translations to Jinja2, and parameters like
+          <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">title</code>
+          or
+          <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">version</code>
+          (ideal for structuring APIs: "v1", "v2").
+        </p>
+      </div>
+
+      <div>
+        <h2>
+          Asset Optimization in Production (Images & CSS)
+        </h2>
+
+        <!-- IMAGE OPTIMIZATION -->
+        <h3>
+          Optimized Images with Jinja2
+        </h3>
+
+        <p>
+          Lila automatically optimizes your images for better performance and
+          SEO. When using the <code>image()</code> function in your templates,
+          the system converts images to <strong>WebP format</strong>, resizes
+          them if necessary, and compresses them without losing visual
+          quality.
+        </p>
+
+        <h4>
+          Usage in HTML (Jinja2)
+        </h4>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>HTML</span>
+          </div>
+          <div class="editor-content">
+            <pre><code class="language-html">
+&lt;img src="{{ image('img/lila.png') }}" alt="Lila" width="100" height="100" /&gt;
+      </code></pre>
+          </div>
+        </div>
+
+        <h4>
+          What Happens Automatically
+        </h4>
+
+        <ul>
+          <li>The image is converted to <strong>WebP</strong>.</li>
+          <li>If the image is wider than 1920px, it is resized.</li>
+          <li>Compression is applied using optimized quality.</li>
+          <li>The optimized image is cached for future requests.</li>
+        </ul>
+
+        <!-- CSS OPTIMIZATION -->
+        <h3>
+          Automatic CSS Minification
+        </h3>
+
+        <p>
+          The <code>public()</code> function automatically detects whether a
+          minified version of your CSS file exists. If it does not, the system
+          generates it automatically, improving load times and SEO
+          performance.
+        </p>
+
+        <h4>
+          Usage in HTML (Jinja2)
+        </h4>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>HTML</span>
+          </div>
+          <div class="editor-content">
+            <pre><code class="language-html">
+&lt;link rel="stylesheet" href="{{ public('css/lila.css') }}" /&gt;
+      </code></pre>
+          </div>
+        </div>
+
+        <h4>
+          Automatic Behavior
+        </h4>
+
+        <ul>
+          <li>
+            If <code>lila.min.css</code> exists, it will be used
+            automatically.
+          </li>
+          <li>If not, it is generated automatically.</li>
+          <li>Minified files reduce file size and load faster.</li>
+        </ul>
+
+        <!-- CONTEXT SYSTEM -->
+        <h3>
+          Base Context Injection
+        </h3>
+
+        <p>
+          All optimization features work thanks to the base context
+          automatically injected into Jinja2 templates:
+        </p>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>Python</span>
+          </div>
+          <div class="editor-content">
+            <pre><code class="language-python">
+def get_base_context(request, files_translate=[], lang_default=None):
+    context = {
+        "title": TITLE_PROJECT,
+        "version": VERSION_PROJECT,
+        "lang": lang_default if lang_default else lang(request),
+        "translate": t("translations", request, lang_default=lang_default),
+        "image": image,
+        "static": public,
+        "public": public
+    }
+
+    for file_name in files_translate:
+        context["translate"].update(
+            t(file_name, request, lang_default=lang_default)
+        )
+
+    return context
+      </code></pre>
+          </div>
+        </div>
+
+        <!-- BENEFITS -->
+        <h3>
+          Performance & SEO Benefits
+        </h3>
+
+        <ul>
+          <li>✅ Faster page loading</li>
+          <li>✅ Smaller file sizes</li>
+          <li>✅ Improved Google Lighthouse score</li>
+          <li>✅ Automatic WebP image generation</li>
+          <li>✅ SEO-friendly asset delivery</li>
+          <li>✅ Zero manual optimization required</li>
+        </ul>
+      </div>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

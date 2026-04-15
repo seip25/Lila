@@ -5160,3 +5160,10 @@ a[role="button"] .ripple {
     display: inline-flex;
   }
 }
+
+.w-3 {
+  width: 1rem;
+}
+.h-3 {
+  height: 1rem;
+}

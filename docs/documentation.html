@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Documentation</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div>
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <aside></aside>
+
+        <article>
+            <h1 class="text-center text-blue">Lila Framework</h1>
+            <h5 class="text-center text-secondary">A Python web framework built on Starlette and Pydantic, designed for
+                simplicity,
+                flexibility, and
+                high performance.</h5>
+
+            <p>
+                Lila is a lightweight yet powerful Python web framework that combines the async capabilities of
+                <strong>Starlette</strong> with the data validation power of <strong>Pydantic</strong>.
+                It provides everything you need to build modern web applications and REST APIs with minimal
+                boilerplate.
+            </p>
+
+            <h2 class="mt-8 text-xl">🚀 Getting Started</h2>
+            <p>
+                Install Lila via <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">pip</code>
+                and initialize your project with the CLI:
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        Terminal
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-bash">pip install lila-framework
+lila-init
+python main.py</code></pre>
+                </div>
+            </div>
+
+            <h2 class="mt-8 text-xl">📁 Project Structure</h2>
+            <p>
+                The <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-init</code>
+                command scaffolds your entire project structure:
+            </p>
+            <div class="bg-surface px-4 py-4 rounded-lg">
+                <ul>
+                    <li>📂 <strong>app/routes/</strong> — Route definitions for your application and API endpoints</li>
+                    <li>📂 <strong>app/models/</strong> — SQLAlchemy models for database tables</li>
+                    <li>📂 <strong>app/middlewares/</strong> — Middleware functions for authentication, logging, and
+                        security</li>
+                    <li>📂 <strong>app/helpers/</strong> — Utility functions (translations, file uploads, security
+                        tokens)</li>
+                    <li>📂 <strong>app/locales/</strong> — Translation files for internationalization (i18n)</li>
+                    <li>📄 <strong>app/connections.py</strong> — Database connection configuration (SQLite, MySQL,
+                        PostgreSQL)</li>
+                    <li>📄 <strong>app/config.py</strong> — Application settings and environment configuration</li>
+                    <li>📂 <strong>templates/</strong> — Jinja2 templates for server-side rendering</li>
+                    <li>📂 <strong>public/</strong> — Static files (CSS, JS, images)</li>
+                    <li>🐍 <strong>main.py</strong> — Application entry point</li>
+                    <li>🔒 <strong>.env</strong> — Environment variables (HOST, PORT, DEBUG, SECRET_KEY)</li>
+                </ul>
+            </div>
+
+            <h2 class="mt-8 text-xl">✨ Core Features</h2>
+            <ul>
+                <li>🛤️ <strong>Routing</strong> — Define routes with HTTP method support, path parameters, and Pydantic
+                    validation</li>
+                <li>🎨 <strong>Templates</strong> — Server-side rendering with Jinja2, including Markdown support</li>
+                <li>🔐 <strong>Sessions</strong> — Secure signed sessions using <code>itsdangerous</code></li>
+                <li>🛡️ <strong>Middlewares</strong> — Built-in authentication (<code>login_required</code>,
+                    <code>session_active</code>, <code>validate_token</code>) and a security middleware that blocks
+                    malicious IPs, URLs, and sensitive paths
+                </li>
+                <li>🗄️ <strong>Models & ORM</strong> — SQLAlchemy integration with automatic model generation via CLI
+                </li>
+                <li>📦 <strong>Migrations</strong> — One-command database migrations with <code>lila-migrations</code>
+                </li>
+                <li>⚡ <strong>REST API CRUD</strong> — Auto-generate fully documented REST APIs with Swagger/OpenAPI,
+                    including Pydantic validation and customizable middlewares</li>
+                <li>📤 <strong>File Uploads</strong> — Built-in helper with validation, size limits, and secure
+                    filenames</li>
+                <li>🌍 <strong>Internationalization</strong> — JSON-based translations with per-route language forcing
+                </li>
+                <li>⚛️ <strong>React Islands</strong> — Embed interactive React components in Jinja2 templates with Vite
+                    HMR support</li>
+                <li>👤 <strong>Admin Panel</strong> — Auto-generated admin dashboard with model management, system
+                    metrics, and log viewer</li>
+                <li>🔧 <strong>CLI Tools</strong> — Scaffold models, auth systems, CRUD pages, admin panels, and minify
+                    assets</li>
+                <li>🏗️ <strong>Production Ready</strong> — Systemd service deployment, asset minification, and
+                    environment configuration</li>
+            </ul>
+
+            <h2 class="mt-8 text-xl">🖥️ CLI Commands</h2>
+            <p>All CLI commands follow the pattern <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-{command}</code>:
+            </p>
+            <div class="bg-surface px-4 py-4 rounded-lg">
+                <ul>
+                    <li>🚀 <code>lila-init</code> — Initialize a new Lila project</li>
+                    <li>📦 <code>lila-model</code> — Generate SQLAlchemy models with CRUD methods</li>
+                    <li>🗄️ <code>lila-migrations</code> — Run database migrations</li>
+                    <li>🔐 <code>lila-auth</code> — Scaffold authentication (login, register, password reset)</li>
+                    <li>🏗️ <code>lila-scaffold-crud</code> — Generate complete CRUD from a model</li>
+                    <li>👤 <code>lila-create-panel-admin</code> — Create admin panel with dashboard</li>
+                    <li>🔑 <code>lila-create-admin</code> — Create an admin user</li>
+                    <li>⚛️ <code>lila-react</code> — Setup React Islands integration</li>
+                    <li>⚡ <code>lila-minify</code> — Minify CSS and JS files for production</li>
+                </ul>
+            </div>
+
+            <h2 class="text-xl mt-4">📚 Documentation</h2>
+            <p>
+                Explore each section in the sidebar to learn about every feature in detail.
+                Start with <a href="install.html">Installation</a> to set up your first project.
+            </p>
+        </article>
+
+    </main>
+
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

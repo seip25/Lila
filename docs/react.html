@@ -1,0 +1,286 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - React Islands</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div>
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <aside></aside>
+        <article id="react">
+            <h1>⚛️ React Islands Integration</h1>
+
+            <p>
+                Lila provides a powerful "React Islands" architecture, allowing you to embed interactive
+                React components directly into your Jinja2 templates.
+                This approach combines the best of both worlds: the SEO and performance of server-side
+                rendering with Lila, and the interactivity of React.
+            </p>
+
+            <h5>Installation</h5>
+            <p>
+                To set up the React environment in your project from the root directory, run:
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">CLI Command</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-bash">
+lila-react create
+            </code></pre>
+                </div>
+            </div>
+
+            <p>
+                This will scaffold the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">package.json</code>,
+                <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite.config.js</code>,
+                and the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react/</code>
+                directory structure.
+            </p>
+
+            <h5>Usage</h5>
+            <p>
+                Once installed, you can use the new Jinja2 helpers <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code>
+                and <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">react()</code>.
+            </p>
+
+            <ul class="list-disc ml-6 mt-4 mb-4">
+                <li><strong>vite_assets()</strong>: Injects the necessary script tags. In <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">DEBUG=True</code>
+                    mode, it connects to the Vite development server (HMR). In production, it loads the
+                    optimized assets from <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>.
+                </li>
+                <li><strong>react(component, props)</strong>: Mounts a specific React component.</li>
+            </ul>
+
+            <p>Example of a full HTML template:</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">templates/html/react.html</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-html">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="{{ lang }}"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+    &lt;meta name="color-scheme" content="light dark" /&gt;
+    &lt;meta http-equiv="X-UA-Compatible" content="ie=edge" /&gt;
+    &lt;meta name="description" content="{{ description }}" /&gt;
+    &lt;meta name="keywords" content="{{ keywords }}" /&gt;
+    &lt;meta name="author" content="{{ author }}" /&gt;
+    &lt;title&gt;{{ title }}&lt;/title&gt;
+    &lt;link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" /&gt;
+    &lt;link rel="stylesheet" href="{{ public('css/lila.css') }}" /&gt;
+    {{ vite_assets() | safe }}
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;main class="mt-4 container"&gt;
+      &lt;h1&gt;Example React integration&lt;/h1&gt;
+      &lt;div&gt;{{ react('Counter', {'start': 3}) | safe }}&lt;/div&gt;
+    &lt;/main&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+            </code></pre>
+                </div>
+            </div>
+
+            <h5>How it Works</h5>
+            <p>
+                <strong>Development (DEBUG=True):</strong><br>
+                The <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">vite_assets()</code>
+                helper injects scripts pointing to <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://localhost:5173</code>.
+                You can start the dev server with:
+            </p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-bash">
+npm run dev
+# OR
+lila-react dev
+            </code></pre>
+                </div>
+            </div>
+            <h5>
+                Re-rendering React Islands
+            </h5>
+            <p>
+                You can trigger a re-render of your React islands from standard JavaScript (e.g., from
+                Twig
+                templates, jQuery, or other non-React components) using the global function
+                <code>window.renderReactComponent(name)</code>.
+            </p>
+            <p>
+                This is useful for updating components that rely on shared client-side data like
+                <code>localStorage</code> from other independent DOM elements without needing a complete
+                page
+                reload.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-javascript">
+//Example in client
+// Re-render all React components on the page
+renderReactComponent();
+
+// Re-render only components named 'CartBadge'
+renderReactComponent('CartBadge');
+            </code></pre>
+                </div>
+            </div>
+
+            <p>
+                <strong>Production (DEBUG=False):</strong><br>
+                Run <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">npm run build</code>
+                to compile your React code into <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/build</code>.
+                The helper will automatically detect the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">manifest.json</code>
+                and load the hashed CSS and JS files for optimal performance.
+            </p>
+
+            <h5>Benefits</h5>
+            <ul class="list-disc ml-6 mt-4">
+                <li><strong>SEO with Jinja</strong>: Your main page content is rendered by Jinja,
+                    ensuring search engines can read it perfectly.</li>
+                <li><strong>React Interactivity</strong>: Use React only where needed (Islands
+                    architecture).</li>
+                <li><strong>Secure Sessions</strong>: You can rely on Lila's secure, signed sessions
+                    using <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>
+                    for authentication, while the React components communicate with your API endpoints.
+                </li>
+            </ul>
+            <h3 class="text-2xl font-semibold mt-4 mb-4">🎯 React Render (render components with
+                htmlResponse without templates Jinja)</h3>
+            <p class="mt-4">
+                This reactRender method is used to return the HTML directly and load a React page or
+                component,
+                with styles, meta tags, custom scripts, and content/props.
+            </p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">ReactRender</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.templates import render,renderMarkdown,renderReact
+...
+router = Router()
+@router.get("/react-page")
+async def react_page(request: Request):
+    response =renderReact(request=request,component="Counter",
+    props={
+        "start": 5
+    } ,
+    options={
+        "title": "React Page",
+        "description": "A React page with a counter component",
+        "keywords": "React, counter, component",
+        "author": "Lila",
+        "styles": ["css/lila.css"]
+    }                      
+    )
+    return response
+            </code></pre>
+                </div>
+            </div>
+
+
+
+        </article>
+    </main>
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

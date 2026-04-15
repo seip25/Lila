@@ -1,0 +1,198 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Scaffold CRUD</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div class="mt-8 mb-4">
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <aside></aside>
+        <article id="scaffold_crud-eng">
+            <div class="mt-8 mb-4">
+                <h1>
+                    🏗️ CLI Scaffold Generator
+                </h1>
+                <p>
+                    Generate complete CRUD functionality from existing models with a single command. The
+                    scaffold generator
+                    creates routes, templates, and automatically imports everything into your
+                    application.
+                </p>
+            </div>
+
+            <div class="mt-8 mb-4">
+                <h2>
+                    🚀 Basic Usage
+                </h2>
+                <p>
+                    First, create your model using the model CLI, then generate the scaffold:
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Scaffold Generator</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-bash">
+
+# Create a model first
+lila-model create --name Product
+
+ 
+# Generate complete CRUD scaffold
+lila-scaffold-crud --model Product
+
+# Custom route name
+lila-scaffold-crud --model Product --name products
+
+#execute migrations refresh
+lila-migrations --refresh
+</code>
+</pre>
+                </div>
+            </div>
+
+            <div class="mt-8 mb-4">
+                <h2>
+                    📂 What Gets Generated
+                </h2>
+                <p>
+                    The scaffold generator creates a complete CRUD system:
+                </p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li><code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
+                        - Complete CRUD routes</li>
+                    <li><code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">templates/html/{name}/index.html</code>
+                        - DataTable with modals</li>
+                    <li>Auto-imports routes in <code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="mt-8 mb-4">
+                <h2>
+                    🛤️ Generated Endpoints
+                </h2>
+                <p>
+                    The following routes are automatically created:
+                </p>
+            </div>
+
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">API Endpoints</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-bash">
+
+GET  /product              → HTML page with DataTable
+GET  /api/product          → JSON list of all products
+GET  /api/product/{id}     → JSON single product
+POST /api/product          → Create new product
+PUT  /api/product/{id}     → Update product
+DELETE /api/product/{id}   → Soft delete (active=0)
+</code>
+</pre>
+                </div>
+            </div>
+
+            <div class="mt-8 mb-4">
+                <h2>
+                    ✨ Features
+                </h2>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>✅ Validates model exists before generating</li>
+                    <li>✅ Responsive DataTable with search and pagination</li>
+                    <li>✅ Create and Edit modals</li>
+                    <li>✅ Soft delete functionality (active=0)</li>
+                    <li>✅ Pydantic validation examples (commented)</li>
+                    <li>✅ Multilingual support</li>
+                    <li>✅ Auto-imports in main.py</li>
+                </ul>
+            </div>
+
+            <div class="mt-8 mb-4">
+                <h2>
+                    🔧 Customization
+                </h2>
+                <p>
+                    After generation, you can customize:
+                </p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Import in <code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
+                        the generated route</li>
+                    <li>Edit <code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
+                        to add business logic</li>
+                    <li>Uncomment Pydantic models for validation</li>
+                    <li>Customize the HTML template</li>
+                    <li>Add custom middleware</li>
+                </ul>
+            </div>
+        </article>
+    </main>
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

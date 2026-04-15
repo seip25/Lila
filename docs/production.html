@@ -1,0 +1,206 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Production</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+  <header>
+    <nav>
+      <h1>
+        <a href="../index.html" class="text-blue">Lila Framework</a>
+      </h1>
+      <div>
+        <a href="https://github.com/seip25/Lila" role="button">Github</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <aside></aside>
+    <article id="production-eng">
+      <h2>🚀 Deployment to Production
+      </h2>
+
+      <h3>🐧 Linux Server
+        (with systemd)</h3>
+      <p>
+        To deploy your Lila application on a Linux server, it's recommended to use a virtual
+        environment and a systemd service to manage the process.
+      </p>
+
+      <h4>1. Create a
+        Virtual Environment</h4>
+
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-bash">
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+          </code></pre>
+        </div>
+      </div>
+
+      <h4>2. Create a Start
+        Script</h4>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">start_lila.sh</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-bash">
+#!/bin/bash
+source /path/to/your/project/venv/bin/activate
+python /path/to/your/project/main.py
+                        </code></pre>
+        </div>
+      </div>
+
+      <h4>3. Create a
+        systemd Service</h4>
+
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">/etc/systemd/system/lila.service</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-ini">
+[Unit]
+Description=Lila Framework Service
+After=network.target
+
+[Service]
+User=your_user
+Group=your_group
+WorkingDirectory=/path/to/your/project
+ExecStart=/path/to/your/project/start_lila.sh
+Restart=always
+RestartSec=10
+Environment=PATH=/path/to/your/project/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PYTHONPATH=/path/to/your/project
+
+[Install]
+WantedBy=multi-user.target
+                        </code></pre>
+        </div>
+      </div>
+
+      <h4>4. Enable and
+        Start the Service</h4>
+
+
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">Termial</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-bash">
+sudo systemctl daemon-reload
+sudo systemctl enable lila.service
+sudo systemctl start lila.service
+chmod +x /path/your_project/start_lila.sh
+
+                        </code></pre>
+        </div>
+      </div>
+
+      <h3>🪟 Windows Server
+      </h3>
+      <p>
+        On Windows, you can use the Task Scheduler to run your application at startup.
+      </p>
+      <ol>
+        <li>Create a `.bat` or `.ps1` script to start your application.</li>
+        <li>Open Task Scheduler and create a new task that runs at system startup.</li>
+        <li>Set the action to run your script.</li>
+      </ol>
+
+      <h3>🔒 Disable Debug
+        Mode</h3>
+      <p>
+        In your `.env` file, make sure to set `DEBUG=False` for production.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">.env</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-ini"> 
+DEBUG=False
+                        </code></pre>
+        </div>
+      </div>
+    </article>
+  </main>
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,242 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - File Upload</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div>
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <aside></aside>
+        <article id="upload-eng">
+            <h1>📤 File Upload Helper</h1>
+            <p><strong>
+                    The <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code>
+                    helper provides a complete solution for handling file
+                    uploads in your application,
+                    including validation, security checks, and translation support.
+                </strong></p>
+
+            <p>This helper automatically handles:
+            <ul>
+                <li>HTTP method validation (POST only)</li>
+                <li>Content-Type validation (multipart/form-data)</li>
+                <li>File extension validation</li>
+                <li>File size limits</li>
+                <li>Empty file detection</li>
+                <li>Secure filename handling</li>
+                <li>Automatic directory creation</li>
+                <li>Translation support for error messages</li>
+            </ul>
+            </p>
+
+            <h2>📋 Parameters</h2>
+            <p>The <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code>
+                function accepts these parameters:</p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Parameters</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+request: Request          # Starlette request object
+name_file: str | list     # Field name for file upload (default: 'file')
+UPLOAD_DIR: str           # Directory to save files (default: 'uploads')
+ALLOWED_EXTENSIONS: set   # Allowed file extensions (default: {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'})
+MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
+            </code></pre>
+                </div>
+            </div>
+
+            <h2>🚀 Usage Example</h2>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Route Implementation</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from app.helpers.files import upload
+
+@router.route("/upload", methods=["POST"])
+async def uploadFile(request: Request):
+    response = await upload(request=request, name_file="file")
+    return response
+                                    </code></pre>
+                </div>
+            </div>
+
+            <h2>🎨 Frontend Implementation</h2>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">HTML + JavaScript</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-html">
+&lt;form onsubmit="upload(event);"&gt;
+    &lt;fieldset&gt;
+        &lt;input type="file" name="file" required&gt;
+    &lt;/fieldset&gt;
+    &lt;button type="submit"&gt;
+        &lt;i class="icon-check-circle"&gt;&lt;/i&gt;
+        Upload Files
+    &lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+    async function upload(event) {
+        event.preventDefault();
+        const formElement = event.target;
+        const formData = new FormData(formElement);
+        
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+            
+            alert('File uploaded successfully!');
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+&lt;/script&gt;
+                                    </code></pre>
+                </div>
+            </div>
+
+            <h2>📨 Response Format</h2>
+            <p>The helper returns a JSONResponse with this structure:</p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Success Response</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-json">
+{
+    "file": "/uploads/filename.ext",
+    "success": true,
+    "message": "File uploaded successfully"
+}
+                                    </code></pre>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Error Response</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-json">
+{
+    "error": true,
+    "success": false,
+    "message": "Error message in user's language"
+}
+                                    </code></pre>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-xl text-blue-500 bg-blue-100 p-4 text-center rounded">Important Notes
+                </h3>
+
+                <p>If you are using Windows or the file is not created in the Path, remember to
+                    configure it in <code>app/config.py</code></p>
+                <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8  mb-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                        <span class="editor-title text-gray-300 dark:text-gray-400">app/config.py</span>
+                        <div class="flex space-x-2">
+                            <div class="control close"></div>
+                            <div class="control minimize"></div>
+                            <div class="control maximize"></div>
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <pre><code class="language-python">
+PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
+
+                                    </code></pre>
+
+                    </div>
+                </div>
+            </div>
+        </article>
+    </main>
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

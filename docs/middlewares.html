@@ -1,0 +1,260 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Middlewares</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div>
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <aside></aside>
+        <article id="middlewares-eng">
+            <h1>🛡️ Middlewares</h1>
+            <h5>
+                Middleware functions are used to intercept requests before they reach the main logic of
+                the application.
+                In Lila, middlewares are defined in the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/middlewares</code>
+                directory (can be
+                modified to any file and/or directory).
+                Middlewares can be used for tasks such as authentication, logging, and error handling.
+            </h5>
+            <p>
+                By default, Lila comes with 3 middlewares to start any application. Middlewares can be
+                used with decorators <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@my_middleware</code>.
+            </p>
+            <p>
+                <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">login_required</code>,
+                to validate that you have a signed session, for the 'auth'
+                key that is passed as a parameter to be able to modify it as you wish.
+                If this session is not found, it redirects to the URL that is passed as a parameter, by
+                default, it is <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"/login"</code>.
+                Otherwise, it will continue its course executing the route or function.
+            </p>
+            <p>
+                Then we have <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">session_active</code>,
+                which is used to verify if you have an active
+                session.
+                It will redirect to the URL that is received as a parameter, by default, it is
+                <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"/dashboard"</code>.
+            </p>
+            <p>
+                The third is <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">validate_token</code>,
+                which is used to validate a JWT token thanks
+                to the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">get_token</code>
+                helpers imported in
+                <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">from app.helpers.security import get_token</code>.
+            </p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">app/middlewares/middlewares.py</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre>
+
+            <code class="language-python">
+from lila.core.session import Session
+from lila.core.responses import RedirectResponse,JSONResponse
+from lila.core.request import Request
+from functools import wraps 
+from app.helpers.security import get_token
+
+def login_required(func,key:str='auth',url_return='/login'):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if not session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def session_active(func,key:str='auth',url_return:str ='/dashboard'):
+    @wraps(func)
+    async def wrapper(request,*args,**kwargs):
+        session_data= Session.unsign(key=key,request=request)
+        if session_data:
+            return RedirectResponse(url=url_return)
+        return await func(request,*args,**kwargs)
+    return wrapper
+
+def validate_token(func):
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        await check_token(request=request)
+        return await func(request, *args, **kwargs)
+       
+    return wrapper
+
+
+async def check_token(request:Request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
+    
+    token = get_token(token=token)
+    if isinstance(token,JSONResponse):
+        return token 
+                
+            </code>
+            </pre>
+                </div>
+            </div>
+
+            <br />
+            <h5>
+                Here we give you several examples of how to use all 3, with the decorators.
+            </h5>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Middlewares in routes</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+
+                    <pre>
+                        <code class="language-python">
+from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
+
+#Middleware to validate the JWT Token. 
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token #Middleware
+async def api_token(request: Request):
+    """Api Token function"""
+    print(get_user_by_id_and_token(request=request))
+    return JSONResponse({'api': True}) 
+
+#Middleware to validate session active
+@router.route(path='/dashboard', methods=['GET'])  
+@login_required #Middleware
+async def dashboard(request: Request):  
+    response = render(request=request, template='dashboard', files_translate=['authenticated']) 
+    return response 
+
+
+#Middleware validate if user get session active (if user get session redirect '/dashboard')
+@router.route(path='/login', methods=['GET'])  
+@session_active  #Middleware
+async def login(request: Request):  
+    response = render(request=request, template='auth/login', files_translate=['guest'])  
+    return response 
+
+
+                        </code>
+                    </pre>
+                </div>
+            </div>
+
+            <h2>🔒 Security Middleware</h2>
+
+            <p>Lila come with middlewares by default in app/middlewares/security </p>
+
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">main.py</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.app import App
+from app.middlewares.security import (
+    LoggingMiddleware, 
+    SecurityHeadersMiddleware,
+    SecurityShieldMiddleware,
+    RateLimitMiddleware,
+    ErrorHandlerMiddleware,
+)
+
+
+#English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
+#Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
+# middlewares = [
+#     Middleware(LoggingMiddleware),
+#     Middleware(SecurityHeadersMiddleware),
+#     Middleware(SecurityShieldMiddleware),
+#     Middleware(RateLimitMiddleware),
+#     Middleware(ErrorHandlerMiddleware)
+#      ]
+
+middlewares = [
+    Middleware(ErrorHandlerMiddleware)
+]
+
+ app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
+ 
+                                    </code></pre>
+                </div>
+            </div>
+
+        </article>
+    </main>
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

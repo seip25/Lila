@@ -1,0 +1,111 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Connections</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+  <header>
+    <nav>
+      <h1>
+        <a href="../index.html" class="text-blue">Lila Framework</a>
+      </h1>
+      <div>
+        <a href="https://github.com/seip25/Lila" role="button">Github</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <aside></aside>
+    <article id="connections-eng">
+      <h1>🔌 Connections to Database</h1>
+      <p>
+        To use connections, you need to import the <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Database</code>
+        class from
+        lila.core.database. With
+        that you can connect to your database, which can be SQLite, MySLQ, PostgreSQL or
+        whatever you
+        want to configure.
+      <p>Below we leave you the example of how to connect. The connection will close automatically
+        after
+        being used, so you can use it as in this example in the variable <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">connection</code>
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">app/connections.py</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre>
+
+            <code class="language-python">
+from lila.core.database import Database
+
+#SQLite
+
+#Example connection to a sqlite database 
+config = {"type":"sqlite","database":"test"} #test.db
+connection = Database(config=config)
+connection.connect()
+
+#MySql
+
+#Example connection to a mysql database 
+config = {"type":"mysql","host":"127.0.0.1","user":"root","password":"password","database":"db_test","auto_commit":True}
+connection = Database(config=config)
+connection.connect()
+mysql_connection = connection
+                
+
+                </code>
+                </pre>
+        </div>
+      </div>
+
+    </article>
+  </main>
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>
