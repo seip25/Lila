@@ -173,7 +173,7 @@ async def check_admin(request: Request, role="admin"):
             </p>
             <ul>
                 <li><code class="text-blue-600">LoggingMiddleware</code>: Automatically logs requests (ignoring static files).</li>
-                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds XSS protection, CSP, and other security headers.</li>
+                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds security headers like X-XSS-Protection, X-Frame-Options, and the custom <strong>Powered-By: Lila Framework</strong> header. It also performs automatic XSS detection in query parameters using the <code>Security</code> class.</li>
                 <li><code class="text-blue-600">SecurityShieldMiddleware</code>: Blocks malicious paths and IPs.</li>
                 <li><code class="text-blue-600">RateLimitMiddleware</code>: Protects against brute force and DoS attacks.</li>
                 <li><code class="text-blue-600">ErrorHandlerMiddleware</code>: Gracefully handles exceptions and Pydantic validation errors.</li>

@@ -185,6 +185,30 @@ async def query_param(request: Request):
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-shield-alt mr-2"></i>Automatic Sanitization
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python"> 
+# All POST/PUT/PATCH routes automatically sanitize the body
+# Query parameters are also checked for XSS patterns
+@router.post('/secure-route', model=MyModel)
+async def secure_handler(request: Request):
+    # request.state.data is already sanitized
+    data = request.state.data
+    return JSONResponse({"status": "safe"})
+            </code></pre>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
                         <i class="fas fa-file-import mr-2"></i>Basic Imports
                     </span>
                     <div class="flex space-x-2">
