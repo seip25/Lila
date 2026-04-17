@@ -119,18 +119,18 @@ async def home(request: Request):
 
             <h2>📄 Translation Files</h2>
             <p>To load a locale file, use the <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
-                function from
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate</code>
+                class from
                 <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app.helpers.helpers</code>.
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.translate</code>.
                 You can access translations using:
             </p>
             <ul>
                 <li><code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.get_translations</code>
                     - returns a dictionary with all translations</li>
                 <li><code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate_</code>
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.t</code>
                     - returns a specific translation (returns original text if
                     not found)</li>
             </ul>
@@ -198,9 +198,9 @@ async def home(request: Request):
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from app.helpers.translate import translate_
+from lila.core.translate import Translate
 
-msg_error_login = translate_(
+msg_error_login = Translate.t(
     key="Incorrect email or password", 
     request=request, 
     file_name="guest"
@@ -222,9 +222,9 @@ msg_error_login = translate_(
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from app.helpers.translate import translate
+from lila.core.translate import Translate
 
-all_translations = translate(
+all_translations = Translate.get_translations(
     request=request, 
     file_name="guest"
 )

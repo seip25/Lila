@@ -258,7 +258,7 @@ async def api_token(request: Request):
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
 from pydantic import EmailStr, BaseModel
-from app.helpers.validate import responseValidationError
+from lila.core.responses import JSONResponse
 
 class ExampleModel(BaseModel):
     email: EmailStr  # Ensures a valid email.

@@ -125,7 +125,7 @@ MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from app.helpers.files import upload
+from lila.core.files import upload
 
 @router.route("/upload", methods=["POST"])
 async def uploadFile(request: Request):
