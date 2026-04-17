@@ -49,7 +49,29 @@
     </header>
 
     <main>
-        <aside></aside>
+        <aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="react.html">React</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+</aside>
 
 
 
@@ -152,9 +174,9 @@ async def param(request: Request):
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python"> 
-@router.route(path='/url_with_param/?query_param', methods=['GET','POST']) 
+@router.route(path='/url_with_query', methods=['GET','POST']) 
 async def query_param(request: Request):  
-    query_param = request.query_params.get('query_param', 'query_param')
+    query_param = request.query_params.get('query_param', 'default_value')
     return JSONResponse({"received_param": query_param})
             </code></pre>
                 </div>
@@ -177,9 +199,7 @@ from lila.core.responses import JSONResponse  # Simplifies sending JSON response
 from lila.core.routing import Router  # Manages API app.routes.
 from lila.core.request import Request  # Handles HTTP requests in the application.
 from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
-from app.helpers.security import get_user_by_id_and_token
-from app.middlewares.middlewares import validate_token
- from app.helpers.validate import responseValidationError #import helper to response error for pydantic (opcional)
+from lila.core.middleware import validate_token
 
 router = Router()
             </code></pre>

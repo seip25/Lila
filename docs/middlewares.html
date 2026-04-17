@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -43,169 +43,65 @@
         </nav>
     </header>
     <main>
-        <aside></aside>
+        <aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="react.html">React</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="middlewares-eng">
             <h1>🛡️ Middlewares</h1>
             <h5>
                 Middleware functions are used to intercept requests before they reach the main logic of
                 the application.
-                In Lila, middlewares are defined in the <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/middlewares</code>
-                directory (can be
-                modified to any file and/or directory).
-                Middlewares can be used for tasks such as authentication, logging, and error handling.
+                In Lila, core middlewares are defined in the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/middleware.py</code>
+                file.
+                Middlewares can be used for tasks such as authentication, logging, security, and error handling.
             </h5>
             <p>
-                By default, Lila comes with 3 middlewares to start any application. Middlewares can be
-                used with decorators <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@my_middleware</code>.
+                Lila uses a unified <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Middleware</code> manager that provides both class-based HTTP middlewares and route decorators.
             </p>
+
+            <h2>✨ Default Route Middlewares</h2>
             <p>
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">login_required</code>,
-                to validate that you have a signed session, for the 'auth'
-                key that is passed as a parameter to be able to modify it as you wish.
-                If this session is not found, it redirects to the URL that is passed as a parameter, by
-                default, it is <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"/login"</code>.
-                Otherwise, it will continue its course executing the route or function.
+                Lila includes several built-in middlewares that can be used as decorators on your routes:
             </p>
-            <p>
-                Then we have <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">session_active</code>,
-                which is used to verify if you have an active
-                session.
-                It will redirect to the URL that is received as a parameter, by default, it is
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">"/dashboard"</code>.
-            </p>
-            <p>
-                The third is <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">validate_token</code>,
-                which is used to validate a JWT token thanks
-                to the <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">get_token</code>
-                helpers imported in
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">from app.helpers.security import get_token</code>.
-            </p>
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
-                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">app/middlewares/middlewares.py</span>
-                    <div class="flex space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                </div>
-                <div class="editor-content">
-                    <pre>
-
-            <code class="language-python">
-from lila.core.session import Session
-from lila.core.responses import RedirectResponse,JSONResponse
-from lila.core.request import Request
-from functools import wraps 
-from app.helpers.security import get_token
-
-def login_required(func,key:str='auth',url_return='/login'):
-    @wraps(func)
-    async def wrapper(request, *args, **kwargs):
-        session_data= Session.unsign(key=key,request=request)
-        if not session_data:
-            return RedirectResponse(url=url_return)
-        return await func(request,*args,**kwargs)
-    return wrapper
-
-def session_active(func,key:str='auth',url_return:str ='/dashboard'):
-    @wraps(func)
-    async def wrapper(request,*args,**kwargs):
-        session_data= Session.unsign(key=key,request=request)
-        if session_data:
-            return RedirectResponse(url=url_return)
-        return await func(request,*args,**kwargs)
-    return wrapper
-
-def validate_token(func):
-    @wraps(func)
-    async def wrapper(request: Request, *args, **kwargs):
-        await check_token(request=request)
-        return await func(request, *args, **kwargs)
-       
-    return wrapper
-
-
-async def check_token(request:Request):
-    token = request.headers.get('Authorization')
-    if not token:
-        return JSONResponse({'session':False,'message': 'Invalid token'},status_code=401)
-    
-    token = get_token(token=token)
-    if isinstance(token,JSONResponse):
-        return token 
-                
-            </code>
-            </pre>
-                </div>
-            </div>
-
-            <br />
-            <h5>
-                Here we give you several examples of how to use all 3, with the decorators.
-            </h5>
+            <ul>
+                <li>
+                    <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@login_required</code>: 
+                    Validates an active session. If not found, redirects to a login page (default: <code class="text-blue-600">/login</code>).
+                </li>
+                <li>
+                    <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@session_active</code>: 
+                    Checks if a session is already active. If so, redirects to a dashboard (default: <code class="text-blue-600">/dashboard</code>).
+                </li>
+                <li>
+                    <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@validate_token</code>: 
+                    Validates a JWT token from the <code class="text-blue-600">Authorization: Bearer &lt;token&gt;</code> header.
+                </li>
+            </ul>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">Middlewares in routes</span>
-                    <div class="flex space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                </div>
-                <div class="editor-content">
-
-                    <pre>
-                        <code class="language-python">
-from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
-
-#Middleware to validate the JWT Token. 
-@router.route(path='/api/token', methods=['GET','POST'])
-@validate_token #Middleware
-async def api_token(request: Request):
-    """Api Token function"""
-    print(get_user_by_id_and_token(request=request))
-    return JSONResponse({'api': True}) 
-
-#Middleware to validate session active
-@router.route(path='/dashboard', methods=['GET'])  
-@login_required #Middleware
-async def dashboard(request: Request):  
-    response = render(request=request, template='dashboard', files_translate=['authenticated']) 
-    return response 
-
-
-#Middleware validate if user get session active (if user get session redirect '/dashboard')
-@router.route(path='/login', methods=['GET'])  
-@session_active  #Middleware
-async def login(request: Request):  
-    response = render(request=request, template='auth/login', files_translate=['guest'])  
-    return response 
-
-
-                        </code>
-                    </pre>
-                </div>
-            </div>
-
-            <h2>🔒 Security Middleware</h2>
-
-            <p>Lila come with middlewares by default in app/middlewares/security </p>
-
-
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
-                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">main.py</span>
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Example usage in routes</span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -214,8 +110,88 @@ async def login(request: Request):
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from lila.core.app import App
-from app.middlewares.security import (
+from lila.core.middleware import login_required, session_active, validate_token
+
+# Require authentication for this route
+@router.get('/dashboard')
+@login_required
+async def dashboard(request: Request):
+    return render(request=request, template='dashboard')
+
+# Redirect authenticated users away from login page
+@router.get('/login')
+@session_active
+async def login_page(request: Request):
+    return render(request=request, template='login')
+
+# Validate JWT for API routes
+@router.get('/api/data')
+@validate_token
+async def api_data(request: Request):
+    return JSONResponse({"data": "secure"})
+                    </code></pre>
+                </div>
+            </div>
+
+            <h2>🛠️ Creating Custom Middlewares</h2>
+            <p>
+                You can easily create your own route middlewares using the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">create_decorator</code> helper. This tool automatically handles the boilerplate of Python decorators.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">core/middleware.py (Custom Middleware)</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from core.middleware import create_decorator
+
+@create_decorator
+async def check_admin(request: Request, role="admin"):
+    # If the logic returns a response, it breaks the chain and returns it
+    # If it returns True or None, it continues to the route
+    user = request.state.user
+    if user.get("role") != role:
+        return JSONResponse({"error": "Unauthorized"}, status_code=403)
+    return True
+
+# Usage in routes:
+# @check_admin -> uses default role="admin"
+# @check_admin(role="superadmin") -> uses custom role
+                    </code></pre>
+                </div>
+            </div>
+
+            <h2>🔒 Global Security Middlewares</h2>
+            <p>
+                Lila includes a set of global HTTP middlewares for application-wide protection. These are configured in <code class="text-blue-600">main.py</code> using the <code class="text-blue-600">Middleware</code> class.
+            </p>
+            <ul>
+                <li><code class="text-blue-600">LoggingMiddleware</code>: Automatically logs requests (ignoring static files).</li>
+                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds XSS protection, CSP, and other security headers.</li>
+                <li><code class="text-blue-600">SecurityShieldMiddleware</code>: Blocks malicious paths and IPs.</li>
+                <li><code class="text-blue-600">RateLimitMiddleware</code>: Protects against brute force and DoS attacks.</li>
+                <li><code class="text-blue-600">ErrorHandlerMiddleware</code>: Gracefully handles exceptions and Pydantic validation errors.</li>
+            </ul>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">main.py configuration</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from core.middleware import (
+    Middleware,
     LoggingMiddleware, 
     SecurityHeadersMiddleware,
     SecurityShieldMiddleware,
@@ -223,24 +199,16 @@ from app.middlewares.security import (
     ErrorHandlerMiddleware,
 )
 
-
-#English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
-#Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
-# middlewares = [
-#     Middleware(LoggingMiddleware),
-#     Middleware(SecurityHeadersMiddleware),
-#     Middleware(SecurityShieldMiddleware),
-#     Middleware(RateLimitMiddleware),
-#     Middleware(ErrorHandlerMiddleware)
-#      ]
-
 middlewares = [
+    Middleware(LoggingMiddleware),
+    Middleware(SecurityHeadersMiddleware),
+    Middleware(SecurityShieldMiddleware),
+    Middleware(RateLimitMiddleware),
     Middleware(ErrorHandlerMiddleware)
 ]
 
- app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
- 
-                                    </code></pre>
+app = App(..., middleware=middlewares)
+                    </code></pre>
                 </div>
             </div>
 

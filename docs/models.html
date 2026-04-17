@@ -43,7 +43,29 @@
     </nav>
   </header>
   <main>
-    <aside></aside>
+    <aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="react.html">React</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+</aside>
     <article id="models-eng">
       <h1>🗄️ Models (SQLAlchemy)</h1>
       <h5>Models are used to define the structure of data in
@@ -86,41 +108,39 @@
           <pre>
 
         <code class="language-python">
-from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
+from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from sqlalchemy.orm import Session
 from lila.core.database import Base
 from app.connections import connection 
 
 class User(Base):
-    __tablename__='users'
-    id = Column(Integer, primary_key=True,autoincrement=True)
-    name=Column( String(length=50), nullable=False)
-    email=Column( String(length=50), unique=True)
-    password=Column(String(length=150), nullable=False)
-    token=Column(String(length=150), nullable=False)
-    active=Column( Integer, nullable=False,default=1)
-    created_at=Column( TIMESTAMP)
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(length=50), nullable=False)
+    email = Column(String(length=50), unique=True)
+    password = Column(String(length=150), nullable=False)
+    token = Column(String(length=150), nullable=True)
+    active = Column(Integer, nullable=False, default=1)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-#Example of how to use SQLAlchemy to make queries to the database
-    def get_all(select: str = "id,email,name", limit: int = 1000) -> list:
-        query = f"SELECT {select}  FROM users WHERE active =1  LIMIT {limit}"
-        result = connection.query(query=query,return_rows=True)#Return rows 
-        return result 
-
-#Example of how to use SQLAlchemy to make queries to the database
-    def get_by_id(id: int, select="id,email,name") -> dict:
-        query = f"SELECT {select}  FROM users WHERE id = :id AND active = 1 LIMIT 1"
-        params = {"id": id}
-        row = connection.query(query=query, params=params,return_row=True)#Retrurn row
-        return row
-    
-    #Example using ORM abstraction in SQLAlchemy
     @classmethod
-    def get_all_orm(cls, db: Session, limit: int = 1000):
-        result = db.query(cls).filter(cls.active == 1).limit(limit).all()
-        return result
-    
-    
-#Example of how to use the class to make queries to the database
+    def get_all(cls, limit: int = 1000):
+        db = connection.get_session()
+        try:
+            result = db.query(cls).filter(cls.active == 1).limit(limit).all()
+            return result
+        finally:
+            db.close()
+
+    @classmethod
+    def get_by_id(cls, id: int):
+        db = connection.get_session()
+        try:
+            return db.query(cls).filter(cls.id == id, cls.active == 1).first()
+        finally:
+            db.close()
+
+# Example usage
 users = User.get_all()
 user = User.get_by_id(1)
                     </code>

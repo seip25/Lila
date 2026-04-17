@@ -49,7 +49,29 @@
   </header>
 
   <main>
-    <aside></aside>
+    <aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="react.html">React</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+</aside>
 
     <article id="templates-eng">
       <h1>🎨 Template Rendering (Jinja2)</h1>
@@ -130,16 +152,8 @@ async def home(request: Request):
           </div>
           <div class=" ">
             <pre><code class="language-python">
-def render(
-  request: Request,
-  template: str,
-  context: dict = {},
-  theme_: bool = True,
-  translate: bool = True,
-  files_translate: list = [],
-  lang_default: str = None,
-  templates=templates
-)
+def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
+
 </code>
 </pre>
           </div>
@@ -171,18 +185,6 @@ def render(
             </p>
           </li>
           <li class="flex flex-col md:flex-row md:items-start">
-            <strong>theme_ (bool, default=True):</strong>
-            <p>
-              Applies the default visual theme.
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>translate (bool, default=True):</strong>
-            <p>
-              Enables the built-in translation system.
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
             <strong>files_translate (list):</strong>
             <p>
               List of additional translation files.
@@ -197,12 +199,6 @@ def render(
               <code
                 class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/en</code>,
               etc.).
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>templates:</strong>
-            <p>
-              Base template collection used by Lila.
             </p>
           </li>
         </ul>
@@ -220,88 +216,7 @@ def render(
         </p>
       </div>
 
-      <div>
-        <h2>
-          Asset Optimization in Production (Images & CSS)
-        </h2>
-
-        <!-- IMAGE OPTIMIZATION -->
-        <h3>
-          Optimized Images with Jinja2
-        </h3>
-
-        <p>
-          Lila automatically optimizes your images for better performance and
-          SEO. When using the <code>image()</code> function in your templates,
-          the system converts images to <strong>WebP format</strong>, resizes
-          them if necessary, and compresses them without losing visual
-          quality.
-        </p>
-
-        <h4>
-          Usage in HTML (Jinja2)
-        </h4>
-
-        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
-          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>HTML</span>
-          </div>
-          <div class="editor-content">
-            <pre><code class="language-html">
-&lt;img src="{{ image('img/lila.png') }}" alt="Lila" width="100" height="100" /&gt;
-      </code></pre>
-          </div>
-        </div>
-
-        <h4>
-          What Happens Automatically
-        </h4>
-
-        <ul>
-          <li>The image is converted to <strong>WebP</strong>.</li>
-          <li>If the image is wider than 1920px, it is resized.</li>
-          <li>Compression is applied using optimized quality.</li>
-          <li>The optimized image is cached for future requests.</li>
-        </ul>
-
-        <!-- CSS OPTIMIZATION -->
-        <h3>
-          Automatic CSS Minification
-        </h3>
-
-        <p>
-          The <code>public()</code> function automatically detects whether a
-          minified version of your CSS file exists. If it does not, the system
-          generates it automatically, improving load times and SEO
-          performance.
-        </p>
-
-        <h4>
-          Usage in HTML (Jinja2)
-        </h4>
-
-        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
-          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>HTML</span>
-          </div>
-          <div class="editor-content">
-            <pre><code class="language-html">
-&lt;link rel="stylesheet" href="{{ public('css/lila.css') }}" /&gt;
-      </code></pre>
-          </div>
-        </div>
-
-        <h4>
-          Automatic Behavior
-        </h4>
-
-        <ul>
-          <li>
-            If <code>lila.min.css</code> exists, it will be used
-            automatically.
-          </li>
-          <li>If not, it is generated automatically.</li>
-          <li>Minified files reduce file size and load faster.</li>
-        </ul>
-
+    
         <!-- CONTEXT SYSTEM -->
         <h3>
           Base Context Injection
@@ -323,9 +238,9 @@ def get_base_context(request, files_translate=[], lang_default=None):
         "version": VERSION_PROJECT,
         "lang": lang_default if lang_default else lang(request),
         "translate": t("translations", request, lang_default=lang_default),
-        "image": image,
-        "static": public,
-        "public": public
+        "description": DESCRIPTION_DEFAULT,
+        "keywords": KEYWORDS_DEFAULT,
+        "author": AUTHOR_DEFAULT,
     }
 
     for file_name in files_translate:
@@ -338,19 +253,8 @@ def get_base_context(request, files_translate=[], lang_default=None):
           </div>
         </div>
 
-        <!-- BENEFITS -->
-        <h3>
-          Performance & SEO Benefits
-        </h3>
-
-        <ul>
-          <li>✅ Faster page loading</li>
-          <li>✅ Smaller file sizes</li>
-          <li>✅ Improved Google Lighthouse score</li>
-          <li>✅ Automatic WebP image generation</li>
-          <li>✅ SEO-friendly asset delivery</li>
-          <li>✅ Zero manual optimization required</li>
-        </ul>
+       
+        
       </div>
     </article>
   </main>

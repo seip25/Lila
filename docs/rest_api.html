@@ -43,7 +43,29 @@
         </nav>
     </header>
     <main>
-        <aside></aside>
+        <aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="react.html">React</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="rest_api_crud-eng">
             <h1>⚡ REST API CRUD Generator</h1>
             <h5>At Lila, we have a simple way to generate CRUDs with
@@ -105,7 +127,7 @@ from lila.core.request import Request
 from lila.core.responses import JSONResponse
 from lila.core.routing import Router
 from pydantic import EmailStr, BaseModel
-from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
+from lila.core.middleware import validate_token, check_token, check_session,login_required
 from app.connections import connection  # Database connection with SQLAlchemy
 from app.models.user import User  # SQLAlchemy 'User' model
 
