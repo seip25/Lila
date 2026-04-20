@@ -190,7 +190,7 @@ export default defineConfig({{
     publicDir: 'public',
     emptyOutDir: true,
     rollupOptions: {{
-      input: "./resources/main.jsx",
+      input: "./resources/js/main.jsx",
     }}, 
   }},
   server: {{
@@ -220,7 +220,7 @@ const mountedRoots = new Map();
 window.renderReactComponent = async (name = 'all') => {
   document.querySelectorAll('[data-react-component]').forEach(async (el) => {
     const componentName = el.dataset.reactComponent;
-    console.log(componentName);
+    
     if (name !== 'all' && componentName !== name) return;
 
     const props = JSON.parse(el.dataset.props || '{}');

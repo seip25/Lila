@@ -91,7 +91,7 @@ def vite_assets() -> str:
     In development, it should be used alongside hot_reload().
     """
     if DEBUG:
-        return '<script type="module" src="http://localhost:5173/public/build/resources/main.jsx"></script>'
+        return '<script type="module" src="http://localhost:5173/public/build/resources/js/main.jsx"></script>'
     
     global MANIFEST_BUILD
     if not MANIFEST_BUILD:
