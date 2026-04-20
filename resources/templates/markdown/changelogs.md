@@ -1,5 +1,11 @@
 # {{ translate["changelogs"] }}
 
+## 1.0.2
+
+### {{ translate["fix_bug_102"] }}
+
+{{ translate["fix_bug_102_desc"] }}
+
 ## 1.0.0
 
 ### {{ translate["validation_automatic_in_routes"] }}

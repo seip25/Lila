@@ -270,5 +270,13 @@
   "validation_automatic_in_routes_desc": {
     "es": "Se agregó validación automática en las rutas para asegurar que los datos sean correctos.",
     "en": "Added automatic validation in routes to ensure data is correct."
+  },
+  "fix_bug_102": {
+    "es": "Corrección de error en modo Debug",
+    "en": "Fix bug in Debug mode"
+  },
+  "fix_bug_102_desc": {
+    "es": "Se solucionó un problema en el trazado de errores para asegurar que la página de debug funcione correctamente en todos los entornos.",
+    "en": "Fixed an issue in error tracking to ensure the debug page works correctly in all environments."
   }
 }
