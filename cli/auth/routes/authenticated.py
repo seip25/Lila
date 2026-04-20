@@ -68,4 +68,33 @@ async def update_profile(request: Request):
     finally:
         db.close()
 
+@router.post("/delete-account", model=DeleteAccountModel)
+@login_required
+async def delete_account(request: Request):
+    input = request.state.data
+    
+    session_data = await Session.get(request, "auth")
+    user_id = session_data.get("user_id")
+    password = input.password
+    
+    db = connection.get_session()
+    try:
+        user_db = User.get_by_id(db, user_id)
+        if not user_db:
+            return JSONResponse({"success": False, "msg": Translate.t(key="Error deleting account", request=request)})
+        elif not user_db.check_password(password):
+            return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
+        else:
+            User.delete(db, user_id)
+            
+            response = JSONResponse({"success": True, "msg": Translate.t(key="Account deleted successfully", request=request)})
+            await Session.delete(response, key="auth")
+            return response 
+           
+    except Exception as e:
+        db.rollback()
+        return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
+    finally:
+        db.close()
+
 routes = router.get_routes()

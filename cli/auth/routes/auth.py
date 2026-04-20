@@ -59,7 +59,10 @@ async def register(request: Request):
         if User.get_by_email(db, input.email):
             msg = Translate.t(key="User already exists", request=request)
             return JSONResponse({"success": False, "msg": msg})
-        
+        if User.get_by_email(db, input.email, 0):
+            msg = Translate.t(key="User is inactive", request=request)
+            return JSONResponse({"success": False, "msg": msg})
+            
         user = User(email=input.email, name=input.name)
         user.set_password(input.password)
         db.add(user)
@@ -172,7 +175,7 @@ async def change_password(request: Request):
         db.commit()
         
         return JSONResponse({"success": True, "msg": Translate.t(key="Password changed successfully", request=request)})
-    except Exception as e:
+    except Exception as e: 
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
     finally:
         if 'db' in locals(): db.close()

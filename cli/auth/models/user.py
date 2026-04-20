@@ -89,6 +89,14 @@ class User(Base):
             return ph.verify(stored_hash, password)
         except VerifyMismatchError:
             return False
+    @classmethod
+    def delete(cls, db: Session, id: int):
+        user = db.query(cls).filter(cls.id == id).first()
+        if user:
+            user.active = 0
+            db.commit()
+            return True
+        return False
 
      
     @staticmethod

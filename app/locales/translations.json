@@ -331,6 +331,10 @@
     "es": "Autenticación requerida",
     "en": "Authentication required"
   },
+  "User is inactive": {
+    "es": "Usuario inactivo",
+    "en": "User is inactive"
+  },
   "Session already active": {
     "es": "Sesión ya activa",
     "en": "Session already active"

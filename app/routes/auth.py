@@ -59,7 +59,10 @@ async def register(request: Request):
         if User.get_by_email(db, input.email):
             msg = Translate.t(key="User already exists", request=request)
             return JSONResponse({"success": False, "msg": msg})
-        
+        if User.get_by_email(db, input.email, 0):
+            msg = Translate.t(key="User is inactive", request=request)
+            return JSONResponse({"success": False, "msg": msg})
+            
         user = User(email=input.email, name=input.name)
         user.set_password(input.password)
         db.add(user)
