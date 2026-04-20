@@ -91,9 +91,9 @@ async def create_react_env(name: str):
     """
     Scaffold React environment in project root.
     """
-    react_dir = os.path.join(project_root, name)
+    react_dir = os.path.join(project_root, name, "js")
     
-    print(f"⚡ Setting up React '{name}' environment in {project_root}...\n")
+    print(f"⚡ Setting up React '{name}/js' environment in {project_root}...\n")
     
     package_json_path = os.path.join(project_root, "package.json")
     if not os.path.exists(package_json_path):
@@ -165,12 +165,13 @@ function watchLilaTemplates() {{
     return {{
         name: 'watch-lila-templates',
         configureServer(server) {{
-            server.watcher.add(resolve(process.cwd(), 'resources/templates/**/*.html'));
-            server.watcher.add(resolve(process.cwd(), 'resources/templates/**/*.md'));
-            server.watcher.add(resolve(process.cwd(), 'resources/templates/**/*.twig'));
+            const templateDir = resolve(process.cwd(), 'resources/templates');
+            server.watcher.add(templateDir);
         }},
         handleHotUpdate({{ file, server }}) {{
-            if (file.includes('resources/templates') && (file.endsWith('.html') || file.endsWith('.md') || file.endsWith('.twig'))) {{
+            const normalizedFile = file.replace(/\\\\/g, '/');
+            if (normalizedFile.includes('/resources/templates/') && 
+               (normalizedFile.endsWith('.html') || normalizedFile.endsWith('.md') || normalizedFile.endsWith('.twig'))) {{
                 server.ws.send({{ type: 'full-reload' }});
             }}
         }}
@@ -249,13 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
 """
     with open(main_jsx_path, "w", encoding="utf-8") as f:
         f.write(main_jsx_content)
-    print(f"✅ Created {name}/main.jsx")
+    print(f"✅ Created {name}/js/main.jsx")
 
     main_css_path=os.path.join(react_dir,"globals.css")
     
     with open(main_css_path, "w", encoding="utf-8") as f:
         f.write(" ")
-    print(f"✅ Created {name}/globals.css")
+    print(f"✅ Created {name}/js/globals.css")
 
     components_dir = os.path.join(react_dir, "pages")
     os.makedirs(components_dir, exist_ok=True)
@@ -283,7 +284,7 @@ export default function Counter({ start = 0 }) {
 """
     with open(counter_jsx_path, "w", encoding="utf-8") as f:
         f.write(counter_jsx_content)
-    print(f"✅ Created {name}/pages/Counter.jsx")
+    print(f"✅ Created {name}/js/pages/Counter.jsx")
 
     print("\n📦 Installing npm dependencies...\n")
     exit_code = await run_command("npm install", cwd=project_root)

@@ -9,6 +9,7 @@ PORT = int(getenv("PORT", 8001))
 HOST = getenv("HOST", "127.0.0.1")
 DEBUG = getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 JIT=getenv("JIT", "True").lower() in ("true", "1", "yes")
+WORKERS=int(getenv("WORKERS", "1"))
 
 
 PATH_LOG_BASE_DIR = "app/logs"

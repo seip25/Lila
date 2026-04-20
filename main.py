@@ -1,7 +1,7 @@
 from core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-from app.config import DEBUG,JIT,HOST,PORT
+from app.config import DEBUG,JIT,HOST,PORT,WORKERS
 from core.middleware import (
     Middleware,
     LoggingMiddleware, 
@@ -72,7 +72,31 @@ app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_
 def main():
     # English: Starting the Uvicorn server with the application instance.
     # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
+    if DEBUG:
+        uvicorn.run(
+            "main:app", 
+            host=HOST, 
+            port=PORT, 
+            reload=True, 
+            workers=1,
+            access_log=True,
+            log_level="info"
+        )
+    else:
+        import multiprocessing
+        optimal_workers = WORKERS if WORKERS > 1 else (multiprocessing.cpu_count() * 2) + 1
+        
+        uvicorn.run(
+            "main:app", 
+            host=HOST, 
+            port=PORT, 
+            reload=False, 
+            workers=optimal_workers,
+            access_log=False,
+            log_level="warning",
+            timeout_keep_alive=5,
+            limit_concurrency=1000
+        )
 
 if __name__ == "__main__":
     try:
