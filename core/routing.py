@@ -470,7 +470,10 @@ class Router:
                 params["hash"] = generate_token_value()
 
             if "password" in params:
-                params["password"] = ph.hash(params["password"])
+                if params["password"]:
+                    params["password"] = ph.hash(params["password"])
+                else:
+                    del params["password"]
 
             if "created_at" in body:
                 params["created_at"] = datetime.datetime.now().strftime(
@@ -581,7 +584,10 @@ class Router:
             id = int(self.path_params["id"])
             params["id"] = id
             if "password" in params:
-                params["password"] = ph.hash(params["password"])
+                if params["password"]:
+                    params["password"] = ph.hash(params["password"])
+                else:
+                    del params["password"]
 
             if "token" in params:
                 params["token"] = generate_token_value()
