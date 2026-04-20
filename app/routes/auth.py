@@ -158,7 +158,7 @@ async def change_password(request: Request):
         password = body.get("new_password")
         password_2 = body.get("confirm_password")
         
-        if password != password_2:
+        if not password or password != password_2:
             return JSONResponse({"success": False, "msg": Translate.t(key="Passwords not match", request=request)})
         
         db = connection.get_session()
