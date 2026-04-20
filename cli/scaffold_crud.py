@@ -99,10 +99,10 @@ def generate_route_file(model_name: str, route_name: str, table_name: str, colum
     route_content = f'''# English: Routes for {model_name} CRUD operations
 # Español: Rutas para operaciones CRUD de {model_name}
 
-from lila.core.request import Request
-from lila.core.routing import Router
-from lila.core.templates import render
-from lila.core.responses import JSONResponse
+from core.request import Request
+from core.routing import Router
+from core.templates import render
+from core.responses import JSONResponse
 from app.connections import connection
 from app.models.{to_snake_case(model_name)} import {model_name}
 from pydantic import BaseModel, ValidationError
@@ -619,7 +619,7 @@ def main(
     typer.echo(f"\n🎨 Generating HTML template...")
     template_content = generate_html_template(model_name, route_name, columns)
     
-    template_dir = Path(f"templates/html/{route_name}")
+    template_dir = Path(f"resources/templates/html/{route_name}")
     template_dir.mkdir(parents=True, exist_ok=True)
     
     template_file = template_dir / "index.html"
@@ -631,11 +631,11 @@ def main(
         else:
             with open(template_file, 'w', encoding='utf-8') as f:
                 f.write(template_content)
-            typer.echo(f"✅ Template created: templates/html/{route_name}/index.html")
+            typer.echo(f"✅ Template created: resources/templates/html/{route_name}/index.html")
     else:
         with open(template_file, 'w', encoding='utf-8') as f:
             f.write(template_content)
-        typer.echo(f"✅ Template created: templates/html/{route_name}/index.html")
+        typer.echo(f"✅ Template created: resources/templates/html/{route_name}/index.html")
     
     # Add import to main.py
     typer.echo(f"\n🔗 Adding routes to main.py...")

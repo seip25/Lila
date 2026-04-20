@@ -13,8 +13,9 @@ SCAFFOLD_ITEMS = {
     "main.py": "main.py",
     "app": "app",
     "public": "public",
-    "templates": "templates",
+    "resources": "resources",
     "uploads": "uploads",
+    ".gitignore": ".gitignore",
     ".env": ".env",
     "AGENTS.md": "AGENTS.md",
 }

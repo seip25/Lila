@@ -10,10 +10,24 @@ from decimal import Decimal
 from pydantic import BaseModel
 from typing import Any, Union
 
-HTMLResponse = StarletteHTMLResponse
-RedirectResponse = StarletteRedirectResponse
-PlainTextResponse = StarlettePlainTextResponse
-StreamingResponse = StarletteStreamingResponse
+class LilaResponseMixin:
+    def __init__(self, *args, **kwargs):
+        if "headers" not in kwargs or kwargs["headers"] is None:
+            kwargs["headers"] = {}
+        kwargs["headers"]["Powered-By"] = "Lila Framework"
+        super().__init__(*args, **kwargs)
+
+class HTMLResponse(LilaResponseMixin, StarletteHTMLResponse):
+    pass
+
+class RedirectResponse(LilaResponseMixin, StarletteRedirectResponse):
+    pass
+
+class PlainTextResponse(LilaResponseMixin, StarlettePlainTextResponse):
+    pass
+
+class StreamingResponse(LilaResponseMixin, StarletteStreamingResponse):
+    pass
 
 
 def _default_encoder(obj: Any) -> Any:
@@ -52,7 +66,29 @@ class JSONResponse(Response):
         headers: dict = None,
         media_type: str = None,
     ) -> None:
+        if headers is None:
+            headers = {}
+        headers["Powered-By"] = "Lila Framework"
         super().__init__(content, status_code, headers, media_type)
 
     def render(self, content: Any) -> bytes:
         return orjson_dumps(content)
+
+    @staticmethod
+    def validation_error(e):
+        """Standardized response for Pydantic validation errors."""
+        errors = []
+        msg_errors = ""
+        try:
+            for err in e.errors():
+                field = err["loc"][-1] if err["loc"] else "unknown"
+                msg = err["msg"]
+                errors.append({str(field): msg})
+                msg_errors += f"{field} : {msg} . "
+        except Exception:
+            msg_errors = str(e)
+
+        return JSONResponse(
+            {"success": False, "errors": errors, "msg": msg_errors},
+            status_code=400,
+        )

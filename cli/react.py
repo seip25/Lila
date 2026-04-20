@@ -8,7 +8,7 @@ import asyncio
 import os
 import sys
 import orjson
-from lila.core.responses import orjson_dumps
+from core.responses import orjson_dumps
 
 app = typer.Typer()
 
@@ -28,6 +28,7 @@ def html_template_base()->str:
     <title>{{ title }}</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     {{head | safe}}
+    {{ hot_reload() | safe }}
     {{ vite_assets() | safe }}
   </head>
   <body >
@@ -52,7 +53,7 @@ def html_template ()->str:
     <title>{{ title }}</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="css/lila.css" />
-    
+    {{ hot_reload() | safe }}
   </head>
   <body>
     <main class="mt-4 container">
@@ -279,7 +280,7 @@ export default function Counter({ start = 0 }) {
     else:
         print("❌ Error installing dependencies.")
 
-    html_template_path = os.path.join(project_root, "templates/html/react.html")
+    html_template_path = os.path.join(project_root, "resources/templates/html/react.html")
     route_react="""
 
 @router.get("/react-page")
@@ -310,7 +311,7 @@ async def react(request: Request):
     """
     with open(html_template_path, "w", encoding="utf-8") as f:
         f.write(html_template())
-    print("✅ Created templates/html/react.html")
+    print("✅ Created resources/templates/html/react.html")
     marker_route_react="#marker_react"
     routes_path = os.path.join(project_root, "app/routes/routes.py")
     with open(routes_path, "r", encoding="utf-8") as f:
@@ -320,7 +321,7 @@ async def react(request: Request):
         f.write(routes_content)
     print("✅ Updated app/routes/routes.py")
     
-    html_template_path_lila=os.path.join(project_root,"templates/html/lila/react_base.html")
+    html_template_path_lila=os.path.join(project_root,"resources/templates/html/lila/react_base.html")
     with open(html_template_path_lila, "w", encoding="utf-8") as f:
         f.write(html_template_base())
     

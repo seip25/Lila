@@ -34,7 +34,7 @@ user_model_content = read_file("cli/auth/models/user.py")
 auth_model_content = read_file("cli/auth/models/auth.py")
 
 def _create_templates():
-    templates_dir = Path("templates/html/auth")
+    templates_dir = Path("resources/templates/html/auth")
     templates_dir.mkdir(parents=True, exist_ok=True)
 
     templates = {
@@ -52,7 +52,7 @@ def _create_templates():
 
     print("\n Auth templates generated successfully")
 
-    template_dashboard_dir = Path("templates/html/authenticated")
+    template_dashboard_dir = Path("resources/templates/html/authenticated")
     template_dashboard_dir.mkdir(parents=True, exist_ok=True)
     templates_dashboard = {
         "dashboard.html": authenticated_template_content,
@@ -75,15 +75,14 @@ def _create_routes():
     with open(main_file, "r", encoding="utf-8") as file:
         content = file.read()
 
-    if "from app.routes.auth import auth_routes" in content:
+    if "from app.routes.auth import routes as auth_routes" in content:
         typer.echo("Auth routes already added.")
-
-    typer.echo("Auth routes already addedd")
+        return
 
     replace_text = f'''# {marker}
-from app.routes.auth import auth_routes
-from app.routes.authenticated import authenticated_routes
-all_routes = list(itertools.chain(routes, api_routes, auth_routes,authenticated_routes))'''
+from app.routes.auth import routes as auth_routes
+from app.routes.authenticated import routes as authenticated_routes
+all_routes = list(itertools.chain(routes, api_routes, auth_routes, authenticated_routes))'''
 
     new_content = content.replace(f"# {marker}", replace_text)
 

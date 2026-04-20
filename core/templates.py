@@ -2,11 +2,11 @@ from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT
-from app.helpers.translate import lang, translate as t
-from lila.core.request import Request
-from lila.core.responses import HTMLResponse, JSONResponse
+from core.translate import Translate
+from core.request import Request
+from core.responses import HTMLResponse, JSONResponse
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
-from lila.core.logger import Logger
+from core.logger import Logger
 import markdown
 import os
 import traceback
@@ -68,22 +68,30 @@ def renderReact(request: Request, component: str, props: dict = None, options: d
     }
     return render(request=request, template="lila/react_base", context=context)
 
-def vite_assets() -> str:
+def hot_reload() -> str:
     """
-    Resolves Vite asset tags for development (hot reload) or production (manifest).
+    Returns Vite hot reload scripts if DEBUG is True.
     """
     if DEBUG:
         return """
         <script type="module">
-            import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
+            import RefreshRuntime from "http://localhost:5173/@react-refresh";
             RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
             window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
         </script>
-        <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
-        <script type="module" src="http://localhost:5173/public/build/resources/main.jsx"></script>
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
         """
+    return ""
+
+def vite_assets() -> str:
+    """
+    Resolves Vite asset tags for production (manifest).
+    In development, it should be used alongside hot_reload().
+    """
+    if DEBUG:
+        return '<script type="module" src="http://localhost:5173/main.jsx"></script>'
     
     global MANIFEST_BUILD
     if not MANIFEST_BUILD:
@@ -91,7 +99,6 @@ def vite_assets() -> str:
             from app.build_manifest import manifest
             MANIFEST_BUILD = manifest
         except ImportError:
-            Logger.error("Build manifest not found. Run 'npm run build'.")
             return ""
 
     entry = MANIFEST_BUILD.get("file")
@@ -108,20 +115,23 @@ def vite_assets() -> str:
 
 jinja_env.globals['react'] = react
 jinja_env.globals['vite_assets'] = vite_assets
+jinja_env.globals['hot_reload'] = hot_reload
 
 templates = Jinja2Templates(env=jinja_env)
 markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
-
-def get_base_context(request: Request, files_translate: list[str] = [], lang_default: str = None) -> dict:
+def get_base_context(request: Request, files_translate: list[str] = None, lang_default: str = None) -> dict:
     """
     Constructs the standard context dictionary for all template renders.
     """
-    current_lang = lang_default if lang_default else lang(request)
-    translations = t("translations", request, lang_default=lang_default)
-    
+    if files_translate is None:
+        files_translate = []
+
+    current_lang = lang_default if lang_default else Translate.lang(request)
+    translations = Translate.get_translations("translations", request, lang_default=lang_default)
+
     for file_name in files_translate:
-        translations.update(t(file_name, request, lang_default=lang_default))
-        
+        translations.update(Translate.get_translations(file_name, request, lang_default=lang_default))
+
     return {
         "title": TITLE_PROJECT,
         "version": VERSION_PROJECT,
@@ -131,6 +141,7 @@ def get_base_context(request: Request, files_translate: list[str] = [], lang_def
         "keywords": KEYWORDS_DEFAULT,
         "author": AUTHOR_DEFAULT,
     }
+
 
 def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
     """

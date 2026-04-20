@@ -8,7 +8,7 @@ import os
 import subprocess
 from app.connections import connection
 from argon2 import PasswordHasher
-from app.helpers.security import generate_token_value
+from core.auth import generate_token_value
 
 app = typer.Typer()
 ph = PasswordHasher()
@@ -84,7 +84,7 @@ from app.routes.admin import Admin
 from app.models.user import User
 admin_routes = Admin(models=[User])
 all_routes = list(itertools.chain(all_routes, admin_routes))
-    """
+"""
 
     if not os.path.exists(main_file):
         typer.echo("main.py not found.")
@@ -97,11 +97,11 @@ all_routes = list(itertools.chain(all_routes, admin_routes))
         typer.echo(f"Marker '{marker}' not found in main.py.")
         raise typer.Exit(code=1)
 
-    if replace_text.strip() in content:
+    if "admin_routes = Admin" in content:
         typer.echo("Admin routes already added.")
         return
 
-    new_content = content.replace(marker, f"{marker}\n{replace_text}")
+    new_content = content.replace(marker, f"{marker}{replace_text}")
 
     with open(main_file, "w", encoding="utf-8") as file:
         file.write(new_content)

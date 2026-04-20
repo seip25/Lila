@@ -1,7 +1,7 @@
 from starlette.routing import Route, Mount, WebSocketRoute
 from starlette.staticfiles import StaticFiles
-from lila.core.responses import HTMLResponse, JSONResponse, RedirectResponse
-from lila.core.request import Request
+from core.responses import HTMLResponse, JSONResponse, RedirectResponse
+from core.request import Request
 from app.config import (
     TITLE_PROJECT,
     VERSION_PROJECT,
@@ -11,14 +11,16 @@ from app.config import (
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel, ValidationError
 from argon2 import PasswordHasher
-from app.helpers.security import generate_token_value, get_user_by_token
-from app.helpers.translate import lang,translate_pydantic_error
-from lila.core.logger import Logger
+from core.auth import generate_token_value, get_user_id_by_token as get_user_by_token
+from core.translate import Translate
+from core.security import Security
+from core.logger import Logger
+
 import datetime
 import re
 from functools import wraps
 from pathlib import Path
-from lila.core.templates import render
+from core.templates import render
 import asyncio
 
 ph = PasswordHasher()
@@ -39,16 +41,30 @@ class Router:
         def decorator(func):
             @wraps(func)
             async def validation_wrapper(request: Request):
-                current_lang=lang(request=request)
+                current_lang=Translate.lang(request=request)
+                
+                # Check for XSS in query parameters
+                if Security.check_xss(str(request.query_params)):
+                    return JSONResponse({"success": False, "msg": "Potential XSS detected in query parameters"}, status_code=400)
+
                 if model and request.method in ["POST", "PUT", "PATCH"]:
                     try:
                         body = await request.json()
-                        validated_data = model(**body)
+                        # Sanitize incoming data
+                        sanitized_body = Security.sanitize_data(body)
+                        
+                        # Check for XSS in sanitized body (extra layer)
+                        if Security.check_xss(str(sanitized_body)):
+                             return JSONResponse({"success": False, "msg": "Potential XSS detected in body"}, status_code=400)
+
+                        validated_data = model(**sanitized_body)
                         request.state.data = validated_data
                     except ValidationError as e:
                         return self.response_validation_error(e,current_lang)
-                    except Exception:
+                    except Exception as e:
                         msg = "Invalid JSON Body" if current_lang == "en" else "JSON inválido"
+                        if DEBUG:
+                            print(f"Routing Error: {e}")
                         return JSONResponse({"success": False, "msg": msg}, status_code=400)
                 
                 if asyncio.iscoroutinefunction(func):
@@ -71,7 +87,7 @@ class Router:
         
         for err in e.errors():
             field = err["loc"][-1] 
-            translated_msg = translate_pydantic_error(err, language)
+            translated_msg = Translate.translate_pydantic_error(err, language)
             
             errors_list.append({str(field): translated_msg})
             msg_parts.append(f"{field}: {translated_msg}")

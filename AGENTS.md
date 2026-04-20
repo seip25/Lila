@@ -1,51 +1,135 @@
 # Lila Framework — Agent Reference
 
-Lila is a high-performance Python web framework built on **Starlette** + **Pydantic** + **SQLAlchemy**. 
-It is designed for rapid full-stack development, providing a library-based core (`lila.core`) and specialized CLI tools for project management.
+Lila is a high-performance Python web framework built on **Starlette** + **Pydantic** + **SQLAlchemy**.
+Designed for rapid full-stack development with async support, ORM, templates, CLI scaffolding, and admin panel.
 
-## Project Structure (Standard)
-
-When working on a Lila project, the local structure focuses on application logic, as the core is installed as a package:
+## Project Structure
 
 ```
-project_root/
-├── main.py                  # Entry point (uvicorn, app initialization)
-├── .env                     # Configuration (DEBUG, SECRET_KEY, DB_CONFIG)
+lila/
+├── main.py                  # App entry point (uvicorn, routes, middlewares)
+├── core/                    # Framework core
+│   ├── app.py               # App class (extends Starlette) + getenvironment helper
+│   ├── routing.py           # Router with HTTP decorators, WebSocket, REST CRUD generation, OpenAPI/Swagger
+│   ├── database.py          # Database class (SQLAlchemy: MySQL, PostgreSQL, SQLite)
+│   ├── templates.py         # Jinja2 render, React Islands (renderReact), Markdown, Vite assets
+│   ├── session.py           # Signed cookie sessions + async get/set/delete helpers
+│   ├── auth.py              # JWT tokens (generate, verify), password hashing
+│   ├── security.py          # XSS detection and data sanitization utilities
+│   ├── files.py             # File upload and image optimization utilities
+│   ├── responses.py         # JSONResponse (auto-serialize) + validation_error helper
+│   ├── admin.py             # Admin panel (dashboard, metrics, model CRUD, log viewer)
+│   ├── logger.py            # File-based Logger (error, warning, info) + request logging
+│   ├── debug.py             # Debug middleware (RAM, CPU, execution time per request)
+│   ├── translate.py         # Translate class (i18n loading, language detection, Pydantic error translation)
+│   ├── middleware.py        # Re-export of Starlette Middleware
+│   ├── controller.py        # RequestParser (body/query validation via Pydantic)
+│   ├── request.py           # Re-export of Starlette Request
+│   ├── utils.py             # General utilities (date conversion, etc.)
+│   └── background.py        # Re-export of Starlette BackgroundTask
 ├── app/
-│   ├── config.py            # Loads .env and defines project constants
-│   ├── connections.py       # Database connection instances (from lila.core.database)
-│   ├── helpers/             # Security, translations, file handling
-│   ├── locales/             # i18n JSON files
-│   ├── models/              # SQLAlchemy models (extending lila.core.database.Base)
-│   └── routes/              # Route definitions and API endpoints
-├── templates/               # Jinja2 HTML templates
-└── public/                  # Static assets (css, js, images)
+│   ├── config.py            # Environment config (.env): DEBUG, SECRET_KEY, paths, project meta
+│   ├── connections.py       # Database connection instances
+│   ├── locales/             # JSON translation files (i18n)
+│   ├── middlewares/         # Custom middleware (security, logging, rate-limit)
+│   ├── models/              # SQLAlchemy models
+│   └── routes/              # Route definitions (routes.py, api.py, admin.py)
+├── cli/                     # CLI tools (scaffold, model gen, migrations, auth, admin, React, minify)
+├── resources/               # Frontend resources and Jinja2 templates (Unified)
+│   ├── main.jsx             # React entry point
+│   ├── pages/               # React components (islands)
+│   └── templates/           # Jinja2 templates
+│       ├── html/            # HTML templates
+│       └── markdown/        # Markdown files
+└── public/                  # Static files (css, js, img)
 ```
 
-> **Note:** The framework engine (`lila.core`) and CLI logic (`lila.cli`) are installed in the virtual environment.
+## Core Concepts
 
-## Core Components (`lila.core`)
+### Routing (`core/routing.py`)
 
-### Routing & Validation
-- **`lila.core.routing.Router`**: Extends Starlette routing with Pydantic integration.
-- **Auto-Validation**: When a `model` (Pydantic) is passed to a route, data is automatically validated and stored in `request.state.data`.
-- **REST CRUD**: `router.rest_crud_generate()` automates full API + HTML view generation for any SQLAlchemy model.
-- **Documentation**: Built-in `swagger_ui()` and `openapi_json()` support.
+- `Router(prefix)`: Group routes under a prefix.
+- Decorators: `@router.get("/")`, `@router.post("/")`, `@router.put("/")`, `@router.delete("/")`, `@router.patch("/")`, `@router.websocket("/ws")`.
+- `router.route(path, methods, model)`: Generic route decorator with optional Pydantic model for OpenAPI docs.
+- `router.rest_crud_generate(...)`: Auto-generates GET all, GET by id, POST, PUT, DELETE endpoints + HTML CRUD view.
+- `router.swagger_ui()` / `router.openapi_json()`: Auto-generated API documentation.
+- Path parameters: `/{id}` with type conversion.
 
-### Database Engine
-- **`lila.core.database.Database`**: Unified interface for SQLite, MySQL, and PostgreSQL.
-- **Hybrid Querying**: Supports both raw SQL (`db.query`) and ORM patterns (`db.query_orm`).
-- **Auto-Provisioning**: Automatically creates the database if it doesn't exist (MySQL/PostgreSQL).
+### Pydantic (`app/routes/api.py`)
+- Example data model using Pydantic. 
+- Defines an "api/example" route, using ExampleModel for input validation, with automatic documentation passing the "model" parameter ("model=ExampleModel").
+- Get request input in request.state.data
+```python
+from pydantic import BaseModel, EmailStr
 
-### Template Engine
-- **`lila.core.templates.render`**: Standard Jinja2 rendering with auto-injected context (translations, meta tags).
-- **React Islands**: `renderReact()` and `react()` helpers for embedding React components within HTML templates.
-- **Markdown Support**: `renderMarkdown()` for converting `.md` files into themed documentation or pages.
+class ExampleModel(BaseModel):
+    email: EmailStr   .
+    password: str  
 
-### Security & Sessions
-- **Sessions**: Signed cookie-based sessions using `itsdangerous` via `lila.core.session.Session`.
-- **Admin Panel**: `lila.core.admin` provides a dashboard with system metrics (CPU/RAM via `psutil`), log viewing, and automatic model management.
-- **Password Hashing**: Automatic `argon2` hashing for "password" fields in CRUD operations.
+ 
+@router.post(path="/example", model=ExampleModel)
+async def login(request: Request):
+    """Example function get request json form"""
+    input =request.state.data 
+
+    email = input.email
+    password = input.password
+    response = JSONResponse({"email": email, "password": password, "success": True})
+    return response
+```
+
+### Database (`core/database.py`)
+
+- `Database(config)`: Supports `sqlite`, `mysql`, `postgresql`/`psgr`. Auto-creates database if not exists.
+- `db.connect()`: Establish connection.
+- `db.query(query, params, return_rows, return_row)`: Raw SQL queries.
+- `db.query_orm(model, operation, instance, session, filters, values)`: ORM operations (select, insert, update, delete).
+- `db.migrate(use_base)`: Run migrations.
+- `Base`: SQLAlchemy declarative base for model definitions.
+
+### Templates (`core/templates.py`)
+
+- `render(request, template, context, files_translate, lang_default)`: Render Jinja2 HTML.
+- `renderReact(request, component, props, options)`: Render React component as island with SSR-friendly output.
+- `renderMarkdown(request, file, css_files, js_files)`: Render Markdown files as HTML pages.
+- `react(component, props)`: Generate React mount point div.
+- `vite_assets()`: Production (manifest) Vite asset tags.
+- `hot_reload()`: Development hot reload scripts (Vite WS client). Injects scripts only if `DEBUG=True`.
+- Templates auto-inject: `title`, `version`, `lang`, `translate`, `description`, `keywords`, `author`.
+
+### Session (`core/session.py`)
+
+- `Session.setSession(new_val, response, name_cookie, max_age, ...)`: Create signed cookie.
+- `Session.unsign(key, request, max_age)`: Read and verify signed cookie.
+- `Session.getSessionValue(request, key, max_age)`: Convenience wrapper for unsign.
+- `Session.deleteSession(response, name_cookie)`: Remove session cookie.
+
+### App (`core/app.py`)
+
+- `App(debug, routes, cors, middleware, compress_type, trusted_hosts, public_folder, on_startup, on_shutdown)`.
+- Built-in 404/500 error pages (detailed trace in DEBUG mode).
+- Compression: gzip (default) or zstd.
+- Debug mode: adds DebugMiddleware + debug panel at `/debug`.
+
+### Responses (`core/responses.py`)
+
+- `JSONResponse(content, status_code, serialize, headers)`: Auto-serializes Decimal, datetime, Pydantic models.
+- `HTMLResponse`, `RedirectResponse`, `PlainTextResponse`, `StreamingResponse`.
+- **Automatic Headers**: All responses include `Powered-By: Lila Framework`.
+
+### Security (`core/security.py` & `core/auth.py`)
+
+- **Data Sanitization**: `Security.sanitize_data(data)` recursively cleans strings, dicts, and lists from XSS patterns.
+- **XSS Detection**: `Security.check_xss(text)` identifies potential malicious scripts.
+- **JWT Tokens**: `generate_token(name, value, minutes)`, `get_token(token)`, `get_user_id_by_token(request, key)`.
+- **Password Hashing**: argon2 via `PasswordHasher`.
+- **Automatic Protection**: `@router.route` automatically sanitizes incoming JSON bodies and checks query parameters for XSS.
+
+### i18n (`lila/core/translate.py`)
+
+- Translation files: `app/locales/*.json` with `{"key": {"en": "...", "es": "..."}` format.
+- `Translate.t(key, request)`: Returns translated string for current language.
+- Language set via session cookie (`lang`).
 
 ### CLI Commands
 
@@ -63,9 +147,9 @@ project_root/
 ### Adding a new route
 
 ```python
-from lila.core.routing import Router
-from lila.core.request import Request
-from lila.core.responses import JSONResponse
+from core.routing import Router
+from core.request import Request
+from core.responses import JSONResponse
 
 router = Router("api")
 
@@ -96,14 +180,20 @@ connection.query_orm(model=Item, operation="delete", filters={"id": 1})
 ### Template rendering
 
 ```python
-from lila.core.templates import render
+from core.templates import render
 return render(request=request, template="pages/home", context={"items": items})
 ```
 
 ### Session usage
 
 ```python
-from lila.core.session import Session
+from core.session import Session
+# New simplified async helpers:
+await Session.set(request, response, data={"user_id": 1}, key="auth")
+data = await Session.get(request, key="auth")
+await Session.delete(response, key="auth")
+
+# Or using the classic static methods:
 Session.setSession(new_val={"user_id": 1}, response=response, name_cookie="auth")
 data = Session.unsign(key="auth", request=request, max_age=3600)
 ```

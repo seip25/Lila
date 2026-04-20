@@ -46,26 +46,27 @@ async def profile_page(request):
 @login_required
 async def update_profile(request: Request):
     input = request.state.data
-    valid_pass = input.validate_passwords(request)
-    if valid_pass:
-        return valid_pass
     
     session_data = Session.getSessionValue(request, "auth")
     user_id = session_data.get("user_id")
     
     db = connection.get_session()
     try:
-        user = db.query(User).get(user_id)
-        user.name = input.name
-        user.email = input.email
-        if input.password:
-            user.set_password(input.password)
-        db.commit()
-        
-        # Update session if email changed
-        response = JSONResponse({"success": True, "msg": Translate.t(key="Profile updated successfully", request=request)})
-        Session.setSession({"user_id": user.id, "email": user.email}, response, name_cookie="auth")
-        return response
+        user_db =User.get_by_id(db,user_id)
+        if not user_db or not user_db.check_password(input.password):
+            response = JSONResponse({"success": False, "msg": Translate.t(key="Error updating profile", request=request)})
+        else:
+            user = db.query(User).get(user_id)
+            user.name = input.name
+            user.email = input.email
+            if input.password:
+                user.set_password(input.password_2)
+            db.commit()
+            
+            response = JSONResponse({"success": True, "msg": Translate.t(key="Profile updated successfully", request=request)})
+            Session.setSession({"user_id": user.id, "email": user.email}, response, name_cookie="auth")
+            return response 
+           
     except Exception as e:
         db.rollback()
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)

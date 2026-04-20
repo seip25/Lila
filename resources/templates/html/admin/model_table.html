@@ -2,26 +2,29 @@
 <html lang="{{ lang }}">
 
 <head>
-    <meta charset=UTF-8>
-    <link rel=icon type=image href=img/lila.png alt="Admin Lila Framework">
-    <meta name=viewport content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/img/lila.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - {{ model_name.capitalize() }}</title>
     <link rel="stylesheet" href="../css/lila.css" />
-    <script src=../js/utils.js></script>
 </head>
 
-<body  >
-    {{ menu | safe }}
-    <main class="bg-surface">
-        <div class="">
-            <article >
-            <h2 class="text-indigo-500 text-center">
-                {{ model_name.capitalize() }}
-            </h2>
-            <div id="table"></div>
-        </article>
+<body class="bg-surface">
+    <main>
+        {{ menu | safe }}
+
+        <div class="flex-1">
+            <header class="flex items-center justify-between mb-4 bg-background p-4 rounded-lg shadow-sm">
+                      <h2 class="m-0 text-xl font-bold">{{ model_name.capitalize() }}</h2>
+            </header>
+
+            <article>
+                <div id="table"></div>
+            </article>
         </div>
     </main>
+
+    <script src="../js/utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dataTable = new ResponsiveDataTable('table', {
@@ -37,7 +40,7 @@
                         {% endif %}
                     {% endfor %}
                 ],
-                rowsPerPage: 5,
+                rowsPerPage: 10,
                 search: true,
                 pagination: true,
                 responsive: true,

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.orm import Session, load_only
-from lila.core.database import Base
+from core.database import Base
 from app.connections import connection
 import secrets
 import hashlib
@@ -40,6 +40,22 @@ class User(Base):
     @classmethod
     def get_by_id(cls, db: Session, id: int):
         return db.query(cls).filter(cls.id == id, cls.active == 1).first()
+
+    @classmethod
+    def get_by_email(cls, db: Session, email: str):
+        """Retrieves a user by email."""
+        return db.query(cls).filter(cls.email == email, cls.active == 1).first()
+
+    def set_password(self, password: str):
+        """Hashes and sets the user's password."""
+        self.password = ph.hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Verifies the password against the stored hash."""
+        try:
+            return ph.verify(self.password, password)
+        except Exception:
+            return False
 
     @classmethod
     def check_login(cls, db: Session, email: str):

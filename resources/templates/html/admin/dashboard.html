@@ -3,11 +3,11 @@
 
 <head>
     <meta charset=UTF-8>
-    <link rel=icon type=image href="img/lila.png" alt="Admin Lila Framework">
+    <link rel=icon type=image href="/img/lila.png">
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="../css/lila.css" />
-    <script src=https://cdn.jsdelivr.net/npm/chart.js></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --logs-container-bg: #f9f9f9;
@@ -37,46 +37,6 @@
             }
         }
 
-        .logs-container {
-            margin-top: 1rem;
-            border: 1px solid var(--logs-container-border);
-            border-radius: 8px;
-            padding: 0.5rem;
-            background-color: var(--logs-container-bg);
-        }
-
-        .logs-summary {
-            font-weight: bold;
-            cursor: pointer;
-            padding: 0.5rem;
-            background-color: var(--logs-summary-bg);
-            border-radius: 4px;
-            color: var(--logs-summary-color);
-        }
-
-        .logs-list {
-            list-style-type: none;
-            padding-left: 0;
-            margin-top: 0.5rem;
-        }
-
-        .log-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .log-file {
-            border: 1px solid var(--log-file-border);
-            border-radius: 4px;
-            padding: 0.5rem;
-            background-color: var(--log-file-bg);
-        }
-
-        .log-summary {
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--log-summary-color);
-        }
-
         .log-content {
             margin-top: 0.5rem;
             padding: 0.5rem;
@@ -94,44 +54,43 @@
     </style>
 </head>
 
-<body>
-    {{ menu | safe }}
-    <main class="   bg-surface">
-        <div class="container">
-            <article class="  px-4 py-4">
-                <h4 class="text-xl  mb-4 mt-4">Server Metrics</h4>
-                <div class="grid   gap-4">
-                    <div class="space-y-2">
-                        <p>Lila Framework Memory Used: <span id="lilaMemory" class="font-semibold">{{lila_memory|round(0) }}</span> MB</p>
-                        <p>Lila Framework CPU Used: <span id="lilaCpuUsage" class="font-semibold">{{lila_cpu_usage|round(0) }}</span> %</p>
-                        <p>Server Memory Used: <span id="systemUsedMemory" class="font-semibold">{{system_used_memory|round(0) }}</span> MB / <span id="systemTotalMemory"
-                                class="font-semibold">{{ system_total_memory|round(0) }}</span> MB</p>
-                        <p>Server CPU Used: <span id="cpuUsage" class="font-semibold">{{ cpu_usage|round(0) }}</span> %
-                        </p>
-                    </div>
-                    <div class="grid  gap-4">
-                        <div>
-                            <canvas id="memoryDoughnutChart"></canvas>
-                        </div>
-                        <div>
-                            <canvas id="cpuDoughnutChart"></canvas>
-                        </div>
+<body class="bg-surface">
+    <main>
+        {{ menu | safe }}
+        
+        <div class="flex-1">
+            <header class="flex items-center justify-between mb-4 bg-background p-4 rounded-lg shadow-sm">
+                       <h2 class="m-0 text-xl font-bold">Admin Dashboard</h2>
+                </header>
 
+            <article class="p-4">
+                <h4 class="text-lg font-semibold mb-4">Server Metrics</h4>
+                <div class="grid cols-1 md:cols-2 gap-4">
+                    <div class="space-y-2">
+                        <p class="text-sm">Lila Framework Memory: <span id="lilaMemory" class="font-semibold">{{lila_memory|round(0) }}</span> MB</p>
+                        <p class="text-sm">Lila Framework CPU: <span id="lilaCpuUsage" class="font-semibold">{{lila_cpu_usage|round(0) }}</span> %</p>
+                        <p class="text-sm">Server Memory: <span id="systemUsedMemory" class="font-semibold">{{system_used_memory|round(0) }}</span> MB / <span id="systemTotalMemory" class="font-semibold">{{ system_total_memory|round(0) }}</span> MB</p>
+                        <p class="text-sm">Server CPU: <span id="cpuUsage" class="font-semibold">{{ cpu_usage|round(0) }}</span> %</p>
+                    </div>
+                    <div class="grid cols-2 gap-2">
+                        <div><canvas id="memoryDoughnutChart"></canvas></div>
+                        <div><canvas id="cpuDoughnutChart"></canvas></div>
                     </div>
                 </div>
             </article>
 
-            <article class="mt-4 ">
-                <h4 class="text-xl font-bold mb-4">Logs</h4>
+            <article class="mt-4 p-4">
+                <h4 class="text-lg font-semibold mb-4">Logs</h4>
                 {% if logs_html %}
                 {{ logs_html | safe }}
                 {% else %}
-                <p class="text-gray-500">No logs available</p>
+                <p class="text-muted">No logs available</p>
                 {% endif %}
             </article>
         </div>
     </main>
 
+    <script src="../js/utils.js"></script>
     <script>
         let memoryChart, cpuChart;
 
@@ -160,28 +119,28 @@
             memoryChart = new Chart(memoryCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Used Memory', 'Free Memory'],
+                    labels: ['Used', 'Free'],
                     datasets: [{
-                        label: 'Memory Usage',
                         data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
-                backgroundColor: ['#ef4444', '#3b82f6']  
+                        backgroundColor: ['#ef4444', '#3b82f6']  
                     }]
-                }
+                },
+                options: { plugins: { legend: { display: false } } }
             });
 
-        cpuChart = new Chart(cpuCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['CPU Used', 'CPU Free'],
-                datasets: [{
-                    label: 'CPU Usage',
-                    data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
-            backgroundColor: ['#f59e0b', '#10b981']
-        } ]
-                }
+            cpuChart = new Chart(cpuCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Used', 'Free'],
+                    datasets: [{
+                        data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
+                        backgroundColor: ['#f59e0b', '#10b981']
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
             });
 
-        setInterval(updateCharts, 10000);
+            setInterval(updateCharts, 10000);
         });
     </script>
 </body>

@@ -1,9 +1,9 @@
 import orjson
 from app.config import SECRET_KEY
 from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
-from lila.core.request import Request
+from core.request import Request
 from typing import Union, Optional, Dict, List
-from lila.core.logger import Logger
+from core.logger import Logger
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
@@ -90,3 +90,20 @@ class Session:
     ) -> Union[Dict, List, str, None]:
         """Convenience wrapper around unsign with a default max_age."""
         return Session.unsign(key=key, request=request, max_age=max_age)
+
+    @staticmethod
+    async def get(request: Request, key: str = "auth") -> Union[Dict, List, str, None]:
+        """Async helper to get session data."""
+        return Session.unsign(key=key, request=request)
+
+    @staticmethod
+    async def set(
+        request: Request, response, data: dict, key: str = "auth", max_age: int = 3600
+    ) -> bool:
+        """Async helper to set session data."""
+        return Session.setSession(new_val=data, response=response, name_cookie=key, max_age=max_age)
+
+    @staticmethod
+    async def delete(response, key: str = "auth") -> bool:
+        """Async helper to delete session data."""
+        return Session.deleteSession(response=response, name_cookie=key)

@@ -1,11 +1,10 @@
-from lila.core.request import Request
-from lila.core.responses import JSONResponse
-from lila.core.routing import Router
+from core.request import Request
+from core.responses import JSONResponse
+from core.routing import Router
 from pydantic import EmailStr,BaseModel
-from app.helpers.security import get_user_by_token
-from app.middlewares.middlewares import validate_token, check_token, check_session,login_required
+from core.auth import get_user_id_by_token as get_user_by_token
+from core.middleware import validate_token, check_token, check_session, login_required
 from app.config import DEBUG
-from app.helpers.validate import responseValidationError 
 
 # English: Initialize the router instance for managing API routes.
 # Español: Inicializa la instancia del enrutador para manejar rutas de la API.
@@ -14,7 +13,7 @@ router = Router(prefix="api/v1")
 
 # English: Define a simple API route that supports GET method.
 # Español: Define una ruta de API simple que soporta el método GET.
-@router.get("/")
+@router.get("/") 
 async def api(request: Request):
     """Api function"""  # use doc for descripction http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
     # English: Returns a simple JSON response for API verification. | Español: Devuelve una respuesta JSON simple para la verificación de la API.

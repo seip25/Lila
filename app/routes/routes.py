@@ -1,8 +1,8 @@
-from lila.core.request import Request 
-from lila.core.routing import Router 
-from lila.core.templates import render,renderMarkdown,renderReact
-from lila.core.session import Session
-from lila.core.responses import RedirectResponse,PlainTextResponse
+from core.request import Request 
+from core.routing import Router 
+from core.templates import render,renderMarkdown,renderReact
+from core.session import Session
+from core.responses import RedirectResponse,PlainTextResponse
 from app.config import LANG_DEFAULT,HOST,PORT  
 
 # English: Creating an instance of Router to define routes

@@ -1,15 +1,15 @@
 import psutil
 import os
-from lila.core.responses import orjson_dumps
-from app.helpers.translate import lang
-from lila.core.responses import  RedirectResponse, JSONResponse
-from lila.core.request import Request
-from lila.core.routing import Router
-from lila.core.session import Session
+from core.responses import orjson_dumps
+from core.translate import Translate
+from core.responses import  RedirectResponse, JSONResponse
+from core.request import Request
+from core.routing import Router
+from core.session import Session
 from app.connections import connection
 from argon2 import PasswordHasher
 from functools import wraps
-from lila.core.templates import render
+from core.templates import render
 from app.config import PATH_LOG_BASE_DIR as PATH_LOG_BASE_DIR_ADMIN
  
 connection = connection
@@ -186,37 +186,34 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
     return render(request=request,template="admin/dashboard",context=context)
 
 
-def menu(models: list = []) -> str:
-    """Generate the admin menu."""
-
-    m = ""
+def menu(models: list = [], request: Request = None) -> str:
+    """Generate the admin menu as an <aside> component."""
+    current_path = request.url.path if request else ""
     
-    for model in models:
-        model_name = model.__name__.lower()
-        model_plural = f"{model_name}s"
- 
-        m += f" <a href='/admin/{model_plural}' class='dropdown-item'>{model_name.capitalize()}</a>"
+    m = f'<a href="/admin" class="{"active" if current_path == "/admin" else ""}">Dashboard</a>'
+    
+    if models:
+        m += "<h6>Models</h6>"
+        for model in models:
+            model_name = model.__name__.lower()
+            model_plural = f"{model_name}s"
+            path = f"/admin/{model_plural}"
+            active_class = "active" if current_path == path else ""
+            m += f'<a href="{path}" class="{active_class}">{model_name.capitalize()}</a>'
+
+    m += "<h6>System</h6>"
+    m += '<a href="/admin/logout">Logout</a>'
 
     return f"""
-    <header class="  shadow  ">
-        <nav class="container ">
-             <a href="/admin"  >
-             <h3>
-             Admin Dashboard
-                </h3>
-             </a>
-            
-             <div class="flex gap-4">
-                   <div class="dropdown">
-                        <button class="dropdown-toggle fill">Menu</button>
-                      <div class="dropdown-content bottom-right">
-                          {m}
-                            <a href="/admin/logout" class="dropdown-item">Logout</a>
-                       </div>
-                </div> 
-             </div>
+    <aside>
+        <div class="flex items-center p-2 mb-4">
+             <img src="/img/lila.png" alt="Lila" width="32" height="32" class="mr-2">
+             <h4 class="m-0">Lila Admin</h4>
+        </div>
+        <nav>
+            {m}
         </nav>
-    </header>
+    </aside>
     """
 def admin_routes(models: list, router: Router,default_route: str = "admin") -> Router:
 
@@ -240,7 +237,7 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
     @router.route(path=f"/{default_route}", methods=["GET"])
     @admin_required
     async def admin_route(request: Request):
-        menu_html = menu(models=models)
+        menu_html = menu(models=models, request=request)
         return await admin_dashboard(request=request, menu=menu_html)
 
     for model in models:
@@ -253,7 +250,7 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
             items = model.get_all()
 
             headers = items[0].keys() if items else []
-            html_lang = lang(request=request)
+            html_lang = Translate.lang(request=request)
 
             context = {
                 "request": request,
@@ -261,7 +258,7 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
                 "model_name": model_name,
                 "headers": headers,
                 "html_lang": html_lang,
-                "menu": menu(models=models),
+                "menu": menu(models=models, request=request),
             }
 
             return render(request=request,template="admin/model_table", context=context)

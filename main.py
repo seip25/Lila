@@ -1,16 +1,16 @@
-from lila.core.app import App
+from core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-from lila.core.middleware import Middleware
-from app.config import PORT, HOST, DEBUG,JIT
-from app.middlewares.security import (
+from app.config import DEBUG,JIT,HOST,PORT
+from core.middleware import (
+    Middleware,
     LoggingMiddleware, 
-    SecurityHeadersMiddleware,
     SecurityShieldMiddleware,
     RateLimitMiddleware,
+    SecurityHeadersMiddleware,
     ErrorHandlerMiddleware,
 )
-from lila.core.logger import delete_old_logs
+from core.logger import delete_old_logs
 import itertools
 import uvicorn
 import asyncio
@@ -26,11 +26,19 @@ all_routes = list(itertools.chain(routes, api_routes))
 
 #English : Marker for the auth routes in main.py
 #Español: Marcardor para añadir automaticamente rutas auth en main.py
-# auth_marker 
+# auth_marker
+from app.routes.auth import routes as auth_routes
+from app.routes.authenticated import routes as authenticated_routes
+all_routes = list(itertools.chain(routes, api_routes, auth_routes, authenticated_routes)) 
 
 # English: Marker for the admin routes in main.py.
 # Español: Marcador para las rutas de administrador en main.py.
 # admin_marker
+from app.routes.admin import Admin
+from app.models.user import User
+admin_routes = Admin(models=[User])
+all_routes = list(itertools.chain(all_routes, admin_routes))
+
 
    
 cors = None
@@ -60,7 +68,8 @@ cors = None
 #      ]
 
 middlewares = [
-    Middleware(ErrorHandlerMiddleware)
+    Middleware(ErrorHandlerMiddleware),
+    Middleware(SecurityHeadersMiddleware)
 ]
 
 # English: Initializing the application with debugging enabled and the combined routes.
