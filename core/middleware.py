@@ -254,6 +254,9 @@ class Middleware(StarletteMiddleware):
     async def login_required(request: Request, key: str = "auth", url_return="/login"):
         session_data = await check_session(request=request, key=key, return_JsonResponse=False)
         if not session_data:
+            if request.method != "GET":
+                from core.translate import Translate
+                return JSONResponse({"success": False, "msg": Translate.t(key="Authentication required", request=request), "redirect": url_return}, status_code=401)
             return RedirectResponse(url=url_return)
         return True
 
@@ -262,6 +265,9 @@ class Middleware(StarletteMiddleware):
     async def session_active(request: Request, key: str = "auth", url_return: str = "/dashboard"):
         session_data = await check_session(request=request, key=key, return_JsonResponse=False)
         if session_data:
+            if request.method != "GET":
+                from core.translate import Translate
+                return JSONResponse({"success": False, "msg": Translate.t(key="Session already active", request=request), "redirect": url_return}, status_code=400)
             return RedirectResponse(url=url_return)
         return True
 

@@ -150,13 +150,13 @@ async def change_password_page(request: Request):
     finally:
         db.close()
 
-@router.post("/change-password/{token}")
+@router.post("/change-password")
 async def change_password(request: Request):
-    token = request.path_params.get("token")
+    body = await request.json()
+    token = body.get("token")
     try:
-        body = await request.json()
-        password = body.get("password")
-        password_2 = body.get("password_2")
+        password = body.get("new_password")
+        password_2 = body.get("confirm_password")
         
         if password != password_2:
             return JSONResponse({"success": False, "msg": Translate.t(key="Passwords not match", request=request)})
@@ -172,7 +172,7 @@ async def change_password(request: Request):
         db.commit()
         
         return JSONResponse({"success": True, "msg": Translate.t(key="Password changed successfully", request=request)})
-    except Exception as e:
+    except Exception as e: 
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
     finally:
         if 'db' in locals(): db.close()

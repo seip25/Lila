@@ -327,6 +327,14 @@
     "es": "Cuenta eliminada exitosamente",
     "en": "Account deleted successfully"
   },
+  "Authentication required": {
+    "es": "Autenticación requerida",
+    "en": "Authentication required"
+  },
+  "Session already active": {
+    "es": "Sesión ya activa",
+    "en": "Session already active"
+  },
   "User not found": {
     "es": "Usuario no encontrado",
     "en": "User not found"
