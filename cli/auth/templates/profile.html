@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{title}} </title>
-  <link rel="stylesheet" href="../css/lila.css" />
+  <link rel="stylesheet" href="/css/lila.css" />
+  <script src="/js/utils.js"></script>
 </head>
 
 <body>
@@ -14,30 +15,13 @@
       <h1 class="text-2xl">
         <a href="/dashboard" class=" font-bold">Lila</a>
       </h1>
-      <div class="hidden-sm flex items-center gap-4">
+      <aside>
         <a href="/dashboard" class="">{{translate['home']}}</a>
         <a href="/profile">{{user.name}}</a>
-        <div class="dropdown">
-          <button class="fill dropdown-toggle">Menu</button>
-          <div class="dropdown-content bottom-right">
-            <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
-            <a href="/set-language/en" class="dropdown-item">English (US)</a>
-            <a href="/logout" class="dropdown-item">{{translate['logout']}}</a>
-          </div>
-        </div>
-      </div>
-      <div class="visible-sm fiex items-center">
-        <div class="dropdown">
-          <button class="fill dropdown-toggle">Menu</button>
-          <div class="dropdown-content bottom-right">
-            <a href="/dashboard" class="dropdown-item">{{translate['home']}}</a>
-            <a href="/profile" class="dropdown-item">{{user.name}}</a>
-            <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
-            <a href="/set-language/en" class="dropdown-item">English (US)</a>
-            <a href="/logout" class="dropdown-item">{{translate['logout']}}</a>
-          </div>
-        </div>
-      </div>
+        <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
+        <a href="/set-language/en" class="dropdown-item">English (US)</a>
+        <a href="/logout" class="dropdown-item">{{translate['logout']}}</a>
+      </aside>
     </nav>
   </header>
   <main class="container mt-4">

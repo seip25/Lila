@@ -14,9 +14,8 @@ router = Router()
 
 class UpdateProfileModel(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
-    email: EmailStr
-    password: str = Field(...)
-    password_2: str | None = Field(default=None)
+    password: str = Field(..., min_length=8, max_length=20)
+    password_2: str | None = Field(default=None, min_length=8, max_length=20)
 
 class DeleteAccountModel(BaseModel):
     password: str = Field(..., min_length=8, max_length=20)
