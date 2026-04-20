@@ -26,18 +26,11 @@ all_routes = list(itertools.chain(routes, api_routes))
 
 #English : Marker for the auth routes in main.py
 #Español: Marcardor para añadir automaticamente rutas auth en main.py
-# auth_marker
-from app.routes.auth import routes as auth_routes
-from app.routes.authenticated import routes as authenticated_routes
-all_routes = list(itertools.chain(routes, api_routes, auth_routes, authenticated_routes)) 
+# auth_marker 
 
 # English: Marker for the admin routes in main.py.
 # Español: Marcador para las rutas de administrador en main.py.
-# admin_marker
-from app.routes.admin import Admin
-from app.models.user import User
-admin_routes = Admin(models=[User])
-all_routes = list(itertools.chain(all_routes, admin_routes))
+# admin_marker 
 
 
    
