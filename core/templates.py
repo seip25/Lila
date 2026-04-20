@@ -2,11 +2,11 @@ from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT
-from core.translate import Translate
-from core.request import Request
-from core.responses import HTMLResponse, JSONResponse
+from lila.core.translate import Translate
+from lila.core.request import Request
+from lila.core.responses import HTMLResponse, JSONResponse
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
-from core.logger import Logger
+from lila.core.logger import Logger
 import markdown
 import os
 import traceback

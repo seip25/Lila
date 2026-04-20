@@ -1,6 +1,6 @@
 from app.config import SECRET_KEY
-from core.request import Request
-from core.responses import JSONResponse
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
 import jwt
 import hashlib
 import secrets

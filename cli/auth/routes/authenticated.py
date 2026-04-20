@@ -1,13 +1,13 @@
-from core.routing import Router
-from core.responses import JSONResponse,RedirectResponse
-from core.request import Request
-from core.templates import render
-from core.session import Session
-from core.translate import Translate
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse,RedirectResponse
+from lila.core.request import Request
+from lila.core.templates import render
+from lila.core.session import Session
+from lila.core.translate import Translate
 from app.models.user import User
 from app.connections import connection
 from pydantic import BaseModel, EmailStr, Field, ValidationError 
-from core.middleware import login_required
+from lila.core.middleware import login_required
 import traceback
 
 router = Router()
@@ -52,8 +52,7 @@ async def update_profile(request: Request):
         elif not user_db.check_password(input.password):
             return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
         else:
-            user_db.name = input.name
-            user_db.email = input.email
+            user_db.name = input.name 
             if input.password_2 and len(input.password_2) >= 8:
                 user_db.set_password(input.password_2)
             db.commit()

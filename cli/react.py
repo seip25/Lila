@@ -8,7 +8,7 @@ import asyncio
 import os
 import sys
 import orjson
-from core.responses import orjson_dumps
+from lila.core.responses import orjson_dumps
 
 app = typer.Typer()
 

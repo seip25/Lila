@@ -6,7 +6,7 @@ if os.getcwd() not in sys.path:
 import typer 
 import os 
 from pathlib import Path
-from core.auth import generate_token_value
+from lila.core.auth import generate_token_value
 
 
 PATH_ENV= Path(".env")

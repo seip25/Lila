@@ -1,11 +1,11 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import DEBUG
-from core.database import Database, Base
+from lila.core.database import Database, Base
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func, inspect
 import psutil
 import time
-from core.logger import Logger
+from lila.core.logger import Logger
 import os
 
 ASSET_EXTENSIONS = frozenset({

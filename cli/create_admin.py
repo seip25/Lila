@@ -8,7 +8,7 @@ import os
 import subprocess
 from app.connections import connection
 from argon2 import PasswordHasher
-from core.auth import generate_token_value
+from lila.core.auth import generate_token_value
 
 app = typer.Typer()
 ph = PasswordHasher()

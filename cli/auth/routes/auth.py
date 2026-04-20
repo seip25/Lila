@@ -1,16 +1,16 @@
-from core.routing import Router
-from core.responses import JSONResponse,RedirectResponse
-from core.request import Request
-from core.templates import render
-from core.session import Session
-from core.translate import Translate
-from core.auth import generate_token_value
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse,RedirectResponse
+from lila.core.request import Request
+from lila.core.templates import render
+from lila.core.session import Session
+from lila.core.translate import Translate
+from lila.core.auth import generate_token_value
 from app.models.user import User
 from app.models.auth import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory,PasswordResetToken
 from app.connections import connection
 from pydantic import BaseModel, EmailStr, Field, ValidationError
 import datetime
-from core.middleware import session_active 
+from lila.core.middleware import session_active 
 import traceback
 from app.config import DEBUG,HOST,PORT
 
@@ -68,7 +68,9 @@ async def register(request: Request):
         db.add(user)
         db.commit()
         msg = Translate.t(key="User registered successfully", request=request)
-        return JSONResponse({"success": True, "msg": msg})
+        response=JSONResponse({"success": True, "msg": msg})
+        await Session.set(request=request,response=response,data={"user_id": user.id, "email": user.email, "name": user.name},key="auth")
+        return response
     except Exception as e:
         db.rollback()
         if DEBUG:

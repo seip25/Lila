@@ -1,9 +1,9 @@
 import orjson
 from app.config import SECRET_KEY
 from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
-from core.request import Request
+from lila.core.request import Request
 from typing import Union, Optional, Dict, List
-from core.logger import Logger
+from lila.core.logger import Logger
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
