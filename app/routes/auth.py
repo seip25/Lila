@@ -127,10 +127,10 @@ async def forgot_password(request: Request):
         user = User.get_by_email(db, email)
         if user:
             token = PasswordResetToken.create_token(db, user.id)
-            db.commit()
-            # Here you would typically send an email with the token
+            db.commit() 
             if DEBUG:
-                print(f"Reset token for {email}: {token}")
+                url = f"http://{HOST}:{PORT}/change-password/{token}"
+                print(f"DEBUG {url}")
         
         msg = Translate.t(key="If the email exists, a reset link has been sent", request=request)
         return JSONResponse({"success": True, "msg": msg})
