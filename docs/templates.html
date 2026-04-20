@@ -50,28 +50,28 @@
 
   <main>
     <aside>
-  <h4>Menu</h4>
-  <a href="install.html">Installation</a>
-  <a href="routes.html">Routes</a>
-  <a href="static.html">Static</a>
-  <a href="templates.html">Templates</a>
-  <a href="react.html">React</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
-  <a href="markdown.html">Markdown/HTML</a>
-  <a href="locales.html">Internationalization</a>
-  <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
-  <a href="connections.html">Connections</a>
-  <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
-  <a href="scaffold.html">Scaffold CRUD</a>
-  <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
-  <a href="production.html">Production</a>
-</aside>
+      <h4>Menu</h4>
+      <a href="install.html">Installation</a>
+      <a href="routes.html">Routes</a>
+      <a href="static.html">Static</a>
+      <a href="templates.html">Templates</a>
+      <a href="react.html">React</a>
+      <a href="session.html">Session</a>
+      <a href="upload.html">Uploads Files</a>
+      <a href="markdown.html">Markdown/HTML</a>
+      <a href="locales.html">Internationalization</a>
+      <a href="models.html">Models</a>
+      <a href="middlewares.html">Middlewares</a>
+      <a href="cli.html">CLI Commands</a>
+      <a href="connections.html">Connections</a>
+      <a href="migrations.html">Migrations</a>
+      <a href="auth.html">Auth Cli </a>
+      <a href="scaffold.html">Scaffold CRUD</a>
+      <a href="rest_api.html">API Rest CRUD</a>
+      <a href="admin.html">Admin Panel</a>
+      <a href="minify.html">Minify</a>
+      <a href="production.html">Production</a>
+    </aside>
 
     <article id="templates-eng">
       <h1>🎨 Template Rendering (Jinja2)</h1>
@@ -98,15 +98,19 @@
           <li class="flex flex-col md:flex-row md:items-start">
             <strong>hot_reload():</strong>
             <p>
-              Injects Vite's Hot Module Replacement (HMR) scripts. 
-              <strong>Only active when DEBUG=True</strong>. 
+              Injects Vite's Hot Module Replacement (HMR) scripts.
+              <strong>Only active when DEBUG=True</strong>.
               Place it in the <code>&lt;head&gt;</code> of your main layout.
             </p>
+            <small>
+              Activate hot reload in development mode, install lila-react package
+              <pre><code class="language-html">lila-react</code></pre>
+            </small>
           </li>
-          <li class="flex flex-col md:flex-row md:items-start">
+          <li class="mt-4 flex flex-col md:flex-row md:items-start">
             <strong>vite_assets():</strong>
             <p>
-              In production, it injects the compiled scripts and styles from the manifest. 
+              In production, it injects the compiled scripts and styles from the manifest.
               In development, it injects the main entry point (<code>main.jsx</code>).
             </p>
           </li>
@@ -146,124 +150,124 @@
           </div>
         </div>
 
-    context=context
-  )
-  # Renders the 'index' template
-  
-  return response
-</code>
-</pre>
+        context=context
+        )
+        # Renders the 'index' template
+
+        return response
+        </code>
+        </pre>
+      </div>
+      </div>
+
+      <h3>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+        Function
+      </h3>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+        function is located in
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.templates</code>:
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
+            Template
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
           </div>
         </div>
-
-        <h3>
-          The
-          <code
-            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
-          Function
-        </h3>
-        <p>
-          The
-          <code
-            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
-          function is located in
-          <code
-            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.templates</code>:
-        </p>
-
-        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
-          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-            <span class="editor-title text-gray-300 dark:text-gray-400">
-              Template
-            </span>
-            <div class="flex space-x-2">
-              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
-          </div>
-          <div class=" ">
-            <pre><code class="language-python">
+        <div class=" ">
+          <pre><code class="language-python">
 def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
 
 </code>
 </pre>
-          </div>
         </div>
-
-        <h3 class="text-2xl font-semibold">Parameter Description</h3>
-        <ul class="rounded bg-surface py-4 px-4">
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>request:</strong>
-            <p>
-              The
-              <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">Request</code>
-              object.
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>template (str):</strong>
-            <p>
-              Template name (without the
-              <code
-                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.html</code>
-              extension).
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>context (dict):</strong>
-            <p>
-              Data to pass to the template (dictionaries, lists, etc.).
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>files_translate (list):</strong>
-            <p>
-              List of additional translation files.
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>lang_default (str):</strong>
-            <p>
-              Forced default language (ideal for SEO in routes like
-              <code
-                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/es</code>,
-              <code
-                class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/en</code>,
-              etc.).
-            </p>
-          </li>
-        </ul>
-        <p>
-          In Lila, you can also use
-          <code
-            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
-          to pass translations to Jinja2, and parameters like
-          <code
-            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">title</code>
-          or
-          <code
-            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">version</code>
-          (ideal for structuring APIs: "v1", "v2").
-        </p>
       </div>
 
-    
-        <!-- CONTEXT SYSTEM -->
-        <h3>
-          Base Context Injection
-        </h3>
+      <h3 class="text-2xl font-semibold">Parameter Description</h3>
+      <ul class="rounded bg-surface py-4 px-4">
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>request:</strong>
+          <p>
+            The
+            <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">Request</code>
+            object.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>template (str):</strong>
+          <p>
+            Template name (without the
+            <code
+              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.html</code>
+            extension).
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>context (dict):</strong>
+          <p>
+            Data to pass to the template (dictionaries, lists, etc.).
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>files_translate (list):</strong>
+          <p>
+            List of additional translation files.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>lang_default (str):</strong>
+          <p>
+            Forced default language (ideal for SEO in routes like
+            <code
+              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/es</code>,
+            <code
+              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/en</code>,
+            etc.).
+          </p>
+        </li>
+      </ul>
+      <p>
+        In Lila, you can also use
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+        to pass translations to Jinja2, and parameters like
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">title</code>
+        or
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">version</code>
+        (ideal for structuring APIs: "v1", "v2").
+      </p>
+      </div>
 
-        <p>
-          All optimization features work thanks to the base context
-          automatically injected into Jinja2 templates:
-        </p>
 
-        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
-          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>Python</span>
-          </div>
-          <div class="editor-content">
-            <pre><code class="language-python">
+      <!-- CONTEXT SYSTEM -->
+      <h3>
+        Base Context Injection
+      </h3>
+
+      <p>
+        All optimization features work thanks to the base context
+        automatically injected into Jinja2 templates:
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>Python</span>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-python">
 def get_base_context(request, files_translate=[], lang_default=None):
     context = {
         "title": TITLE_PROJECT,
@@ -282,11 +286,11 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
     return context
       </code></pre>
-          </div>
         </div>
+      </div>
 
-       
-        
+
+
       </div>
     </article>
   </main>
