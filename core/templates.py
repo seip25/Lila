@@ -75,13 +75,13 @@ def hot_reload() -> str:
     if DEBUG:
         return """
         <script type="module">
-            import RefreshRuntime from "http://localhost:5173/@react-refresh";
+            import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
             RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
             window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
         </script>
-        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
         """
     return ""
 
@@ -91,7 +91,7 @@ def vite_assets() -> str:
     In development, it should be used alongside hot_reload().
     """
     if DEBUG:
-        return '<script type="module" src="http://localhost:5173/main.jsx"></script>'
+        return '<script type="module" src="http://localhost:5173/public/build/resources/main.jsx"></script>'
     
     global MANIFEST_BUILD
     if not MANIFEST_BUILD:

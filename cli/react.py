@@ -161,10 +161,27 @@ function generateLilaPythonManifest() {{
 }}
  
 
+function watchLilaTemplates() {{
+    return {{
+        name: 'watch-lila-templates',
+        configureServer(server) {{
+            server.watcher.add(resolve(process.cwd(), 'resources/templates/**/*.html'));
+            server.watcher.add(resolve(process.cwd(), 'resources/templates/**/*.md'));
+            server.watcher.add(resolve(process.cwd(), 'resources/templates/**/*.twig'));
+        }},
+        handleHotUpdate({{ file, server }}) {{
+            if (file.includes('resources/templates') && (file.endsWith('.html') || file.endsWith('.md') || file.endsWith('.twig'))) {{
+                server.ws.send({{ type: 'full-reload' }});
+            }}
+        }}
+    }};
+}}
+
 export default defineConfig({{
   plugins: [
     react(),
-    generateLilaPythonManifest()
+    generateLilaPythonManifest(),
+    watchLilaTemplates()
   ],
   base: "/public/build/",
   build: {{
