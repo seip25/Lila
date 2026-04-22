@@ -42,7 +42,7 @@ class User(Base):
         return db.query(cls).filter(cls.id == id, cls.active == 1).first()
 
     @classmethod
-    def get_by_email(cls, db: Session, email: str,active: int = 1):
+    def get_by_email(cls, db: Session, email: str,active:int =1):
         """Retrieves a user by email."""
         return db.query(cls).filter(cls.email == email, cls.active == active).first()
 
@@ -89,7 +89,6 @@ class User(Base):
             return ph.verify(stored_hash, password)
         except VerifyMismatchError:
             return False
-
     @classmethod
     def delete(cls, db: Session, id: int):
         user = db.query(cls).filter(cls.id == id).first()
@@ -98,6 +97,7 @@ class User(Base):
             db.commit()
             return True
         return False
+
      
     @staticmethod
     def get_all_without_orm(select: str = "id,email,name,created_at", limit: int = 1000) -> list:

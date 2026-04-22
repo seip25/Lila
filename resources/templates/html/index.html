@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}"  data-theme="light">
+<html lang="{{ lang }}" data-theme="light">
 
 <head>
   <meta charset="UTF-8" />
@@ -12,6 +12,7 @@
   <title>{{ title }}</title>
   <link rel="icon" type="image/x-icon" href="img/lila.png" />
   <link rel="stylesheet" href="css/lila.css" />
+  {{hot_reload() | safe}}
 </head>
 
 <body>
@@ -42,10 +43,11 @@
           Debug
         </a>
       </div>
-     
 
-    <!-- Info Box -->
-   
+
+      <!-- Info Box -->
+
+
       <article class="secondary">
         <p style="margin: 0;">
           {{ translate['also_left_in'] }}
@@ -66,23 +68,40 @@
             <h2 class="docs-section-title">📖 Framework Documentation</h2>
           </header>
           <ul class="docs-list grid cols-2 md:cols-3 gap-2">
-            <li><a href="https://seip25.github.io/Lila/docs/install.html" target="_blank" class="docs-link">Installation</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/routes.html" target="_blank" class="docs-link">Routes</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/static.html" target="_blank" class="docs-link">Static Files</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/templates.html" target="_blank" class="docs-link">Templates</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/react.html" target="_blank" class="docs-link">React Integration</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/session.html" target="_blank" class="docs-link">Session</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/upload.html" target="_blank" class="docs-link">File Uploads</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/markdown.html" target="_blank" class="docs-link">Markdown/HTML</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/locales.html" target="_blank" class="docs-link">Internationalization</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/models.html" target="_blank" class="docs-link">Models & ORM</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/middlewares.html" target="_blank" class="docs-link">Middlewares</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/connections.html" target="_blank" class="docs-link">DB Connections</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/migrations.html" target="_blank" class="docs-link">Migrations</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/rest_api.html" target="_blank" class="docs-link">REST API CRUD</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/admin.html" target="_blank" class="docs-link">Admin Panel</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/minify.html" target="_blank" class="docs-link">Minify Assets</a></li>
-            <li><a href="https://seip25.github.io/Lila/docs/production.html" target="_blank" class="docs-link">Production</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/install.html" target="_blank"
+                class="docs-link">Installation</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/routes.html" target="_blank" class="docs-link">Routes</a>
+            </li>
+            <li><a href="https://seip25.github.io/Lila/docs/static.html" target="_blank" class="docs-link">Static
+                Files</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/templates.html" target="_blank"
+                class="docs-link">Templates</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/react.html" target="_blank" class="docs-link">React
+                Integration</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/session.html" target="_blank" class="docs-link">Session</a>
+            </li>
+            <li><a href="https://seip25.github.io/Lila/docs/upload.html" target="_blank" class="docs-link">File
+                Uploads</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/markdown.html" target="_blank"
+                class="docs-link">Markdown/HTML</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/locales.html" target="_blank"
+                class="docs-link">Internationalization</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/models.html" target="_blank" class="docs-link">Models &
+                ORM</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/middlewares.html" target="_blank"
+                class="docs-link">Middlewares</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/connections.html" target="_blank" class="docs-link">DB
+                Connections</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/migrations.html" target="_blank"
+                class="docs-link">Migrations</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/rest_api.html" target="_blank" class="docs-link">REST API
+                CRUD</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/admin.html" target="_blank" class="docs-link">Admin
+                Panel</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/minify.html" target="_blank" class="docs-link">Minify
+                Assets</a></li>
+            <li><a href="https://seip25.github.io/Lila/docs/production.html" target="_blank"
+                class="docs-link">Production</a></li>
           </ul>
         </article>
       </div>
@@ -93,7 +112,7 @@
   <footer>
     <div class="footer-content">
       <div class="flex gap-1">
-        <a href="/set-language/es"  class="bg-gray-100">🇪🇸 Español</a>
+        <a href="/set-language/es" class="bg-gray-100">🇪🇸 Español</a>
         <a href="/set-language/en" class="bg-gray-100">🇺🇸 English</a>
       </div>
       <div>

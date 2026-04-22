@@ -7,25 +7,29 @@
   <title>{{title}} </title>
   <link rel="stylesheet" href="/css/lila.css" />
   <script src="/js/utils.js"></script>
+  {{hot_reload() | safe}}
 </head>
 
 <body>
-  <header class=" py-4">
-    <nav class="container">
+  <header>
+    <nav class=" container">
       <h1 class="text-2xl">
-        <a href="/dashboard" class=" font-bold">Lila</a>
+        <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
       </h1>
-      <aside>
-        <a href="/dashboard" class="">{{translate['home']}}</a>
-        <a href="/profile">{{user.name}}</a>
-        <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
-        <a href="/set-language/en" class="dropdown-item">English (US)</a>
-        <a href="/logout" class="dropdown-item">{{translate['logout']}}</a>
-      </aside>
+
     </nav>
   </header>
-  <main class="container mt-4">
-    <div class="container mt-4">
+
+  <main>
+    <aside>
+      <h3>Menu</h3>
+      <a href="/dashboard">{{translate['home']}}</a>
+      <a href="/profile" class="active">{{user.name}}</a>
+      <a href="/set-language/es">Español (Esp)</a>
+      <a href="/set-language/en">English (US)</a>
+      <a href="/logout">{{translate['logout']}}</a>
+    </aside>
+    <article>
       <h1>{{translate['Profile']}}</h1>
       <p><strong>{{translate['Name']}}:</strong> {{user.name}}</p>
       <p><strong>Email:</strong> {{user.email}}</p>
@@ -78,7 +82,7 @@
           </div>
         </form>
       </footer>
-    </div>
+    </article>
   </main>
   <script>
     document

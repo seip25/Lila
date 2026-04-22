@@ -52,25 +52,32 @@
             background-color: var(--log-content-bg);
         }
     </style>
+
 </head>
 
 <body class="bg-surface">
     <main>
         {{ menu | safe }}
-        
+
         <div class="flex-1">
             <header class="flex items-center justify-between mb-4 bg-background p-4 rounded-lg shadow-sm">
-                       <h2 class="m-0 text-xl font-bold">Admin Dashboard</h2>
-                </header>
+                <h2 class="m-0 text-xl font-bold">Admin Dashboard</h2>
+            </header>
 
             <article class="p-4">
                 <h4 class="text-lg font-semibold mb-4">Server Metrics</h4>
                 <div class="grid cols-1 md:cols-2 gap-4">
                     <div class="space-y-2">
-                        <p class="text-sm">Lila Framework Memory: <span id="lilaMemory" class="font-semibold">{{lila_memory|round(0) }}</span> MB</p>
-                        <p class="text-sm">Lila Framework CPU: <span id="lilaCpuUsage" class="font-semibold">{{lila_cpu_usage|round(0) }}</span> %</p>
-                        <p class="text-sm">Server Memory: <span id="systemUsedMemory" class="font-semibold">{{system_used_memory|round(0) }}</span> MB / <span id="systemTotalMemory" class="font-semibold">{{ system_total_memory|round(0) }}</span> MB</p>
-                        <p class="text-sm">Server CPU: <span id="cpuUsage" class="font-semibold">{{ cpu_usage|round(0) }}</span> %</p>
+                        <p class="text-sm">Lila Framework Memory: <span id="lilaMemory"
+                                class="font-semibold">{{lila_memory|round(0) }}</span> MB</p>
+                        <p class="text-sm">Lila Framework CPU: <span id="lilaCpuUsage"
+                                class="font-semibold">{{lila_cpu_usage|round(0) }}</span> %</p>
+                        <p class="text-sm">Server Memory: <span id="systemUsedMemory"
+                                class="font-semibold">{{system_used_memory|round(0) }}</span> MB / <span
+                                id="systemTotalMemory" class="font-semibold">{{ system_total_memory|round(0) }}</span>
+                            MB</p>
+                        <p class="text-sm">Server CPU: <span id="cpuUsage" class="font-semibold">{{ cpu_usage|round(0)
+                                }}</span> %</p>
                     </div>
                     <div class="grid cols-2 gap-2">
                         <div><canvas id="memoryDoughnutChart"></canvas></div>
@@ -121,26 +128,27 @@
                 data: {
                     labels: ['Used', 'Free'],
                     datasets: [{
-                        data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
-                        backgroundColor: ['#ef4444', '#3b82f6']  
+                        data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }
+            }],
+                backgroundColor: ['#ef4444', '#3b82f6']  
                     }]
                 },
-                options: { plugins: { legend: { display: false } } }
+            options: { plugins: { legend: { display: false } } }
             });
 
-            cpuChart = new Chart(cpuCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Used', 'Free'],
-                    datasets: [{
-                        data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
-                        backgroundColor: ['#f59e0b', '#10b981']
-                    }]
+        cpuChart = new Chart(cpuCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Used', 'Free'],
+                datasets: [{
+                    data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
+            backgroundColor: ['#f59e0b', '#10b981']
+        }]
                 },
-                options: { plugins: { legend: { display: false } } }
+            options: { plugins: { legend: { display: false } } }
             });
 
-            setInterval(updateCharts, 10000);
+        setInterval(updateCharts, 10000);
         });
     </script>
 </body>

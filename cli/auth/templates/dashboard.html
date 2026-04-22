@@ -7,10 +7,11 @@
     <title>{{title}} </title>
     <link rel="stylesheet" href="/css/lila.css">
     <script src="/js/utils.js"></script>
+    {{hot_reload() | safe}}
 </head>
 
 <body>
-    <header class=" py-4">
+    <header>
         <nav class="container">
             <h3>
                 <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
@@ -18,17 +19,18 @@
         </nav>
 
     </header>
-    <main class="container mt-4">
+    <main>
         <aside>
-            <a href="/dashboard" class="">{{translate['home']}}</a>
+            <h3>Menu</h3>
+            <a href="/dashboard" class="active">{{translate['home']}}</a>
             <a href="/profile">{{user.name}}</a>
-            <a href="/set-language/es" class="dropdown-item">Español (Esp)</a>
-            <a href="/set-language/en" class="dropdown-item">English (US)</a>
-            <a href="/logout" class="dropdown-item">{{translate['logout']}}</a>
+            <a href="/set-language/es">Español (Esp)</a>
+            <a href="/set-language/en">English (US)</a>
+            <a href="/logout">{{translate['logout']}}</a>
         </aside>
-        <div class="container mt-4">
+        <article>
             <h3 class="text-xl">{{translate['Welcome']}}, {{user.name}}!</h3>
-        </div>
+        </article>
     </main>
 
 </body>

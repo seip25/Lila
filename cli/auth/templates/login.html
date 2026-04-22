@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
     <link rel="stylesheet" href="/css/lila.css">
+      {{hot_reload() | safe}}
 </head>
 
 
 <body>
     <main class="flex justify-center items-center    container">
-        <div class="w-mx-500-px">
+        <article class="w-mx-500-px">
             <h3 class=" text-center mb-4">{{translate['login']}}</h3>
 
             <form id="login-form">
@@ -32,7 +33,7 @@
                 </div>
                 <p id="error-message" class="text-red-500 mt-2 text-center"></p>
             </form>
-        </div>
+        </article>
 
     </main>
     <div class="mt-8 mb-4">

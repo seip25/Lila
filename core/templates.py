@@ -73,10 +73,11 @@ def hot_reload() -> str:
     Returns Vite hot reload scripts if DEBUG is True.
     """
     if DEBUG:
-        return """
-        <script type="module">
-            import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
-            RefreshRuntime.injectIntoGlobalHook(window);
+        if os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json")):
+            return """
+            <script type="module">
+                import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
+                RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
             window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
