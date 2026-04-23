@@ -35,6 +35,13 @@ lila/
 │   ├── models/              # SQLAlchemy models
 │   └── routes/              # Route definitions (routes.py, api.py, admin.py)
 ├── cli/                     # CLI tools (scaffold, model gen, migrations, auth, admin, React, minify)
+│   ├── scaffold.py          # Create a new Lila project structure
+│   ├── model.py             # Generate SQLAlchemy models from database tables
+│   ├── migrations.py        # Manage database migrations (Alembic-based)
+│   ├── auth.py              # Create database admin
+│   ├── admin.py             # Create admin panel
+│   ├── react.py             # Initialize React and Vite setup
+│   └── minify.py            # Minify CSS/JS using rjsmin/rcssmin + HTML minify
 ├── resources/               # Frontend resources and Jinja2 templates (Unified)
 │   ├── main.jsx             # React entry point
 │   ├── pages/               # React components (islands)
@@ -61,6 +68,11 @@ lila/
 - Get request input in request.state.data
 ```python
 from pydantic import BaseModel, EmailStr
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse
+from lila.core.request import Request
+
+router = Router()
 
 class ExampleModel(BaseModel):
     email: EmailStr   .
@@ -216,3 +228,50 @@ LANG_DEFAULT=en
 - Passwords are auto-hashed with argon2 when `password` field is present in CRUD operations.
 - `delete_old_logs(days=30)` runs on startup via `on_startup` lifecycle event.
 - Production: set `DEBUG=False`, enable `trusted_hosts`, configure CORS properly.
+
+
+---
+
+### CLI commands (newly added)
+
+#### Initialize project structure
+```bash
+lila-init
+```
+
+#### Generate SQLAlchemy models from database
+```bash
+lila-model
+```
+
+#### Generate CRUD REST API + HTML interface
+```bash
+lila-scaffold_crud
+```
+
+#### Create authentication system
+```bash
+lila-auth
+```
+
+#### Create admin panel
+```bash
+lila-admin
+```
+
+#### Run database migrations
+```bash
+lila-migrations
+```
+
+#### Minify CSS/JS and HTML
+```bash
+lila-minify
+```
+
+#### Set up React + Vite integration
+```bash
+lila-react
+```
+
+
