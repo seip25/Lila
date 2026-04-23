@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -92,40 +92,11 @@
         <h3>
           Basic Usage in Routes
         </h3>
-        <h3 class="text-2xl font-semibold">Jinja2 Helpers</h3>
-        <p>Lila provides several helpers to make your templates more powerful:</p>
-        <ul class="rounded bg-surface py-4 px-4">
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>hot_reload():</strong>
-            <p>
-              Injects Vite's Hot Module Replacement (HMR) scripts.
-              <strong>Only active when DEBUG=True</strong>.
-              Place it in the <code>&lt;head&gt;</code> of your main layout.
-            </p>
-            <small>
-              Activate hot reload in development mode, install lila-react package
-              <pre><code class="language-html">lila-react create</code></pre>
-            </small>
-          </li>
-          <li class="mt-4 flex flex-col md:flex-row md:items-start">
-            <strong>vite_assets():</strong>
-            <p>
-              In production, it injects the compiled scripts and styles from the manifest.
-              In development, it injects the main entry point (<code>main.jsx</code>).
-            </p>
-          </li>
-          <li class="flex flex-col md:flex-row md:items-start">
-            <strong>react(component_name, props):</strong>
-            <p>
-              Creates a mount point for a React Island.
-            </p>
-          </li>
-        </ul>
 
         <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
           <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
             <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
-              <i class="fas fa-code mr-2"></i>Usage Example
+              <i class="fas fa-code mr-2"></i>Render function
             </span>
             <div class="flex space-x-2">
               <div class="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -134,30 +105,36 @@
             </div>
           </div>
           <div class="editor-content bg-gray-900 dark:bg-black">
-            <pre><code class="language-html">
-        &lt;!DOCTYPE html&gt;
-        &lt;html&gt;
-        &lt;head&gt;
-        &lt;title&gt;{{ title }}&lt;/title&gt;
-        {{ hot_reload() | safe }}
-        &lt;/head&gt;
-        &lt;body&gt;
-        &lt;h1&gt;Welcome&lt;/h1&gt;
-        {{ vite_assets() | safe }}
-        &lt;/body&gt;
-        &lt;/html&gt;
-            </code></pre>
+            <pre><code class="language-python">
+from lila.core.templates import render
+from lila.core.responses import Response
+from lila.core.routing import Router
+from lila.core.request import Request
+
+router = Router()
+
+@router.get("/")
+async def home(request: Request):
+    """Home page"""
+    
+    context = {
+        "title": "Lila Framework",
+        "message": "Hello from Lila!"
+    }
+    response = render(
+        request, 
+        "index.html", # HTML template name in resources/templates/html/
+        context=context
+    )
+    # Renders the 'index' template
+    
+    return response
+
+routes=router.get_routes()
+</code>
+</pre>
           </div>
         </div>
-
-        context=context
-        )
-        # Renders the 'index' template
-
-        return response
-        </code>
-        </pre>
-      </div>
       </div>
 
       <h3>
@@ -264,7 +241,16 @@ def render(request: Request, template: str, context: dict = None, files_translat
       </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
-        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span>Python</span>
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            Base Context
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+
         </div>
         <div class="editor-content">
           <pre><code class="language-python">
@@ -288,7 +274,60 @@ def get_base_context(request, files_translate=[], lang_default=None):
       </code></pre>
         </div>
       </div>
+      <h3 class=" mt-8 text-2xl font-semibold">Jinja2 Helpers</h3>
+      <p>Lila provides several helpers to make your templates more powerful:</p>
 
+      <ul class="rounded bg-surface py-4 px-4">
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>hot_reload():</strong>
+          <p>
+            Injects Vite's Hot Module Replacement (HMR) scripts.
+            <strong>Only active when DEBUG=True</strong>.
+            Place it in the <code>&lt;head&gt;</code> of your main layout.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>vite_assets():</strong>
+          <p>
+            In production, it injects the compiled scripts and styles from the manifest.
+            In development, it injects the main entry point (<code>main.jsx</code>).
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>react(component_name, props):</strong>
+          <p>
+            Creates a mount point for a React Island.
+          </p>
+        </li>
+      </ul>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            <i class="fas fa-code mr-2"></i>Usage Example
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">
+        &lt;!DOCTYPE html&gt;
+        &lt;html&gt;
+        &lt;head&gt;
+        &lt;title&gt;{{ title }}&lt;/title&gt;
+        {{ hot_reload() | safe }}
+        &lt;/head&gt;
+        &lt;body&gt;
+        &lt;h1&gt;Welcome&lt;/h1&gt;
+        {{ vite_assets() | safe }}
+        &lt;/body&gt;
+        &lt;/html&gt;
+            </code></pre>
+        </div>
+      </div>
 
 
       </div>
