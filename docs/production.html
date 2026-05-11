@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -201,6 +201,13 @@ DEBUG=False
                         </code></pre>
         </div>
       </div>
+
+      <p class="mt-4">
+        <strong>Important Error Handling Details:</strong> When <code>DEBUG=True</code>, the framework's internal <code>App</code> class will automatically intercept <code>500 Internal Server Errors</code> and display a highly detailed HTML page in your browser showing the exact line of code, file path, and a full traceback of the exception.
+      </p>
+      <p class="mt-2">
+        When you deploy to production and set <code>DEBUG=False</code>, Lila will seamlessly hide this sensitive traceback data and instead render a generic user-friendly <code>500 Error</code> page. Furthermore, <code>404 Not Found</code> errors will automatically look for your custom template defined in <code>PATH_TEMPLATE_NOT_FOUND</code>.
+      </p>
 
 
    <h4>6. Configure Nginx (Optional)</h4>

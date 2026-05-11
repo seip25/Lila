@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Debug & Profiling</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila Framework features an advanced Debug Middleware to profile performance, RAM, CPU, and execution times automatically." />
+    <meta name="keywords" content="Python, Web Framework, Profiling, Debugging, Starlette, Performance" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Debug & Profiling" />
+    <meta property="og:description"
+        content="Lila Framework features an advanced Debug Middleware to profile performance, RAM, CPU, and execution times automatically." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Debug & Profiling" />
+    <meta name="twitter:description"
+        content="Lila Framework features an advanced Debug Middleware to profile performance, RAM, CPU, and execution times automatically." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div>
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <aside>
+            <!-- Loaded by partial.js -->
+        </aside>
+        <article id="debug-profiling-eng">
+            <div>
+                <h1>
+                    Debug & Profiling
+                </h1>
+                <p>
+                    Lila Framework includes an advanced <strong>DebugMiddleware</strong> that automatically monitors the performance of your application. When debugging is enabled, it tracks RAM usage, CPU consumption, execution time, and more for every HTTP request.
+                </p>
+            </div>
+
+            <!-- Enabling Debug Mode -->
+            <div class="space-y-4 mt-8">
+                <h2>
+                    Enabling Debug Mode
+                </h2>
+                <p>
+                    The debugging and profiling features are only active when your application is in debug mode. Ensure that <code>DEBUG=True</code> is set in your <code>app/config.py</code> or your `.env` configuration file.
+                </p>
+                <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                        <span class="editor-title text-gray-300 dark:text-gray-400">app/config.py</span>
+                        <div class="flex space-x-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                        <pre><code class="language-python">
+# Debug must be set to True
+DEBUG = True
+                        </code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What does it track -->
+            <div class="space-y-4 mt-8">
+                <h2>
+                    What gets tracked?
+                </h2>
+                <p>
+                    For every non-static asset request, the middleware logs the following data into a local SQLite database (`debug` table):
+                </p>
+                <ul class="list-disc pl-6 space-y-2 mt-4 text-gray-700 dark:text-gray-300">
+                    <li><strong>Path & Method:</strong> Endpoint accessed and HTTP method.</li>
+                    <li><strong>IP Address:</strong> Client's IP.</li>
+                    <li><strong>RAM Used:</strong> Memory allocated during the request lifecycle.</li>
+                    <li><strong>CPU:</strong> Processor time consumed.</li>
+                    <li><strong>Execution Time:</strong> Total time taken to respond.</li>
+                    <li><strong>Status Code:</strong> The HTTP response status.</li>
+                </ul>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="space-y-4 mt-8">
+                <h2>
+                    The Debug Dashboard
+                </h2>
+                <p>
+                    Lila automatically mounts a visual dashboard for you to inspect these logs without needing any additional setup.
+                    Simply navigate to:
+                </p>
+                <p>
+                    <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://localhost:8000/debug/</code>
+                </p>
+                <p class="mt-4">
+                    Here you will see a real-time table with all the recorded requests and their performance metrics.
+                </p>
+                
+                <h3>Fetching Data Programmatically</h3>
+                <p>
+                    If you want to fetch this data programmatically, you can hit the same endpoint with a `fetch` query parameter:
+                </p>
+                <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                        <span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+                        <div class="flex space-x-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                        <pre><code class="language-bash">
+curl http://localhost:8000/debug/?fetch=True
+                        </code></pre>
+                    </div>
+                </div>
+                
+                <h3>Clearing Logs</h3>
+                <p>
+                    To clean up your database and remove all previous debug logs, simply send a <code>DELETE</code> request to the dashboard URL:
+                </p>
+                <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                        <span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+                        <div class="flex space-x-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                        <pre><code class="language-bash">
+curl -X DELETE http://localhost:8000/debug/
+                        </code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 mb-4 mt-8 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+                <span class="font-medium">Note:</span> The <code>/debug</code> endpoint and the <code>DebugMiddleware</code> are completely disabled when <code>DEBUG=False</code> to ensure zero performance overhead in production environments.
+            </div>
+
+        </article>
+    </main>
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

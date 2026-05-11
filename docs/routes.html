@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -493,6 +493,52 @@ async def delete_item(request: Request):
             Documentation is automatically generated at <code class="code-inline">/docs</code> and <code
                 class="code-inline">/openapi.json</code>.
             </p>
+
+            <h3>⚙️ Manual Validation with RequestParser</h3>
+            <p>
+                While assigning a <code class="code-inline">model=ExampleModel</code> to the route automatically validates incoming data and injects it into <code class="code-inline">request.state.data</code>, sometimes you may need more granular control over parsing the request body or query parameters manually.
+            </p>
+            <p>
+                For these edge cases, Lila provides a built-in <code class="code-inline">RequestParser</code> in the <code class="code-inline">lila.core.controller</code> module. It safely parses and validates the data against a Pydantic model and returns a standardized dictionary with the results.
+            </p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-check-double mr-2"></i>Manual Parsing Example
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.controller import RequestParser
+from pydantic import BaseModel
+from lila.core.responses import JSONResponse
+
+class MyCustomModel(BaseModel):
+    username: str
+    age: int
+
+parser = RequestParser()
+
+@router.post("/manual-parse")
+async def manual_parse_endpoint(request: Request):
+    # Parses the JSON body and validates it against MyCustomModel
+    result = await parser.parse_body(request, MyCustomModel)
+    
+    if not result["success"]:
+        # Returns standard validation errors
+        return JSONResponse({"error": True, "details": result["errors"]}, status_code=400)
+    
+    # Access the validated Pydantic model
+    validated_data = result["data"]
+    return JSONResponse({"status": "parsed", "user": validated_data.username})
+            </code></pre>
+                </div>
+            </div>
 
         </article>
     </main>

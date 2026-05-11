@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -301,6 +301,67 @@ lila-react create
 
 # Run react development server
 lila-react dev 
+</code>
+</pre>
+                </div>
+            </div>
+
+            <!-- Secret Key -->
+            <div class="space-y-4 mt-8">
+                <h2>
+                    Security Utilities
+                </h2>
+                <p>
+                    Generate a new secure <code class="font-mono text-blue-600 dark:text-blue-400">SECRET_KEY</code> for your <code class="font-mono text-blue-600 dark:text-blue-400">.env</code> file.
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="ml-auto text-sm font-semibold text-gray-300">cli.secret_key</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                    <pre class="language-bash">
+
+# Replace SECRET_KEY in .env with a new randomly generated token
+lila-secret-key create
+</code>
+</pre>
+                </div>
+            </div>
+
+            <!-- Prerender -->
+            <div class="space-y-4 mt-8">
+                <h2>
+                    Static Prerendering (Fallback SEO)
+                </h2>
+                <p>
+                    While we recommend using <code>renderReact</code> or React Islands for SSR, Lila includes a Selenium-based utility as a fallback to capture fully rendered React pages and save them as static HTML for SEO purposes.
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="ml-auto text-sm font-semibold text-gray-300">cli.prerender</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                    <pre class="language-bash">
+
+# Uses Headless Chrome to visit localhost:5173/ and save it to templates/html/react/cache/index.html
+lila-prerender cache-page-with-selenium
+
+# Cache a specific route
+lila-prerender cache-page-with-selenium --route "/about"
 </code>
 </pre>
                 </div>
