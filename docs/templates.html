@@ -331,6 +331,40 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
 
       </div>
+      
+      <!-- SPA ENGINE -->
+      <h3 class="mt-8 text-2xl font-semibold">⚡ Single Page Application (SPA) Engine</h3>
+      <p>
+        Lila includes a built-in SPA navigation engine. It seamlessly converts your standard server-rendered templates into a blazing fast Single Page Application.
+      </p>
+
+      <h4>How it works</h4>
+      <p>
+        When you click a link, the <code>spa.js</code> script intercepts the request. The backend detects this via the <code>source=frontend</code> query parameter and the <code>X-Lila-SPA</code> header. Instead of sending the full HTML document, Lila only renders and returns a JSON payload containing the <code>{% block content %}</code>, updated title, meta tags, and any new CSS/JS.
+        This provides a smooth transition without full page reloads, preserving state and performance.
+      </p>
+
+      <h4>Opting out or Disabling</h4>
+      <p>
+        The SPA behavior is enabled by default in the standard <code>base.html</code> layout. If you don't want to use it, you have two options:
+      </p>
+      <ul class="rounded bg-surface py-4 px-4 mb-4">
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>Disable globally:</strong>
+          <p class="ml-2">
+            Simply remove the <code>&lt;script src="/js/spa.js"&gt;&lt;/script&gt;</code> tag from your <code>base.html</code> file. Your application will fall back to traditional multi-page navigation.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>Disable per link:</strong>
+          <p class="ml-2">
+            Add the <code>data-no-spa</code> attribute to any <code>&lt;a&gt;</code> tag. This tells the SPA engine to ignore that specific link and perform a standard full page reload.
+            <br>
+            <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 mt-2 inline-block rounded-md font-mono text-sm">&lt;a href="/logout" data-no-spa&gt;Logout&lt;/a&gt;</code>
+          </p>
+        </li>
+      </ul>
+
     </article>
   </main>
 
