@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{lang}}" data-theme="light">
+{% extends layout | default('lila/base.html') %}
+{% block title %}{{title}}{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}} </title>
-    <link rel="stylesheet" href="/css/lila.css">
-    <script src="/js/utils.js"></script>
-    {{hot_reload() | safe}}
-</head>
-
-<body>
-    <header>
+{% block content %}
+<header>
         <nav class="container">
             <h3>
                 <a href="/dashboard" class="text-indigo-500 font-bold">Lila</a>
@@ -32,7 +23,4 @@
             <h3 class="text-xl">{{translate['Welcome']}}, {{user.name}}!</h3>
         </article>
     </main>
-
-</body>
-
-</html>
+{% endblock %}

@@ -13,6 +13,7 @@ import traceback
 import sys
 import orjson
 import uuid
+import html
 
 PROJECT_ROOT = os.getcwd()
 
@@ -40,6 +41,72 @@ def react(component: str, props: dict = None) -> str:
     props_json = orjson.dumps(props).decode().replace('"', '&quot;')
     return f'<div id="{id_}" data-react-component="{component}" data-props="{props_json}"></div>'
 
+def get_vite_assets_data() -> dict:
+    """
+    Returns structured Vite assets data for SPA responses.
+    """
+    data = {'scripts': [], 'css': []}
+    if DEBUG:
+        if os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json")):
+            data['scripts'].append({'src': 'http://localhost:5173/public/build/@vite/client', 'type': 'module'})
+            data['scripts'].append({
+                'content': '''
+                    import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
+                    RefreshRuntime.injectIntoGlobalHook(window);
+                    window.$RefreshReg$ = () => {};
+                    window.$RefreshSig$ = () => (type) => type;
+                    window.__vite_plugin_react_preamble_installed__ = true;
+                ''',
+                'type': 'module'
+            })
+            data['scripts'].append({'src': 'http://localhost:5173/public/build/resources/js/main.jsx', 'type': 'module'})
+        return data
+
+    global MANIFEST_BUILD
+    if not MANIFEST_BUILD:
+        try:
+            from app.build_manifest import manifest
+            MANIFEST_BUILD = manifest
+        except ImportError:
+            return data
+
+    entry = MANIFEST_BUILD.get("file")
+    css = MANIFEST_BUILD.get("css", [])
+    
+    if entry:
+        data['scripts'].append({'src': f'/build/{entry}', 'type': 'module'})
+    for css_file in css:
+        data['css'].append(f'/build/{css_file}')
+        
+    return data
+
+def is_frontend_request(request: Request) -> bool:
+    """
+    Check if the current request is a frontend SPA request.
+    """
+    return request.query_params.get('source') == 'frontend' or request.headers.get('x-lila-spa') == 'true'
+
+def render_json_response(body: str, context: dict) -> JSONResponse:
+    """
+    Render a JSON response for SPA navigation.
+    """
+    response_data = {
+        "meta": {
+            "title": context.get("title", TITLE_PROJECT),
+            "description": context.get("description", DESCRIPTION_DEFAULT),
+            "keywords": context.get("keywords", KEYWORDS_DEFAULT),
+            "author": context.get("author", AUTHOR_DEFAULT)
+        },
+        "lang": context.get("lang", LANG_DEFAULT),
+        "scripts": context.get("scripts_array", []),
+        "css": context.get("styles_array", []),
+        "fonts": [],
+        "body": body,
+        "props": context.get("props_array", {}),
+        "translations": context.get("translate", {})
+    }
+    return JSONResponse(response_data)
+
 def renderReact(request: Request, component: str, props: dict = None, options: dict = None):
     """
     Renders a base HTML template configured to initialize a React component.
@@ -64,8 +131,22 @@ def renderReact(request: Request, component: str, props: dict = None, options: d
         "description": options.get('description', DESCRIPTION_DEFAULT),
         "author": options.get('author', AUTHOR_DEFAULT),
         "lang": options.get('lang', LANG_DEFAULT),
-        "head": f"{meta_tags}\n{style_tags}\n{script_tags}"
+        "head": f"{meta_tags}\n{style_tags}\n{script_tags}",
+        "scripts_array": scripts,
+        "styles_array": styles,
+        "props_array": props,
+        "translate": Translate.get_translations("translations", request, lang_default=options.get('lang'))
     }
+
+    if is_frontend_request(request):
+        vite_assets = get_vite_assets_data()
+        context["scripts_array"].extend(vite_assets["scripts"])
+        context["styles_array"].extend(vite_assets["css"])
+
+        props_json = html.escape(orjson.dumps(props).decode())
+        body = f'<div id="root" data-react-page="{component}" data-props=\'{props_json}\'></div>'
+        return render_json_response(body, context)
+
     return render(request=request, template="lila/react_base", context=context)
 
 def hot_reload() -> str:
@@ -92,7 +173,9 @@ def vite_assets() -> str:
     In development, it should be used alongside hot_reload().
     """
     if DEBUG:
-        return '<script type="module" src="http://localhost:5173/public/build/resources/js/main.jsx"></script>'
+        if os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json")):
+            return '<script type="module" src="http://localhost:5173/public/build/resources/js/main.jsx"></script>'
+        return ""
     
     global MANIFEST_BUILD
     if not MANIFEST_BUILD:
@@ -144,7 +227,7 @@ def get_base_context(request: Request, files_translate: list[str] = None, lang_d
     }
 
 
-def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
+def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None,extension:str="html"):
     """
     Renders an HTML template with unified context and error handling.
     """
@@ -155,7 +238,20 @@ def render(request: Request, template: str, context: dict = None, files_translat
     try:
         full_context = get_base_context(request, files_translate, lang_default)
         full_context.update(context)
-        return templates.TemplateResponse(request=request, name=f"{template}.html", context=full_context)
+
+        if is_frontend_request(request):
+            full_context["layout"] = "lila/empty.html"
+            full_context["request"] = request
+            template_obj = jinja_env.get_template(f"{template}.{extension}")
+            body = template_obj.render(full_context)
+
+            vite_assets = get_vite_assets_data()
+            full_context["scripts_array"] = full_context.get("scripts_array", []) + vite_assets["scripts"]
+            full_context["styles_array"] = full_context.get("styles_array", []) + vite_assets["css"]
+
+            return render_json_response(body, full_context)
+
+        return templates.TemplateResponse(request=request, name=f"{template}.{extension}", context=full_context)
     except Exception as e:
         return handle_render_error(template, e)
 

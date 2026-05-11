@@ -95,11 +95,12 @@ class ResponsiveDataTable {
   ripple.addEventListener("animationend", () => ripple.remove());
 });
 
-(function () {
-  function initDrawer() {
-    const mainEl = document.querySelector("main");
-    const aside = mainEl ? mainEl.querySelector(":scope > aside") : null;
-    if (!aside || document.querySelector(".lila-drawer")) return;
+function initDrawer() {
+  document.querySelectorAll(".lila-drawer, .lila-drawer-overlay, .lila-drawer-toggle").forEach(el => el.remove());
+
+  const mainEl = document.querySelector("main");
+  const aside = mainEl ? mainEl.querySelector(":scope > aside") : null;
+  if (!aside) return;
 
     const overlay = document.createElement("div");
     overlay.className = "lila-drawer-overlay";
@@ -164,7 +165,12 @@ class ResponsiveDataTable {
   } else {
     setTimeout(initDrawer, 100);
   }
-})();
+
+  document.addEventListener("lila:navigation", function () {
+    setTimeout(initDrawer, 100);
+  });
+
+window.initDrawer = initDrawer;
 
 function lila(component, options) {
   if (component === "snackbar") {

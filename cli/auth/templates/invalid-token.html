@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{lang}}" data-theme="light">
+{% extends layout | default('lila/base.html') %}
+{% block title %}{{translate['Invalid or expired token']}}{% endblock %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{translate['Invalid or expired token']}}</title>
-  <link rel="stylesheet" href="/css/lila.css">
-  {{hot_reload() | safe}}
-</head>
-
-<body>
-  <main class="flex justify-center items-center container">
+{% block content %}
+<main class="flex justify-center items-center container">
     <article class="w-mx-500-px text-center">
       <h3 class="text-red-500 mb-4">{{translate['Invalid or expired token']}}</h3>
       <p>{{translate['Your password reset link is invalid or has expired.']}}</p>
@@ -29,6 +21,4 @@
     </a>
   </div>
   </div>
-</body>
-
-</html>
+{% endblock %}

@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ lang }}" data-theme="light">
+{% extends layout | default('lila/base.html') %}
+{% block title %}{{ title }}{% endblock %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <meta name="description" content="{{ description }}" />
-  <meta name="keywords" content="{{ keywords }}" />
-  <meta name="author" content="{{ author }}" />
-  <title>{{ title }}</title>
-  <link rel="icon" type="image/x-icon" href="img/lila.png" />
-  <link rel="stylesheet" href="css/lila.css" />
-  {{hot_reload() | safe}}
-</head>
-
-<body>
-  <main>
+{% block content %}
+<main>
     <!-- Hero Section -->
     <section class="hero border-none shadow-none">
       <img src="img/lila.png" alt="Lila Framework" width="100" height="100" class="hero-logo" />
@@ -122,6 +108,4 @@
       </div>
     </div>
   </footer>
-</body>
-
-</html>
+{% endblock %}
