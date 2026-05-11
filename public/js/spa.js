@@ -128,9 +128,10 @@
         let finalUrl = response.url || url;
         try {
           const urlObj = new URL(finalUrl);
+          const hasSetLang = urlObj.searchParams.has('set-lang');
           urlObj.searchParams.delete('source');
           urlObj.searchParams.delete('set-lang');
-          if (urlObj.searchParams.has('set-lang')) {
+          if (hasSetLang) {
             urlObj.searchParams.delete('lang');
           }
           finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;

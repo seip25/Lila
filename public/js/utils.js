@@ -76,7 +76,7 @@ class ResponsiveDataTable {
   updateData(newData) { this.options.data = newData; this.filteredData = [...newData]; this.currentPage = 1; this.updateTable(); }
   updateColumns(newColumns) { this.options.columns = newColumns; this.updateTable(); }
 }
- document.addEventListener("click", function (e) {
+document.addEventListener("click", function (e) {
   const btn = e.target.closest("button, a[role='button']");
   if (!btn || btn.classList.contains("fab")) return;
 
