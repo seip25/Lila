@@ -44,96 +44,105 @@
   </header>
   <main>
     <aside>
-  <h4>Menu</h4>
-  <a href="install.html">Installation</a>
-  <a href="routes.html">Routes</a>
-  <a href="static.html">Static</a>
-  <a href="templates.html">Templates</a>
-  <a href="react.html">React</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
-  <a href="markdown.html">Markdown/HTML</a>
-  <a href="locales.html">Internationalization</a>
-  <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
-  <a href="connections.html">Connections</a>
-  <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
-  <a href="scaffold.html">Scaffold CRUD</a>
-  <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
-  <a href="production.html">Production</a>
-</aside>
-    <article id="minify-eng">
-      <h1>⚡ Minify Files for Production</h1>
-      <p>
-        With the <code
-          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-minify</code>
-        command you can minify your js and css files
-        located in the <code
-          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js</code>
-        and <code
-          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/css</code>
-        folders.
-      </p>
+      <h4>Menu</h4>
+      <a href="install.html">Installation</a>
+      <a href="routes.html">Routes</a>
+      <a href="static.html">Static</a>
+      <a href="templates.html">Templates</a>
+      <a href="react.html">React</a>
+      <a href="session.html">Session</a>
+      <a href="upload.html">Uploads Files</a>
+      <a href="markdown.html">Markdown/HTML</a>
+      <a href="locales.html">Internationalization</a>
+      <a href="models.html">Models</a>
+      <a href="middlewares.html">Middlewares</a>
+      <a href="cli.html">CLI Commands</a>
+      <a href="connections.html">Connections</a>
+      <a href="migrations.html">Migrations</a>
+      <a href="auth.html">Auth Cli </a>
+      <a href="scaffold.html">Scaffold CRUD</a>
+      <a href="rest_api.html">API Rest CRUD</a>
+      <a href="admin.html">Admin Panel</a>
+      <a href="minify.html">Minify</a>
+      <a href="production.html">Production</a>
+    </aside>
+    <div>
+      <article id="minify-eng">
+        <h1>⚡ Minify Files for Production</h1>
+        <p>
+          With the <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-minify</code>
+          command you can minify your js and css files
+          located in the <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js</code>
+          and <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/css</code>
+          folders.
+        </p>
 
 
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
-        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-          <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
-          <div class="flex space-x-2">
-            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
           </div>
-        </div>
-        <div class="editor-content">
-          <pre><code class="language-bash">
+          <div class="editor-content">
+            <pre><code class="language-bash">
 lila-minify
 </code></pre>
-        </div>
-      </div>
-
-
-    </article>
-    <article id="optimize-eng">
-      <h2 class="mt-8">🚀 Asset Optimizer (lila-optimize)</h2>
-      <p>
-        For maximum Lighthouse scores and zero-CPU overhead in production, use the <code
-          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-optimize</code> command.
-      </p>
-      <p>
-        Unlike <code>lila-minify</code> which overwrites files, <code>lila-optimize</code> acts as an Ahead-of-Time asset builder:
-      </p>
-      <ul class="list-disc pl-5 mt-2 mb-4">
-        <li><strong>Images:</strong> Converts <code>.png</code>, <code>.jpg</code>, and <code>.jpeg</code> to <code>.webp</code> using Pillow (quality 80%).</li>
-        <li><strong>CSS/JS:</strong> Generates parallel <code>.min.css</code> and <code>.min.js</code> files without destroying your original source code.</li>
-        <li><strong>Manifest:</strong> Generates an <code>app/assets_manifest.json</code> dictionary.</li>
-      </ul>
-      
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
-        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-          <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
-          <div class="flex space-x-2">
-            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
           </div>
         </div>
-        <div class="editor-content">
-          <pre><code class="language-bash">
+
+
+      </article>
+      <article id="optimize-eng">
+        <h2 class="mt-8">🚀 Asset Optimizer (lila-optimize)</h2>
+        <p>
+          For maximum Lighthouse scores and zero-CPU overhead in production, use the <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-optimize</code>
+          command.
+        </p>
+        <p>
+          Unlike <code>lila-minify</code> which overwrites files, <code>lila-optimize</code> acts as an Ahead-of-Time
+          asset builder:
+        </p>
+        <ul class="list-disc pl-5 mt-2 mb-4">
+          <li><strong>Images:</strong> Converts <code>.png</code>, <code>.jpg</code>, and <code>.jpeg</code> to
+            <code>.webp</code> using Pillow (quality 80%).</li>
+          <li><strong>CSS/JS:</strong> Generates parallel <code>.min.css</code> and <code>.min.js</code> files without
+            destroying your original source code.</li>
+          <li><strong>Manifest:</strong> Generates an <code>app/assets_manifest.json</code> dictionary.</li>
+        </ul>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class="editor-content">
+            <pre><code class="language-bash">
 lila-optimize
 </code></pre>
+          </div>
         </div>
-      </div>
 
-      <h3 class="mt-4">Silent Magic (Templates)</h3>
-      <p>
-        When <code>DEBUG=False</code>, Lila automatically loads the manifest into RAM. The <code>{{ '{{' }} public('img/logo.png') {{ '}}' }}</code> Jinja helper performs a fast dictionary lookup. If a <code>.webp</code> or <code>.min.js</code> version exists in the manifest, it will automatically serve it instead of the original file, saving you from rewriting your HTML!
-      </p>
-    </article>
+        <h3 class="mt-4">Silent Magic (Templates)</h3>
+        <p>
+          When <code>DEBUG=False</code>, Lila automatically loads the manifest into RAM. The
+          <code>{{ '{{' }} public('img/logo.png') {{ '}}' }}</code> Jinja helper performs a fast dictionary lookup. If a
+          <code>.webp</code> or <code>.min.js</code> version exists in the manifest, it will automatically serve it
+          instead of the original file, saving you from rewriting your HTML!
+        </p>
+      </article>
+    </div>
   </main>
   <script src="../js/highlight.min.js"></script>
   <script>
