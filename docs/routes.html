@@ -372,7 +372,9 @@ routes = router.get_routes()  # Retrieves all defined app.routes.
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
 # Global configuration (default is 30s)
-router = Router(default_cache_ttl=60) 
+# By default, it isolates cache by user checking "session", "auth", "auth_admin" cookies.
+# You can customize the cookies to check using cache_cookie_keys.
+router = Router(default_cache_ttl=60, cache_cookie_keys=["my_custom_session"]) 
 
 # Disable caching for a specific route
 @router.get("/live-data", cache_ttl=0)
