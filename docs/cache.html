@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Caching</title>
+    <meta name="description"
+        content="Learn how to use Lila's built-in memory cache for high-performance applications." />
+    <meta name="keywords" content="Python, Cache, Performance, Memory Cache, TTL" />
+    <meta name="author" content="Lila Framework Team" />
+
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>
+                <a href="../index.html" class="text-blue">Lila Framework</a>
+            </h1>
+            <div>
+                <a href="https://github.com/seip25/Lila" role="button">Github</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="react.html">React</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+  <a href="debug.html">Debug & Profiling</a>
+  <a href="logger.html">Logger</a>
+  <a href="cache.html">Memory Cache</a>
+</aside>
+
+        <article>
+            <h2>🧠 Memory Cache</h2>
+
+            <p>
+                Lila includes a simple but powerful in-memory caching system to reduce database load and improve response times. It supports <b>TTL (Time To Live)</b>, allowing items to expire automatically.
+            </p>
+
+            <h3>🚀 Basic Usage</h3>
+            <p>
+                You can use the <code class="code-inline">Cache</code> class from <code class="code-inline">lila.core.cache</code> to store and retrieve any Python object.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-memory mr-2"></i>Using Cache in Code
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.cache import Cache
+
+# Store a value for 5 minutes (300 seconds)
+Cache.set("my_key", {"data": "value"}, ttl=300)
+
+# Retrieve a value
+data = Cache.get("my_key")
+
+if data:
+    print("Value found in cache")
+else:
+    print("Value expired or not found")
+
+# Delete a specific key
+Cache.delete("my_key")
+
+# Clear everything
+Cache.clear()
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>🌐 Automatic Route Caching</h3>
+            <p>
+                The most common way to use caching is through the <code class="code-inline">Router</code>. By default, all <code class="code-inline">GET</code> routes have a 30-second cache.
+            </p>
+            <p>
+                For more details on how to configure route caching, see the <a href="routes.html">Routes Documentation</a>.
+            </p>
+
+            <h3>🛠️ Core Optimizations</h3>
+            <p>
+                Lila uses this caching system internally to optimize several core features:
+                <ul>
+                    <li><b>OpenAPI:</b> The generated <code class="code-inline">openapi.json</code> is cached for 1 hour.</li>
+                    <li><b>Vite:</b> Asset detection is cached to avoid constant disk I/O during development.</li>
+                    <li><b>Translations:</b> Localization files are loaded once and kept in memory.</li>
+                </ul>
+            </p>
+
+            <p>
+                <strong>Warning:</strong> The memory cache is <b>volatile</b>. If you restart the server, all cached data will be lost. It is intended for temporary data and performance optimization, not for persistent storage.
+            </p>
+
+        </article>
+    </main>
+
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

@@ -352,6 +352,45 @@ routes = router.get_routes()  # Retrieves all defined app.routes.
                 </div>
             </div>
 
+            <h3>⚡ Performance: Route Caching</h3>
+
+            <p>
+                Lila includes a built-in caching system for <code class="code-inline">GET</code> requests to improve performance. By default, all routes are cached for <b>30 seconds</b>, but you can customize this globally or per route.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-bolt mr-2"></i>Caching Configuration
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+# Global configuration (default is 30s)
+router = Router(default_cache_ttl=60) 
+
+# Disable caching for a specific route
+@router.get("/live-data", cache_ttl=0)
+async def live(request: Request):
+    return JSONResponse({"time": time.time()})
+
+# Set a custom TTL for a specific route
+@router.get("/slow-data", cache_ttl=300) # 5 minutes
+async def slow(request: Request):
+    return JSONResponse({"data": "long-lived"})
+            </code></pre>
+                </div>
+            </div>
+
+            <p>
+                <strong>Note:</strong> Caching is automatically <b>disabled</b> when <code class="code-inline">DEBUG = True</code> in your configuration to ensure you always see the latest changes during development.
+            </p>
+
             <h3>Route Prefixes and HTTP Method
                 Shortcuts</h3>
 
