@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -97,6 +97,42 @@ lila-minify
       </div>
 
 
+    </article>
+    <article id="optimize-eng">
+      <h2 class="mt-8">🚀 Asset Optimizer (lila-optimize)</h2>
+      <p>
+        For maximum Lighthouse scores and zero-CPU overhead in production, use the <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-optimize</code> command.
+      </p>
+      <p>
+        Unlike <code>lila-minify</code> which overwrites files, <code>lila-optimize</code> acts as an Ahead-of-Time asset builder:
+      </p>
+      <ul class="list-disc pl-5 mt-2 mb-4">
+        <li><strong>Images:</strong> Converts <code>.png</code>, <code>.jpg</code>, and <code>.jpeg</code> to <code>.webp</code> using Pillow (quality 80%).</li>
+        <li><strong>CSS/JS:</strong> Generates parallel <code>.min.css</code> and <code>.min.js</code> files without destroying your original source code.</li>
+        <li><strong>Manifest:</strong> Generates an <code>app/assets_manifest.json</code> dictionary.</li>
+      </ul>
+      
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-bash">
+lila-optimize
+</code></pre>
+        </div>
+      </div>
+
+      <h3 class="mt-4">Silent Magic (Templates)</h3>
+      <p>
+        When <code>DEBUG=False</code>, Lila automatically loads the manifest into RAM. The <code>{{ '{{' }} public('img/logo.png') {{ '}}' }}</code> Jinja helper performs a fast dictionary lookup. If a <code>.webp</code> or <code>.min.js</code> version exists in the manifest, it will automatically serve it instead of the original file, saving you from rewriting your HTML!
+      </p>
     </article>
   </main>
   <script src="../js/highlight.min.js"></script>
