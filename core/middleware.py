@@ -80,6 +80,11 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
             else:
                 del BLOCKED_IPS[client_ip]
 
+        if len(BLOCKED_IPS) > 10000:
+            expired_keys = [k for k, v in BLOCKED_IPS.items() if now > v]
+            for k in expired_keys:
+                del BLOCKED_IPS[k]
+
         url_path = request.url.path
         if BLOCKED_REGEX.search(url_path):
             BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
@@ -101,6 +106,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         BLOCKED_RATELIMIT[client_ip] = [
             t for t in BLOCKED_RATELIMIT[client_ip] if now - t < timedelta(minutes=1)
         ]
+
+        if len(BLOCKED_RATELIMIT) > 10000:
+            empty_keys = [k for k, v in BLOCKED_RATELIMIT.items() if not v or (now - v[-1] > timedelta(minutes=1))]
+            for k in empty_keys:
+                del BLOCKED_RATELIMIT[k]
 
         if len(BLOCKED_RATELIMIT[client_ip]) >= 300:
             BLOCKED_IPS[client_ip] = now + timedelta(minutes=1)

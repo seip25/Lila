@@ -46,7 +46,7 @@ class Logger:
 
     @classmethod
     async def request(cls, request: Request):
-        client_ip = request.client.host
+        client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "Unknown")
         os_info = "Unknown"
 

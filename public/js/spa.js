@@ -71,7 +71,11 @@
               script.type = scriptData.type || 'module';
               document.head.appendChild(script);
             }
-          } else if (scriptData.content) {
+          } else if (scriptData.content) { 
+            Array.from(document.head.querySelectorAll('script:not([src])'))
+              .filter(s => s.textContent.trim() === scriptData.content.trim())
+              .forEach(s => s.remove());
+
             const script = document.createElement('script');
             script.textContent = scriptData.content;
             script.type = scriptData.type || 'module';
@@ -102,7 +106,11 @@
               Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
               document.head.appendChild(newScript);
             }
-          } else {
+          } else { 
+            Array.from(document.head.querySelectorAll('script:not([src])'))
+              .filter(s => s.textContent.trim() === oldScript.textContent.trim())
+              .forEach(s => s.remove());
+
             const newScript = document.createElement('script');
             Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
             newScript.textContent = oldScript.textContent;

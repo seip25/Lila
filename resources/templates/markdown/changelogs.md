@@ -1,5 +1,41 @@
 # {{ translate["changelogs"] }}
 
+## 1.0.9
+
+### {{ translate["cache_feature"] }}
+
+{{ translate["cache_feature_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/cache.html)
+
+### {{ translate["seo_features"] }}
+
+{{ translate["seo_features_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/seo.html)
+
+### {{ translate["react_base_html"] }}
+
+{{ translate["react_base_html_desc"] }}
+
+## 1.0.8
+
+### {{ translate["version_108_features"] }}
+
+{{ translate["version_108_desc"] }}
+
+## 1.0.5
+
+### {{ translate["performance_improvements"] }}
+
+{{ translate["performance_improvements_desc"] }}
+
+## 1.0.3
+
+### {{ translate["minor_fixes_polish"] }}
+
+{{ translate["minor_fixes_polish_desc"] }}
+
 ## 1.0.2
 
 ### {{ translate["fix_bug_102"] }}

@@ -392,7 +392,15 @@
     "en": "Invalid or expired token"
   },
   "Your password reset link is invalid or has expired.": {
-    "es": "Tu enlace para restablecer la contraseña es inválido o ha expirado.",
+    "es": "Tu enlace de restablecimiento de contraseña es inválido o ha expirado.",
     "en": "Your password reset link is invalid or has expired."
+  },
+  "by_default_we_use": {
+    "es": "Por defecto utilizamos spa.js y utils.js con",
+    "en": "By default we use spa.js and utils.js with"
+  },
+  "lila_css_docs": {
+    "es": "Si quieres más documentación sobre Lila CSS, encuéntrala aquí. Usa HTML semántico en su mayoría, listo para usar automáticamente con contenedores, grids, colores, etc.",
+    "en": "If you want more documentation about Lila CSS, find it here. It mostly uses semantic HTML, ready for automatic use with containers, grids, colors, etc."
   }
 }

@@ -3,6 +3,54 @@
     "es": "Puedes ver aquí las novedades y cambios que hemos realizado en Lila Framework",
     "en": "Changelogs and new features that we have done in Lila Framework"
   },
+  "cache_feature": {
+    "es": "Sistema de Caché en Memoria",
+    "en": "In-Memory Cache System"
+  },
+  "cache_feature_desc": {
+    "es": "Se agregó un sistema de caché en memoria con soporte para TTL (Time To Live). Además, las rutas GET ahora se almacenan en caché automáticamente por 30 segundos por defecto para mejorar el rendimiento.",
+    "en": "Added an in-memory cache system with TTL (Time To Live) support. Also, GET routes are now automatically cached for 30 seconds by default to improve performance."
+  },
+  "seo_features": {
+    "es": "Decorador @seo y CLI de Sitemap/Robots",
+    "en": "@seo Decorator and Sitemap/Robots CLI"
+  },
+  "seo_features_desc": {
+    "es": "Nuevo decorador @seo para inyectar metadata en las rutas con soporte multilenguaje. Además, se introducen comandos CLI (lila-seo sitemap y lila-seo robots) para generar automáticamente estos archivos.",
+    "en": "New @seo decorator for injecting metadata into routes with multilingual support. Additionally, new CLI commands (lila-seo sitemap and lila-seo robots) are introduced to automatically generate these files."
+  },
+  "react_base_html": {
+    "es": "Mejoras en CLI de React e Integración de base.html",
+    "en": "React CLI Improvements and base.html Integration"
+  },
+  "react_base_html_desc": {
+    "es": "Las plantillas autogeneradas de React ahora heredan dinámicamente de lila/base.html a través de Jinja2, inyectando correctamente los assets de Vite en el bloque de scripts y manteniendo el diseño base.",
+    "en": "The auto-generated React templates now dynamically inherit from lila/base.html via Jinja2, correctly injecting Vite assets in the scripts block and maintaining the base layout."
+  },
+  "version_108_features": {
+    "es": "Sistema CLI Beta y Caché Beta",
+    "en": "Beta CLI System and Beta Cache"
+  },
+  "version_108_desc": {
+    "es": "Introducción de las versiones beta del sistema de caché en memoria y comandos experimentales CLI para SEO.",
+    "en": "Introduction of beta versions for the in-memory cache system and experimental CLI commands for SEO."
+  },
+  "performance_improvements": {
+    "es": "Mejoras de Rendimiento y Motor SPA",
+    "en": "Performance and SPA Engine Improvements"
+  },
+  "performance_improvements_desc": {
+    "es": "Se optimizaron funciones internas del core y el Router para reducir los tiempos de carga. Mejoras en la inyección de assets, renderizado React y manejo de navegación en el SPA.",
+    "en": "Internal core functions and the Router were optimized to reduce load times. Improvements in asset injection, React rendering, and SPA navigation handling."
+  },
+  "minor_fixes_polish": {
+    "es": "Pulido General y Corrección de Bugs",
+    "en": "General Polish and Bug Fixes"
+  },
+  "minor_fixes_polish_desc": {
+    "es": "Ajustes menores de seguridad, sanitización de datos (XSS) y mejoras continuas en la experiencia de desarrollo (DX) con mejor manejo de errores en modo Debug.",
+    "en": "Minor security adjustments, data sanitization (XSS) fixes, and continuous improvements in the developer experience (DX) with better error handling in Debug mode."
+  },
   "fix_context_update": {
     "es": "Corrección en el Contexto de Templates",
     "en": "Fix in Template Context"

@@ -7,6 +7,7 @@ from app.config import (
     VERSION_PROJECT,
     DESCRIPTION_PROJECT,
     PATH_TEMPLATES_HTML,
+    LANG_DEFAULT,
 )
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel, ValidationError
@@ -15,45 +16,151 @@ from lila.core.auth import generate_token_value, get_user_id_by_token as get_use
 from lila.core.translate import Translate
 from lila.core.security import Security
 from lila.core.logger import Logger
+from lila.core.cache import Cache
 
 import datetime
 import re
+import os
 from functools import wraps
 from pathlib import Path
 from lila.core.templates import render
+from app.config import DEBUG
 import asyncio
+from lila.core.templates import is_frontend_request
+import importlib.util
 
 ph = PasswordHasher()
 
+class CachedStaticFiles(StaticFiles):
+    """
+    English: Custom StaticFiles that sets Cache-Control headers.
+    Español: StaticFiles personalizado que establece cabeceras Cache-Control.
+    """
+    def __init__(self, *args, cache_timeout: int = 31536000, **kwargs):
+        self.cache_timeout = cache_timeout
+        super().__init__(*args, **kwargs)
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        if not DEBUG:
+            response.headers["Cache-Control"] = f"public, max-age={self.cache_timeout}, immutable"
+        else:
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+
+
+def seo(title: Any = None, description: Any = None, keywords: Any = None, og: dict = None) -> Any:
+    """
+    English: Decorator to attach SEO metadata to a route handler.
+    Español: Decorador para adjuntar metadatos SEO a un manejador de ruta.
+    """
+    def decorator(func):
+        if not hasattr(func, "_seo"):
+            func._seo = {}
+        if title: func._seo['title'] = title
+        if description: func._seo['description'] = description
+        if keywords: func._seo['keywords'] = keywords
+        if og: func._seo['og'] = og
+        return func
+    return decorator
+
 
 class Router:
-    def __init__(self, prefix: str = "") -> None:
+    def __init__(self, prefix: str = "", default_cache_ttl: int = 30, cache_cookie_keys: list[str] = None) -> None:
+        """
+        English: Initializes the router with a prefix, default cache TTL, and custom cache cookie keys.
+        Español: Inicializa el router con un prefijo, un TTL de caché por defecto y claves de cookie personalizadas.
+        """
         self.routes = []
         self.docs = []
+        self.seo_data = {}
         self.prefix = prefix
+        self.default_cache_ttl = default_cache_ttl
+        self.cache_cookie_keys = cache_cookie_keys if cache_cookie_keys is not None else ["session", "auth", "auth_admin"]
+        self._load_centralized_seo()
 
-    def route(self, path: str, methods: list[str] = None, model: Type[BaseModel] = None) -> None:
+    def _load_centralized_seo(self) -> None:
+        """
+        English: Loads centralized SEO configuration from app/seo.py if it exists.
+        Español: Carga la configuración SEO centralizada de app/seo.py si existe.
+        """
+        try:
+            # English: Dynamic import to avoid circular dependency and handle optional file.
+            # Español: Importación dinámica para evitar dependencia circular y manejar archivo opcional.
+       
+            spec = importlib.util.spec_from_file_location("app.seo", os.path.join(os.getcwd(), "app", "seo.py"))
+            if spec and spec.loader:
+                seo_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(seo_module)
+                if hasattr(seo_module, "SEO_CONFIG"):
+                    self.seo_data.update(seo_module.SEO_CONFIG)
+        except Exception:
+            pass
+
+    def route(self, path: str, methods: list[str] = None, model: Type[BaseModel] = None, cache_ttl: Optional[int] = None, cache_cookie_keys: Optional[list[str]] = None) -> None:
         if methods is None:
             methods = ["GET"]
         
         real_path = self.normalize_path(prefix=self.prefix, path=path)
+        ttl = cache_ttl if cache_ttl is not None else self.default_cache_ttl
+        cookie_keys = cache_cookie_keys if cache_cookie_keys is not None else self.cache_cookie_keys
 
         def decorator(func):
+            # English: Store SEO metadata from decorator, but do not override centralized config.
+            # Español: Almacenar metadatos SEO del decorador, pero no sobrescribir la configuración centralizada.
+            if hasattr(func, "_seo"):
+                current_seo = self.seo_data.get(real_path, {})
+                # English: Merge, keeping existing keys from centralized config.
+                # Español: Fusionar, manteniendo las claves existentes de la configuración centralizada.
+                for k, v in func._seo.items():
+                    if k not in current_seo:
+                        current_seo[k] = v
+                self.seo_data[real_path] = current_seo
+
             @wraps(func)
             async def validation_wrapper(request: Request):
                 current_lang=Translate.lang(request=request)
                 
-                # Check for XSS in query parameters
+                # English: Inject SEO data into request state for template usage.
+                # Español: Inyectar datos SEO en el estado de la petición para uso en plantillas.
+                seo_meta = self.seo_data.get(real_path, {})
+                # English: Merge with centralized config if path match (exact or name).
+                # Español: Fusionar con configuración centralizada si coincide la ruta (exacta o nombre).
+                request.state.seo = self._process_seo_metadata(seo_meta, current_lang, request)
+
+                # English: Cache handling for GET requests.
+                # Español: Manejo de caché para peticiones GET, aislado por usuario para evitar filtración de datos.
+                
+                is_spa = is_frontend_request(request)
+                
+                session_cookie = ""
+                for key in cookie_keys:
+                    val = request.cookies.get(key)
+                    if val:
+                        session_cookie = val
+                        break
+                        
+                auth_header = request.headers.get("Authorization", "")
+                cache_key = f"route:{request.method}:{request.url.path}:{str(request.query_params)}:{current_lang}:{session_cookie}:{auth_header}:spa={is_spa}"
+                if ttl > 0 and request.method == "GET" and not DEBUG:
+                    cached_data = Cache.get(cache_key)
+                    if cached_data:
+                        from starlette.responses import Response
+                        return Response(
+                            content=cached_data["body"],
+                            status_code=cached_data["status_code"],
+                            headers=cached_data["headers"],
+                            media_type=cached_data["media_type"]
+                        )
+
                 if Security.check_xss(str(request.query_params)):
                     return JSONResponse({"success": False, "msg": "Potential XSS detected in query parameters"}, status_code=400)
 
                 if model and request.method in ["POST", "PUT", "PATCH"]:
                     try:
                         body = await request.json()
-                        # Sanitize incoming data
                         sanitized_body = Security.sanitize_data(body)
                         
-                        # Check for XSS in sanitized body (extra layer)
                         if Security.check_xss(str(sanitized_body)):
                              return JSONResponse({"success": False, "msg": "Potential XSS detected in body"}, status_code=400)
 
@@ -68,8 +175,22 @@ class Router:
                         return JSONResponse({"success": False, "msg": msg}, status_code=400)
                 
                 if asyncio.iscoroutinefunction(func):
-                    return await func(request)
-                return func(request)
+                    response = await func(request)
+                else:
+                    response = func(request)
+
+                if ttl > 0 and request.method == "GET" and not DEBUG:
+                    if hasattr(response, "status_code") and response.status_code == 200:
+                        if hasattr(response, "body"):
+                            cache_data = {
+                                "body": response.body,
+                                "status_code": response.status_code,
+                                "headers": {k.decode('utf-8'): v.decode('utf-8') for k, v in response.raw_headers if k.lower() != b"content-length"},
+                                "media_type": getattr(response, "media_type", None)
+                            }
+                            Cache.set(cache_key, cache_data, ttl=ttl)
+                
+                return response
 
             self.routes.append(
                 Route(path=real_path, endpoint=validation_wrapper, methods=methods)
@@ -80,6 +201,27 @@ class Router:
 
             return func
         return decorator
+
+    def _process_seo_metadata(self, seo_meta: dict, lang: str, request: Request) -> dict:
+        """
+        English: Processes SEO metadata resolving translations and language-specific values.
+        Español: Procesa los metadatos SEO resolviendo traducciones y valores específicos de idioma.
+        """
+        processed = {}
+        for key, value in seo_meta.items():
+            if isinstance(value, dict):
+                # English: Multilingual dict support: {"es": "...", "en": "..."}
+                # Español: Soporte para dict multilingüe: {"es": "...", "en": "..."}
+                processed[key] = value.get(lang, value.get(LANG_DEFAULT, next(iter(value.values())) if value else ""))
+            elif isinstance(value, str) and value.startswith("translate:"):
+                # English: Translation key support: "translate:home_title"
+                # Español: Soporte para clave de traducción: "translate:home_title"
+                key_name = value.replace("translate:", "")
+                translations = Translate.get_translations("translations", request, lang_default=lang)
+                processed[key] = translations.get(key_name, key_name)
+            else:
+                processed[key] = value
+        return processed
 
     def response_validation_error(self, e: ValidationError, language: str="en"):
         errors_list = []
@@ -118,11 +260,11 @@ class Router:
         return self.route(path, methods=["DELETE"], **kwargs)
 
     def mount(
-        self, path: str = "/public", directory: str = "public", name: str = "public"
+        self, path: str = "/public", directory: str = "public", name: str = "public", cache_timeout: int = 31536000
     ) -> None:
 
         try:
-            self.routes.append(Mount(path, StaticFiles(directory=directory), name=name))
+            self.routes.append(Mount(path, CachedStaticFiles(directory=directory, cache_timeout=cache_timeout), name=name))
         except RuntimeError as e:
             Logger.error(f"Error : {str(e)}")
             print(f"Error :{e}")
@@ -196,7 +338,14 @@ class Router:
             methods = ["GET"]
 
         def openapi_schema(request: Request):
-            openapi_schema = {
+            # English: Cache handling for openapi schema.
+            # Español: Manejo de caché para el esquema openapi.
+            if not DEBUG:
+                cached_openapi = Cache.get("openapi_schema_json")
+                if cached_openapi:
+                    return JSONResponse(cached_openapi)
+
+            openapi_schema_data = {
                 "openapi": "3.0.0",
                 "info": {
                     "title": TITLE_PROJECT,
@@ -233,9 +382,9 @@ class Router:
                         model_schema = model.schema()
                         if (
                             model.__name__
-                            not in openapi_schema["components"]["schemas"]
+                            not in openapi_schema_data["components"]["schemas"]
                         ):
-                            openapi_schema["components"]["schemas"][
+                            openapi_schema_data["components"]["schemas"][
                                 model.__name__
                             ] = model_schema
                     except Exception:
@@ -247,7 +396,7 @@ class Router:
                     if m == "head":
                         continue
 
-                    openapi_schema["paths"].setdefault(route_path, {})
+                    openapi_schema_data["paths"].setdefault(route_path, {})
 
                     path_param_names = self.get_path_params(route_path)
                     path_parameters = []
@@ -311,9 +460,12 @@ class Router:
                             }
                         }
 
-                    openapi_schema["paths"][route_path][m] = op
+                    openapi_schema_data["paths"][route_path][m] = op
 
-            return JSONResponse(openapi_schema)
+            if not DEBUG:
+                Cache.set("openapi_schema_json", openapi_schema_data, ttl=3600)
+
+            return JSONResponse(openapi_schema_data)
 
         self.routes.append(Route(path=path, endpoint=openapi_schema, methods=methods))
 

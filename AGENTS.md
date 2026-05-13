@@ -116,6 +116,15 @@ async def login(request: Request):
 - `Session.getSessionValue(request, key, max_age)`: Convenience wrapper for unsign.
 - `Session.deleteSession(response, name_cookie)`: Remove session cookie.
 
+### Memory Cache (`core/cache.py`)
+
+- `Cache.set(key, value, ttl)`: Store a Python object in memory for `ttl` seconds.
+- `Cache.get(key)`: Retrieve a cached object. Returns `None` if expired or not found.
+- `Cache.delete(key)`: Remove a specific key from the cache.
+- `Cache.clear()`: Clear all cached items.
+- **Automatic Route Caching**: By default, `GET` routes are cached for 30 seconds.
+- Internally used to optimize OpenAPI docs, Vite asset detection, and translations.
+
 ### App (`core/app.py`)
 
 - `App(debug, routes, cors, middleware, compress_type, trusted_hosts, public_folder, on_startup, on_shutdown)`.
@@ -153,6 +162,14 @@ async def login(request: Request):
 - `lila-migrations`: Run database migrations.
 - `lila-minify`: Minify CSS/JS for production.
 - `lila-react`: Set up React + Vite integration.
+- `lila-seo`: Generate sitemap.xml and robots.txt.
+
+### SEO Optimization (`core/routing.py` & `cli/seo.py`)
+
+- `@seo(title="...", description="...")`: Route decorator for injecting SEO metadata into `request.state.seo` and template context.
+- **Multilingual support**: Pass dictionaries (e.g., `{"en": "Title", "es": "Título"}`) or use translation keys (`"translate:key"`).
+- **Centralized configuration**: Map route paths to metadata in `app/seo.py`.
+- **Auto-generate** `sitemap.xml` and `robots.txt` using the CLI.
 
 ## Key Patterns
 
@@ -272,6 +289,12 @@ lila-minify
 #### Set up React + Vite integration
 ```bash
 lila-react
+```
+
+#### Generate SEO Sitemap & Robots
+```bash
+lila-seo sitemap --domain https://yourdomain.com
+lila-seo robots --domain https://yourdomain.com
 ```
 
 

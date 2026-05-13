@@ -217,24 +217,24 @@ def menu(models: list = [], request: Request = None) -> str:
     """
 def admin_routes(models: list, router: Router,default_route: str = "admin") -> Router:
 
-    @router.route(path=f"/{default_route}/logout", methods=["GET"])
+    @router.route(path=f"/{default_route}/logout", methods=["GET"], cache_ttl=0)
     async def admin_logout(request: Request):
         """Handle admin logout requests."""
         response = RedirectResponse(url=f"/{default_route}/login")
         response.delete_cookie("auth_admin")
         return response
 
-    @router.route(path=f"/{default_route}/login", methods=["GET", "POST"])
+    @router.route(path=f"/{default_route}/login", methods=["GET", "POST"], cache_ttl=0)
     async def admin_login_route(request: Request):
         """Handle admin login requests."""
         return await admin_login(request=request)
 
-    @router.route(path=f"/{default_route}/metrics", methods=["GET"])
+    @router.route(path=f"/{default_route}/metrics", methods=["GET"], cache_ttl=0)
     @admin_required
     async def get_metrics(request: Request):
         return admin_metrics()
 
-    @router.route(path=f"/{default_route}", methods=["GET"])
+    @router.route(path=f"/{default_route}", methods=["GET"], cache_ttl=0)
     @admin_required
     async def admin_route(request: Request):
         menu_html = menu(models=models, request=request)
@@ -244,7 +244,7 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
         model_name = model.__name__.lower()
         model_plural = f"{model_name}s"
 
-        @router.route(path=f"/{default_route}/{model_plural}", methods=["GET"])
+        @router.route(path=f"/{default_route}/{model_plural}", methods=["GET"], cache_ttl=0)
         @admin_required
         async def model_list(request: Request, model=model, model_name=model_name):
             items = model.get_all()

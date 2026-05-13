@@ -15,55 +15,49 @@ app = typer.Typer()
 project_root = os.getcwd()
 
 def html_template_base()->str:
-    html = """<!DOCTYPE html>
-<html lang="{{ lang }}" >
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <meta name="description" content="{{ description }}" />
-    <meta name="keywords" content="{{ keywords }}" />
-    <meta name="author" content="{{ author }}" />
-    <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    {{head | safe}}
-    {{ hot_reload() | safe }}
-    {{ vite_assets() | safe }}
-  </head>
-  <body >
-        <div id="root" data-react-component="{{component}}" data-props="{{props}}"></div>
-  </body>
-</html>
-    """
+    html = """{% extends layout | default('lila/base.html') %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block head %}
+{{ head | safe }}
+{% endblock %}
+
+{% block content %}
+<div id="root" data-react-component="{{component}}" data-props="{{props}}"></div>
+{% endblock %}
+
+{% block scripts %}
+{{ vite_assets() | safe }}
+{% endblock %}
+"""
     return html
 
 
 def html_template ()->str:
-    html = """<!DOCTYPE html>
-<html lang="{{ lang }}">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <meta name="description" content="{{ description }}" />
-    <meta name="keywords" content="{{ keywords }}" />
-    <meta name="author" content="{{ author }}" />
-    <title>{{ title }}</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="stylesheet" href="css/lila.css" />
-    {{ hot_reload() | safe }}
-  </head>
-  <body>
-    <main class="mt-4 container">
-      <h1>Example React integration</h1>
-      <div>{{ react('Counter', {'start': 3}) | safe }}</div>
-    </main>
-    {{ vite_assets() | safe }}
-  </body>
-</html>
-    """
+    html = """{% extends layout | default('lila/base.html') %}
+{% block title %}React Example{% endblock %}
+
+{% block content %}
+<main class="mt-4 container">
+    <article style="background-color: var(--background); box-shadow: var(--shadow-md); border-radius: var(--border-radius-lg); padding: 2rem; border-top: 4px solid var(--primary);">
+        <h1 class="text-2xl font-bold mb-4" style="color: var(--primary);">Example React integration</h1>
+        <p class="mb-6 text-secondary">This is a basic example of how to use React Islands with Lila Framework.</p>
+        
+        <div class="grid md:cols-2 gap-4">
+            {{ react('Counter', {'start': 3}) | safe }}
+        </div>
+        
+        <div class="mt-8 pt-4" style="border-top: 1px solid var(--outline);">
+            <p>Go back to <a href="/" style="color: var(--primary); font-weight: 500; text-decoration: underline;">Home</a></p>
+        </div>
+    </article>
+</main>
+{% endblock %}
+
+{% block scripts %}
+{{ vite_assets() | safe }}
+{% endblock %}
+"""
     return html
 
 async def run_command(command, cwd=None):

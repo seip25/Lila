@@ -147,6 +147,7 @@ async def get_all_{route_name}(request: Request):
         items = {model_name}.get_all(select="{','.join(display_columns)}", limit=1000)
         return JSONResponse(items)
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error fetching data"}}, status_code=500)
 
 
@@ -178,6 +179,7 @@ async def get_{route_name}_by_id(request: Request):
         finally:
             db.close()
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error fetching data"}}, status_code=500)
 
 
@@ -225,6 +227,7 @@ async def create_{route_name}(request: Request):
             db.close()
             
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error creating record"}}, status_code=500)
 
 
@@ -274,6 +277,7 @@ async def update_{route_name}(request: Request):
             db.close()
             
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error updating record"}}, status_code=500)
 
 
@@ -305,6 +309,7 @@ async def delete_{route_name}(request: Request):
             db.close()
             
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error deleting record"}}, status_code=500)
 
 

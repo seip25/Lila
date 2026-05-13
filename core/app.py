@@ -11,7 +11,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from lila.core.debug import DebugMiddleware, DebugModel, db
-from lila.core.routing import Router
+from lila.core.routing import Router, CachedStaticFiles
 from itertools import chain
 from lila.core.request import Request
 from starlette.routing import Route, Mount
@@ -110,11 +110,11 @@ class App(Starlette):
 
             debug_routes = routerDebug.get_routes()
             routes = list(chain(routes, debug_routes, [
-                Mount(public_url, app=StaticFiles(directory=public_folder), name=public_name)
+                Mount(public_url, app=CachedStaticFiles(directory=public_folder), name=public_name)
             ]))
         else:
             routes=list(chain(routes,[
-                Mount(public_url, app=StaticFiles(directory=public_folder), name=public_name)
+                Mount(public_url, app=CachedStaticFiles(directory=public_folder), name=public_name)
             ]))
         super().__init__(
             debug=debug, routes=routes, middleware=middleware,

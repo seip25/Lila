@@ -86,7 +86,8 @@ async def login(request: Request):
     try:
         user = User.get_by_email(db, input.email)
         if not user or not user.check_password(input.password):
-            LoginAttempt.record_attempt(db, input.email, request.client.host, False)
+            client_ip = request.client.host if request.client else "unknown"
+            LoginAttempt.record_attempt(db, input.email, client_ip, False)
             db.commit()
             msg = Translate.t(key="Invalid email or password", request=request)
             return JSONResponse({"success": False, "msg": msg})
@@ -95,7 +96,8 @@ async def login(request: Request):
             msg = Translate.t(key="User is inactive", request=request)
             return JSONResponse({"success": False, "msg": msg})
 
-        LoginAttempt.record_attempt(db, input.email, request.client.host, True)
+        client_ip = request.client.host if request.client else "unknown"
+        LoginAttempt.record_attempt(db, input.email, client_ip, True)
         
         response = JSONResponse({"success": True, "msg": Translate.t(key="Login successful", request=request)})
         await Session.set(request, response, data={"user_id": user.id, "email": user.email, "name": user.name}, key="auth")
