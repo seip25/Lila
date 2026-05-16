@@ -1,10 +1,10 @@
 from lila.core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
-from app.config import DEBUG,JIT,HOST,PORT,WORKERS
+from app.config import DEBUG, JIT, HOST, PORT
 from lila.core.middleware import (
     Middleware,
-    LoggingMiddleware, 
+    LoggingMiddleware,
     SecurityShieldMiddleware,
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
@@ -69,40 +69,19 @@ middlewares = [
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
 app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
 
-def main():
-    # English: Starting the Uvicorn server with the application instance.
-    # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
+async def main():
     if DEBUG:
-        uvicorn.run(
-            "main:app", 
-            host=HOST, 
-            port=PORT, 
-            reload=True, 
-            workers=1,
-            access_log=True,
-            log_level="info"
-        )
+        config = uvicorn.Config("main:app", host=HOST, port=PORT, reload=True)
     else:
-        import multiprocessing
-        optimal_workers = WORKERS if WORKERS > 1 else (multiprocessing.cpu_count() * 2) + 1
-        
-        uvicorn.run(
-            "main:app", 
-            host=HOST, 
-            port=PORT, 
-            reload=False, 
-            workers=optimal_workers,
-            access_log=False,
-            log_level="warning",
-            timeout_keep_alive=5,
-            limit_concurrency=1000
-        )
+        config = uvicorn.Config(app, host=HOST, port=PORT, reload=False, access_log=False, log_level="warning")
+    server = uvicorn.Server(config)
+    await server.serve()
 
 if __name__ == "__main__":
     try:
         if JIT:
             os.environ["PYTHON_JIT"] = "1"
-        main()
+        asyncio.run(main())
     except KeyboardInterrupt:
         print("Shutting down the application...")
         pass
