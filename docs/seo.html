@@ -32,43 +32,52 @@
 
     <main>
         <aside>
-  <h4>Menu</h4>
-  <a href="install.html">Installation</a>
-  <a href="routes.html">Routes</a>
-  <a href="static.html">Static</a>
-  <a href="templates.html">Templates</a>
-  <a href="react.html">React</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
-  <a href="markdown.html">Markdown/HTML</a>
-  <a href="locales.html">Internationalization</a>
-  <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
-  <a href="connections.html">Connections</a>
-  <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
-  <a href="scaffold.html">Scaffold CRUD</a>
-  <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
-  <a href="production.html">Production</a>
-  <a href="debug.html">Debug & Profiling</a>
-  <a href="logger.html">Logger</a>
-  <a href="cache.html">Memory Cache</a>
-  <a href="seo.html">SEO</a>
-</aside>
+            <h4>Menu</h4>
+            <a href="install.html">Installation</a>
+            <a href="routes.html">Routes</a>
+            <a href="static.html">Static</a>
+            <a href="templates.html">Templates</a>
+            <a href="react.html">React</a>
+            <a href="session.html">Session</a>
+            <a href="upload.html">Uploads Files</a>
+            <a href="markdown.html">Markdown/HTML</a>
+            <a href="locales.html">Internationalization</a>
+            <a href="models.html">Models</a>
+            <a href="middlewares.html">Middlewares</a>
+            <a href="cli.html">CLI Commands</a>
+            <a href="connections.html">Connections</a>
+            <a href="migrations.html">Migrations</a>
+            <a href="auth.html">Auth Cli </a>
+            <a href="scaffold.html">Scaffold CRUD</a>
+            <a href="rest_api.html">API Rest CRUD</a>
+            <a href="admin.html">Admin Panel</a>
+            <a href="minify.html">Minify</a>
+            <a href="production.html">Production</a>
+            <a href="debug.html">Debug & Profiling</a>
+            <a href="logger.html">Logger</a>
+            <a href="cache.html">Memory Cache</a>
+            <a href="seo.html">SEO</a>
+        </aside>
 
         <article>
             <h2>🔍 SEO Optimization</h2>
 
             <p>
-                Lila provides powerful built-in tools to manage Search Engine Optimization (SEO) metadata, automatically inject it into your templates, and generate necessary files like <code class="code-inline">sitemap.xml</code>.
+                Lila provides powerful built-in tools to manage Search Engine Optimization (SEO) metadata, automatically
+                inject it into your templates, and generate necessary files like <code
+                    class="code-inline">sitemap.xml</code>.
             </p>
 
             <h3>1. The @seo Decorator</h3>
             <p>
-                The easiest way to define metadata for a specific route is using the <code class="code-inline">@seo</code> decorator. It automatically injects the data into the <code class="code-inline">request.state.seo</code> object.
+                The easiest way to define metadata for a specific route is using the <code
+                    class="code-inline">@seo</code> decorator. It automatically injects the data into the <code
+                    class="code-inline">request.state.seo</code> object.
+            </p>
+            <p>
+                <strong>Development Reactivity:</strong> When <code>DEBUG=True</code>, changes to the <code>@seo</code>
+                decorator are applied immediately on the next request, allowing for rapid iteration without restarting
+                the server.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -109,7 +118,8 @@ async def contact(request):
 
             <h3>2. Centralized SEO Configuration</h3>
             <p>
-                If you prefer to keep your routes clean, you can define all your SEO metadata in a centralized file located at <code class="code-inline">app/seo.py</code>. Lila will automatically load it.
+                If you prefer to keep your routes clean, you can define all your SEO metadata in a centralized file
+                located at <code class="code-inline">app/seo.py</code>. Lila will automatically load it.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -141,7 +151,9 @@ SEO_CONFIG = {
 
             <h3>3. Template Integration</h3>
             <p>
-                Lila automatically injects the resolved SEO object into your Jinja2 template context. You can access it directly in your <code class="code-inline">base.html</code>. It also works automatically with <code class="code-inline">renderReact</code> for Single Page Applications.
+                Lila automatically injects the resolved SEO object into your Jinja2 template context. You can access it
+                directly in your <code class="code-inline">base.html</code>. It also works automatically with <code
+                    class="code-inline">renderReact</code> for Single Page Applications.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -169,7 +181,10 @@ SEO_CONFIG = {
 
             <h3>4. Generating Sitemap & Robots</h3>
             <p>
-                Lila provides CLI commands to automatically generate your <code class="code-inline">sitemap.xml</code> and <code class="code-inline">robots.txt</code> files based on your registered routes. It intelligently ignores dynamic paths (like <code class="code-inline">/user/{id}</code>) and private areas (like <code class="code-inline">/admin</code>).
+                Lila provides CLI commands to automatically generate your <code class="code-inline">sitemap.xml</code>
+                and <code class="code-inline">robots.txt</code> files based on your registered routes. It intelligently
+                ignores dynamic paths (like <code class="code-inline">/user/{id}</code>) and private areas (like <code
+                    class="code-inline">/admin</code>).
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -186,9 +201,13 @@ SEO_CONFIG = {
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-bash">
 # Generate sitemap.xml in the public/ folder
+lila-seo sitemap 
+#Or with domain 
 lila-seo sitemap --domain https://mywebsite.com
 
 # Generate robots.txt in the public/ folder
+lila-seo robots 
+#Or with domain
 lila-seo robots --domain https://mywebsite.com
             </code></pre>
                 </div>

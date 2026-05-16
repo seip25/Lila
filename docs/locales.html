@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -44,28 +44,28 @@
     </header>
     <main>
         <aside>
-  <h4>Menu</h4>
-  <a href="install.html">Installation</a>
-  <a href="routes.html">Routes</a>
-  <a href="static.html">Static</a>
-  <a href="templates.html">Templates</a>
-  <a href="react.html">React</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
-  <a href="markdown.html">Markdown/HTML</a>
-  <a href="locales.html">Internationalization</a>
-  <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
-  <a href="connections.html">Connections</a>
-  <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
-  <a href="scaffold.html">Scaffold CRUD</a>
-  <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
-  <a href="production.html">Production</a>
-</aside>
+            <h4>Menu</h4>
+            <a href="install.html">Installation</a>
+            <a href="routes.html">Routes</a>
+            <a href="static.html">Static</a>
+            <a href="templates.html">Templates</a>
+            <a href="react.html">React</a>
+            <a href="session.html">Session</a>
+            <a href="upload.html">Uploads Files</a>
+            <a href="markdown.html">Markdown/HTML</a>
+            <a href="locales.html">Internationalization</a>
+            <a href="models.html">Models</a>
+            <a href="middlewares.html">Middlewares</a>
+            <a href="cli.html">CLI Commands</a>
+            <a href="connections.html">Connections</a>
+            <a href="migrations.html">Migrations</a>
+            <a href="auth.html">Auth Cli </a>
+            <a href="scaffold.html">Scaffold CRUD</a>
+            <a href="rest_api.html">API Rest CRUD</a>
+            <a href="admin.html">Admin Panel</a>
+            <a href="minify.html">Minify</a>
+            <a href="production.html">Production</a>
+        </aside>
         <article id="locales-eng">
             <h1>🌍 Internationalization (Translations)</h1>
             <p>Translations are used to internationalize an application and display content in different
@@ -183,7 +183,6 @@ async def home(request: Request):
                                     </code></pre>
                 </div>
             </div>
-
             <h2>🔧 Using Translations</h2>
             <p>Get a specific translation:</p>
 
@@ -209,29 +208,53 @@ msg_error_login = Translate.t(
                 </div>
             </div>
 
-            <p>Get all translations from a file:</p>
+            <h2>⚡ Helpers and Performance</h2>
+            <p>Lila includes helpers to manage the application state and ensure high performance through caching.</p>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
-                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">example.py</span>
-                    <div class="flex space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                </div>
-                <div class="editor-content">
+            <h3>Setting the Language</h3>
+            <p>You can change the user's language dynamically. This stores the preference in an encrypted session
+                cookie.</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
-from lila.core.translate import Translate
-
-all_translations = Translate.get_translations(
-    request=request, 
-    file_name="guest"
-)
-                                    </code></pre>
+@router.post("/set-language")
+async def change_lang(request: Request):
+    data = await request.json()
+    new_lang = data.get("lang", "en")
+    
+    response = JSONResponse({"success": True})
+    await Translate.set_lang(request, response, new_lang)
+    return response
+                    </code></pre>
                 </div>
             </div>
 
+            <h3>Translating Pydantic Errors</h3>
+            <p>If you use Pydantic models for validation, you can translate the error messages into Spanish
+                automatically.</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+try:
+    user = UserModel(**data)
+except ValidationError as e:
+    # Translates the first error found
+    err_msg = Translate.translate_pydantic_error(e.errors()[0], target_lang="es")
+    return JSONResponse({"error": err_msg}, status_code=400)
+                    </code></pre>
+                </div>
+            </div>
+
+            <p>
+                <strong>Performance Note:</strong> The <code>Translate</code> class uses internal caching to avoid
+                re-reading JSON files and re-processing dictionaries on every request. Language settings are also cached
+                within the request state to minimize session decryption overhead.
+            </p>
+
+            <h2>🎨 Usage in Templates</h2>
+            <p>Translations are automatically available in the <code>translate</code> context variable:</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -244,17 +267,10 @@ all_translations = Translate.get_translations(
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-html">
-{{ translate["Send"]}}
-   
-{{ translate['also_left_in'] }}
-           
-{{ translate['and_in'] }}
-{{ translate['examples_of_how_to_use'] }} {{
-translate['routes_queries_crud'] }} ({{
-translate['crud_with_30_lines'] }}, {{
-translate['with_middlewares_validations'] }}, {{
-translate['and_more'] }}!)
-      </article>
+{{ translate["Send"] }}
+    
+<!-- With variables -->
+{{ translate["Hi"] }} {{ user.name }}
                         </code></pre>
                 </div>
             </div>

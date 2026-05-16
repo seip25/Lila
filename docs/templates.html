@@ -331,38 +331,87 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
 
       </div>
-      
+
       <!-- SPA ENGINE -->
       <h3 class="mt-8 text-2xl font-semibold">⚡ Single Page Application (SPA) Engine</h3>
       <p>
-        Lila includes a built-in SPA navigation engine. It seamlessly converts your standard server-rendered templates into a blazing fast Single Page Application.
+        Lila includes a built-in SPA navigation engine. It seamlessly converts your standard server-rendered templates
+        into a blazing fast Single Page Application.
       </p>
 
       <h4>How it works</h4>
       <p>
-        When you click a link, the <code>spa.js</code> script intercepts the request. The backend detects this via the <code>source=frontend</code> query parameter and the <code>X-Lila-SPA</code> header. Instead of sending the full HTML document, Lila only renders and returns a JSON payload containing the <code>{% block content %}</code>, updated title, meta tags, and any new CSS/JS.
-        This provides a smooth transition without full page reloads, preserving state and performance.
+        When you click a link, the <code>spa.js</code> script intercepts the request. The backend detects this via the
+        <code>source=frontend</code> query parameter and the <code>X-Lila-SPA</code> header. Instead of sending the full
+        HTML document, Lila only renders and returns a JSON payload containing the <code>{% block content %}</code>,
+        updated title, meta tags, and any new CSS/JS.
+      </p>
+
+      <h4>Lifecycle Events</h4>
+      <p>
+        Since SPA navigation doesn't trigger a full page reload, the standard <code>DOMContentLoaded</code> event only
+        fires once. Lila provides custom events to handle content updates:
+      </p>
+      <ul class="rounded bg-surface py-4 px-4 mb-4">
+        <li class="flex flex-col md:flex-row md:items-start mb-2">
+          <strong>lila:content-loaded:</strong>
+          <p class="ml-2">
+            Fires every time the content is updated via SPA. Use this to initialize scripts or mount components.
+          </p>
+        </li>
+      </ul>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-javascript">
+document.addEventListener('lila:content-loaded', (e) => {
+    console.log('New page loaded:', e.detail.url);
+    // Initialize your components here
+});
+          </code></pre>
+        </div>
+      </div>
+
+      <h4>Script Re-execution</h4>
+      <p>
+        Lila automatically re-executes scripts found in the partial content. For external scripts that must be re-loaded
+        every time, you can use the <code>data-spa-reload</code> attribute.
       </p>
 
       <h4>Opting out or Disabling</h4>
       <p>
-        The SPA behavior is enabled by default in the standard <code>base.html</code> layout. If you don't want to use it, you have two options:
+        The SPA behavior is enabled by default. If you don't want to use it, you have two options:
       </p>
       <ul class="rounded bg-surface py-4 px-4 mb-4">
         <li class="flex flex-col md:flex-row md:items-start mb-4">
-          <strong>Disable globally:</strong>
+          <strong>Enable globally:</strong>
           <p class="ml-2">
-            Simply remove the <code>&lt;script src="/js/spa.js"&gt;&lt;/script&gt;</code> tag from your <code>base.html</code> file. Your application will fall back to traditional multi-page navigation.
+            Descomment the <code>&lt;script src="/js/spa.js"&gt;&lt;/script&gt;</code> tag from your
+            <code>base.html</code>.
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start">
           <strong>Disable per link:</strong>
           <p class="ml-2">
-            Add the <code>data-no-spa</code> attribute to any <code>&lt;a&gt;</code> tag. This tells the SPA engine to ignore that specific link and perform a standard full page reload.
+            Add the <code>data-no-spa</code> attribute to any <code>&lt;a&gt;</code> tag.
             <br>
-            <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 mt-2 inline-block rounded-md font-mono text-sm">&lt;a href="/logout" data-no-spa&gt;Logout&lt;/a&gt;</code>
+            <code
+              class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 mt-2 inline-block rounded-md font-mono text-sm">&lt;a href="/logout" data-no-spa&gt;Logout&lt;/a&gt;</code>
           </p>
         </li>
+      </ul>
+
+      <h3 class="mt-8 text-2xl font-semibold">🚀 Performance Optimizations</h3>
+      <p>
+        Lila is designed for high performance. Templates are optimized through several mechanisms:
+      </p>
+      <ul class="rounded bg-surface py-4 px-4">
+        <li><strong>Request State Caching:</strong> Core data like the current language and SEO metadata are cached in
+          the request object to avoid redundant processing or cryptographic operations.</li>
+        <li><strong>Translation Caching:</strong> Processed translation dictionaries are cached in memory per language.
+        </li>
+        <li><strong>Template Minification:</strong> In production, HTML templates are automatically minified to reduce
+          payload size.</li>
       </ul>
 
     </article>
