@@ -1,9 +1,9 @@
-from lila.core.request import Request
-from lila.core.responses import JSONResponse
-from lila.core.routing import Router
+from core.request import Request
+from core.responses import JSONResponse
+from core.routing import Router
 from pydantic import EmailStr,BaseModel
-from lila.core.auth import get_user_id_by_token as get_user_by_token
-from lila.core.middleware import validate_token, check_token, check_session, login_required
+from core.auth import get_user_id_by_token as get_user_by_token
+from core.middleware import validate_token, check_token, check_session, login_required
 from app.config import DEBUG
 
 # English: Initialize the router instance for managing API routes.

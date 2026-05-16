@@ -1,8 +1,8 @@
 from app.config import PATH_UPLOADS 
-from lila.core.request import Request
-from lila.core.responses import JSONResponse
-from lila.core.logger import Logger 
-from lila.core.translate import Translate
+from core.request import Request
+from core.responses import JSONResponse
+from core.logger import Logger 
+from core.translate import Translate
 from pathlib import Path  
 from typing import Union, List, Set 
 from PIL import Image

@@ -1,8 +1,8 @@
 from starlette.applications import Starlette
-from lila.core.responses import HTMLResponse,JSONResponse
-from lila.core.templates import render
+from core.responses import HTMLResponse,JSONResponse
+from core.templates import render
 from starlette.middleware.cors import CORSMiddleware
-from lila.core.logger import Logger
+from core.logger import Logger
 from pathlib import Path
 from app.config import PATH_TEMPLATE_NOT_FOUND,DEBUG,PATH_TEMPLATES_HTML
 from typing import List, Optional, Dict, Any
@@ -10,10 +10,10 @@ from starlette_compress import CompressMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
-from lila.core.debug import DebugMiddleware, DebugModel, db
-from lila.core.routing import Router, CachedStaticFiles
+from core.debug import DebugMiddleware, DebugModel, db
+from core.routing import Router, CachedStaticFiles
 from itertools import chain
-from lila.core.request import Request
+from core.request import Request
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 

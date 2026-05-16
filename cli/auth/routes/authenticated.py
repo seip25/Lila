@@ -1,13 +1,13 @@
-from lila.core.routing import Router
-from lila.core.responses import JSONResponse,RedirectResponse
-from lila.core.request import Request
-from lila.core.templates import render
-from lila.core.session import Session
-from lila.core.translate import Translate
+from core.routing import Router
+from core.responses import JSONResponse,RedirectResponse
+from core.request import Request
+from core.templates import render
+from core.session import Session
+from core.translate import Translate
 from app.models.user import User
 from app.connections import connection
 from pydantic import BaseModel, EmailStr, Field, ValidationError 
-from lila.core.middleware import login_required
+from core.middleware import login_required
 import traceback
 
 router = Router()

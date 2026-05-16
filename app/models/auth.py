@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func, DateTime, ForeignKey
 from sqlalchemy.orm import load_only
-from lila.core.database import Base
+from core.database import Base
 import datetime
 import secrets
 from app.connections import connection

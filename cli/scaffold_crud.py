@@ -99,10 +99,10 @@ def generate_route_file(model_name: str, route_name: str, table_name: str, colum
     route_content = f'''# English: Routes for {model_name} CRUD operations
 # Español: Rutas para operaciones CRUD de {model_name}
 
-from lila.core.request import Request
-from lila.core.routing import Router
-from lila.core.templates import render
-from lila.core.responses import JSONResponse
+from core.request import Request
+from core.routing import Router
+from core.templates import render
+from core.responses import JSONResponse
 from app.connections import connection
 from app.models.{to_snake_case(model_name)} import {model_name}
 from pydantic import BaseModel, ValidationError

@@ -1,16 +1,16 @@
-from lila.core.routing import Router
-from lila.core.responses import JSONResponse,RedirectResponse
-from lila.core.request import Request
-from lila.core.templates import render
-from lila.core.session import Session
-from lila.core.translate import Translate
-from lila.core.auth import generate_token_value
+from core.routing import Router
+from core.responses import JSONResponse,RedirectResponse
+from core.request import Request
+from core.templates import render
+from core.session import Session
+from core.translate import Translate
+from core.auth import generate_token_value
 from app.models.user import User
 from app.models.auth import LoginAttempt,LoginAttemptHistory,LoginSuccessHistory,PasswordResetToken
 from app.connections import connection
 from pydantic import BaseModel, EmailStr, Field, ValidationError
 import datetime
-from lila.core.middleware import session_active 
+from core.middleware import session_active 
 import traceback
 from app.config import DEBUG,HOST,PORT
 

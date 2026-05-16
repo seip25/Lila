@@ -4,7 +4,7 @@ sys.path.insert(0, os.getcwd())
 
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
 from app.connections import connection
-from lila.core.database import Base #Import Base  for migrations in models
+from core.database import Base #Import Base  for migrations in models
 from app.models.user import User #Import models for migrations in models
 import typer
 import asyncio
