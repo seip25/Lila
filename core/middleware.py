@@ -127,11 +127,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Check Query Params for XSS
-        query_params = str(request.query_params).lower()
-        if Security.check_xss(query_params):
-             return HTMLResponse(content="Potential XSS detected in query parameters", status_code=400)
-
+        """Sets security headers for the response."""
         response = await call_next(request)
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["X-Content-Type-Options"] = "nosniff"

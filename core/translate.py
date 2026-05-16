@@ -7,6 +7,8 @@ import orjson
 _TRANSLATIONS_CACHE: dict[str, dict] = {}
 
 class Translate:
+    _PROCESSED_CACHE: dict[str, dict[str, dict]] = {}
+
     @staticmethod
     def load_translations(file_name: str) -> dict:
         """Loads translations from a JSON file with caching."""
@@ -28,17 +30,32 @@ class Translate:
 
     @staticmethod
     def lang(request: Request) -> str:
-        """Retrieves the current language from the session or default config."""
+        """Retrieves the current language from the session or default config, using request state as cache."""
+        if hasattr(request.state, "lang"):
+            return request.state.lang
+
         l = LANG_DEFAULT or "en"
         session_lang = Session.getSessionValue(key="lang", request=request)
-        return session_lang if session_lang else l
+        request.state.lang = session_lang if session_lang else l
+        return request.state.lang
 
     @staticmethod
     def get_translations(file_name: str, request: Request, lang_default: str = None) -> dict:
-        """Returns a dictionary of translations for the current language."""
+        """Returns a dictionary of translations for the current language, with internal caching."""
         current_lang = lang_default if lang_default else Translate.lang(request)
+        
+        if file_name in Translate._PROCESSED_CACHE and current_lang in Translate._PROCESSED_CACHE[file_name]:
+            if not DEBUG:
+                return Translate._PROCESSED_CACHE[file_name][current_lang]
+
         data = Translate.load_translations(file_name)
-        return {k: v.get(current_lang, k) for k, v in data.items()}
+        processed = {k: v.get(current_lang, k) for k, v in data.items()}
+        
+        if file_name not in Translate._PROCESSED_CACHE:
+            Translate._PROCESSED_CACHE[file_name] = {}
+        Translate._PROCESSED_CACHE[file_name][current_lang] = processed
+        
+        return processed
 
     @staticmethod
     def t(key: str, request: Request, file_name: str = "translations", lang_default: str = None) -> str:
@@ -50,6 +67,7 @@ class Translate:
     async def set_lang(request: Request, response, new_lang: str) -> None:
         """Sets the language in the session cookie."""
         Session.setSession(new_val=new_lang, response=response, name_cookie="lang")
+        request.state.lang = new_lang
 
     @staticmethod
     def translate_pydantic_error(error: dict, target_lang: str) -> str:

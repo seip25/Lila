@@ -282,8 +282,6 @@ def get_base_context(request: Request, files_translate: list[str] = None, lang_d
     for file_name in files_translate:
         translations.update(Translate.get_translations(file_name, request, lang_default=lang_default))
 
-    # English: Inject SEO data from request state if it exists.
-    # Español: Inyectar datos SEO del estado de la petición si existen.
     seo_data = getattr(request.state, "seo", {})
 
     return {
@@ -358,8 +356,12 @@ def renderMarkdown(request: Request, file: str, css_files: list = None, js_files
 
     context = get_base_context(request, translate_files, lang_default)
      
-    for key, val in context["translate"].items():
-        md_content = md_content.replace(f'{{{{ translate["{key}"] }}}}', str(val))
+    import re
+    def replace_translate(match):
+        key = match.group(1)
+        return str(context["translate"].get(key, match.group(0)))
+    
+    md_content = re.sub(r'\{\{\s*translate\["([^"]+)"\]\s*\}\}', replace_translate, md_content)
 
     html_content = markdown.markdown(md_content)
     context.update({
@@ -369,4 +371,4 @@ def renderMarkdown(request: Request, file: str, css_files: list = None, js_files
         "js_files": js_files,
     })
 
-    return markdown_templates.TemplateResponse("layout.html", context)
+    return markdown_templates.TemplateResponse("layout.html", context)

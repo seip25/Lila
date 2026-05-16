@@ -106,31 +106,31 @@ class Router:
         cookie_keys = cache_cookie_keys if cache_cookie_keys is not None else self.cache_cookie_keys
 
         def decorator(func):
-            # English: Store SEO metadata from decorator, but do not override centralized config.
-            # Español: Almacenar metadatos SEO del decorador, pero no sobrescribir la configuración centralizada.
+            """
+            English: Registers the route and merges SEO metadata.
+            Español: Registra la ruta y fusiona los metadatos SEO.
+            """
             if hasattr(func, "_seo"):
                 current_seo = self.seo_data.get(real_path, {})
-                # English: Merge, keeping existing keys from centralized config.
-                # Español: Fusionar, manteniendo las claves existentes de la configuración centralizada.
                 for k, v in func._seo.items():
-                    if k not in current_seo:
+                    if k not in current_seo or DEBUG:
                         current_seo[k] = v
                 self.seo_data[real_path] = current_seo
 
             @wraps(func)
             async def validation_wrapper(request: Request):
-                current_lang=Translate.lang(request=request)
+                """
+                English: Validation wrapper for route handlers.
+                Español: Wrapper de validación para los manejadores de ruta.
+                """
+                current_lang = Translate.lang(request=request)
                 
-                # English: Inject SEO data into request state for template usage.
-                # Español: Inyectar datos SEO en el estado de la petición para uso en plantillas.
                 seo_meta = self.seo_data.get(real_path, {})
-                # English: Merge with centralized config if path match (exact or name).
-                # Español: Fusionar con configuración centralizada si coincide la ruta (exacta o nombre).
+                if DEBUG and hasattr(func, "_seo"):
+                    seo_meta = {**seo_meta, **func._seo}
+
                 request.state.seo = self._process_seo_metadata(seo_meta, current_lang, request)
 
-                # English: Cache handling for GET requests.
-                # Español: Manejo de caché para peticiones GET, aislado por usuario para evitar filtración de datos.
-                
                 is_spa = is_frontend_request(request)
                 
                 session_cookie = ""
@@ -141,8 +141,10 @@ class Router:
                         break
                         
                 auth_header = request.headers.get("Authorization", "")
-                cache_key = f"route:{request.method}:{request.url.path}:{str(request.query_params)}:{current_lang}:{session_cookie}:{auth_header}:spa={is_spa}"
+                
+                cache_key = None
                 if ttl > 0 and request.method == "GET" and not DEBUG:
+                    cache_key = f"route:{request.method}:{request.url.path}:{str(request.query_params)}:{current_lang}:{session_cookie}:{auth_header}:spa={is_spa}"
                     cached_data = Cache.get(cache_key)
                     if cached_data:
                         from starlette.responses import Response
@@ -153,7 +155,7 @@ class Router:
                             media_type=cached_data["media_type"]
                         )
 
-                if Security.check_xss(str(request.query_params)):
+                if request.query_params and Security.check_xss(str(request.query_params)):
                     return JSONResponse({"success": False, "msg": "Potential XSS detected in query parameters"}, status_code=400)
 
                 if model and request.method in ["POST", "PUT", "PATCH"]:
@@ -179,7 +181,7 @@ class Router:
                 else:
                     response = func(request)
 
-                if ttl > 0 and request.method == "GET" and not DEBUG:
+                if ttl > 0 and request.method == "GET" and not DEBUG and cache_key:
                     if hasattr(response, "status_code") and response.status_code == 200:
                         if hasattr(response, "body"):
                             cache_data = {

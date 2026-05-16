@@ -61,29 +61,6 @@
         });
       }
 
-      if (data.scripts && Array.isArray(data.scripts)) {
-        data.scripts.forEach(scriptData => {
-          const src = typeof scriptData === 'string' ? scriptData : scriptData.src;
-          if (src) {
-            if (!document.head.querySelector(`script[src="${src}"]`)) {
-              const script = document.createElement('script');
-              script.src = src;
-              script.type = scriptData.type || 'module';
-              document.head.appendChild(script);
-            }
-          } else if (scriptData.content) { 
-            Array.from(document.head.querySelectorAll('script:not([src])'))
-              .filter(s => s.textContent.trim() === scriptData.content.trim())
-              .forEach(s => s.remove());
-
-            const script = document.createElement('script');
-            script.textContent = scriptData.content;
-            script.type = scriptData.type || 'module';
-            document.head.appendChild(script);
-          }
-        });
-      }
-
       const container = document.getElementById(CONTENT_ID);
       if (container) {
         container.innerHTML = data.body;
@@ -99,22 +76,26 @@
         });
 
         partialScripts.forEach(oldScript => {
-          const src = oldScript.src;
-          if (src) {
-            if (!document.head.querySelector(`script[src="${src}"]`)) {
-              const newScript = document.createElement('script');
-              Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+          const newScript = document.createElement('script');
+          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+          newScript.textContent = oldScript.textContent;
+          
+          if (oldScript.src) {
+             const existing = document.head.querySelector(`script[src="${oldScript.src}"]`);
+             if (existing && (oldScript.hasAttribute('data-spa-reload') || oldScript.src.includes('source=frontend'))) {
+                existing.remove();
+             }
+             if (!document.head.querySelector(`script[src="${oldScript.src}"]`)) {
+                document.head.appendChild(newScript);
+             }
+          } else {
+            const content = oldScript.textContent.trim();
+            if (content) {
+              Array.from(document.head.querySelectorAll('script:not([src])'))
+                .filter(s => s.textContent.trim() === content)
+                .forEach(s => s.remove());
               document.head.appendChild(newScript);
             }
-          } else { 
-            Array.from(document.head.querySelectorAll('script:not([src])'))
-              .filter(s => s.textContent.trim() === oldScript.textContent.trim())
-              .forEach(s => s.remove());
-
-            const newScript = document.createElement('script');
-            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-            newScript.textContent = oldScript.textContent;
-            document.head.appendChild(newScript);
           }
           oldScript.remove();
         });
@@ -152,6 +133,9 @@
       document.dispatchEvent(new CustomEvent('lila:navigation', {
         detail: { url, data }
       }));
+      document.dispatchEvent(new CustomEvent('lila:content-loaded', {
+        detail: { url, data }
+      }));
 
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -165,7 +149,7 @@
 
   window.lilaNav = { navigate };
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function initSPA() {
     document.addEventListener('click', (e) => {
       const link = e.target.closest('a');
 
@@ -189,5 +173,11 @@
         window.location.reload();
       }
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSPA);
+  } else {
+    initSPA();
+  }
 })();
