@@ -18,6 +18,8 @@ SCAFFOLD_ITEMS = {
     ".gitignore": ".gitignore",
     ".env": ".env",
     "AGENTS.md": "AGENTS.md",
+    "vite.config.js": "vite.config.js",
+    "package.json": "package.json",
 }
 
 def copy_item(
