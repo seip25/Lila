@@ -55,7 +55,6 @@
       <a href="routes.html">Routes</a>
       <a href="static.html">Static</a>
       <a href="templates.html">Templates</a>
-      <a href="react.html">React</a>
       <a href="session.html">Session</a>
       <a href="upload.html">Uploads Files</a>
       <a href="markdown.html">Markdown/HTML</a>
@@ -123,7 +122,7 @@ async def home(request: Request):
     }
     response = render(
         request, 
-        "index.html", # HTML template name in resources/templates/html/
+        "index.html", # HTML template name in resources/html/
         context=context
     )
     # Renders the 'index' template
@@ -278,32 +277,41 @@ def get_base_context(request, files_translate=[], lang_default=None):
       <p>Lila provides several helpers to make your templates more powerful:</p>
 
       <ul class="rounded bg-surface py-4 px-4">
-        <li class="flex flex-col md:flex-row md:items-start">
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
           <strong>hot_reload():</strong>
-          <p>
+          <p class="ml-2">
             Injects Vite's Hot Module Replacement (HMR) scripts.
             <strong>Only active when DEBUG=True</strong>.
             Place it in the <code>&lt;head&gt;</code> of your main layout.
           </p>
         </li>
-        <li class="flex flex-col md:flex-row md:items-start">
-          <strong>vite_assets():</strong>
-          <p>
-            In production, it injects the compiled scripts and styles from the manifest.
-            In development, it injects the main entry point (<code>main.jsx</code>).
+
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>public(path):</strong>
+          <p class="ml-2">
+            Resolves paths to static assets under the <code>public/</code> directory. In addition, it automatically checks the system assets manifest in RAM to swap files for their optimized, compressed, or minified versions (e.g., swapping <code>.css</code> for <code>.min.css</code>, or images for their highly optimized <code>.webp</code> versions) in production seamlessly.
           </p>
         </li>
+
         <li class="flex flex-col md:flex-row md:items-start">
-          <strong>react(component_name, props):</strong>
-          <p>
-            Creates a mount point for a React Island.
+          <strong>asset(path):</strong>
+          <p class="ml-2">
+            Resolves and returns the full HTML tag (e.g. <code>&lt;link rel="stylesheet"&gt;</code> or <code>&lt;script&gt;</code>) for CSS/JS assets, supporting both Vite live HMR development and zero-dependency fallbacks:
+            <br />
+            • <b>Single Source of Truth:</b> You write code exclusively in the <code>resources/</code> folder (e.g. <code>resources/js/utils.js</code>, <code>resources/js/spa.js</code>, <code>resources/css/tailwind.css</code>).
+            <br />
+            • <b>Development Mode (HMR):</b> In development (<code>DEBUG=True</code>), the assets are served hot from Vite's development server (<code>http://localhost:5173</code>) with instant browser updates upon file edits.
+            <br />
+            • <b>Production & Fallbacks:</b> When you run <code>npm run build</code>, Vite compiles, minifies, and bundles these assets directly into their standard physical locations in <code>public/</code> (e.g. <code>public/js/utils.js</code>). In production (<code>DEBUG=False</code>), or if Node.js/Vite is not active, Lila serves these pre-compiled and optimized static assets directly with zero performance overhead.
+            <br />
+            • <b>Smart Play CDN Fallback:</b> If Node.js/Vite is not installed yet, calling <code>asset('css/tailwind.css')</code> automatically loads the official Tailwind CSS Play CDN to keep your styles fully functional out-of-the-box!
           </p>
         </li>
       </ul>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
             <i class="fas fa-code mr-2"></i>Usage Example
           </span>
           <div class="flex space-x-2">
@@ -313,19 +321,23 @@ def get_base_context(request, files_translate=[], lang_default=None):
           </div>
         </div>
         <div class="editor-content bg-gray-900 dark:bg-black">
-          <pre><code class="language-html">
-        &lt;!DOCTYPE html&gt;
-        &lt;html&gt;
-        &lt;head&gt;
-        &lt;title&gt;{{ title }}&lt;/title&gt;
-        {{ hot_reload() | safe }}
-        &lt;/head&gt;
-        &lt;body&gt;
-        &lt;h1&gt;Welcome&lt;/h1&gt;
-        {{ vite_assets() | safe }}
-        &lt;/body&gt;
-        &lt;/html&gt;
-            </code></pre>
+          <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;{{ title }}&lt;/title&gt;
+  &lt;!-- Load Tailwind CSS v4 dynamically with CDN fallback and HMR support --&gt;
+  {{ asset('css/tailwind.css') | safe }}
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to Lila!&lt;/h1&gt;
+  
+  &lt;!-- Load javascript --&gt;
+  &lt;script src="{{ public('js/main.js') }}"&gt;&lt;/script&gt;
+  
+  &lt;!-- Inject Vite hot-reload script in development mode --&gt;
+  {{ hot_reload() | safe }}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
         </div>
       </div>
 
@@ -384,9 +396,9 @@ document.addEventListener('lila:content-loaded', (e) => {
       </p>
       <ul class="rounded bg-surface py-4 px-4 mb-4">
         <li class="flex flex-col md:flex-row md:items-start mb-4">
-          <strong>Enable globally:</strong>
+          <strong>Disable globally:</strong>
           <p class="ml-2">
-            Descomment the <code>&lt;script src="/js/spa.js"&gt;&lt;/script&gt;</code> tag from your
+            Comment out or remove the <code>&lt;script src="{{ public('js/spa.js') }}"&gt;&lt;/script&gt;</code> tag from your
             <code>base.html</code>.
           </p>
         </li>
@@ -400,6 +412,112 @@ document.addEventListener('lila:content-loaded', (e) => {
           </p>
         </li>
       </ul>
+
+      <h3 class="mt-8 text-2xl font-semibold">🔥 Development Hot Reload (Vite)</h3>
+      <p>
+        Lila comes integrated with a super-fast development hot reload (HMR) system powered by Vite. When active, saving
+        any <code>.html</code>, <code>.jinja</code>, or <code>.md</code> file in your <code>resources/</code> folder
+        triggers an instant full page reload in the browser.
+      </p>
+
+      <h4>Setup Instructions</h4>
+      <ol class="list-decimal list-inside rounded bg-surface py-4 px-6 mb-4 space-y-2">
+        <li>
+          <strong>Install Node.js & npm:</strong> Make sure you have <a href="https://nodejs.org/"
+            target="_blank">Node.js</a> and <code>npm</code> installed on your system.
+        </li>
+        <li>
+          <strong>Install Dependencies:</strong> Run the following command in your project root to install the Vite and
+          Tailwind CSS dev tools:
+          <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
+            <div class="editor-content bg-gray-900 dark:bg-black p-3">
+              <pre><code class="language-bash">npm install</code></pre>
+            </div>
+          </div>
+        </li>
+        <li>
+          <strong>Restart Python Server:</strong> Stop and restart your python backend (e.g.
+          <code>python main.py</code>). This allows Lila to scan the project directory, automatically detect the
+          <code>package-lock.json</code> file, and confirm the environment is set up.
+        </li>
+        <li>
+          <strong>Enable Debug Mode:</strong> Ensure <code>DEBUG=True</code> is set in your <code>.env</code> file.
+        </li>
+        <li>
+          <strong>Run Vite Dev Server:</strong> In a separate terminal tab, run the dev server:
+          <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
+            <div class="editor-content bg-gray-900 dark:bg-black p-3">
+              <pre><code class="language-bash">npm run dev</code></pre>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <h4>Integrating the Hot Reload Script</h4>
+      <p>
+        To include the live-reloader in your pages, Lila provides the <code>hot_reload()</code> global helper. Make sure
+        your base HTML template (typically located at <code>resources/html/lila/base.html</code>) includes the following
+        line inside its <code>&lt;body&gt;</code> tag:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
+            <i class="fas fa-html5 mr-2"></i>resources/html/lila/base.html
+          </span>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">&lt;body&gt;
+  &lt;!-- Your layout content here --&gt;
+  
+  &lt;!-- Inject Vite hot-reload script in development mode --&gt;
+  {{ hot_reload() | safe }}
+&lt;/body&gt;</code></pre>
+        </div>
+      </div>
+      <p>
+        <strong>Note:</strong> In production (when <code>DEBUG=False</code> in <code>.env</code>), the
+        <code>hot_reload()</code> helper returns an empty string <code>""</code> automatically, introducing zero
+        overhead to your application.
+      </p>
+
+      <h3 class="mt-8 text-2xl font-semibold">🎨 Lila Premium CSS Utility Components</h3>
+      <p>
+        To accelerate your UI development and enable rapid, professional prototyping, Lila packages a set of pre-configured, high-performance Tailwind CSS utility classes inside <code>resources/css/tailwind.css</code>. All of them natively support Dark Mode:
+      </p>
+
+      <ul class="rounded bg-surface py-4 px-4 my-4 space-y-4">
+        <li>
+          <strong><code>.card</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A beautiful, fully-responsive Material Design container card with light/dark border coloring, rounded-2xl padding, and smooth transition shadows.
+          </p>
+        </li>
+        <li>
+          <strong><code>.text-lila</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A premium, high-impact gradient title class styling using Lila's custom primary/secondary colors. Ideal for hero headers!
+          </p>
+        </li>
+        <li>
+          <strong><code>.input-lila</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A state-of-the-art interactive input class with elegant borders, dynamic focus ring effects, light/dark text support, and a smooth cursor placeholder transition.
+          </p>
+        </li>
+        <li>
+          <strong><code>.link-lila</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A gorgeous navigational anchor link styling with custom primary color transitions and sleek animated underlines.
+          </p>
+        </li>
+        <li>
+          <strong><code>.btn-primary</code> / <code>.btn-secondary</code> / <code>.btn-outline</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            Pre-configured button styles featuring smooth translate-y hover elevations, beautiful color variations, and integrated loading/icon layout alignment.
+          </p>
+        </li>
+      </ul>
+
 
       <h3 class="mt-8 text-2xl font-semibold">🚀 Performance Optimizations</h3>
       <p>

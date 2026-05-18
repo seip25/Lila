@@ -37,7 +37,6 @@
             <a href="routes.html">Routes</a>
             <a href="static.html">Static</a>
             <a href="templates.html">Templates</a>
-            <a href="react.html">React</a>
             <a href="session.html">Session</a>
             <a href="upload.html">Uploads Files</a>
             <a href="markdown.html">Markdown/HTML</a>
@@ -74,11 +73,7 @@
                     class="code-inline">@seo</code> decorator. It automatically injects the data into the <code
                     class="code-inline">request.state.seo</code> object.
             </p>
-            <p>
-                <strong>Development Reactivity:</strong> When <code>DEBUG=True</code>, changes to the <code>@seo</code>
-                decorator are applied immediately on the next request, allowing for rapid iteration without restarting
-                the server.
-            </p>
+
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -152,14 +147,13 @@ SEO_CONFIG = {
             <h3>3. Template Integration</h3>
             <p>
                 Lila automatically injects the resolved SEO object into your Jinja2 template context. You can access it
-                directly in your <code class="code-inline">base.html</code>. It also works automatically with <code
-                    class="code-inline">renderReact</code> for Single Page Applications.
+                directly in your <code class="code-inline">base.html</code>
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">
-                        <i class="fas fa-html5 mr-2"></i>templates/html/lila/base.html
+                        <i class="fas fa-html5 mr-2"></i>resources/html/lila/base.html
                     </span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>

@@ -49,7 +49,6 @@
             <a href="routes.html">Routes</a>
             <a href="static.html">Static</a>
             <a href="templates.html">Templates</a>
-            <a href="react.html">React</a>
             <a href="session.html">Session</a>
             <a href="upload.html">Uploads Files</a>
             <a href="markdown.html">Markdown/HTML</a>
@@ -174,6 +173,35 @@ async def check_admin(request: Request, role="admin"):
 # Usage in routes:
 # @check_admin -> uses default role="admin"
 # @check_admin(role="superadmin") -> uses custom role
+                    </code></pre>
+                </div>
+            </div>
+
+            <h2>🛣️ Router-Level Middlewares</h2>
+            <p>
+                Instead of decorating every route manually, you can assign one or more middlewares to a <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Router</code> during initialization. Every route registered on that router will inherit them and run them in left-to-right order.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Router-level middleware inheritance</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.routing import Router
+from lila.core.middleware import login_required, validate_token
+
+# Both middlewares will automatically run for every route in this router
+auth_router = Router(prefix="v1/api", middlewares=[login_required, validate_token])
+
+@auth_router.get("/user")
+async def user_details(request: Request):
+    return JSONResponse({"user": request.state.user})
                     </code></pre>
                 </div>
             </div>

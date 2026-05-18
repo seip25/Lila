@@ -109,12 +109,12 @@
             </p>
 
             <p class="font-semibold">
-              We also have automatic integration with React, with SEO for Google
+              We also have automatic integration with SEO for Google
               Bots or AI.
             </p>
             <p>
               We show you how easy it is to use migrations, the admin panel,
-              React, and much more in Lila! (Remember, you can use Python 3 or
+              and much more in Lila! (Remember, you can use Python 3 or
               Python)
             </p>
           </div>
@@ -165,10 +165,7 @@
                 <span class="text-green-400 mr-2">$</span
                 ><span>lila-create-panel-admin</span>
               </div>
-              <div class="flex items-center">
-                <span class="text-green-400 mr-2">$</span
-                ><span class="text-gray-400">lila-react create# Optional</span>
-              </div>
+
               <div class="flex items-center">
                 <span class="text-green-400 mr-2">$</span
                 ><span>python main.py </span>
@@ -288,6 +285,16 @@
                 requests.
               </p>
             </article>
+            <article class="bg-surface rounded-lg p-6">
+              <h3
+                class="text-2xl font-semibold mb-2 text-gray-600 dark:text-gray-100"
+              >
+                ⚡ Config Caching
+              </h3>
+              <p>
+                Boost production performance with automated `.env` caching. In production mode (`DEBUG=False`), Lila generates a high-speed Python cache file (`config_cache.py`), completely bypassing slow and repetitive disk I/O reads.
+              </p>
+            </article>
           </div>
         </div>
 
@@ -308,8 +315,7 @@
             memory or CPU, and loading files, configurations, and translations
             only once. Unlike other frameworks, it doesn’t constantly open and
             close files; everything is optimized for maximum efficiency,
-            security, speed, and multilingual support. Just like installing
-            React or running
+            security, speed, and multilingual support. Just like running
             <code>create_panel_admin</code>, Lila generates routes and
             middlewares automatically, significantly reducing configuration
             effort, while still allowing you to customize any aspect if you

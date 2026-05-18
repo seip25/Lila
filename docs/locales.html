@@ -49,7 +49,6 @@
             <a href="routes.html">Routes</a>
             <a href="static.html">Static</a>
             <a href="templates.html">Templates</a>
-            <a href="react.html">React</a>
             <a href="session.html">Session</a>
             <a href="upload.html">Uploads Files</a>
             <a href="markdown.html">Markdown/HTML</a>
@@ -75,17 +74,12 @@
                 and
                 can be dynamically loaded into the application.</p>
 
-            <h2>🛤️ Forcing Default Language in Routes</h2>
-            <p>The <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
-                method accepts a <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lang_default</code>
-                parameter to force a
-                specific language for the rendered template:</p>
+            <h2>🛤️ Localized Routing & Language Detection</h2>
+            <p>Instead of manually creating duplicate routes (like <code>/</code>, <code>/es</code>, and <code>/en</code>) and forcing the language inside each renderer, Lila provides the highly elegant <code>@locales</code> decorator from <code>core.routing</code>. This registers all localized path prefixes for the handler automatically and dynamically sets the active language for the request.</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">app.routes.py</span>
+                    <span class="editor-title text-gray-300 dark:text-gray-400">app/routes/routes.py</span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -94,23 +88,49 @@
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-# Force Spanish language
-@router.route(path="/es", methods=["GET"])
+from core.routing import Router, locales
+from core.templates import render
+
+router = Router()
+
+# English: Example rendering HTML file with Jinja2, using the @locales decorator to automatically register localized prefixes.
+# Español: Ejemplo de renderizar un archivo HTML con Jinja2, usando el decorador @locales para registrar prefijos localizados de forma automática.
+@router.get("/")
+@locales(["es", "en"])
 async def home(request: Request):
+    context = {
+        "url": f"http://{HOST}:{PORT}"
+    }
     response = render(
-        request=request,
-        template="index",
-        lang_default="es"  # Forces Spanish translations
+        request=request, template="index", context=context
     )
     return response
+                                    </code></pre>
+                </div>
+            </div>
 
-# Force English language
-@router.route(path="/en", methods=["GET"])
-async def home(request: Request):
+            <p>Under the hood, decorating your route with <code>@locales(["es", "en"])</code> will automatically register <code>/</code>, <code>/es</code>, and <code>/en</code> to the same handler. When the user requests a localized URL, Lila dynamically sets the appropriate active language inside the request state, which is then seamlessly picked up by <code>Translate.lang()</code> and the template <code>render()</code> function.</p>
+
+            <h3>Forcing Language Manually (Fallback)</h3>
+            <p>If you still need to force a specific language manually without using localized route prefixes, the <code>render</code> method also accepts an optional <code>lang_default</code> parameter:</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Manual language override</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+@router.get("/custom-es")
+async def custom_home(request: Request):
     response = render(
         request=request,
         template="index",
-        lang_default="en"  # Forces English translations
+        lang_default="es"  # Manually forces Spanish translations
     )
     return response
                                     </code></pre>
@@ -215,6 +235,7 @@ msg_error_login = Translate.t(
             <p>You can change the user's language dynamically. This stores the preference in an encrypted session
                 cookie.</p>
 
+            <h4>Option A: Dynamic POST Route (e.g. for fetch/AJAX)</h4>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
@@ -226,6 +247,27 @@ async def change_lang(request: Request):
     response = JSONResponse({"success": True})
     await Translate.set_lang(request, response, new_lang)
     return response
+                    </code></pre>
+                </div>
+            </div>
+
+            <h4>Option B: Automatic Query Parameter Switching (Zero Code/Routes Required)</h4>
+            <p>To completely avoid defining custom routes or controllers, Lila provides a built-in global switcher. Simply append the query parameter <code>?lang=code</code> (or <code>?changeLang=code</code>, <code>?change_lang=code</code>) to <strong>any URL in your entire application</strong>. Lila will intercept it, update the session language preference automatically, and seamlessly perform an instant, clean redirect to the same URL without the query parameter.</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Jinja2 Template / HTML Link</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-html">
+&lt;!-- Dynamically switches the active language to Spanish or English and reloads the current page cleanly --&gt;
+&lt;a href="?lang=es"&gt;🇪🇸 Español&lt;/a&gt;
+&lt;a href="?lang=en"&gt;🇺🇸 English&lt;/a&gt;
                     </code></pre>
                 </div>
             </div>

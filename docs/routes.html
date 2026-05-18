@@ -55,7 +55,6 @@
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
   <a href="templates.html">Templates</a>
-  <a href="react.html">React</a>
   <a href="session.html">Session</a>
   <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
@@ -256,6 +255,90 @@ router = Router()
 @validate_token  # Middleware to validate JWT token.
 async def api_token(request: Request):
     return JSONResponse({'api': True})
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>🛣️ Router-Level Middleware Inheritance</h3>
+
+            <p>
+                You can apply one or more middlewares directly to a <code class="code-inline">Router</code> instance during initialization. When you do this, <b>every route</b> registered on that router will automatically inherit and execute those middlewares in the exact sequence they are defined (left-to-right).
+            </p>
+            <p>
+                This pattern is perfect for creating dedicated authentication groups, admin-only sections, rate-limited zones, or custom logging areas without having to manually apply decorators to every single endpoint.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-link mr-2"></i>Applying Middlewares to Router
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.routing import Router
+from lila.core.middleware import login_required, validate_token
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+
+# All routes registered on this router will require the login session first,
+# then they will validate the JWT token.
+auth_router = Router(prefix="api/v1", middlewares=[login_required, validate_token])
+
+# This route automatically inherits and executes both middlewares first!
+@auth_router.get("/profile")
+async def get_profile(request: Request):
+    # If the execution reaches here, the user is guaranteed to be authenticated.
+    return JSONResponse({"profile": "User Profile Data"})
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>✍️ Creating Custom Route Middlewares</h3>
+
+            <p>
+                Creating a custom route middleware in Lila is exceptionally simple. A route middleware is a standard Python decorator that intercepts the request, runs custom logic, and then either returns an early response (like a redirect or an error code) or lets the execution continue by calling and returning the output of the next function.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-code mr-2"></i>Creating a Custom Middleware
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from functools import wraps
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+
+def require_premium_role(func):
+    """
+    Route middleware to enforce that the user has a premium subscription.
+    """
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        # Read a session variable or header
+        is_premium = request.session.get("is_premium", False)
+        
+        if not is_premium:
+            # Short-circuit the request and return an early response
+            return JSONResponse({"error": "Forbidden", "message": "Premium role required"}, status_code=403)
+            
+        # Continue with the execution of the next middleware or route handler
+        return await func(request, *args, **kwargs)
+        
+    return wrapper
             </code></pre>
                 </div>
             </div>
