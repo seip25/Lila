@@ -2,15 +2,19 @@
 {% block title %}{{title}}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col">
+<div
+    class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col">
     <!-- Header -->
-    <header class="bg-surface dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 shadow-sm py-4 sticky top-0 z-50">
+    <header
+        class="bg-surface dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 shadow-sm py-4 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
             <h3>
-                <a href="/dashboard" class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila</a>
+                <a href="/dashboard"
+                    class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila</a>
             </h3>
             <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold px-3 py-1 bg-primary/10 text-primary rounded-full">{{user.name}}</span>
+                <span
+                    class="text-sm font-semibold px-3 py-1 bg-primary/10 text-primary rounded-full">{{user.name}}</span>
             </div>
         </div>
     </header>
@@ -19,25 +23,31 @@
     <div class="max-w-7xl w-full mx-auto px-4 py-8 flex-1 grid grid-cols-1 md:grid-cols-4 gap-8">
         <!-- Sidebar Menu -->
         <aside class="md:col-span-1 flex flex-col gap-2">
-            <div class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-1">
+            <div
+                class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-1">
                 <h4 class="text-xs font-black uppercase text-slate-400 px-3 mb-2 tracking-wider">Menu</h4>
-                
-                <a href="/dashboard" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-primary text-white shadow-material transition-all">
+
+                <a href="/dashboard"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-primary text-white shadow-material transition-all">
                     <span>🏠</span> {{translate['home']}}
                 </a>
-                <a href="/profile" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all">
+                <a href="/profile"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all">
                     <span>👤</span> {{user.name}}
                 </a>
-                <a href="?lang=es" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
+                <a href="?lang=es"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
                     <span>🇪🇸</span> Español (Esp)
                 </a>
-                <a href="?lang=en" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
+                <a href="?lang=en"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
                     <span>🇺🇸</span> English (US)
                 </a>
-                
+
                 <hr class="border-slate-200 dark:border-slate-800 my-2" />
-                
-                <a href="/logout" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all">
+
+                <a href="/logout"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all">
                     <span>🚪</span> {{translate['logout']}}
                 </a>
             </div>
@@ -45,13 +55,12 @@
 
         <!-- Main Content -->
         <main class="md:col-span-3 flex flex-col gap-6">
-            <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-material">
+            <article
+                class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-material">
                 <h3 class="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight mb-4">
                     {{translate['Welcome']}}, {{user.name}}!
                 </h3>
-                <p class="text-slate-600 dark:text-slate-400 leading-relaxed leading-relaxed">
-                    You have successfully scaffolded authentication inside the Lila Framework using Tailwind CSS v4 and a premium Material Design theme system. Use this dashboard as your application core workspace.
-                </p>
+
             </article>
         </main>
     </div>

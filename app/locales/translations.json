@@ -402,5 +402,13 @@
   "lila_css_docs": {
     "es": "Si quieres más documentación sobre Lila CSS, encuéntrala aquí. Usa HTML semántico en su mayoría, listo para usar automáticamente con contenedores, grids, colores, etc.",
     "en": "If you want more documentation about Lila CSS, find it here. It mostly uses semantic HTML, ready for automatic use with containers, grids, colors, etc."
+  },
+  "danger_zone": {
+    "es": "Ten cuidado",
+    "en": "Danger zone"
+  },
+  "once_you_delete_your_account_there_is_no_going_back": {
+    "es": "Una vez que elimines tu cuenta, no hay vuelta atrás. Asegúrate.",
+    "en": "Once you delete your account, there is no going back. Be sure."
   }
 }

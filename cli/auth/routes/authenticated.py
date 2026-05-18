@@ -6,11 +6,10 @@ from core.session import Session
 from core.translate import Translate
 from app.models.user import User
 from app.connections import connection
-from pydantic import BaseModel, EmailStr, Field, ValidationError 
-from core.middleware import login_required
-import traceback
+from pydantic import BaseModel, EmailStr, Field 
+from core.middleware import login_required 
 
-router = Router()
+router = Router(middlewares=[login_required])
 
 class UpdateProfileModel(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
@@ -21,14 +20,12 @@ class DeleteAccountModel(BaseModel):
     password: str = Field(..., min_length=8, max_length=20)
 
 @router.get("/dashboard")
-@login_required
 async def dashboard_page(request):
     session_data = await Session.get(request, "auth")
     context = {"user": session_data} 
     return render(request=request, template="authenticated/dashboard", context=context)
 
 @router.get("/profile")
-@login_required
 async def profile_page(request):
     session_data = await Session.get(request, "auth")
     context = {"user": session_data}  
@@ -36,7 +33,6 @@ async def profile_page(request):
 
 
 @router.post("/profile", model=UpdateProfileModel)
-@login_required
 async def update_profile(request: Request):
     input = request.state.data
     
@@ -67,7 +63,6 @@ async def update_profile(request: Request):
         db.close()
 
 @router.post("/delete-account", model=DeleteAccountModel)
-@login_required
 async def delete_account(request: Request):
     input = request.state.data
     
