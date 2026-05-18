@@ -46,9 +46,7 @@ cors = None
 # }
 # app = App(debug=True, routes=all_routes,cors=cors)
 
-# English:necessary for cli command modify react cors for development
-# Español:necesario para el comando cli modificar cors de react para desarrollo
-# react_marker
+
 
 #English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
 #Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
