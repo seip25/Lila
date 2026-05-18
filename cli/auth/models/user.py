@@ -97,6 +97,21 @@ class User(Base):
             db.commit()
             return True
         return False
+        
+    @classmethod
+    def update(cls, db: Session, id: int, data: dict) -> bool:
+        user = cls.get_by_id(db, id)
+        if not user:
+            return False
+
+        if "password" in data:
+            data["password"] = cls.hash_password(data["password"])
+
+        for field, value in data.items():
+            setattr(user, field, value)
+
+        db.commit()
+        return True
 
      
     @staticmethod

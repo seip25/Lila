@@ -136,9 +136,28 @@ class Router:
             @wraps(func)
             async def validation_wrapper(request: Request):
                 """
-                English: Validation wrapper for route handlers that dynamically matches and sets the active language from the route path.
-                Español: Wrapper de validación para manejadores de ruta que coincide y establece dinámicamente el idioma activo desde la ruta.
+                English: Validation wrapper for route handlers that dynamically matches and sets the active language from the route path or query parameters.
+                Español: Wrapper de validación para manejadores de ruta que coincide y establece dinámicamente el idioma activo desde la ruta o parámetros de consulta.
                 """
+                lang_param = None
+                for param_name in ["lang", "changeLang", "change_lang"]:
+                    if param_name in request.query_params:
+                        lang_param = request.query_params[param_name]
+                        break
+                
+                if lang_param:
+                    from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
+                    parsed = urlparse(str(request.url))
+                    query_dict = parse_qs(parsed.query)
+                    for k in ["lang", "changeLang", "change_lang"]:
+                        query_dict.pop(k, None)
+                    new_query = urlencode(query_dict, doseq=True)
+                    clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+                    
+                    response = RedirectResponse(url=clean_url)
+                    await Translate.set_lang(request, response, lang_param)
+                    return response
+
                 matched_lang = None
                 for lang in getattr(func, "_locales", []):
                     if request.url.path == f"/{lang}" or request.url.path.startswith(f"/{lang}/"):
