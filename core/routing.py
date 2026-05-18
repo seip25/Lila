@@ -66,10 +66,10 @@ def seo(title: Any = None, description: Any = None, keywords: Any = None, og: di
 
 
 class Router:
-    def __init__(self, prefix: str = "", default_cache_ttl: int = 30, cache_cookie_keys: list[str] = None) -> None:
+    def __init__(self, prefix: str = "", default_cache_ttl: int = 30, cache_cookie_keys: list[str] = None, middlewares: list = None) -> None:
         """
-        English: Initializes the router with a prefix, default cache TTL, and custom cache cookie keys.
-        Español: Inicializa el router con un prefijo, un TTL de caché por defecto y claves de cookie personalizadas.
+        English: Initializes the router with a prefix, default cache TTL, custom cache cookie keys, and optional router-level middlewares.
+        Español: Inicializa el router con un prefijo, un TTL de caché por defecto, claves de cookie personalizadas y middlewares opcionales a nivel de router.
         """
         self.routes = []
         self.docs = []
@@ -77,6 +77,7 @@ class Router:
         self.prefix = prefix
         self.default_cache_ttl = default_cache_ttl
         self.cache_cookie_keys = cache_cookie_keys if cache_cookie_keys is not None else ["session", "auth", "auth_admin"]
+        self.middlewares = middlewares if middlewares is not None else []
         self._load_centralized_seo()
 
     def _load_centralized_seo(self) -> None:
@@ -110,6 +111,10 @@ class Router:
             English: Registers the route and merges SEO metadata.
             Español: Registra la ruta y fusiona los metadatos SEO.
             """
+            current_func = func
+            for m in reversed(self.middlewares):
+                current_func = m(current_func)
+
             if hasattr(func, "_seo"):
                 current_seo = self.seo_data.get(real_path, {})
                 for k, v in func._seo.items():
@@ -176,10 +181,10 @@ class Router:
                             print(f"Routing Error: {e}")
                         return JSONResponse({"success": False, "msg": msg}, status_code=400)
                 
-                if asyncio.iscoroutinefunction(func):
-                    response = await func(request)
+                if asyncio.iscoroutinefunction(current_func):
+                    response = await current_func(request)
                 else:
-                    response = func(request)
+                    response = current_func(request)
 
                 if ttl > 0 and request.method == "GET" and not DEBUG and cache_key:
                     if hasattr(response, "status_code") and response.status_code == 200:
