@@ -25,12 +25,16 @@ export default defineConfig({
     tailwindcss(),
     watchLilaTemplates()
   ],
-  base: "/public/build/",
+  base: "/public/",
   build: {
     manifest: true,
-    outDir: 'public/build',
-    publicDir: 'public',
-    emptyOutDir: true,
+    outDir: 'public/',
+    emptyOutDir: false,
+    rollupOptions: {
+      input: {
+        tailwind: resolve(__dirname, 'public/css/tailwind.css')
+      }
+    }
   },
   server: {
     origin: "http://localhost:5173",

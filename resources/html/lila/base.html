@@ -11,7 +11,7 @@
   <meta name="author" content="{{ author }}" />
   <title>{% block title %}{{ title }}{% endblock %}</title>
   <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
-  <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
+  {{ asset('css/tailwind.css') | safe }}
   {{ hot_reload() | safe }}
   {% block head %}{% endblock %}
 </head>

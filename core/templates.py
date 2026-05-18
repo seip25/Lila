@@ -70,17 +70,42 @@ def hot_reload() -> str:
             
         if _VITE_PROJECT_EXISTS:
             return """
-        <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/public/@vite/client"></script>
         """
     return ""
 
 
 jinja_env.globals['hot_reload'] = hot_reload
 
+_VITE_MANIFEST: dict = {}
+_vite_manifest_loaded: bool = False
 ASSETS_MANIFEST: dict = {}
 _assets_manifest_loaded: bool = False
 
+def _load_vite_manifest():
+    """
+    English: Loads the Vite build assets manifest dynamically from public/.vite/manifest.json.
+    Español: Carga dinámicamente el manifiesto de recursos de construcción de Vite desde public/.vite/manifest.json.
+    """
+    global _VITE_MANIFEST, _vite_manifest_loaded
+    if not _vite_manifest_loaded:
+        manifest_path = os.path.join(PROJECT_ROOT, "public", ".vite", "manifest.json")
+        if not os.path.exists(manifest_path):
+            manifest_path = os.path.join(PROJECT_ROOT, "public", "manifest.json")
+            
+        if os.path.exists(manifest_path):
+            try:
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    _VITE_MANIFEST = json.load(f)
+            except Exception as e:
+                Logger.warning(f"Error loading Vite manifest: {e}")
+        _vite_manifest_loaded = True
+
 def _load_assets_manifest():
+    """
+    English: Loads the classic static assets manifest.
+    Español: Carga el manifiesto clásico de recursos estáticos.
+    """
     global ASSETS_MANIFEST, _assets_manifest_loaded
     if not _assets_manifest_loaded:
         manifest_path = os.path.join(PROJECT_ROOT, "app", "assets_manifest.json")
@@ -94,23 +119,72 @@ def _load_assets_manifest():
 
 def public(path: str) -> str:
     """
-    Returns the URL path for a public asset.
-    Checks the RAM manifest for optimized versions (.webp, .min.css, .min.js).
+    English: Resolves the public URL for a given static asset, automatically supporting Vite development and production modes.
+    Español: Resuelve la URL pública para un recurso estático dado, soportando automáticamente los modos de desarrollo y producción de Vite.
     """
+    clean_path = path.lstrip('/')
+    
+    if DEBUG:
+        global _VITE_PROJECT_EXISTS
+        if _VITE_PROJECT_EXISTS is None:
+            _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
+        if _VITE_PROJECT_EXISTS and (clean_path.endswith(".css") or clean_path.endswith(".js")):
+            return f"http://localhost:5173/public/{clean_path}"
+            
     if not DEBUG:
+        _load_vite_manifest()
+        manifest_key = f"public/{clean_path}"
+        if manifest_key in _VITE_MANIFEST:
+            file_path = _VITE_MANIFEST[manifest_key].get("file", clean_path)
+            return f"/public/{file_path}"
+        elif clean_path in _VITE_MANIFEST:
+            file_path = _VITE_MANIFEST[clean_path].get("file", clean_path)
+            return f"/public/{file_path}"
+            
         _load_assets_manifest()
-        
-    # English: Look up in the dictionary. If found, replace path.
-    # Español: Buscar en el diccionario. Si existe, reemplazar la ruta.
-    lookup_path = path.lstrip('/')
-    if ASSETS_MANIFEST and lookup_path in ASSETS_MANIFEST:
-        path = ASSETS_MANIFEST[lookup_path]
-        
-    if path.startswith('/'):
-        return path
-    return f"/{path}"
+        if ASSETS_MANIFEST and clean_path in ASSETS_MANIFEST:
+            path_val = ASSETS_MANIFEST[clean_path]
+            if path_val.startswith('/'):
+                return path_val
+            return f"/{path_val}"
+            
+    if clean_path.startswith('public/'):
+        return f"/{clean_path}"
+    return f"/public/{clean_path}"
 
 jinja_env.globals['public'] = public
+
+def asset(path: str) -> str:
+    """
+    English: Returns the complete HTML tag for a CSS or JS asset (supporting Vite dev/prod), or a simple URL string for other assets.
+    If in DEBUG mode and Vite package-lock.json does not exist, it automatically falls back to Tailwind Play CDN to prevent styling breakage.
+    
+    Español: Retorna la etiqueta HTML completa para un recurso CSS o JS (soportando Vite dev/prod), o una cadena de URL simple para otros recursos.
+    Si está en modo DEBUG y no existe el archivo package-lock.json de Vite, recurre automáticamente a Tailwind Play CDN para evitar la rotura del diseño.
+    """
+    clean_path = path.lstrip('/')
+    resolved = public(clean_path)
+    
+    if DEBUG and clean_path == 'css/tailwind.css':
+        global _VITE_PROJECT_EXISTS
+        if _VITE_PROJECT_EXISTS is None:
+            _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
+        if not _VITE_PROJECT_EXISTS:
+            return '<script src="https://cdn.tailwindcss.com"></script>'
+            
+    if clean_path.endswith('.css'):
+        if DEBUG and resolved.startswith('http://localhost:5173'):
+            return f'<script type="module" src="{resolved}"></script>'
+        return f'<link rel="stylesheet" href="{resolved}" />'
+        
+    if clean_path.endswith('.js'):
+        if DEBUG and resolved.startswith('http://localhost:5173'):
+            return f'<script type="module" src="{resolved}"></script>'
+        return f'<script src="{resolved}"></script>'
+        
+    return resolved
+
+jinja_env.globals['asset'] = asset
 
 templates = Jinja2Templates(env=jinja_env)
 markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
