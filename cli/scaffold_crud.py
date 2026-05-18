@@ -397,8 +397,8 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
 
     <footer class="bg-surface py-4 mt-auto">
       <div class="container mx-auto px-4 flex justify-between items-center">
-        <a href="/set-language/es" class="underline">Español (Esp)</a>
-        <a href="/set-language/en" class="underline">English (US)</a>
+        <a href="?lang=es" class="underline">Español (Esp)</a>
+        <a href="?lang=en" class="underline">English (US)</a>
       </div>
     </footer>
 

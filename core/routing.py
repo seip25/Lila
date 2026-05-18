@@ -987,13 +987,13 @@ class Router:
      
       <div class="container mx-auto px-4 flex justify-between items-center">
         <a
-          href="/set-language/es"
+          href="?lang=es"
           class="underline"
         >
           Español (Esp)
         </a>
         <a
-          href="/set-language/en"
+          href="?lang=en"
            class="underline"
         >
           English (US)
