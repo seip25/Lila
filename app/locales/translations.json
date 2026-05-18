@@ -32,7 +32,7 @@
     "en": "Hi"
   },
   "Welcome to the Lila Framework": {
-    "es": "Bienvenido a Framework Lila",
+    "es": "Bienvenido a Lila Framework",
     "en": "Welcome to the Lila Framework"
   },
   "documentation": {
@@ -138,6 +138,10 @@
   "confirm_password": {
     "es": "Confirmar contraseña",
     "en": "Confirm password"
+  },
+  "new_password": {
+    "es": "Nueva contraseña",
+    "en": "New password"
   },
   "name": {
     "es": "Nombre",
@@ -323,6 +327,18 @@
     "es": "Cuenta eliminada exitosamente",
     "en": "Account deleted successfully"
   },
+  "Authentication required": {
+    "es": "Autenticación requerida",
+    "en": "Authentication required"
+  },
+  "User is inactive": {
+    "es": "Usuario inactivo",
+    "en": "User is inactive"
+  },
+  "Session already active": {
+    "es": "Sesión ya activa",
+    "en": "Session already active"
+  },
   "User not found": {
     "es": "Usuario no encontrado",
     "en": "User not found"
@@ -376,7 +392,23 @@
     "en": "Invalid or expired token"
   },
   "Your password reset link is invalid or has expired.": {
-    "es": "Tu enlace para restablecer la contraseña es inválido o ha expirado.",
+    "es": "Tu enlace de restablecimiento de contraseña es inválido o ha expirado.",
     "en": "Your password reset link is invalid or has expired."
+  },
+  "by_default_we_use": {
+    "es": "Por defecto utilizamos spa.js y utils.js con",
+    "en": "By default we use spa.js and utils.js with"
+  },
+  "lila_css_docs": {
+    "es": "Si quieres más documentación sobre Lila CSS, encuéntrala aquí. Usa HTML semántico en su mayoría, listo para usar automáticamente con contenedores, grids, colores, etc.",
+    "en": "If you want more documentation about Lila CSS, find it here. It mostly uses semantic HTML, ready for automatic use with containers, grids, colors, etc."
+  },
+  "danger_zone": {
+    "es": "Ten cuidado",
+    "en": "Danger zone"
+  },
+  "once_you_delete_your_account_there_is_no_going_back": {
+    "es": "Una vez que elimines tu cuenta, no hay vuelta atrás. Asegúrate.",
+    "en": "Once you delete your account, there is no going back. Be sure."
   }
 }

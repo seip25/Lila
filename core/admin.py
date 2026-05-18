@@ -1,7 +1,7 @@
 import psutil
 import os
-import json
-from app.helpers.helpers import lang
+from core.responses import orjson_dumps
+from core.translate import Translate
 from core.responses import  RedirectResponse, JSONResponse
 from core.request import Request
 from core.routing import Router
@@ -9,7 +9,6 @@ from core.session import Session
 from app.connections import connection
 from argon2 import PasswordHasher
 from functools import wraps
-from core.responses import convert_to_serializable
 from core.templates import render
 from app.config import PATH_LOG_BASE_DIR as PATH_LOG_BASE_DIR_ADMIN
  
@@ -99,7 +98,7 @@ async def admin_login(request: Request):
             admin = authenticate(username=username, password=password)
             if admin:
                 response = JSONResponse(
-                    {"success": True, "redirect": "/admin"}, serialize=False
+                    {"success": True, "redirect": "/admin"} 
                 )
                 admin_val = {"id": admin["id"]}
                 Session.setSession(
@@ -132,8 +131,8 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
                 logs[log_folder] = {}
                 for log_file in os.listdir(log_folder_path):
                     if log_file.endswith(".log"):
-                        with open(os.path.join(log_folder_path, log_file), "r") as f:
-                            logs[log_folder][log_file] = f.readlines()
+                        with open(os.path.join(log_folder_path, log_file), "r", encoding="utf-8") as f:
+                            logs[log_folder][log_file] = f.readlines()[-500:]
 
         logs_html = f"""
         <details class="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-600">
@@ -187,83 +186,91 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
     return render(request=request,template="admin/dashboard",context=context)
 
 
-def menu(models: list = []) -> str:
-    """Generate the admin menu."""
-
-    m = ""
+def menu(models: list = [], request: Request = None) -> str:
+    """Generate the admin menu as an <aside> component with Tailwind CSS."""
+    current_path = request.url.path if request else ""
     
-    for model in models:
-        model_name = model.__name__.lower()
-        model_plural = f"{model_name}s"
- 
-        m += f" <a href='/admin/{model_plural}' class='dropdown-item'>{model_name.capitalize()}</a>"
+    active_dash = "flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if current_path == "/admin" else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-primary dark:hover:text-primary font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
+    
+    m = f'<a href="/admin" class="{active_dash}"><span>📊</span> Dashboard</a>'
+    
+    if models:
+        m += '<h6 class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mt-6 px-3 tracking-wider mb-2">Models</h6>'
+        m += '<div class="space-y-1">'
+        for model in models:
+            model_name = model.__name__.lower()
+            model_plural = f"{model_name}s"
+            path = f"/admin/{model_plural}"
+            is_active = current_path == path
+            active_class = "flex items-center gap-2 px-3 py-2 bg-secondary text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if is_active else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-secondary dark:hover:text-secondary font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
+            m += f'<a href="{path}" class="{active_class}"><span>📁</span> {model_name.capitalize()}</a>'
+        m += '</div>'
+
+    m += '<h6 class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mt-6 px-3 tracking-wider mb-2">System</h6>'
+    m += '<div class="space-y-1">'
+    m += '<a href="/admin/logout" class="flex items-center gap-2 px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 font-medium rounded-xl transition-all text-sm cursor-pointer"><span>🚪</span> Logout</a>'
+    m += '</div>'
 
     return f"""
-    <header class="  shadow  ">
-        <nav class="container ">
-             <a href="/admin/"  >
-             <h3>
-             Admin Dashboard
-                </h3>
-             </a>
-            
-             <div class="flex gap-4">
-                   <div class="dropdown">
-                        <button class="dropdown-toggle fill">Menu</button>
-                      <div class="dropdown-content bottom-right">
-                          {m}
-                            <a href="/admin/logout" class="dropdown-item">Logout</a>
-                       </div>
-                </div> 
-             </div>
-        </nav>
-    </header>
+    <aside class="w-full md:w-64 flex-shrink-0">
+        <div class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+            <div class="flex items-center p-2 mb-6 border-b border-slate-100 dark:border-slate-850 pb-4">
+                 <img src="/img/lila.png" alt="Lila" width="36" height="36" class="mr-3 bg-white p-1 rounded-full shadow-sm">
+                 <div>
+                     <h4 class="m-0 text-md font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila Admin</h4>
+                     <p class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Control Panel</p>
+                 </div>
+            </div>
+            <nav class="flex flex-col gap-1">
+                {m}
+            </nav>
+        </div>
+    </aside>
     """
 def admin_routes(models: list, router: Router,default_route: str = "admin") -> Router:
 
-    @router.route(path=f"/{default_route}/logout", methods=["GET"])
+    @router.route(path=f"/{default_route}/logout", methods=["GET"], cache_ttl=0)
     async def admin_logout(request: Request):
         """Handle admin logout requests."""
         response = RedirectResponse(url=f"/{default_route}/login")
         response.delete_cookie("auth_admin")
         return response
 
-    @router.route(path=f"/{default_route}/login", methods=["GET", "POST"])
+    @router.route(path=f"/{default_route}/login", methods=["GET", "POST"], cache_ttl=0)
     async def admin_login_route(request: Request):
         """Handle admin login requests."""
         return await admin_login(request=request)
 
-    @router.route(path=f"/{default_route}/metrics", methods=["GET"])
+    @router.route(path=f"/{default_route}/metrics", methods=["GET"], cache_ttl=0)
     @admin_required
     async def get_metrics(request: Request):
         return admin_metrics()
 
-    @router.route(path=f"/{default_route}", methods=["GET"])
+    @router.route(path=f"/{default_route}", methods=["GET"], cache_ttl=0)
     @admin_required
     async def admin_route(request: Request):
-        menu_html = menu(models=models)
+        menu_html = menu(models=models, request=request)
         return await admin_dashboard(request=request, menu=menu_html)
 
     for model in models:
         model_name = model.__name__.lower()
         model_plural = f"{model_name}s"
 
-        @router.route(path=f"/{default_route}/{model_plural}", methods=["GET"])
+        @router.route(path=f"/{default_route}/{model_plural}", methods=["GET"], cache_ttl=0)
         @admin_required
         async def model_list(request: Request, model=model, model_name=model_name):
             items = model.get_all()
-            items = convert_to_serializable(items)
 
             headers = items[0].keys() if items else []
-            html_lang = lang(request=request)
+            html_lang = Translate.lang(request=request)
 
             context = {
                 "request": request,
-                "items_json": json.dumps(items),
+                "items_json": orjson_dumps(items).decode(),
                 "model_name": model_name,
                 "headers": headers,
                 "html_lang": html_lang,
-                "menu": menu(models=models),
+                "menu": menu(models=models, request=request),
             }
 
             return render(request=request,template="admin/model_table", context=context)

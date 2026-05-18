@@ -42,6 +42,22 @@ class User(Base):
         return db.query(cls).filter(cls.id == id, cls.active == 1).first()
 
     @classmethod
+    def get_by_email(cls, db: Session, email: str,active:int =1):
+        """Retrieves a user by email."""
+        return db.query(cls).filter(cls.email == email, cls.active == active).first()
+
+    def set_password(self, password: str):
+        """Hashes and sets the user's password."""
+        self.password = ph.hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Verifies the password against the stored hash."""
+        try:
+            return ph.verify(self.password, password)
+        except Exception:
+            return False
+
+    @classmethod
     def check_login(cls, db: Session, email: str):
         return db.query(cls).filter(cls.email == email, cls.active == 1).first()
 
@@ -73,6 +89,29 @@ class User(Base):
             return ph.verify(stored_hash, password)
         except VerifyMismatchError:
             return False
+    @classmethod
+    def delete(cls, db: Session, id: int):
+        user = db.query(cls).filter(cls.id == id).first()
+        if user:
+            user.active = 0
+            db.commit()
+            return True
+        return False
+        
+    @classmethod
+    def update(cls, db: Session, id: int, data: dict) -> bool:
+        user = cls.get_by_id(db, id)
+        if not user:
+            return False
+
+        if "password" in data:
+            data["password"] = cls.hash_password(data["password"])
+
+        for field, value in data.items():
+            setattr(user, field, value)
+
+        db.commit()
+        return True
 
      
     @staticmethod

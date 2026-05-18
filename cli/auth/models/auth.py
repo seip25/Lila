@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, func,DateTime
+from sqlalchemy import Column, Integer, String, TIMESTAMP, func, DateTime, ForeignKey
 from sqlalchemy.orm import load_only
 from core.database import Base
 import datetime
+import secrets
 from app.connections import connection
 
 class LoginAttempt(Base):
@@ -16,19 +17,42 @@ class LoginAttempt(Base):
         if not self.locked_at:
             return False
         return datetime.datetime.utcnow() < self.locked_at + datetime.timedelta(minutes=5)
+
     @classmethod
-    def get_all(cls,select: str = "id,email,attempts,locked_at", limit: int = 1000):
+    def record_attempt(cls, db, email: str, ip: str, success: bool):
+        """Records a login attempt and handles locking logic."""
+        attempt = db.query(cls).filter_by(email=email).first()
+        if not attempt:
+            attempt = cls(email=email, attempts=0)
+            db.add(attempt)
+        
+        if attempt.attempts is None:
+            attempt.attempts = 0
+
+        if success:
+            attempt.attempts = 0
+            attempt.locked_at = None
+            # Record success in history
+            success_record = LoginSuccessHistory(email=email, ip_address=ip)
+            db.add(success_record)
+        else:
+            attempt.attempts += 1
+            if attempt.attempts >= 5:
+                attempt.locked_at = datetime.datetime.utcnow()
+            # Record attempt in history
+            attempt_record = LoginAttemptHistory(email=email, ip_address=ip, details=f"Attempt {attempt.attempts}")
+            db.add(attempt_record)
+        
+        return attempt
+
+    @classmethod
+    def get_all(cls, select: str = "id,email,attempts,locked_at", limit: int = 1000):
         db = connection.get_session()
         try:
             column_names = [c.strip() for c in select.split(',')]
             columns_to_load = [getattr(cls, c) for c in column_names]
-            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
-            items = [
-                {col: getattr(row, col) for col in column_names}
-                for row in result
-            ]
-            return items
-
+            result = db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            return [{col: getattr(row, col) for col in column_names} for row in result]
         finally:
             db.close()
 
@@ -42,22 +66,6 @@ class LoginAttemptHistory(Base):
     details = Column(String(length=255), nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-    @classmethod
-    def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
-        db = connection.get_session()
-        try:
-            column_names = [c.strip() for c in select.split(',')]
-            columns_to_load = [getattr(cls, c) for c in column_names]
-            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
-            items = [
-                {col: getattr(row, col) for col in column_names}
-                for row in result
-            ]
-            return items
-        finally:
-            db.close()
-
-
 class LoginSuccessHistory(Base):
     __tablename__ = "login_success_history"
 
@@ -68,57 +76,46 @@ class LoginSuccessHistory(Base):
     details = Column(String(length=255), nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-    @classmethod
-    def get_all(cls,select: str = "id,email,ip_address,device,details,created_at", limit: int = 1000):
-        db = connection.get_session()
-        try:
-            column_names = [c.strip() for c in select.split(',')]
-            columns_to_load = [getattr(cls, c) for c in column_names]
-            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
-            items = [
-                {col: getattr(row, col) for col in column_names}
-                for row in result
-            ]
-            return items
-        finally:
-            db.close()
-
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(length=255), nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
     token = Column(String(length=255), unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
 
     @classmethod
-    def create_token(cls, db, email, token, expires_minutes=30):
+    def create_token(cls, db, user_id: int, expires_minutes=30):
+        """Creates a new password reset token for a user."""
+        token = secrets.token_urlsafe(32)
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_minutes)
-        reset_token = cls(email=email, token=token, created_at=datetime.datetime.utcnow(), expires_at=expires_at)
+        reset_token = cls(
+            user_id=user_id, 
+            token=token, 
+            expires_at=expires_at
+        )
         db.add(reset_token)
-        db.commit()
-        return reset_token
+        return token
 
     @classmethod
-    def validate_token(cls, db, email, token):
-        reset_token = db.query(cls).filter_by(email=email, token=token).order_by(cls.created_at.desc()).first()
+    def validate_token(cls, db, token: str) -> int | None:
+        """Validates a token and returns the associated user_id if valid."""
+        reset_token = db.query(cls).filter_by(token=token).first()
         if not reset_token:
-            return False
+            return None
         if datetime.datetime.utcnow() > reset_token.expires_at:
-            return False
-        return True
+            db.delete(reset_token)
+            return None
+        return reset_token.user_id
+
     @classmethod
-    def get_all(cls,select: str = "id,email,expires_at,created_at", limit: int = 1000):
+    def get_all(cls, select: str = "id,user_id,token,expires_at,created_at", limit: int = 1000):
         db = connection.get_session()
         try:
             column_names = [c.strip() for c in select.split(',')]
             columns_to_load = [getattr(cls, c) for c in column_names]
-            result=db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
-            items = [
-                {col: getattr(row, col) for col in column_names}
-                for row in result
-            ]
-            return items
+            result = db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
+            return [{col: getattr(row, col) for col in column_names} for row in result]
         finally:
             db.close()

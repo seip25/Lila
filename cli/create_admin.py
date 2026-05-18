@@ -1,9 +1,14 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import os
 import subprocess
 from app.connections import connection
 from argon2 import PasswordHasher
-from app.helpers.helpers import generate_token_value
+from core.auth import generate_token_value
 
 app = typer.Typer()
 ph = PasswordHasher()

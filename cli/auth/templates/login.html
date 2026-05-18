@@ -1,75 +1,75 @@
-<!DOCTYPE html>
-<html lang="{{lang}}" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="/public/css/lila.css">
-</head>
-<body>
-    <main class="flex justify-center items-center    container">
-        <article class="w-mx-500-px">
-            <h3 class=" text-center mb-4">{{translate['login']}}</h3>
+{% extends layout | default('lila/base.html') %}
+{% block title %}{{title}}{% endblock %}
 
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="email" >Email</label>
-                    <input type="email" id="email" name="email" class="w-full" required>
-                </div>
-                <div class="mb-4">
-                    <label for="password" >{{translate['password']}}</label>
-                    <input type="password" id="password" name="password" class="w-full" required>
-                </div>
-                <div class="flex items-center justify-center mb-4">
-                    <a href="/forgot-password" class="underline">{{translate['forgot your password']}}</a>
-                </div>
-                <button type="submit" class="w-full">{{translate['login']}}</button>
-                 <div class="mt-4 text-center">
-                    <p> <a href="/register" class="underline">{{translate['create account']}}</a></p>
-                </div>
-                <p id="error-message" class="text-red-500 mt-2 text-center"></p>
-            </form>
-        </article>
-        
-    </main>
-    <footer>
-             <div class="container mx-auto px-4 flex justify-between items-center">
-        <a
-          href="/set-language/es"
-          class="text-secondary underline"
-        >
-          Español (Esp)
+{% block content %}
+<main class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
+    <div class="card w-full max-w-md p-8 transform hover:scale-101">
+        <h3 class="text-lila text-3xl text-center mb-8">
+            {{translate['login']}}
+        </h3>
+
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">Email</label>
+                <input type="email" id="email" name="email" class="input-lila" required>
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}</label>
+                <input type="password" id="password" name="password" class="input-lila" required>
+            </div>
+            
+            <div class="flex items-center justify-end">
+                <a href="/forgot-password" class="text-xs font-semibold text-secondary hover:text-secondary-dark hover:underline transition-colors">
+                    {{translate['forgot your password']}}
+                </a>
+            </div>
+
+            <button type="submit" class="btn-primary w-full justify-center">
+                {{translate['login']}}
+            </button>
+
+            <div class="text-center pt-2">
+                <p class="text-sm text-slate-500">
+                    <a href="/register" class="link-lila">{{translate['create account']}}</a>
+                </p>
+            </div>
+            
+            <p id="error-message" class="text-red-500 mt-2 text-center text-sm font-semibold"></p>
+        </form>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="mt-8 w-full max-w-md flex justify-center gap-2">
+        <a href="?lang=es" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+            <span>🇪🇸</span> Español
         </a>
-        <a
-          href="/set-language/en"
-          class="text-secondary underline"
-        >
-          English (US)
+        <a href="?lang=en" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+            <span>🇺🇸</span> English
         </a>
-      </div>
-        </footer>
-    <script>
-        document.getElementById('login-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const errorMessage = document.getElementById('error-message');
-            try {
-                const response = await fetch('/login', {
-                    method: 'POST',
-                    body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {'Content-Type': 'application/json'}
-                });
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    window.location.replace('/dashboard');
-                } else {
-                    errorMessage.textContent = result.msg  || 'An unknown error occurred.';
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Failed to connect to the server.';
+    </div>
+</main>
+
+<script>
+    document.getElementById('login-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const errorMessage = document.getElementById('error-message');
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                body: JSON.stringify(Object.fromEntries(formData)),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                window.location.replace('/dashboard');
+            } else {
+                errorMessage.textContent = result.msg || 'An unknown error occurred.';
             }
-        });
-    </script>
-</body>
-</html>
+        } catch (error) {
+            errorMessage.textContent = 'Failed to connect to the server.';
+        }
+    });
+</script>
+{% endblock %}

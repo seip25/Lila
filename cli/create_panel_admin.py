@@ -1,23 +1,28 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import os
 import subprocess
 from app.connections import connection
 from argon2 import PasswordHasher
-from app.helpers.helpers import generate_token_value
+from core.auth import generate_token_value
 
 app = typer.Typer()
 ph = PasswordHasher()
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = os.getcwd()
 
 def ensure_connection_or_migrate():
     try:
         connection.engine.connect()
-        result = subprocess.run(["python", "-m", "cli.migrations"])
+        result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
         return True
     except Exception:
         typer.echo("Database connection failed. Running migrations...")
-        result = subprocess.run(["python", "-m", "cli.migrations"])
+        result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
         return result.returncode == 0
 
 def check_and_create_table():
@@ -79,7 +84,7 @@ from app.routes.admin import Admin
 from app.models.user import User
 admin_routes = Admin(models=[User])
 all_routes = list(itertools.chain(all_routes, admin_routes))
-    """
+"""
 
     if not os.path.exists(main_file):
         typer.echo("main.py not found.")
@@ -92,11 +97,11 @@ all_routes = list(itertools.chain(all_routes, admin_routes))
         typer.echo(f"Marker '{marker}' not found in main.py.")
         raise typer.Exit(code=1)
 
-    if replace_text.strip() in content:
+    if "admin_routes = Admin" in content:
         typer.echo("Admin routes already added.")
         return
 
-    new_content = content.replace(marker, f"{marker}\n{replace_text}")
+    new_content = content.replace(marker, f"{marker}{replace_text}")
 
     with open(main_file, "w", encoding="utf-8") as file:
         file.write(new_content)

@@ -1,26 +1,38 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import os
 import rjsmin
 import rcssmin
 
+
+project_root = os.getcwd()
+
 def main():
-    success = "Files minified successfully"
-    public_folder = "static"
-    js_folder = f"{public_folder}/js"
-    css_folder = f"{public_folder}/css"
-     
-    for root, _, files in os.walk(js_folder):
-        for file in files:
-            if file.endswith('.js'):
-                file_path = os.path.join(root, file)
-                js(file_path)
-     
-    for root, _, files in os.walk(css_folder):
-        for file in files:
-            if file.endswith('.css'):
-                file_path = os.path.join(root, file)
-                css(file_path)
- 
-    return success
+    try:
+        success = "Files minified successfully"
+        public_folder = "public"
+        js_folder =os.path.join(project_root,public_folder,"js")
+        css_folder = os.path.join(project_root,public_folder,"css")
+        
+        for root, _, files in os.walk(js_folder):
+            for file in files:
+                if file.endswith('.js'):
+                    file_path = os.path.join(root, file)
+                    js(file_path)
+        
+        for root, _, files in os.walk(css_folder):
+            for file in files:
+                if file.endswith('.css'):
+                    file_path = os.path.join(root, file)
+                    css(file_path)
+    
+        return success
+    except Exception as e:
+        print(e)
+        return str(e)
 
 
 def js(file_path: str) -> bool:

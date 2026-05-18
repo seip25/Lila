@@ -1,0 +1,125 @@
+import sys
+import os
+import json
+from pathlib import Path
+
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
+try:
+    import rjsmin
+    import rcssmin
+    from PIL import Image
+except ImportError as e:
+    print(f"Error: Missing dependency. {e}")
+    sys.exit(1)
+
+project_root = os.getcwd()
+
+def main():
+    try:
+        public_folder = os.path.join(project_root, "public")
+        app_folder = os.path.join(project_root, "app")
+        manifest_path = os.path.join(app_folder, "assets_manifest.json")
+        
+        if not os.path.exists(public_folder):
+            print("Error: 'public' folder not found.")
+            return
+
+        if not os.path.exists(app_folder):
+            os.makedirs(app_folder)
+
+        manifest = {}
+        
+        # English: Walk through public directory to optimize assets
+        # Español: Recorrer el directorio public para optimizar los recursos
+        for root, _, files in os.walk(public_folder):
+            for file in files:
+                file_path = os.path.join(root, file)
+                # English: Get the relative path starting after 'public/'
+                # Español: Obtener la ruta relativa comenzando después de 'public/'
+                relative_path = os.path.relpath(file_path, public_folder).replace("\\", "/")
+                
+                # JavaScript
+                if file.endswith('.js') and not file.endswith('.min.js'):
+                    new_relative_path = relative_path[:-3] + ".min.js"
+                    new_file_path = os.path.join(public_folder, new_relative_path)
+                    if process_js(file_path, new_file_path):
+                        manifest[relative_path] = new_relative_path
+
+                # CSS
+                elif file.endswith('.css') and not file.endswith('.min.css'):
+                    new_relative_path = relative_path[:-4] + ".min.css"
+                    new_file_path = os.path.join(public_folder, new_relative_path)
+                    if process_css(file_path, new_file_path):
+                        manifest[relative_path] = new_relative_path
+
+                # Images (PNG, JPG, JPEG)
+                elif file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    file_ext = os.path.splitext(file)[1]
+                    new_relative_path = relative_path[:-len(file_ext)] + ".webp"
+                    new_file_path = os.path.join(public_folder, new_relative_path)
+                    if process_image(file_path, new_file_path):
+                        manifest[relative_path] = new_relative_path
+
+        # English: Write the manifest JSON to app/assets_manifest.json
+        # Español: Escribir el manifiesto JSON en app/assets_manifest.json
+        with open(manifest_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest, f, indent=4)
+            
+        print("Success: Assets optimized and app/assets_manifest.json generated successfully.")
+
+    except Exception as e:
+        print(f"Optimization Error: {str(e)}")
+
+def process_js(file_path: str, new_file_path: str) -> bool:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as js_file:
+            original_content = js_file.read()
+        
+        minified = rjsmin.jsmin(original_content)
+        
+        with open(new_file_path, 'w', encoding='utf-8') as js_file:
+            js_file.write(minified)
+        return True
+    except Exception as e:
+        print(f"Error minifying JS file {file_path}: {str(e)}")
+        return False
+
+def process_css(file_path: str, new_file_path: str) -> bool:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as css_file:
+            original_content = css_file.read()
+        
+        minified = rcssmin.cssmin(original_content)
+        
+        with open(new_file_path, 'w', encoding='utf-8') as css_file:
+            css_file.write(minified)
+        return True
+    except Exception as e:
+        print(f"Error minifying CSS file {file_path}: {str(e)}")
+        return False
+
+def process_image(file_path: str, new_file_path: str) -> bool:
+    try:
+        # English: Skip if the webp already exists and is newer than the original
+        # Español: Omitir si el webp ya existe y es más reciente que el original
+        if os.path.exists(new_file_path):
+            if os.path.getmtime(new_file_path) > os.path.getmtime(file_path):
+                return True
+                
+        with Image.open(file_path) as img:
+            # English: Convert RGBA to RGB for webp if necessary (Pillow handles most gracefully, but to be safe)
+            # Español: Convertir RGBA a RGB para webp si es necesario
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+                
+            # Webp naturally supports RGBA. 
+            img.save(new_file_path, 'webp', quality=80, method=4)
+        return True
+    except Exception as e:
+        print(f"Error optimizing Image file {file_path}: {str(e)}")
+        return False
+
+if __name__ == "__main__":
+    main()

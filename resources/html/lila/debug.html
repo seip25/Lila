@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lila Engine - Debug Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="/img/lila.png" />
+  {{ asset('js/utils.js') | safe }}
+  {{ asset('css/tailwind.css') | safe }}
+  {{ hot_reload() | safe }}
+</head>
+
+<body class="bg-bg-body dark:bg-bg-body-dark text-slate-850 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <!-- Header banner -->
+    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <img src="/img/lila.png" alt="Lila" width="28" height="28" class="bg-white p-0.5 rounded-full shadow-sm">
+          <h3 class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila Debug Console</h3>
+        </div>
+        <p class="text-xs font-semibold text-slate-400">Real-time telemetry and API request metrics logger.</p>
+      </div>
+      <div>
+        <button onclick="deleteDebug()" class="px-4 py-2.5 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-550 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow-material transform hover:-translate-y-0.5 cursor-pointer flex items-center gap-1.5 border border-transparent">
+          <span>🧹</span> Reset Log
+        </button>
+      </div>
+    </header>
+
+    <!-- Table Container -->
+    <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
+      <div id="routes" class="overflow-x-auto"></div>
+    </article>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      updateTable();
+    });
+    let timer = null;
+
+    async function deleteDebug() {
+      if (confirm('Are you sure you want to clear all log metrics?')) {
+        const response = await fetch('/debug/?delete=true', {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          updateTable();
+        }
+      }
+    }
+
+    async function updateTable() {
+      const response = await fetch('/debug/?fetch=true');
+      if (response.ok) {
+        const routes = await response.json();
+
+        const dataTable = new ResponsiveDataTable('routes', {
+          data: routes,
+          columns: [
+            { title: "Path", key: "path" },
+            { title: "Method", key: "method" },
+            { title: "IP", key: "ip" },
+            { title: "RAM (MB)", key: "ram" },
+            { title: "CPU (%)", key: "cpu" },
+            { title: "Time Execution", key: "time_execution" },
+            { title: "Created At", key: "created_at" }
+          ],
+          rowsPerPage: 10,
+          search: true,
+          pagination: true,
+          responsive: true,
+          summaryFields: ['id']
+        });
+      }
+    }
+    timer = setInterval(updateTable, 5000);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 - Page Not Found</title>
+  <link rel="icon" type="image/x-icon" href="/img/lila.png" />
+  {{ asset('css/tailwind.css') | safe }}
+  {{ hot_reload() | safe }}
+</head>
+
+<body class="bg-bg-body dark:bg-bg-body-dark text-slate-850 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="max-w-md w-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-material text-center space-y-6">
+    <!-- Icon badge -->
+    <div class="w-20 h-20 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full flex items-center justify-center mx-auto shadow-sm">
+      <span class="text-4xl">🔍</span>
+    </div>
+    
+    <!-- Title -->
+    <div class="space-y-1">
+      <h1 class="text-6xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent leading-none">404</h1>
+      <h2 class="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Page Not Found</h2>
+    </div>
+    
+    <!-- Description -->
+    <p class="text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
+      The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+    </p>
+    
+    <!-- Action button -->
+    <div class="pt-2">
+      <a href="/" class="inline-flex items-center justify-center w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 uppercase tracking-wide text-xs">
+        Go Back to Home
+      </a>
+    </div>
+  </div>
+</body>
+
+</html>

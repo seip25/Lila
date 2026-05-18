@@ -1,3 +1,8 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import os
 from pathlib import Path
@@ -201,44 +206,7 @@ def to_snake_case(text: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def _add_model_import_to_migrations(model_name: str, filename: str) -> None:
-    """
-    Add model import to cli/migrations.py using model_marker
-    
-    Args:
-        model_name: Name of the model class
-        filename: Name of the model file (without .py)
-    """
-    migrations_file = Path("cli/migrations.py")
-    
-    if not migrations_file.exists():
-        typer.echo("⚠️ Warning: cli/migrations.py not found. Skipping auto-import.")
-        return
-    
-    with open(migrations_file, "r", encoding="utf-8") as f:
-        content = f.read()
-    
-    import_statement = f"from app.models.{filename.replace('.py', '')} import {model_name}"
-    
-    # Check if already imported
-    if import_statement in content:
-        typer.echo(f"ℹ️ Model {model_name} already imported in migrations.py")
-        return
-    
-    # Find marker and add import
-    marker = "# model_marker"
-    if marker not in content:
-        typer.echo(f"⚠️ Warning: Marker '{marker}' not found in migrations.py. Please add import manually:")
-        typer.echo(f"   {import_statement}")
-        return
-    
-    # Add import before marker
-    new_content = content.replace(marker, f"{import_statement}\n{marker}")
-    
-    with open(migrations_file, "w", encoding="utf-8") as f:
-        f.write(new_content)
-    
-    typer.echo(f"✅ Model imported in cli/migrations.py")
+
 
 
 @app.command()
@@ -299,8 +267,7 @@ def create(
     typer.echo(f"📝 Model name: {model_name}")
     typer.echo(f"🗄️  Table name: {table_name}")
     
-    # Auto-import model in migrations.py
-    _add_model_import_to_migrations(model_name, filename)
+
     
     typer.echo(f"\n💡 Next steps:")
     typer.echo(f"   1. Edit app/models/{filename} to add your custom columns")

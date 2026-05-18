@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/img/lila.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login</title>
+  {{ asset('css/tailwind.css') | safe }}
+</head>
+
+<body class="bg-bg-body dark:bg-bg-body-dark min-h-screen flex items-center justify-center p-4 transition-colors duration-300 font-sans">
+  <main class="w-full max-w-md">
+    <div class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl shadow-material-lg p-8 transform hover:scale-101 transition-all duration-300">
+      <div class="flex flex-col items-center mb-6">
+        <img src="/img/lila.png" alt="Lila" width="56" height="56" class="bg-white p-1 rounded-full shadow-sm mb-3">
+        <h3 class="text-3xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila Admin</h3>
+        <p class="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold mt-1">Control Panel</p>
+      </div>
+
+      <form id="loginForm" class="space-y-6">
+        <div>
+          <label class="block text-sm font-bold text-slate-650 dark:text-slate-400 mb-2">User</label>
+          <input type="text" name="user" id="user" required minlength="2" maxlength="255" placeholder="User" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100" />
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-slate-650 dark:text-slate-400 mb-2">Password</label>
+          <input type="password" name="password" id="password" required minlength="2" maxlength="255" placeholder="Password" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100" />
+        </div>
+        <button type="submit" class="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 uppercase tracking-wide text-sm cursor-pointer">
+          Send
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document
+      .getElementById("loginForm")
+      .addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const formData = Object.fromEntries(new FormData(event.target));
+        try {
+          const r = await fetch("/admin/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          });
+          const response = await r.json();
+          if (response.success) {
+            window.location.href = response.redirect;
+          } else {
+            document.getElementById("password").value = "";
+            alert(response.message || "Error");
+          }
+        } catch (error) {
+          alert("Error");
+          console.error("Error:", error);
+        }
+      });
+  </script>
+</body>
+
+</html>

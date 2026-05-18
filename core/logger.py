@@ -23,7 +23,7 @@ class Logger:
     def _write_log(cls, log_type, message):
         log_file = folder_logs(log_type)
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(log_file, "a") as file:
+        with open(log_file, "a", encoding="utf-8") as file:
             file.write(f"{timestamp} - {log_type.upper()} - {message}\n\n\n")
 
     @classmethod
@@ -46,7 +46,7 @@ class Logger:
 
     @classmethod
     async def request(cls, request: Request):
-        client_ip = request.client.host
+        client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "Unknown")
         os_info = "Unknown"
 
@@ -65,13 +65,15 @@ class Logger:
         try:
             body = await request.body()
             body_content = body.decode() if body else ""
-            if "password" in body_content:
-                body_content["password"] = ""
-            if "password_2" in body_content:
-                body_content["password_2"] = ""
-            if "token" in body_content:
-                body_content["token"] = ""
-        except Exception as e:
+            sensitive_keys = ["password", "password_2", "token"]
+            for key in sensitive_keys:
+                if key in body_content:
+                    body_content = re.sub(
+                        rf'("{key}"\s*:\s*)"[^"]*"',
+                        rf'\1"***"',
+                        body_content
+                    )
+        except Exception:
             body_content = ""
         try:
             json_content = await request.json()
@@ -82,7 +84,7 @@ class Logger:
             if "token" in json_content:
                 json_content["token"] = ""
 
-        except Exception as e:
+        except Exception:
             json_content = {}
         return (
             f"IP: {client_ip}, "
@@ -110,4 +112,3 @@ def delete_old_logs(days: int = 30):
             continue
 
 
-delete_old_logs()

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="{{ description }}" />
+  <meta name="keywords" content="{{ keywords }}" />
+  <meta name="author" content="{{ author }}" />
+  <title>{% block title %}{{ title }}{% endblock %}</title>
+  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+  {{ asset('css/tailwind.css') | safe }}
+  {{ hot_reload() | safe }}
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+  <div id="lila-spa-content">
+    {% block content %}{% endblock %}
+  </div>
+  <script src="{{public('js/utils.js')}}"></script>
+  <script src="{{public('js/spa.js')}}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>

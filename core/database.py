@@ -1,12 +1,14 @@
 from sqlalchemy import create_engine, MetaData, text
-from sqlalchemy.exc import SQLAlchemyError,IntegrityError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import select, update, delete
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from typing import Optional,Type,Dict,Any
+from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
+from typing import Optional, Type, Dict, Any
 from core.logger import Logger
+import re
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 class Database:
@@ -16,11 +18,10 @@ class Database:
         self.connection = None
         self.metadata = MetaData()
         self.tables = []
-        self.auto_commit = self.config.get("auto_commit", False)
         self.engine = None
         self.SessionLocal = None
-        self.auto_commit=self.config.get("auto_commit", False)
-        self.auto_flush=self.config.get("auto_flush", False)
+        self.auto_commit = self.config.get("auto_commit", False)
+        self.auto_flush = self.config.get("auto_flush", False)
 
     def connect(self) -> bool:
         if self.type in ["mysql", "postgresql", "psgr"]:
@@ -32,29 +33,34 @@ class Database:
             db_type = "postgresql" if self.type in ["postgresql", "psgr"] else self.type
             connector = "mysqlconnector" if self.type == "mysql" else "psycopg"
             isolation_level = self.config.get("isolation_level", None)
- 
+            if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', database):
+                Logger.error(f"Invalid database name: {database}")
+                return False
+
             temp_engine = create_engine(
                 f"{db_type}+{connector}://{user}:{password}@{host}:{port}/postgres"
                 if db_type == "postgresql"
                 else f"{db_type}+{connector}://{user}:{password}@{host}:{port}/mysql"
             )
 
-            with temp_engine.connect() as connection:
+            with temp_engine.connect() as conn:
                 if db_type == "postgresql":
-                    connection = connection.execution_options(isolation_level="AUTOCOMMIT")
-                    result = connection.execute(
-                        text(f"SELECT 1 FROM pg_database WHERE datname = '{database}'")
+                    conn = conn.execution_options(isolation_level="AUTOCOMMIT")
+                    result = conn.execute(
+                        text("SELECT 1 FROM pg_database WHERE datname = :dbname"),
+                        {"dbname": database}
                     )
-                     
-                else:  # MySQL
-                    result = connection.execute(
-                        text(f"SHOW DATABASES LIKE '{database}'")
+                else:
+                    result = conn.execute(
+                        text("SHOW DATABASES LIKE :dbname"),
+                        {"dbname": database}
                     )
 
                 if not result.fetchone():
-
-                    connection.execute(text(f"CREATE DATABASE {database}"))
+                    conn.execute(text(f"CREATE DATABASE {database}"))
                     print(f"Database '{database}' created.")
+
+            temp_engine.dispose()
 
             try:
                 self.engine = create_engine(
@@ -119,17 +125,13 @@ class Database:
                 ):
                     connection.commit()
                 if return_rows:
-                    if result:
-                        rows = result.fetchall() if result else []
-                        items = [dict(getattr(item, "_mapping", {})) for item in rows]
-                        return items
-                    return []
+                    rows = result.fetchall()
+                    items = [dict(getattr(item, "_mapping", {})) for item in rows]
+                    return items
                 if return_row:
-                    if result:
-                        row = result.fetchone() if result else None
-                        if row:
-                            item = dict(getattr(row, "_mapping", {}))
-                            return item
+                    row = result.fetchone()
+                    if row:
+                        return dict(getattr(row, "_mapping", {}))
                     return None
                 if self.type in ["postgresql", "psgr"]:
                     if query.strip().upper().startswith(("INSERT")):

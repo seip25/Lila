@@ -56,6 +56,22 @@ https://pypi.org/project/lila-framework/
 
 ---
 
+## Vite & Tailwind CSS v4 Unified Asset Pipeline
+
+Lila features a complete frontend asset builder pipeline driven by **Vite** and **Tailwind CSS v4** which organizes your source styles (`resources/css/tailwind.css`) and scripts (`resources/js/utils.js` and `resources/js/spa.js`) into a unified `resources/` folder:
+- **Zero Configuration**: Dynamically switches between Vite's hot-reload server in development (`DEBUG=True`) and optimized, minified, hashed files resolved via `manifest.json` in production (`DEBUG=False`).
+- **Dynamic Dark/Light Modes**: Built-in `@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` configuration maps Lila's theme switcher with Tailwind's `dark:` classes out-of-the-box.
+
+---
+
+## Pipeline de Activos Unificado con Vite y Tailwind CSS v4
+
+Lila cuenta con un pipeline de compilación de front-end impulsado por **Vite** y **Tailwind CSS v4** que organiza tus estilos fuente (`resources/css/tailwind.css`) y scripts (`resources/js/utils.js` y `resources/js/spa.js`) en la carpeta unificada `resources/`:
+- **Configuración Cero**: Alterna de forma dinámica entre el servidor hot-reload de Vite en desarrollo (`DEBUG=True`) y archivos optimizados, minificados y con hash de caché a través de `manifest.json` en producción (`DEBUG=False`).
+- **Temas Oscuro/Claro Dinámicos**: Configurado nativamente a través de `@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` para que todas las clases `dark:` respondan de inmediato al selector de temas del framework sin configuraciones adicionales.
+
+---
+
 ## Installation (Instalación)
 ## Installation
 

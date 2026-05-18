@@ -1,16 +1,127 @@
 # {{ translate["changelogs"] }}
-## 9.2 
-### Support new version Starlette
+
+## 1.1.0
+
+### {{ translate["lila_premium_css_utilities"] }}
+
+{{ translate["lila_premium_css_utilities_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/templates.html)
+
+## 1.0.9
+
+### {{ translate["cache_feature"] }}
+
+{{ translate["cache_feature_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/cache.html)
+
+### {{ translate["seo_features"] }}
+
+{{ translate["seo_features_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/seo.html)
+
+### {{ translate["react_base_html"] }}
+
+{{ translate["react_base_html_desc"] }}
+
+## 1.0.8
+
+### {{ translate["version_108_features"] }}
+
+{{ translate["version_108_desc"] }}
+
+## 1.0.5
+
+### {{ translate["performance_improvements"] }}
+
+{{ translate["performance_improvements_desc"] }}
+
+## 1.0.3
+
+### {{ translate["minor_fixes_polish"] }}
+
+{{ translate["minor_fixes_polish_desc"] }}
+
+## 1.0.2
+
+### {{ translate["fix_bug_102"] }}
+
+{{ translate["fix_bug_102_desc"] }}
+
+## 1.0.0
+
+### {{ translate["validation_automatic_in_routes"] }}
+
+{{ translate["validation_automatic_in_routes_desc"] }}
+
+## 9.9
+
+### {{ translate["support_orjson"] }}
+
+{{ translate["support_orjson_desc"] }}
+
+## 9.8
+
+### {{ translate["fix_middlewares"] }}
+
+{{ translate["fix_middlewares_desc"] }}
+
+## 9.7
+
+### {{ translate["cli_global_commands"] }}
+
+{{ translate["cli_global_commands_desc"] }}
+
+## 9.6
+
+### {{ translate["fix_context_update"] }}
+
+{{ translate["fix_context_update_desc"] }}
+
+## 9.5
+
+### {{ translate["new_templates_auth"] }}
+
+{{ translate["new_templates_auth_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/documentation.html#auth-eng)
+
+## 9.4
+
+### {{ translate["fix_bug_debug"] }}
+
+{{ translate["fix_bug_debug_desc"] }}
+
+## 9.2
+
+### {{ translate["debug_route"] }}
+
+{{ translate["debug_route_desc"] }}
+
+[View](http://127.0.0.1:8000/debug/)
+[Docs](https://seip25.github.io/Lila/documentation.html#debug)
 
 ## 9.1
-### ReactRender function 
 
+### {{ translate["react_render_function"] }}
 
-## 8.9 
-### Fix bug upload dir ('static')
+{{ translate["react_render_desc"] }}
 
-## 8.8 
-### Fix bug middleware Logger
+[Docs](https://seip25.github.io/Lila/documentation.html#react)
+
+## 8.9
+
+### {{ translate["fix_bug_upload_dir"] }}
+
+{{ translate["fix_bug_upload_dir_desc"] }}
+
+## 8.8
+
+### {{ translate["fix_bug_middleware_logger"] }}
+
+{{ translate["fix_bug_middleware_logger_desc"] }}
 
 ## 8.7
 
@@ -21,7 +132,7 @@
 **{{ translate["usage_example"] }}:**
 
 ```bash
-python -m cli.react create
+lila-react create
 ```
 
 ## 8.5
@@ -35,8 +146,8 @@ python -m cli.react create
 **{{ translate["usage_example"] }}:**
 
 ```bash
-python -m cli.scaffold_crud  --model Product
-python -m cli.scaffold_crud --model User --name users
+lila-scaffold-crud --model Product
+lila-scaffold-crud --model User --name users
 ```
 
 {{ translate["scaffold_features"] }}
@@ -69,7 +180,7 @@ python -m cli.scaffold_crud --model User --name users
 **{{ translate["usage_example_cli_model"] }}:**
 
 ```html
-python -m cli.model create --name Product --table products
+lila-model create --name Product --table products
 ```
 
 {{ translate["list_models"] }}
@@ -77,7 +188,7 @@ python -m cli.model create --name Product --table products
 **{{ translate["usage_example_cli_model"] }}:**
 
 ```html
-python -m cli.model list-models
+lila-model list-models
 ```
 
 ## 8.0
@@ -112,12 +223,12 @@ python -m cli.model list-models
 ### {{ translate["create_panel_admin"] }}
 
 - {{ translate["create_panel_admin_desc"] }}
-- python -m cli.create_panel_admin --password mypassword
+- lila-create-panel-admin --password mypassword
 
 ### {{ translate["create_admin"] }}
 
 - {{ translate["create_admin_desc"] }}
-- python -m cli.create_admin --password mypassword
+- lila-create-admin --password mypassword
 
 ### {{ translate["pydantic_v2"] }}
 

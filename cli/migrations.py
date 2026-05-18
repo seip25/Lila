@@ -1,14 +1,26 @@
-from sqlalchemy import Table,Column,Integer,String,TIMESTAMP
+import sys
+import os
+sys.path.insert(0, os.getcwd())
+
+from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
 from app.connections import connection
 from core.database import Base #Import Base  for migrations in models
 from app.models.user import User #Import models for migrations in models
 import typer
 import asyncio
+import importlib
+from pathlib import Path
 
-# auth_marker
-
-from app.models.product import Product
-# model_marker
+def load_models():
+    models_dir = Path("app/models")
+    if models_dir.exists():
+        for file in models_dir.glob("*.py"):
+            if file.name != "__init__.py":
+                module_name = f"app.models.{file.stem}"
+                try:
+                    importlib.import_module(module_name)
+                except Exception as e:
+                    print(f"Error loading model {module_name}: {e}")
 
 app = typer.Typer()
 
@@ -28,6 +40,7 @@ app = typer.Typer()
 async def migrate_async(connection,refresh:bool=False)->bool:
     
     try:
+        load_models()
         if refresh:
             connection.metadata.drop_all(connection.engine)
         # connection.prepare_migrate([table_users])#for tables

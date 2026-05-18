@@ -1,36 +1,94 @@
-from starlette.responses import  JSONResponse as StarletteJSONResponse,HTMLResponse,RedirectResponse,PlainTextResponse,RedirectResponse,StreamingResponse
+import orjson
+from starlette.responses import (
+    Response,
+    HTMLResponse as StarletteHTMLResponse,
+    RedirectResponse as StarletteRedirectResponse,
+    PlainTextResponse as StarlettePlainTextResponse,
+    StreamingResponse as StarletteStreamingResponse,
+)
 from decimal import Decimal
-from datetime import date, datetime
 from pydantic import BaseModel
- 
-HTMLResponse = HTMLResponse
-RedirectResponse = RedirectResponse
-PlainTextResponse = PlainTextResponse
-RedirectResponse=RedirectResponse
-StreamingResponse=StreamingResponse
+from typing import Any, Union
 
-def convert_to_serializable(obj):
-    if obj is None:
-        return None
-    if isinstance(obj, (str, int, float, bool)):
-        return obj
+class LilaResponseMixin:
+    def __init__(self, *args, **kwargs):
+        if "headers" not in kwargs or kwargs["headers"] is None:
+            kwargs["headers"] = {}
+        kwargs["headers"]["Powered-By"] = "Lila Framework"
+        super().__init__(*args, **kwargs)
+
+class HTMLResponse(LilaResponseMixin, StarletteHTMLResponse):
+    pass
+
+class RedirectResponse(LilaResponseMixin, StarletteRedirectResponse):
+    pass
+
+class PlainTextResponse(LilaResponseMixin, StarlettePlainTextResponse):
+    pass
+
+class StreamingResponse(LilaResponseMixin, StarletteStreamingResponse):
+    pass
+
+
+def _default_encoder(obj: Any) -> Any:
+    if isinstance(obj, BaseModel):
+        return obj.model_dump()
+    if isinstance(obj, (set, tuple)):
+        return list(obj)
     if isinstance(obj, Decimal):
         return float(obj)
-    if isinstance(obj, (date, datetime)):
-        return obj.isoformat()
-    if isinstance(obj, BaseModel):
-        return convert_to_serializable(obj.dict())
-    if isinstance(obj, dict):
-        return {k: convert_to_serializable(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple, set)):
-        return [convert_to_serializable(v) for v in obj]
-    if hasattr(obj, "__dict__"):
-        return convert_to_serializable(vars(obj))
+    try:
+        if hasattr(obj, "__dict__"):
+            return vars(obj)
+    except Exception:
+        pass
     return str(obj)
- 
 
-class JSONResponse(StarletteJSONResponse):
-    def __init__(self, data, status_code=200, serialize=True, headers=None):
-        if serialize:
-            data = convert_to_serializable(data)
-        super().__init__(data, status_code=status_code, headers=headers)
+
+def orjson_dumps(content: Any) -> bytes:
+    return orjson.dumps(
+        content,
+        default=_default_encoder,
+        option=orjson.OPT_NON_STR_KEYS, 
+    )
+
+def orjson_loads(content: Union[str, bytes]) -> Any:
+    return orjson.loads(content)
+
+
+class JSONResponse(Response):
+    media_type = "application/json"
+
+    def __init__(
+        self,
+        content: Any,
+        status_code: int = 200,
+        headers: dict = None,
+        media_type: str = None,
+    ) -> None:
+        if headers is None:
+            headers = {}
+        headers["Powered-By"] = "Lila Framework"
+        super().__init__(content, status_code, headers, media_type)
+
+    def render(self, content: Any) -> bytes:
+        return orjson_dumps(content)
+
+    @staticmethod
+    def validation_error(e):
+        """Standardized response for Pydantic validation errors."""
+        errors = []
+        msg_errors = ""
+        try:
+            for err in e.errors():
+                field = err["loc"][-1] if err["loc"] else "unknown"
+                msg = err["msg"]
+                errors.append({str(field): msg})
+                msg_errors += f"{field} : {msg} . "
+        except Exception:
+            msg_errors = str(e)
+
+        return JSONResponse(
+            {"success": False, "errors": errors, "msg": msg_errors},
+            status_code=400,
+        )

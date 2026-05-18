@@ -1,3 +1,8 @@
+import sys
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+
 import typer
 import os
 from pathlib import Path
@@ -6,7 +11,7 @@ import sys
 
 app = typer.Typer()
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = os.getcwd()
 
 
 def capitalize_first(text: str) -> str:
@@ -142,6 +147,7 @@ async def get_all_{route_name}(request: Request):
         items = {model_name}.get_all(select="{','.join(display_columns)}", limit=1000)
         return JSONResponse(items)
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error fetching data"}}, status_code=500)
 
 
@@ -173,6 +179,7 @@ async def get_{route_name}_by_id(request: Request):
         finally:
             db.close()
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error fetching data"}}, status_code=500)
 
 
@@ -220,6 +227,7 @@ async def create_{route_name}(request: Request):
             db.close()
             
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error creating record"}}, status_code=500)
 
 
@@ -269,6 +277,7 @@ async def update_{route_name}(request: Request):
             db.close()
             
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error updating record"}}, status_code=500)
 
 
@@ -300,6 +309,7 @@ async def delete_{route_name}(request: Request):
             db.close()
             
     except Exception as e:
+        print(str(e))
         return JSONResponse({{"success": False, "message": "Error deleting record"}}, status_code=500)
 
 
@@ -387,8 +397,8 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
 
     <footer class="bg-surface py-4 mt-auto">
       <div class="container mx-auto px-4 flex justify-between items-center">
-        <a href="/set-language/es" class="underline">Español (Esp)</a>
-        <a href="/set-language/en" class="underline">English (US)</a>
+        <a href="?lang=es" class="underline">Español (Esp)</a>
+        <a href="?lang=en" class="underline">English (US)</a>
       </div>
     </footer>
 
@@ -534,6 +544,7 @@ def add_route_import_to_main(route_name: str, model_name: str) -> bool:
     return True
 
 
+@app.command()
 def main(
     model: str = typer.Option(None, "--model", "-m", help="Name of the model class (e.g., User, Product)"),
     name: str = typer.Option(None, "--name", "-n", help="Name for routes and templates (defaults to snake_case of model)")
@@ -613,7 +624,7 @@ def main(
     typer.echo(f"\n🎨 Generating HTML template...")
     template_content = generate_html_template(model_name, route_name, columns)
     
-    template_dir = Path(f"templates/html/{route_name}")
+    template_dir = Path(f"resources/html/{route_name}")
     template_dir.mkdir(parents=True, exist_ok=True)
     
     template_file = template_dir / "index.html"
@@ -625,11 +636,11 @@ def main(
         else:
             with open(template_file, 'w', encoding='utf-8') as f:
                 f.write(template_content)
-            typer.echo(f"✅ Template created: templates/html/{route_name}/index.html")
+            typer.echo(f"✅ Template created: resources/html/{route_name}/index.html")
     else:
         with open(template_file, 'w', encoding='utf-8') as f:
             f.write(template_content)
-        typer.echo(f"✅ Template created: templates/html/{route_name}/index.html")
+        typer.echo(f"✅ Template created: resources/html/{route_name}/index.html")
     
     # Add import to main.py
     typer.echo(f"\n🔗 Adding routes to main.py...")
@@ -651,4 +662,4 @@ def main(
 
 
 if __name__ == "__main__":
-    typer.run(main)
+    app()
