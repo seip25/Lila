@@ -624,7 +624,7 @@ def main(
     typer.echo(f"\n🎨 Generating HTML template...")
     template_content = generate_html_template(model_name, route_name, columns)
     
-    template_dir = Path(f"resources/templates/html/{route_name}")
+    template_dir = Path(f"resources/html/{route_name}")
     template_dir.mkdir(parents=True, exist_ok=True)
     
     template_file = template_dir / "index.html"
@@ -636,11 +636,11 @@ def main(
         else:
             with open(template_file, 'w', encoding='utf-8') as f:
                 f.write(template_content)
-            typer.echo(f"✅ Template created: resources/templates/html/{route_name}/index.html")
+            typer.echo(f"✅ Template created: resources/html/{route_name}/index.html")
     else:
         with open(template_file, 'w', encoding='utf-8') as f:
             f.write(template_content)
-        typer.echo(f"✅ Template created: resources/templates/html/{route_name}/index.html")
+        typer.echo(f"✅ Template created: resources/html/{route_name}/index.html")
     
     # Add import to main.py
     typer.echo(f"\n🔗 Adding routes to main.py...")

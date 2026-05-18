@@ -34,7 +34,7 @@ user_model_content = read_file("cli/auth/models/user.py")
 auth_model_content = read_file("cli/auth/models/auth.py")
 
 def _create_templates():
-    templates_dir = Path("resources/templates/html/auth")
+    templates_dir = Path("resources/html/auth")
     templates_dir.mkdir(parents=True, exist_ok=True)
 
     templates = {
@@ -52,7 +52,7 @@ def _create_templates():
 
     print("\n Auth templates generated successfully")
 
-    template_dashboard_dir = Path("resources/templates/html/authenticated")
+    template_dashboard_dir = Path("resources/html/authenticated")
     template_dashboard_dir.mkdir(parents=True, exist_ok=True)
     templates_dashboard = {
         "dashboard.html": authenticated_template_content,

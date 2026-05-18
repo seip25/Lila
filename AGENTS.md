@@ -12,7 +12,7 @@ lila/
 │   ├── app.py               # App class (extends Starlette) + getenvironment helper
 │   ├── routing.py           # Router with HTTP decorators, WebSocket, REST CRUD generation, OpenAPI/Swagger
 │   ├── database.py          # Database class (SQLAlchemy: MySQL, PostgreSQL, SQLite)
-│   ├── templates.py         # Jinja2 render, React Islands (renderReact), Markdown, Vite assets
+│   ├── templates.py         # Jinja2 render, Markdown, templates utilities
 │   ├── session.py           # Signed cookie sessions + async get/set/delete helpers
 │   ├── auth.py              # JWT tokens (generate, verify), password hashing
 │   ├── security.py          # XSS detection and data sanitization utilities
@@ -40,14 +40,12 @@ lila/
 │   ├── migrations.py        # Manage database migrations (Alembic-based)
 │   ├── auth.py              # Create database admin
 │   ├── admin.py             # Create admin panel
-│   ├── react.py             # Initialize React and Vite setup
+│   ├── react.py             # Initialize Vite + Tailwind CSS v4 environment
 │   └── minify.py            # Minify CSS/JS using rjsmin/rcssmin + HTML minify
 ├── resources/               # Frontend resources and Jinja2 templates (Unified)
-│   ├── main.jsx             # React entry point
-│   ├── pages/               # React components (islands)
-│   └── templates/           # Jinja2 templates
-│       ├── html/            # HTML templates
-│       └── markdown/        # Markdown files
+│   ├── js/                  # JavaScript source files (e.g. main.js)
+│   ├── html/                # HTML templates
+│   └── markdown/            # Markdown files
 └── public/                  # Static files (css, js, img)
 ```
 
@@ -102,10 +100,7 @@ async def login(request: Request):
 ### Templates (`core/templates.py`)
 
 - `render(request, template, context, files_translate, lang_default)`: Render Jinja2 HTML.
-- `renderReact(request, component, props, options)`: Render React component as island with SSR-friendly output.
 - `renderMarkdown(request, file, css_files, js_files)`: Render Markdown files as HTML pages.
-- `react(component, props)`: Generate React mount point div.
-- `vite_assets()`: Production (manifest) Vite asset tags.
 - `hot_reload()`: Development hot reload scripts (Vite WS client). Injects scripts only if `DEBUG=True`.
 - Templates auto-inject: `title`, `version`, `lang`, `translate`, `description`, `keywords`, `author`.
 
@@ -161,7 +156,7 @@ async def login(request: Request):
 - `lila-admin`: Generate admin panel.
 - `lila-migrations`: Run database migrations.
 - `lila-minify`: Minify CSS/JS for production.
-- `lila-react`: Set up React + Vite integration.
+- `lila-react`: Set up Vite + Tailwind CSS v4 environment.
 - `lila-seo`: Generate sitemap.xml and robots.txt.
 
 ### SEO Optimization (`core/routing.py` & `cli/seo.py`)
@@ -286,7 +281,7 @@ lila-migrations
 lila-minify
 ```
 
-#### Set up React + Vite integration
+#### Set up Vite + Tailwind CSS v4 environment
 ```bash
 lila-react
 ```
