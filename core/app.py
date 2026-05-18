@@ -209,131 +209,85 @@ class App(Starlette):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 Internal Server Error</title>
-    <style>
-        body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {{
+            theme: {{
+                extend: {{
+                    colors: {{
+                        primary: '#1a73e8',
+                        secondary: '#e91e63',
+                        error: '#d32f2f',
+                        surface: '#1e293b',
+                        'bg-body': '#0f172a'
+                    }}
+                }}
+            }}
         }}
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #252526;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }}
-        .header {{
-            background: #d32f2f;
-            color: white;
-            padding: 20px 30px;
-            border-bottom: 3px solid #b71c1c;
-        }}
-        .header h1 {{
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }}
-        .header p {{
-            margin: 5px 0 0 0;
-            opacity: 0.9;
-            font-size: 14px;
-        }}
-        .content {{
-            padding: 30px;
-        }}
-        .error-section {{
-            margin-bottom: 25px;
-            background: #2d2d30;
-            padding: 20px;
-            border-radius: 6px;
-            border-left: 4px solid #d32f2f;
-        }}
-        .error-section h2 {{
-            margin: 0 0 15px 0;
-            font-size: 18px;
-            color: #569cd6;
-        }}
-        .error-section p {{
-            margin: 8px 0;
-            font-size: 14px;
-        }}
-        .traceback {{
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 6px;
-            overflow-x: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            border: 1px solid #3e3e42;
-        }}
-        .traceback pre {{
-            margin: 0;
-            color: #ce9178;
-        }}
-        .label {{
-            display: inline-block;
-            background: #3e3e42;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-right: 10px;
-            color: #d4d4d4;
-        }}
-        .value {{
-            color: #dcdcaa;
-        }}
-        .footer {{
-            background: #2d2d30;
-            padding: 15px 30px;
-            text-align: center;
-            font-size: 12px;
-            color: #858585;
-            border-top: 1px solid #3e3e42;
-        }}
-    </style>
+    </script>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🚨 500 Internal Server Error</h1>
-            <p>An unexpected error occurred while processing your request.</p>
-        </div>
-        <div class="content">
-            <div class="error-section">
-                <h2>📡 Request Information</h2>
-                <p><span class="label">Method</span><span class="value">{error_info['method']}</span></p>
-                <p><span class="label">Path</span><span class="value">{error_info['path']}</span></p>
-                <p><span class="label">Error Type</span><span class="value">{error_info['error_type']}</span></p>
+<body class="bg-[#0f172a] text-slate-200 min-h-screen p-4 md:p-8 flex items-center justify-center font-sans transition-colors duration-300">
+    <div class="w-full max-w-5xl bg-[#1e293b] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+        <!-- Red warning Header -->
+        <header class="bg-gradient-to-r from-red-600 to-red-800 p-6 md:p-8 border-b border-red-900 flex items-center gap-4">
+            <span class="text-4xl animate-pulse">🚨</span>
+            <div>
+                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">500 Internal Server Error</h1>
+                <p class="text-sm text-red-200 font-semibold mt-1">An unexpected error occurred while processing your request.</p>
             </div>
+        </header>
+
+        <div class="p-6 md:p-8 space-y-6">
+            <!-- Request Context -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">HTTP Method</span>
+                    <span class="text-md font-bold text-amber-400 mt-1 block">{error_info['method']}</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Requested Path</span>
+                    <span class="text-md font-bold text-slate-200 mt-1 block break-all">{error_info['path']}</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Exception Class</span>
+                    <span class="text-md font-bold text-red-400 mt-1 block break-all">{error_info['error_type']}</span>
+                </div>
+            </section>
+
+            <!-- Error Message -->
+            <section class="bg-red-950/20 border-l-4 border-red-500 p-5 rounded-r-xl">
+                <h3 class="text-xs font-black uppercase text-red-400 tracking-wider mb-1">Error Message</h3>
+                <p class="text-md font-semibold text-slate-200 leading-relaxed">{error_info['error_message']}</p>
+            </section>
             
-            <div class="error-section">
-                <h2>💬 Error Message</h2>
-                <p>{error_info['error_message']}</p>
-            </div>
-            
-            {f'''<div class="error-section">
-                <h2>📍 Location</h2>
-                <p><span class="label">File</span><span class="value">{error_info['file']}</span></p>
-                <p><span class="label">Line</span><span class="value">{error_info['line']}</span></p>
-                <p><span class="label">Function</span><span class="value">{error_info['function']}</span></p>
-            </div>''' if error_info['file'] else ''}
-            
-            <div class="error-section">
-                <h2>🔍 Full Traceback</h2>
-                <div class="traceback">
+            {f'''<!-- Exception Location -->
+            <section class="bg-slate-900/60 p-6 rounded-xl border border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">File</span>
+                    <span class="text-sm font-semibold text-amber-300 break-all mt-1 block">{error_info['file']}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Line Number</span>
+                    <span class="text-sm font-semibold text-slate-200 mt-1 block">{error_info['line']}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Function</span>
+                    <span class="text-sm font-semibold text-slate-200 mt-1 block">{error_info['function']}</span>
+                </div>
+            </section>''' if error_info['file'] else ''}
+
+            <!-- Traceback Logs -->
+            <section class="space-y-3">
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Traceback Stack</h3>
+                <div class="bg-black/80 border border-slate-800 rounded-2xl p-6 overflow-x-auto font-mono text-xs text-lime-400 leading-relaxed max-h-96">
                     <pre>{error_info['traceback']}</pre>
                 </div>
-            </div>
+            </section>
         </div>
-        <div class="footer">
-            <p>💡 This detailed error page is only shown when DEBUG=True in your configuration</p>
-        </div>
+
+        <footer class="bg-slate-900/40 p-4 border-t border-slate-800 text-center text-xs font-semibold text-slate-500">
+            💡 This detailed diagnostic console is only visible when <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-350">DEBUG=True</code> in your configuration.
+        </footer>
     </div>
 </body>
 </html>

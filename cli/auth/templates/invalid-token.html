@@ -2,23 +2,33 @@
 {% block title %}{{translate['Invalid or expired token']}}{% endblock %}
 
 {% block content %}
-<main class="flex justify-center items-center container">
-    <article class="w-mx-500-px text-center">
-      <h3 class="text-red-500 mb-4">{{translate['Invalid or expired token']}}</h3>
-      <p>{{translate['Your password reset link is invalid or has expired.']}}</p>
-      <div class="mt-4">
-        <a href="/forgot-password" role="button">{{translate['Request new password reset
-          link']}}</a>
-      </div>
-      </div>
-  </main>
-  <div class="container mx-auto px-4 flex justify-between items-center">
-    <a href="?lang=es" role="button" class="fill">
-      Español (Esp)
-    </a>
-    <a href="?lang=en" role="button" class="fill">
-      English (US)
-    </a>
-  </div>
-  </div>
+<main class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
+    <div class="w-full max-w-md bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl shadow-material-lg p-8 text-center transform hover:scale-101 transition-all duration-300">
+        <div class="w-16 h-16 bg-red-50 dark:bg-red-950/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+            ⚠️
+        </div>
+        
+        <h3 class="text-2xl font-black text-red-500 mb-4">
+            {{translate['Invalid or expired token']}}
+        </h3>
+        
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+            {{translate['Your password reset link is invalid or has expired.']}}
+        </p>
+
+        <a href="/forgot-password" class="inline-block w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 uppercase tracking-wide text-sm">
+            {{translate['Request new password reset link']}}
+        </a>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="mt-8 w-full max-w-md flex justify-center gap-2">
+        <a href="?lang=es" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+            <span>🇪🇸</span> Español
+        </a>
+        <a href="?lang=en" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+            <span>🇺🇸</span> English
+        </a>
+    </div>
+</main>
 {% endblock %}

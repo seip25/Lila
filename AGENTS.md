@@ -104,6 +104,17 @@ async def login(request: Request):
 - `hot_reload()`: Development hot reload scripts (Vite WS client). Injects scripts only if `DEBUG=True`.
 - Templates auto-inject: `title`, `version`, `lang`, `translate`, `description`, `keywords`, `author`.
 
+### Vite & Asset Pipeline (`resources/`)
+
+- **Unified Frontend Builder**: Source stylesheets reside in `resources/css/` (e.g. `tailwind.css`) and source Javascript files in `resources/js/` (e.g. `utils.js`, `spa.js`).
+- **Development Assets Serving**: In development (`DEBUG=True`), asset calls to `js/utils.js` or `css/tailwind.css` serve the source files from Vite's server (e.g. `http://localhost:5173/public/resources/js/utils.js`) with complete Hot Module Replacement (HMR).
+- **Production Asset Bundling**: Running `npm run build` compiles, minifies, bundles, and hashes assets under `public/assets/`, generating a standard `manifest.json`. The framework dynamically reads the manifest file to serve hashed assets (e.g. `/assets/utils-CnU24iax.js`), ensuring caching and eliminating manual minification.
+- **Dynamic Theme Switcher (Tailwind CSS v4)**: Theme preferences are saved in `localStorage` and set on the document element as `data-theme="dark"`. To support dynamic styling, a custom `@variant dark` is configured in `resources/css/tailwind.css`:
+  ```css
+  @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+  ```
+  This applies all `dark:` class utilities whenever `data-theme="dark"` is active, without requiring manual browser preference changes.
+
 ### Session (`core/session.py`)
 
 - `Session.setSession(new_val, response, name_cookie, max_age, ...)`: Create signed cookie.

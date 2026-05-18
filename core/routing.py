@@ -946,57 +946,59 @@ class Router:
     <meta name="color-scheme" content="light dark" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>{model_name.capitalize()} CRUD</title>
-    <link rel="icon" type="image/x-icon" href="img/lila.png" />
-    <link rel="stylesheet" href="css/lila.css" />
-    <script src="js/utils.js"></script>
+    <link rel="icon" type="image/x-icon" href="/img/lila.png" />
+    {{{{ asset('css/tailwind.css') | safe }}}}
+    <script src="/js/utils.js"></script>
     </head>
-    <body>
-    <header class="shadow">
-    <nav class="container">
-       <h2 class="mt-4 mb-4">{model_name.capitalize()} CRUD</h2>
-    </nav>
+    <body class="bg-bg-body dark:bg-bg-body-dark text-slate-850 dark:text-slate-200 min-h-screen flex flex-col font-sans transition-colors duration-300">
+    <header class="bg-surface dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 py-4 shadow-sm">
+      <nav class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+         <h2 class="text-xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{model_name.capitalize()} CRUD</h2>
+         <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Resource Scaffold</span>
+      </nav>
     </header>
-    <main class="container mt-4">
-     
-    <div class="flex justify-between items-center mb-4">
-        <button id="create-btn" class="mb-4" onclick="openDialog('{{{{translate['Create']}}}}')">{{{{translate['Create']}}}}</button>
-        <button class="mb-4 outline" onclick="fetchData{model_name}()">{{{{translate['Refresh']}}}}</button>
-    </div>
-
-    <div id="datatable-container"></div>
     
-    <dialog id="crud-dialog" class="p-4 rounded w-full max-w-md">
-       <article>
-         <h2 id="crud-title" class="text-xl font-semibold mb-4"> </h2>
-        <form id="crud-form" method="dialog" class="space-y-4">
-            {''.join(f'<div><label class="block text-sm">{c.capitalize()}</label><input name="{c}" class="w-full p-2 border rounded"/></div>' for c in columns)}
+    <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-1">
+      <div class="flex justify-between items-center mb-6">
+          <button id="create-btn" onclick="openDialog('{{{{translate['Create']}}}}')" class="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm cursor-pointer flex items-center gap-1.5">
+            <span>➕</span> {{{{translate['Create']}}}}
+          </button>
+          <button onclick="fetchData{model_name}()" class="px-5 py-2.5 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-sm cursor-pointer flex items-center gap-1.5">
+            <span>🔄</span> {{{{translate['Refresh']}}}}
+          </button>
+      </div>
 
-            <div class="text-right mt-4" id="form_messages">
-            </div>
-            <div class="flex justify-end gap-4 space-x-2">
-            <button type="button" id="cancel-btn" class="ghost">{{{{translate['Cancel']}}}}</button>
-            <button type="submit" >{{{{translate['Save']}}}}</button>
-            </div>
-        </form>
-       </article>
-    </dialog>
+      <div id="datatable-container" class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material overflow-x-auto"></div>
+      
+      <dialog id="crud-dialog" class="p-6 rounded-2xl w-full max-w-md bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-850 shadow-material-lg backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm">
+         <div class="flex flex-col gap-6">
+           <h3 id="crud-title" class="text-2xl font-black text-slate-850 dark:text-slate-100 tracking-tight"></h3>
+           
+           <form id="crud-form" method="dialog" class="space-y-4">
+              {''.join(f'<div><label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{c.capitalize()}</label><input name="{c}" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100"/></div>' for c in columns if c not in sensitive_fields)}
 
+              <div id="form_messages" class="text-xs font-semibold pt-1"></div>
+              
+              <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-850">
+                <button type="button" id="cancel-btn" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all text-xs cursor-pointer">
+                  {{{{translate['Cancel']}}}}
+                </button>
+                <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transition-all text-xs cursor-pointer">
+                  {{{{translate['Save']}}}}
+                </button>
+              </div>
+           </form>
+         </div>
+      </dialog>
     </main>
 
-      <footer class="bg-surface py-4 mt-auto">
-     
-      <div class="container mx-auto px-4 flex justify-between items-center">
-        <a
-          href="?lang=es"
-          class="underline"
-        >
-          Español (Esp)
+    <footer class="bg-surface dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 py-6 transition-colors duration-300 mt-auto">
+      <div class="max-w-6xl mx-auto px-4 flex justify-center gap-2">
+        <a href="?lang=es" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+          <span>🇪🇸</span> Español
         </a>
-        <a
-          href="?lang=en"
-           class="underline"
-        >
-          English (US)
+        <a href="?lang=en" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+          <span>🇺🇸</span> English
         </a>
       </div>
     </footer>
@@ -1053,14 +1055,14 @@ class Router:
                 if (err.errors){{
                     for(const e of err.errors) {{
                         for(const k in e) {{
-                            msg += `<p class="text-red-600">${{k}} : ${{e[k]}}</p>`;
+                            msg += `<p class="text-red-500">${{k}} : ${{e[k]}}</p>`;
                         }}
                     }}
                     form_messages.innerHTML = msg;
                 }}
                 else{{
                   msg=err.msg || '{{{{translate['Error occurred']}}}} '+ response.status;
-                form_messages.innerHTML = `<p class="text-red-600">${{msg}}</p>`;
+                form_messages.innerHTML = `<p class="text-red-500">${{msg}}</p>`;
                 }}
                 return;
             }}
@@ -1068,7 +1070,7 @@ class Router:
             if(result.errors){{
                 for(const e of result.errors) {{
                     for(const k in e) {{
-                        msg += `<p class="text-red-600">${{k}} : ${{e[k]}}</p>`;
+                        msg += `<p class="text-red-500">${{k}} : ${{e[k]}}</p>`;
                     }}
                 }}
                 form_messages.innerHTML = msg;
@@ -1077,12 +1079,12 @@ class Router:
             else{{
                 msg= result.msg || '{{{{translate['Operation failed']}}}}';
                 if(!result.success) {{
-                    form_messages.innerHTML = `<p class="text-red-600">${{msg}}</p>`;
+                    form_messages.innerHTML = `<p class="text-red-500">${{msg}}</p>`;
                     return;
                 }}
                 else {{
                 msg =result.msg || '{{{{translate['Operation successful']}}}}'
-                form_messages.innerHTML = `<p class="text-green-600">${{msg}}</p>`;
+                form_messages.innerHTML = `<p class="text-green-500">${{msg}}</p>`;
                 ev.target.reset();
                     fetchData{model_name}();
                 }}

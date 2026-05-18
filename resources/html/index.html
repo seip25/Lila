@@ -2,125 +2,181 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<main>
+<main
+  class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans">
   <!-- Hero Section -->
-  <section class="hero border-none shadow-none">
-    <img src="{{ public('img/lila.png') }}" alt="Lila Framework" width="100" height="100" class="hero-logo" />
-    <h1 class="font-bold text-4xl">{{ translate['Welcome to the Lila Framework'] }}</h1>
-    <p class="text-center text-lg text-secondary">
-      {{ translate['Hi'] }}!
-      {{ translate['A_modern_Starlette'] }}.
+  <section class="max-w-6xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center">
+    <div class="relative mb-6 group">
+      <div
+        class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-40 group-hover:opacity-70 transition duration-1000 group-hover:duration-200 animate-pulse">
+      </div>
+      <img src="{{ public('img/lila.png') }}" alt="Lila Framework" width="120" height="120"
+        class="relative rounded-full shadow-material bg-white p-2 transform hover:scale-105 transition-transform duration-300" />
+    </div>
+
+    <h1
+      class="text-4xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-primary via-purple-600 to-secondary bg-clip-text text-transparent mb-4 animate-fade-in">
+      {{ translate['Welcome to the Lila Framework'] }}
+    </h1>
+
+    <p class="max-w-2xl text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+      {{ translate['Hi'] }}! {{ translate['A_modern_Starlette'] }}.
     </p>
-    <div class="flex gap-2 justify-center flex-wrap">
-      <a href="/docs" role="button">
+
+    <!-- Call to Actions -->
+    <div class="flex flex-wrap gap-4 justify-center mb-12">
+      <a href="/docs"
+        class="px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
         <span>📚</span>
         {{ translate['Go to docs'] }}
       </a>
-      <a href="/changelogs" role="button" class="secondary">
+      <a href="/changelogs"
+        class="px-6 py-3 rounded-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold shadow-sm transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
         <span>📝</span>
         {{ translate['changelogs'] }}
       </a>
-      <a href="/markdown" role="button" class="secondary">
+      <a href="/markdown"
+        class="px-6 py-3 rounded-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold shadow-sm transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
         <span>📄</span>
         Markdown
       </a>
-      <a href="/debug/" target="_blank" role="button" class="secondary">
+      <a href="/debug/" target="_blank"
+        class="px-6 py-3 rounded-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold shadow-sm transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
         <span>🐛</span>
         Debug
       </a>
     </div>
 
-
-    <!-- Tailwind CSS Live Support Badge -->
-    <div
-      style="margin: 20px 0; padding: 20px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); color: white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: transform 0.3s;"
-      class="hover:scale-102">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div>
-          <h3 style="margin: 0; font-weight: 900; font-size: 1.25rem; letter-spacing: -0.025em;">Tailwind CSS v4 Active!
-          </h3>
-          <p style="margin: 4px 0 0 0; font-size: 0.875rem; color: #e0e7ff;">Fully integrated with Vite hot-reload &
-            asset compilation support.</p>
-        </div>
-        <span style="font-size: 1.875rem;">⚡</span>
-      </div>
-    </div>
-
     <!-- Info Box -->
-
-
-    <article class="secondary">
-      <p style="margin: 0;">
-        {{ translate['also_left_in'] }}
-        <code>app/routes/api.py</code>
-        {{ translate['and_in'] }}
-        <code>app/routes/routes.py</code>, {{ translate['examples_of_how_to_use'] }} {{
-        translate['routes_queries_crud'] }} ({{
-        translate['crud_with_30_lines'] }}, {{
-        translate['with_middlewares_validations'] }}, {{
-        translate['and_more'] }}!)
+    <div
+      class="w-full max-w-4xl p-6 rounded-2xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-material mb-16 text-left">
+      <p class="text-slate-600 dark:text-slate-400 leading-relaxed m-0 flex items-start gap-2">
+        <span class="text-xl">💡</span>
+        <span>
+          {{ translate['also_left_in'] }} <code
+            class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-900 rounded font-mono text-primary font-bold">app/routes/api.py</code>
+          {{ translate['and_in'] }} <code
+            class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-900 rounded font-mono text-primary font-bold">app/routes/routes.py</code>,
+          {{ translate['examples_of_how_to_use'] }} {{ translate['routes_queries_crud'] }} ({{
+          translate['crud_with_30_lines'] }}, {{ translate['with_middlewares_validations'] }}, {{ translate['and_more']
+          }}!)
+        </span>
       </p>
-    </article>
-
+    </div>
 
     <!-- Documentation Grid -->
-    <div class="grid gap-4 cols-1 m-3">
-      <article class="docs-section">
-        <header>
-          <h2 class="docs-section-title">📖 Framework Documentation</h2>
-        </header>
-        <ul class="docs-list grid cols-2 md:cols-3 gap-2">
-          <li><a href="https://seip25.github.io/Lila/docs/install.html" target="_blank"
-              class="docs-link">Installation</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/routes.html" target="_blank" class="docs-link">Routes</a>
-          </li>
-          <li><a href="https://seip25.github.io/Lila/docs/static.html" target="_blank" class="docs-link">Static
-              Files</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/templates.html" target="_blank"
-              class="docs-link">Templates</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/templates.html" target="_blank" class="docs-link">Vite &amp;
-              Tailwind</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/session.html" target="_blank" class="docs-link">Session</a>
-          </li>
-          <li><a href="https://seip25.github.io/Lila/docs/upload.html" target="_blank" class="docs-link">File
-              Uploads</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/markdown.html" target="_blank"
-              class="docs-link">Markdown/HTML</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/locales.html" target="_blank"
-              class="docs-link">Internationalization</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/models.html" target="_blank" class="docs-link">Models &
-              ORM</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/middlewares.html" target="_blank"
-              class="docs-link">Middlewares</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/connections.html" target="_blank" class="docs-link">DB
-              Connections</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/migrations.html" target="_blank"
-              class="docs-link">Migrations</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/rest_api.html" target="_blank" class="docs-link">REST API
-              CRUD</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/admin.html" target="_blank" class="docs-link">Admin
-              Panel</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/minify.html" target="_blank" class="docs-link">Minify
-              Assets</a></li>
-          <li><a href="https://seip25.github.io/Lila/docs/production.html" target="_blank"
-              class="docs-link">Production</a></li>
-        </ul>
-      </article>
+    <div class="w-full max-w-4xl text-left mb-16">
+      <h2 class="text-2xl font-black tracking-tight mb-6 flex items-center gap-2">
+        <span>📖</span> Framework Documentation
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <a href="https://seip25.github.io/Lila/docs/install.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Installation</h4>
+          <p class="text-xs text-slate-500 mt-1">Get up and running in minutes.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/routes.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Routes</h4>
+          <p class="text-xs text-slate-500 mt-1">HTTP, WebSocket & localized routes.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/static.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Static Files</h4>
+          <p class="text-xs text-slate-500 mt-1">Optimal assets processing and loading.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/templates.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Templates</h4>
+          <p class="text-xs text-slate-500 mt-1">Jinja2 rendering, MD pages, & Vite HMR.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/templates.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Vite &amp; Tailwind</h4>
+          <p class="text-xs text-slate-500 mt-1">Full compiled CSS & JS pipeline.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/session.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Session</h4>
+          <p class="text-xs text-slate-500 mt-1">Signed cookie sessions made easy.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/upload.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">File Uploads</h4>
+          <p class="text-xs text-slate-500 mt-1">Async file saving & image optimization.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/markdown.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Markdown/HTML</h4>
+          <p class="text-xs text-slate-500 mt-1">Render documentation on-the-fly.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/locales.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Internationalization</h4>
+          <p class="text-xs text-slate-500 mt-1">Smart localization and switcher.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/models.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Models &amp; ORM</h4>
+          <p class="text-xs text-slate-500 mt-1">SQLAlchemy database modeling.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/middlewares.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Middlewares</h4>
+          <p class="text-xs text-slate-500 mt-1">Logging, Security, and Rate-Limiting.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/connections.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">DB Connections</h4>
+          <p class="text-xs text-slate-500 mt-1">Supports SQLite, MySQL, and PostgreSQL.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/migrations.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Migrations</h4>
+          <p class="text-xs text-slate-500 mt-1">Manage database schemas with Alembic.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/rest_api.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">REST API CRUD</h4>
+          <p class="text-xs text-slate-500 mt-1">Auto-generated backend controllers.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/admin.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Admin Panel</h4>
+          <p class="text-xs text-slate-500 mt-1">Real-time metrics, logs, and tables.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/minify.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Minify</h4>
+          <p class="text-xs text-slate-500 mt-1">HTML, CSS, and JS minifier assets.</p>
+        </a>
+        <a href="https://seip25.github.io/Lila/docs/production.html" target="_blank"
+          class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-material transition-all duration-200 group">
+          <h4 class="font-bold group-hover:text-primary transition-colors">Production</h4>
+          <p class="text-xs text-slate-500 mt-1">Caching configurations and best practices.</p>
+        </a>
+      </div>
     </div>
   </section>
-
-
 </main>
 
 <!-- Footer -->
-<footer>
-  <div class="footer-content">
-    <div class="flex gap-1">
-      <a href="?lang=es" class="bg-gray-100">🇪🇸 Español</a>
-      <a href="?lang=en" class="bg-gray-100">🇺🇸 English</a>
+<footer
+  class="bg-surface dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 py-8 transition-colors duration-300">
+  <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <a href="?lang=es"
+        class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
+        <span>🇪🇸</span> Español
+      </a>
+      <a href="?lang=en"
+        class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold transition-all flex items-center gap-1 shadow-sm">
+        <span>🇺🇸</span> English
+      </a>
     </div>
     <div>
-      <a href="https://github.com/seip25/lila" target="_blank" role="button">
+      <a href="https://github.com/seip25/lila" target="_blank"
+        class="px-4 py-2 rounded-lg bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-bold text-sm shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-1.5">
         ⭐ {{ translate['star_on_github'] }}
       </a>
     </div>

@@ -1,36 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Debug Request in Lila</title>
-  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
-  <link rel="stylesheet" href="{{ public('css/lila.css') }}" />
-  <script src="{{ public('js/utils.js') }}"></script>
-  {{hot_reload() | safe}}
+  <title>Lila Engine - Debug Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="/img/lila.png" />
+  <script src="/js/utils.js"></script>
+  {{ asset('css/tailwind.css') | safe }}
+  {{ hot_reload() | safe }}
 </head>
 
-<body class=" bg-surface flex flex-col items-center justify-center min-h-screen">
+<body class="bg-bg-body dark:bg-bg-body-dark text-slate-850 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
 
-  <main class="container">
-    <article class="mt-8">
-      <header>
-        <div class="flex justify-between ">
-          <div>
-            <h3>Hi! welcome to debug </h5>
-              <p>Here you can see all the requests that have been made to the server.</p>
-          </div>
-          <div class="justify-end">
-            <button onclick="deleteDebug()">Reset </button>
-          </div>
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <!-- Header banner -->
+    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <img src="/img/lila.png" alt="Lila" width="28" height="28" class="bg-white p-0.5 rounded-full shadow-sm">
+          <h3 class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila Debug Console</h3>
         </div>
-      </header>
-      <div id="routes"></div>
+        <p class="text-xs font-semibold text-slate-400">Real-time telemetry and API request metrics logger.</p>
+      </div>
+      <div>
+        <button onclick="deleteDebug()" class="px-4 py-2.5 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-550 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow-material transform hover:-translate-y-0.5 cursor-pointer flex items-center gap-1.5 border border-transparent">
+          <span>🧹</span> Reset Log
+        </button>
+      </div>
+    </header>
+
+    <!-- Table Container -->
+    <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
+      <div id="routes" class="overflow-x-auto"></div>
     </article>
-
-
   </main>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       updateTable();
@@ -38,18 +43,20 @@
     let timer = null;
 
     async function deleteDebug() {
-      const response = await fetch('/debug/?delete=true', {
-        method: 'DELETE'
-      })
-      if (response.ok) {
-        updateTable()
+      if (confirm('Are you sure you want to clear all log metrics?')) {
+        const response = await fetch('/debug/?delete=true', {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          updateTable();
+        }
       }
     }
 
     async function updateTable() {
-      const response = await fetch('/debug/?fetch=true')
+      const response = await fetch('/debug/?fetch=true');
       if (response.ok) {
-        const routes = await response.json()
+        const routes = await response.json();
 
         const dataTable = new ResponsiveDataTable('routes', {
           data: routes,
@@ -57,8 +64,8 @@
             { title: "Path", key: "path" },
             { title: "Method", key: "method" },
             { title: "IP", key: "ip" },
-            { title: "RAM", key: "ram" },
-            { title: "CPU", key: "cpu" },
+            { title: "RAM (MB)", key: "ram" },
+            { title: "CPU (%)", key: "cpu" },
             { title: "Time Execution", key: "time_execution" },
             { title: "Created At", key: "created_at" }
           ],

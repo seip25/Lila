@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-primary: var(--primary, #1a73e8);
+  --color-primary-dark: var(--primary-dark, #1557b0);
+  --color-secondary: var(--secondary, #e91e63);
+  --color-secondary-dark: var(--secondary-dark, #c2185b);
+  --color-accent: var(--accent, #ffc107);
+  --color-surface: var(--surface, #ffffff);
+  --color-surface-dark: var(--surface-dark, #1e293b);
+  --color-bg-body: var(--bg-body, #f8fafc);
+  --color-bg-body-dark: var(--bg-body-dark, #0f172a);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  --shadow-material: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-material-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --secondary: #e91e63;
+  --secondary-dark: #c2185b;
+  --accent: #ffc107;
+  --surface: #ffffff;
+  --surface-dark: #1e293b;
+  --bg-body: #f8fafc;
+  --bg-body-dark: #0f172a;
+}

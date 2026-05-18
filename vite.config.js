@@ -32,7 +32,9 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       input: {
-        tailwind: resolve(__dirname, 'public/css/tailwind.css')
+        tailwind: resolve(__dirname, 'resources/css/tailwind.css'),
+        utils: resolve(__dirname, 'resources/js/utils.js'),
+        spa: resolve(__dirname, 'resources/js/spa.js')
       }
     }
   },

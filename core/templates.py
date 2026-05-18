@@ -129,17 +129,32 @@ def public(path: str) -> str:
         if _VITE_PROJECT_EXISTS is None:
             _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
         if _VITE_PROJECT_EXISTS and (clean_path.endswith(".css") or clean_path.endswith(".js")):
+            if clean_path == 'css/tailwind.css':
+                return "http://localhost:5173/public/resources/css/tailwind.css"
+            elif clean_path == 'js/utils.js':
+                return "http://localhost:5173/public/resources/js/utils.js"
+            elif clean_path == 'js/spa.js':
+                return "http://localhost:5173/public/resources/js/spa.js"
             return f"http://localhost:5173/public/{clean_path}"
             
     if not DEBUG:
         _load_vite_manifest()
-        manifest_key = f"public/{clean_path}"
+        
+        if clean_path == 'css/tailwind.css':
+            manifest_key = "resources/css/tailwind.css"
+        elif clean_path == 'js/utils.js':
+            manifest_key = "resources/js/utils.js"
+        elif clean_path == 'js/spa.js':
+            manifest_key = "resources/js/spa.js"
+        else:
+            manifest_key = f"public/{clean_path}"
+        
         if manifest_key in _VITE_MANIFEST:
             file_path = _VITE_MANIFEST[manifest_key].get("file", clean_path)
-            return f"/public/{file_path}"
+            return f"/{file_path}"
         elif clean_path in _VITE_MANIFEST:
             file_path = _VITE_MANIFEST[clean_path].get("file", clean_path)
-            return f"/public/{file_path}"
+            return f"/{file_path}"
             
         _load_assets_manifest()
         if ASSETS_MANIFEST and clean_path in ASSETS_MANIFEST:
@@ -148,9 +163,7 @@ def public(path: str) -> str:
                 return path_val
             return f"/{path_val}"
             
-    if clean_path.startswith('public/'):
-        return f"/{clean_path}"
-    return f"/public/{clean_path}"
+    return f"/{clean_path}"
 
 jinja_env.globals['public'] = public
 

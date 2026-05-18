@@ -187,32 +187,44 @@ async def admin_dashboard(request: Request, menu: str = "") -> str:
 
 
 def menu(models: list = [], request: Request = None) -> str:
-    """Generate the admin menu as an <aside> component."""
+    """Generate the admin menu as an <aside> component with Tailwind CSS."""
     current_path = request.url.path if request else ""
     
-    m = f'<a href="/admin" class="{"active" if current_path == "/admin" else ""}">Dashboard</a>'
+    active_dash = "flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if current_path == "/admin" else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-primary dark:hover:text-primary font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
+    
+    m = f'<a href="/admin" class="{active_dash}"><span>📊</span> Dashboard</a>'
     
     if models:
-        m += "<h6>Models</h6>"
+        m += '<h6 class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mt-6 px-3 tracking-wider mb-2">Models</h6>'
+        m += '<div class="space-y-1">'
         for model in models:
             model_name = model.__name__.lower()
             model_plural = f"{model_name}s"
             path = f"/admin/{model_plural}"
-            active_class = "active" if current_path == path else ""
-            m += f'<a href="{path}" class="{active_class}">{model_name.capitalize()}</a>'
+            is_active = current_path == path
+            active_class = "flex items-center gap-2 px-3 py-2 bg-secondary text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if is_active else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-secondary dark:hover:text-secondary font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
+            m += f'<a href="{path}" class="{active_class}"><span>📁</span> {model_name.capitalize()}</a>'
+        m += '</div>'
 
-    m += "<h6>System</h6>"
-    m += '<a href="/admin/logout">Logout</a>'
+    m += '<h6 class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mt-6 px-3 tracking-wider mb-2">System</h6>'
+    m += '<div class="space-y-1">'
+    m += '<a href="/admin/logout" class="flex items-center gap-2 px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 font-medium rounded-xl transition-all text-sm cursor-pointer"><span>🚪</span> Logout</a>'
+    m += '</div>'
 
     return f"""
-    <aside>
-        <div class="flex items-center p-2 mb-4">
-             <img src="/img/lila.png" alt="Lila" width="32" height="32" class="mr-2">
-             <h4 class="m-0">Lila Admin</h4>
+    <aside class="w-full md:w-64 flex-shrink-0">
+        <div class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+            <div class="flex items-center p-2 mb-6 border-b border-slate-100 dark:border-slate-850 pb-4">
+                 <img src="/img/lila.png" alt="Lila" width="36" height="36" class="mr-3 bg-white p-1 rounded-full shadow-sm">
+                 <div>
+                     <h4 class="m-0 text-md font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila Admin</h4>
+                     <p class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Control Panel</p>
+                 </div>
+            </div>
+            <nav class="flex flex-col gap-1">
+                {m}
+            </nav>
         </div>
-        <nav>
-            {m}
-        </nav>
     </aside>
     """
 def admin_routes(models: list, router: Router,default_route: str = "admin") -> Router:

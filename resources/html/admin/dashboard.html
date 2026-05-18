@@ -2,102 +2,87 @@
 <html lang="{{ lang }}">
 
 <head>
-    <meta charset=UTF-8>
-    <link rel=icon type=image href="/img/lila.png">
-    <meta name=viewport content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/img/lila.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="../css/lila.css" />
+    {{ asset('css/tailwind.css') | safe }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --logs-container-bg: #f9f9f9;
-            --logs-container-border: #e0e0e0;
-            --logs-summary-bg: #e0e0e0;
-            --logs-summary-color: #333;
-            --log-file-bg: #ffffff;
-            --log-file-border: #d0d0d0;
-            --log-summary-color: #333;
-            --log-content-bg: #000;
-            --log-content-color: #36f936;
-            --log-content-border: #e0e0e0;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --logs-container-bg: #2d2d2d;
-                --logs-container-border: #444;
-                --logs-summary-bg: #444;
-                --logs-summary-color: #f5f5f5;
-                --log-file-bg: #1e1e1e;
-                --log-file-border: #444;
-                --log-summary-color: #f5f5f5;
-                --log-content-bg: #000;
-                --log-content-color: #36f936;
-                --log-content-border: #444;
-            }
-        }
-
-        .log-content {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            border: 1px solid var(--log-content-border);
-            border-radius: 4px;
-            max-height: 600px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.9rem;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: var(--log-content-color);
-            background-color: var(--log-content-bg);
-        }
-    </style>
-
 </head>
 
-<body class="bg-surface">
-    <main>
+<body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+        <!-- Dynamic Sidebar menu -->
         {{ menu | safe }}
 
-        <div class="flex-1">
-            <header class="flex items-center justify-between mb-4 bg-background p-4 rounded-lg shadow-sm">
-                <h2 class="m-0 text-xl font-bold">Admin Dashboard</h2>
+        <!-- Main Dashboard Workspace -->
+        <main class="flex-1 space-y-6">
+            <header class="flex items-center justify-between bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+                <h2 class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Admin Dashboard</h2>
+                <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Lila Engine Active</div>
             </header>
 
-            <article class="p-4">
-                <h4 class="text-lg font-semibold mb-4">Server Metrics</h4>
-                <div class="grid cols-1 md:cols-2 gap-4">
-                    <div class="space-y-2">
-                        <p class="text-sm">Lila Framework Memory: <span id="lilaMemory"
-                                class="font-semibold">{{lila_memory|round(0) }}</span> MB</p>
-                        <p class="text-sm">Lila Framework CPU: <span id="lilaCpuUsage"
-                                class="font-semibold">{{lila_cpu_usage|round(0) }}</span> %</p>
-                        <p class="text-sm">Server Memory: <span id="systemUsedMemory"
-                                class="font-semibold">{{system_used_memory|round(0) }}</span> MB / <span
-                                id="systemTotalMemory" class="font-semibold">{{ system_total_memory|round(0) }}</span>
-                            MB</p>
-                        <p class="text-sm">Server CPU: <span id="cpuUsage" class="font-semibold">{{ cpu_usage|round(0)
-                                }}</span> %</p>
+            <!-- Metrics Section -->
+            <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
+                <h4 class="text-lg font-black tracking-tight mb-6 flex items-center gap-2">
+                    <span>⚡</span> Server Metrics
+                </h4>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila Memory</span>
+                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="lilaMemory">{{ lila_memory|round(0) }}</span> <span class="text-sm font-semibold text-slate-400">MB</span>
+                            </div>
+                            <span class="text-2xl">🧠</span>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila CPU</span>
+                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="lilaCpuUsage">{{ lila_cpu_usage|round(0) }}</span> <span class="text-sm font-semibold text-slate-400">%</span>
+                            </div>
+                            <span class="text-2xl">⚡</span>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">System Memory</span>
+                                <span class="text-md font-black text-slate-850 dark:text-slate-100">
+                                    <span id="systemUsedMemory">{{ system_used_memory|round(0) }}</span> / <span id="systemTotalMemory">{{ system_total_memory|round(0) }}</span>
+                                </span> <span class="text-xs font-semibold text-slate-400">MB</span>
+                            </div>
+                            <span class="text-2xl">💾</span>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Server CPU</span>
+                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="cpuUsage">{{ cpu_usage|round(0) }}</span> <span class="text-sm font-semibold text-slate-400">%</span>
+                            </div>
+                            <span class="text-2xl">⚙️</span>
+                        </div>
                     </div>
-                    <div class="grid cols-2 gap-2">
-                        <div><canvas id="memoryDoughnutChart"></canvas></div>
-                        <div><canvas id="cpuDoughnutChart"></canvas></div>
+                    <div class="grid grid-cols-2 gap-4 justify-items-center">
+                        <div class="w-36 h-36 relative"><canvas id="memoryDoughnutChart"></canvas></div>
+                        <div class="w-36 h-36 relative"><canvas id="cpuDoughnutChart"></canvas></div>
                     </div>
                 </div>
             </article>
 
-            <article class="mt-4 p-4">
-                <h4 class="text-lg font-semibold mb-4">Logs</h4>
+            <!-- Logs Section -->
+            <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
+                <h4 class="text-lg font-black tracking-tight mb-6 flex items-center gap-2">
+                    <span>📁</span> System Logs
+                </h4>
                 {% if logs_html %}
-                {{ logs_html | safe }}
+                <div class="prose dark:prose-invert max-w-none">
+                    {{ logs_html | safe }}
+                </div>
                 {% else %}
-                <p class="text-muted">No logs available</p>
+                <p class="text-sm text-slate-400 font-semibold">No logs available</p>
                 {% endif %}
             </article>
-        </div>
-    </main>
+        </main>
+    </div>
 
-    <script src="../js/utils.js"></script>
     <script>
         let memoryChart, cpuChart;
 
@@ -128,28 +113,34 @@
                 data: {
                     labels: ['Used', 'Free'],
                     datasets: [{
-                        data: [{{ system_used_memory }},
-                    {{ system_total_memory - system_used_memory }}
-                        ],
-            backgroundColor: ['#ef4444', '#3b82f6']
+                        data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
+                        backgroundColor: ['#e91e63', '#1a73e8'],
+                        borderWidth: 0
                     }]
                 },
-            options: { plugins: { legend: { display: false } } }
+                options: { 
+                    plugins: { legend: { display: false } },
+                    cutout: '75%'
+                }
             });
 
-        cpuChart = new Chart(cpuCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Used', 'Free'],
-                datasets: [{
-                    data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
-            backgroundColor: ['#f59e0b', '#10b981']
-        }]
+            cpuChart = new Chart(cpuCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Used', 'Free'],
+                    datasets: [{
+                        data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
+                        backgroundColor: ['#ffc107', '#10b981'],
+                        borderWidth: 0
+                    }]
                 },
-            options: { plugins: { legend: { display: false } } }
+                options: { 
+                    plugins: { legend: { display: false } },
+                    cutout: '75%'
+                }
             });
 
-        setInterval(updateCharts, 10000);
+            setInterval(updateCharts, 10000);
         });
     </script>
 </body>
