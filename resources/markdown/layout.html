@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}"  data-theme="light">
+<html lang="{{ lang }}" data-theme="light">
 
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light dark">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{{ title }}</title>
-  <link rel="stylesheet" href="css/lila.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   {% for css in css_files %}
   <link rel="stylesheet" href="{{ css }}">
   {% endfor %}
@@ -18,7 +18,7 @@
 
 <body>
   <main class="container mt-4">
-    <article  >
+    <article>
       {{ content | safe }}
     </article>
   </main>
@@ -27,6 +27,7 @@
       <a href="?lang=es" class="text-gray-600  ">
         Español (Esp)
       </a>
+      &nbsp;&nbsp;
       <a href="?lang=en" class="text-gray-600 hover:text-gray-800 transition-colors font-medium">
         English (US)
       </a>
