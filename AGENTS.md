@@ -66,9 +66,9 @@ lila/
 - Get request input in request.state.data
 ```python
 from pydantic import BaseModel, EmailStr
-from core.routing import Router
-from core.responses import JSONResponse
-from core.request import Request
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse
+from lila.core.request import Request
 
 router = Router()
 
@@ -182,9 +182,9 @@ async def login(request: Request):
 ### Adding a new route
 
 ```python
-from core.routing import Router
-from core.request import Request
-from core.responses import JSONResponse
+from lila.core.routing import Router
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
 
 router = Router("api")
 
@@ -215,14 +215,14 @@ connection.query_orm(model=Item, operation="delete", filters={"id": 1})
 ### Template rendering
 
 ```python
-from core.templates import render
+from lila.core.templates import render
 return render(request=request, template="pages/home", context={"items": items})
 ```
 
 ### Session usage
 
 ```python
-from core.session import Session
+from lila.core.session import Session
 # New simplified async helpers:
 await Session.set(request, response, data={"user_id": 1}, key="auth")
 data = await Session.get(request, key="auth")

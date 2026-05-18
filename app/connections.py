@@ -1,4 +1,4 @@
-from core.database import Database
+from lila.core.database import Database
 from sqlalchemy.orm import Session
 
 #English : Example connection to a mysql database

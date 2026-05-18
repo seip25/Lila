@@ -1,6 +1,6 @@
 from typing import Union
 from pydantic import BaseModel, ValidationError
-from core.request import Request
+from lila.core.request import Request
 
 class RequestParser:
     async def parse_body(self, request: Request, schema: BaseModel) -> dict:

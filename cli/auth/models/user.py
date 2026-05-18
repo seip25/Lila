@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.orm import Session, load_only
-from core.database import Base
+from lila.core.database import Base
 from app.connections import connection
 import secrets
 import hashlib

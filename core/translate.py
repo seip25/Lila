@@ -1,6 +1,6 @@
 from app.config import LANG_DEFAULT, PATH_LOCALES, DEBUG
-from core.session import Session
-from core.request import Request
+from lila.core.session import Session
+from lila.core.request import Request
 from pathlib import Path
 import orjson
 
@@ -17,7 +17,7 @@ class Translate:
 
         file_path = Path(PATH_LOCALES) / f"{file_name}.json"
         try:
-            from core.responses import orjson_loads
+            from lila.core.responses import orjson_loads
             with open(file_path, "rb") as f:
                 data = orjson_loads(f.read())
             _TRANSLATIONS_CACHE[file_name] = data

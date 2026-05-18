@@ -2,7 +2,7 @@ import os
 import datetime
 from datetime import timedelta
 import traceback
-from core.request import Request
+from lila.core.request import Request
 import re
 from app.config import PATH_LOG_BASE_DIR
 

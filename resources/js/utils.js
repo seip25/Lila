@@ -83,24 +83,6 @@ class ResponsiveDataTable {
   updateData(newData) { this.options.data = newData; this.filteredData = [...newData]; this.currentPage = 1; this.updateTable(); }
   updateColumns(newColumns) { this.options.columns = newColumns; this.updateTable(); }
 }
-document.addEventListener("click", function (e) {
-  const btn = e.target.closest("button, a[role='button']");
-  if (!btn || btn.classList.contains("fab")) return;
-
-  const rect = btn.getBoundingClientRect();
-  const size = Math.max(rect.width, rect.height);
-  const x = e.clientX - rect.left - size / 2;
-  const y = e.clientY - rect.top - size / 2;
-
-  const ripple = document.createElement("span");
-  ripple.className = "ripple";
-  ripple.style.width = ripple.style.height = size + "px";
-  ripple.style.left = x + "px";
-  ripple.style.top = y + "px";
-
-  btn.appendChild(ripple);
-  ripple.addEventListener("animationend", () => ripple.remove());
-});
 
 function initDrawer() {
   document.querySelectorAll(".lila-drawer, .lila-drawer-overlay, .lila-drawer-toggle").forEach(el => el.remove());

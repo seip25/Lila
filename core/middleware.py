@@ -1,12 +1,12 @@
 from starlette.middleware import Middleware as StarletteMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from core.responses import RedirectResponse, JSONResponse, HTMLResponse
-from core.request import Request
-from core.session import Session
-from core.logger import Logger
+from lila.core.responses import RedirectResponse, JSONResponse, HTMLResponse
+from lila.core.request import Request
+from lila.core.session import Session
+from lila.core.logger import Logger
 from app.config import DEBUG
-from core.auth import get_token
-from core.security import Security
+from lila.core.auth import get_token
+from lila.core.security import Security
 
 import re
 import traceback
@@ -261,7 +261,7 @@ class Middleware(StarletteMiddleware):
         session_data = await check_session(request=request, key=key, return_JsonResponse=False)
         if not session_data:
             if request.method != "GET":
-                from core.translate import Translate
+                from lila.core.translate import Translate
                 return JSONResponse({"success": False, "msg": Translate.t(key="Authentication required", request=request), "redirect": url_return}, status_code=401)
             return RedirectResponse(url=url_return)
         return True
@@ -272,7 +272,7 @@ class Middleware(StarletteMiddleware):
         session_data = await check_session(request=request, key=key, return_JsonResponse=False)
         if session_data:
             if request.method != "GET":
-                from core.translate import Translate
+                from lila.core.translate import Translate
                 return JSONResponse({"success": False, "msg": Translate.t(key="Session already active", request=request), "redirect": url_return}, status_code=400)
             return RedirectResponse(url=url_return)
         return True

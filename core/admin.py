@@ -1,15 +1,15 @@
 import psutil
 import os
-from core.responses import orjson_dumps
-from core.translate import Translate
-from core.responses import  RedirectResponse, JSONResponse
-from core.request import Request
-from core.routing import Router
-from core.session import Session
+from lila.core.responses import orjson_dumps
+from lila.core.translate import Translate
+from lila.core.responses import  RedirectResponse, JSONResponse
+from lila.core.request import Request
+from lila.core.routing import Router
+from lila.core.session import Session
 from app.connections import connection
 from argon2 import PasswordHasher
 from functools import wraps
-from core.templates import render
+from lila.core.templates import render
 from app.config import PATH_LOG_BASE_DIR as PATH_LOG_BASE_DIR_ADMIN
  
 connection = connection

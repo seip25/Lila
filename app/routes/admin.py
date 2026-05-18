@@ -1,5 +1,5 @@
-from core.routing import Router
-from core.admin import admin_routes
+from lila.core.routing import Router
+from lila.core.admin import admin_routes
 
 router = Router()
 

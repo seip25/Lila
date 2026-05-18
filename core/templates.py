@@ -2,11 +2,11 @@ from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT
-from core.translate import Translate
-from core.request import Request
-from core.responses import HTMLResponse, JSONResponse
+from lila.core.translate import Translate
+from lila.core.request import Request
+from lila.core.responses import HTMLResponse, JSONResponse
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
-from core.logger import Logger
+from lila.core.logger import Logger
 import markdown
 import os
 import traceback
@@ -202,51 +202,51 @@ def asset(path: str) -> str:
 
 @layer components {
   .btn-primary {
-    @apply px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 rounded-full bg-secondary hover:bg-secondary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-secondary hover:bg-secondary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-error {
-    @apply px-6 py-3 rounded-full bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-warning {
-    @apply px-6 py-3 rounded-full bg-yellow-500 dark:bg-yellow-400 hover:bg-yellow-600 dark:hover:bg-yellow-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-yellow-500 dark:bg-yellow-400 hover:bg-yellow-600 dark:hover:bg-yellow-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-success {
-    @apply px-6 py-3 rounded-full bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-info {
-    @apply px-6 py-3 rounded-full bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-outline {
-    @apply px-6 py-3 rounded-full bg-white dark:bg-surface border border-gray-300 dark:border-gray-800 hover:bg-primary text-gray-600 dark:text-primary-dark hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-white dark:bg-surface border border-gray-300 dark:border-gray-800 hover:bg-primary text-gray-600 dark:text-primary-dark hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-outline-primary {
-    @apply px-6 py-3 rounded-full bg-transparent border border-primary hover:bg-primary text-primary hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-primary hover:bg-primary text-primary hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-outline-error {
-    @apply px-6 py-3 rounded-full bg-transparent border border-red-500 dark:border-red-400 hover:bg-red-600 dark:hover:bg-red-500 text-red-500 dark:text-red-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-red-500 dark:border-red-400 hover:bg-red-600 dark:hover:bg-red-500 text-red-500 dark:text-red-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-outline-warning {
-    @apply px-6 py-3 rounded-full bg-transparent border border-yellow-500 dark:border-yellow-400 hover:bg-yellow-600 dark:hover:bg-yellow-500 text-yellow-500 dark:text-yellow-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-yellow-500 dark:border-yellow-400 hover:bg-yellow-600 dark:hover:bg-yellow-500 text-yellow-500 dark:text-yellow-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-outline-success {
-    @apply px-6 py-3 rounded-full bg-transparent border border-green-500 dark:border-green-400 hover:bg-green-600 dark:hover:bg-green-500 text-green-500 dark:text-green-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-green-500 dark:border-green-400 hover:bg-green-600 dark:hover:bg-green-500 text-green-500 dark:text-green-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .btn-outline-info {
-    @apply px-6 py-3 rounded-full bg-transparent border border-blue-500 dark:border-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-500 dark:text-blue-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
+    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-blue-500 dark:border-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-500 dark:text-blue-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
   }
 
   .card {
@@ -264,6 +264,7 @@ def asset(path: str) -> str:
   .link-lila {
     @apply text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors duration-200 underline decoration-2 decoration-transparent hover:decoration-current;
   }
+
 }
 
             </style>
