@@ -22,8 +22,7 @@
   <div class="max-w-7xl w-full mx-auto px-4 py-8 flex-1 grid grid-cols-1 md:grid-cols-4 gap-8">
     <!-- Sidebar Menu -->
     <aside class="md:col-span-1 flex flex-col gap-2">
-      <div
-        class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-1">
+      <div class="card p-4 space-y-1">
         <h4 class="text-xs font-black uppercase text-slate-400 px-3 mb-2 tracking-wider">Menu</h4>
 
         <a href="/dashboard"
@@ -54,8 +53,7 @@
 
     <!-- Main Content -->
     <main class="md:col-span-3 flex flex-col gap-6">
-      <article
-        class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-material flex flex-col gap-6">
+      <article class="card p-8 flex flex-col gap-6">
         <div>
           <h1 class="text-3xl font-black text-slate-850 dark:text-slate-100 tracking-tight">{{translate['Profile']}}
           </h1>
@@ -74,15 +72,11 @@
             <div>
               <label for="name"
                 class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['name']}}</label>
-              <input type="text" id="name" name="name"
-                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100"
-                required value="{{user.name}}" />
+              <input type="text" id="name" name="name" class="input-lila" required value="{{user.name}}" />
             </div>
             <div>
               <label for="email" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">Email</label>
-              <input type="email" id="email" name="email"
-                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 dark:text-slate-600 cursor-not-allowed"
-                required value="{{user.email}}" disabled />
+              <input type="email" id="email" name="email" class="input-lila opacity-60 cursor-not-allowed" required value="{{user.email}}" disabled />
             </div>
           </div>
 
@@ -91,23 +85,19 @@
               <label for="password"
                 class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}
                 ({{translate['current']}})</label>
-              <input type="password" id="password" name="password"
-                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100"
-                required />
+              <input type="password" id="password" name="password" class="input-lila" required />
             </div>
             <div>
               <label for="password_2"
                 class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['new_password']}}
                 ({{translate['optional'] | default('Optional')}})</label>
-              <input type="password" id="password_2" name="password_2"
-                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100" />
+              <input type="password" id="password_2" name="password_2" class="input-lila" />
             </div>
           </div>
 
           <div class="flex items-center justify-between gap-4 pt-2">
             <p id="message" class="text-sm font-semibold"></p>
-            <button type="submit"
-              class="px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 uppercase tracking-wide text-xs cursor-pointer">
+            <button type="submit" class="btn-primary py-2.5 text-xs">
               {{translate['Save']}}
             </button>
           </div>
@@ -122,9 +112,7 @@
           </p>
 
           <form id="delete-account-form">
-            <button type="button"
-              class="px-4 py-2 bg-red-500 hover:bg-red-650 text-white font-bold rounded-xl shadow-sm transition-all text-xs cursor-pointer"
-              id="show-delete-password">
+            <button type="button" class="btn-error py-2 text-xs" id="show-delete-password">
               {{translate['Delete Account']}}
             </button>
 
@@ -132,13 +120,10 @@
               <div class="max-w-sm">
                 <label for="delete-password"
                   class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}</label>
-                <input type="password" id="delete-password" name="password"
-                  class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-550 transition-all text-slate-800 dark:text-slate-100"
-                  required />
+                <input type="password" id="delete-password" name="password" class="input-lila" required />
               </div>
               <div class="flex items-center gap-4">
-                <button type="submit"
-                  class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl shadow-sm transition-all text-xs cursor-pointer">
+                <button type="submit" class="btn-error py-2 text-xs">
                   {{translate['Delete Account']}}
                 </button>
                 <p id="delete-message" class="text-sm font-semibold"></p>

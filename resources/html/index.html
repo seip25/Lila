@@ -14,8 +14,7 @@
         class="relative rounded-full shadow-material bg-white p-2 transform hover:scale-105 transition-transform duration-300" />
     </div>
 
-    <h1
-      class="text-4xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-primary via-purple-600 to-secondary bg-clip-text text-transparent mb-4 animate-fade-in">
+    <h1 class="text-lila animate-fade-in">
       {{ translate['Welcome to the Lila Framework'] }}
     </h1>
 
@@ -25,31 +24,26 @@
 
     <!-- Call to Actions -->
     <div class="flex flex-wrap gap-4 justify-center mb-12">
-      <a href="/docs"
-        class="px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
+      <a href="/docs" class="btn-primary">
         <span>📚</span>
         {{ translate['Go to docs'] }}
       </a>
-      <a href="/changelogs"
-        class="px-6 py-3 rounded-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold shadow-sm transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
+      <a href="/changelogs" class="btn-outline">
         <span>📝</span>
         {{ translate['changelogs'] }}
       </a>
-      <a href="/markdown"
-        class="px-6 py-3 rounded-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold shadow-sm transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
+      <a href="/markdown" class="btn-outline">
         <span>📄</span>
         Markdown
       </a>
-      <a href="/debug/" target="_blank"
-        class="px-6 py-3 rounded-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold shadow-sm transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
+      <a href="/debug/" target="_blank" class="btn-outline">
         <span>🐛</span>
         Debug
       </a>
     </div>
 
     <!-- Info Box -->
-    <div
-      class="w-full max-w-4xl p-6 rounded-2xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-material mb-16 text-left">
+    <div class="card w-full max-w-4xl mb-16 text-left">
       <p class="text-slate-600 dark:text-slate-400 leading-relaxed m-0 flex items-start gap-2">
         <span class="text-xl">💡</span>
         <span>
@@ -58,7 +52,7 @@
           {{ translate['and_in'] }} <code
             class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-900 rounded font-mono text-primary font-bold">app/routes/routes.py</code>,
           {{ translate['examples_of_how_to_use'] }} {{ translate['routes_queries_crud'] }} ({{
-          translate['crud_with_30_lines'] }}, {{ translate['with_middlewares_validations'] }}, {{ translate['and_more']
+            translate['crud_with_30_lines'] }}, {{ translate['with_middlewares_validations'] }}, {{ translate['and_more']
           }}!)
         </span>
       </p>

@@ -3,19 +3,19 @@
 
 {% block content %}
 <main class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
-    <div class="w-full max-w-md bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl shadow-material-lg p-8 transform hover:scale-101 transition-all duration-300">
-        <h3 class="text-3xl font-black tracking-tight text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-8">
+    <div class="card w-full max-w-md p-8 transform hover:scale-101">
+        <h3 class="text-lila text-3xl text-center mb-8">
             {{translate['login']}}
         </h3>
 
         <form id="login-form" class="space-y-6">
             <div>
                 <label for="email" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">Email</label>
-                <input type="email" id="email" name="email" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100" required>
+                <input type="email" id="email" name="email" class="input-lila" required>
             </div>
             <div>
                 <label for="password" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}</label>
-                <input type="password" id="password" name="password" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100" required>
+                <input type="password" id="password" name="password" class="input-lila" required>
             </div>
             
             <div class="flex items-center justify-end">
@@ -24,13 +24,13 @@
                 </a>
             </div>
 
-            <button type="submit" class="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 uppercase tracking-wide text-sm cursor-pointer">
+            <button type="submit" class="btn-primary w-full justify-center">
                 {{translate['login']}}
             </button>
 
             <div class="text-center pt-2">
                 <p class="text-sm text-slate-500">
-                    <a href="/register" class="font-bold text-primary hover:underline transition-colors">{{translate['create account']}}</a>
+                    <a href="/register" class="link-lila">{{translate['create account']}}</a>
                 </p>
             </div>
             
