@@ -1,5 +1,13 @@
 # {{ translate["changelogs"] }}
 
+## 1.1.0
+
+### {{ translate["lila_premium_css_utilities"] }}
+
+{{ translate["lila_premium_css_utilities_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/templates.html)
+
 ## 1.0.9
 
 ### {{ translate["cache_feature"] }}

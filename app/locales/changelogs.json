@@ -326,5 +326,13 @@
   "fix_bug_102_desc": {
     "es": "Se solucionó un problema en el trazado de errores para asegurar que la página de debug funcione correctamente en todos los entornos.",
     "en": "Fixed an issue in error tracking to ensure the debug page works correctly in all environments."
+  },
+  "lila_premium_css_utilities": {
+    "es": "Clases de Componentes CSS Premium de Lila",
+    "en": "Lila Premium CSS Component Utilities"
+  },
+  "lila_premium_css_utilities_desc": {
+    "es": "Introducción de un conjunto de clases CSS premium preconfiguradas (.card, .text-lila, .input-lila, .link-lila, y variantes de botones) en la hoja de estilos nativa y en el resolvedor fallback de CDN. Todos los componentes cuentan con soporte nativo completo para Dark Mode y simplifican enormemente la maquetación de interfaces responsivas y profesionales.",
+    "en": "Introduction of a suite of premium pre-configured CSS component classes (.card, .text-lila, .input-lila, .link-lila, and button variants) in the native stylesheet and CDN fallback resolver. All components feature complete native Dark Mode support out-of-the-box and massively simplify rapid layout design."
   }
 }
