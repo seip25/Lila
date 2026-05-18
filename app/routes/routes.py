@@ -1,7 +1,6 @@
 from core.request import Request 
 from core.routing import Router, locales 
 from core.templates import render,renderMarkdown
-from core.session import Session
 from core.responses import RedirectResponse
 from core.translate import Translate
 from app.config import LANG_DEFAULT,HOST,PORT  
