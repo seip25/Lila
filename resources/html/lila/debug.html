@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lila Engine - Debug Dashboard</title>
   <link rel="icon" type="image/x-icon" href="/img/lila.png" />
-  {{ asset('js/utils.js') | safe }}
-  {{ asset('css/tailwind.css') | safe }}
+  {{ asset('js/utils.js', force_static=True) | safe }}
+  {{ asset('css/tailwind.css', force_static=True) | safe }}
   {{ hot_reload() | safe }}
 </head>
 

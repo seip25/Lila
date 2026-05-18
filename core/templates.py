@@ -117,14 +117,14 @@ def _load_assets_manifest():
                 Logger.warning(f"Error loading assets_manifest.json: {e}")
         _assets_manifest_loaded = True
 
-def public(path: str) -> str:
+def public(path: str, force_static: bool = False) -> str:
     """
     English: Resolves the public URL for a given static asset, automatically supporting Vite development and production modes.
     Español: Resuelve la URL pública para un recurso estático dado, soportando automáticamente los modos de desarrollo y producción de Vite.
     """
     clean_path = path.lstrip('/')
     
-    if DEBUG:
+    if DEBUG and not force_static:
         global _VITE_PROJECT_EXISTS
         if _VITE_PROJECT_EXISTS is None:
             _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
@@ -137,7 +137,7 @@ def public(path: str) -> str:
                 return "http://localhost:5173/public/resources/js/spa.js"
             return f"http://localhost:5173/public/{clean_path}"
             
-    if not DEBUG:
+    if not DEBUG or force_static:
         _load_assets_manifest()
         if ASSETS_MANIFEST and clean_path in ASSETS_MANIFEST:
             path_val = ASSETS_MANIFEST[clean_path]
@@ -149,7 +149,7 @@ def public(path: str) -> str:
 
 jinja_env.globals['public'] = public
 
-def asset(path: str) -> str:
+def asset(path: str, force_static: bool = False) -> str:
     """
     English: Returns the complete HTML tag for a CSS or JS asset (supporting Vite dev/prod), or a simple URL string for other assets.
     If in DEBUG mode and Vite package-lock.json does not exist, it automatically falls back to Tailwind Play CDN to prevent styling breakage.
@@ -158,9 +158,9 @@ def asset(path: str) -> str:
     Si está en modo DEBUG y no existe el archivo package-lock.json de Vite, recurre automáticamente a Tailwind Play CDN para evitar la rotura del diseño.
     """
     clean_path = path.lstrip('/')
-    resolved = public(clean_path)
+    resolved = public(clean_path, force_static=force_static)
     
-    if DEBUG and clean_path == 'css/tailwind.css':
+    if DEBUG and not force_static and clean_path == 'css/tailwind.css':
         global _VITE_PROJECT_EXISTS
         if _VITE_PROJECT_EXISTS is None:
             _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))

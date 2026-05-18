@@ -184,7 +184,3 @@ node_modules
 public/build
 package-lock.json
 app/build_manifest.py
-app/config_cache.py
-docs
-public/css/assets/
-/public/assets

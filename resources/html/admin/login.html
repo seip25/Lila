@@ -6,7 +6,7 @@
   <link rel="icon" type="image/x-icon" href="/img/lila.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Login</title>
-  {{ asset('css/tailwind.css') | safe }}
+  {{ asset('css/tailwind.css', force_static=True) | safe }}
 </head>
 
 <body class="bg-bg-body dark:bg-bg-body-dark min-h-screen flex items-center justify-center p-4 transition-colors duration-300 font-sans">
