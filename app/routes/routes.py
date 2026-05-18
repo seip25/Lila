@@ -1,6 +1,6 @@
 from core.request import Request 
 from core.routing import Router 
-from core.templates import render,renderMarkdown,renderReact
+from core.templates import render,renderMarkdown
 from core.session import Session
 from core.responses import RedirectResponse,PlainTextResponse
 from app.config import LANG_DEFAULT,HOST,PORT  
@@ -8,8 +8,6 @@ from app.config import LANG_DEFAULT,HOST,PORT
 # English: Creating an instance of Router to define routes
 # Español: Creando una instancia del Router para definir las rutas
 router = Router()
-
-#marker_react
  
 # English: Example render html file with Jinja2, passing translation parameters in the context
 # Español : Ejemplo renderizar archivo html con Jinja2, pasandole parametros de traduccion en el contexto

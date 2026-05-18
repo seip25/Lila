@@ -11,9 +11,6 @@ import markdown
 import os
 import traceback
 import sys
-import orjson
-import uuid
-import html
 import json
 
 PROJECT_ROOT = os.getcwd()
@@ -32,59 +29,7 @@ jinja_env = Environment(
 
 MANIFEST_BUILD: dict[str, str] = {}
 
-def react(component: str, props: dict = None) -> str:
-    """
-    Generates a mounting point for a React component with serialized props.
-    """
-    if props is None:
-        props = {}
-    id_ = 'react-' + uuid.uuid4().hex
-    props_json = orjson.dumps(props).decode().replace('"', '&quot;')
-    return f'<div id="{id_}" data-react-component="{component}" data-props="{props_json}"></div>'
-MANIFEST_BUILD: dict[str, str] = {}
 _VITE_PROJECT_EXISTS: bool = None
-
-def get_vite_assets_data() -> dict:
-    """
-    Returns structured Vite assets data for SPA responses.
-    """
-    global _VITE_PROJECT_EXISTS
-    data = {'scripts': [], 'css': []}
-    if DEBUG:
-        if _VITE_PROJECT_EXISTS is None:
-            _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
-
-        if _VITE_PROJECT_EXISTS:
-            data['scripts'].append({'src': 'http://localhost:5173/public/build/@vite/client', 'type': 'module'})
-            data['scripts'].append({
-                'content': '''
-                    import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
-                    RefreshRuntime.injectIntoGlobalHook(window);
-                    window.$RefreshReg$ = () => {};
-                    window.$RefreshSig$ = () => (type) => type;
-                    window.__vite_plugin_react_preamble_installed__ = true;
-                ''',
-                'type': 'module'
-            })
-            data['scripts'].append({'src': 'http://localhost:5173/public/build/resources/js/main.jsx', 'type': 'module'})
-        return data
-    global MANIFEST_BUILD
-    if not MANIFEST_BUILD:
-        try:
-            from app.build_manifest import manifest
-            MANIFEST_BUILD = manifest
-        except ImportError:
-            return data
-
-    entry = MANIFEST_BUILD.get("file")
-    css = MANIFEST_BUILD.get("css", [])
-    
-    if entry:
-        data['scripts'].append({'src': f'/build/{entry}', 'type': 'module'})
-    for css_file in css:
-        data['css'].append(f'/build/{css_file}')
-        
-    return data
 
 def is_frontend_request(request: Request) -> bool:
     """
@@ -114,64 +59,6 @@ def render_json_response(body: str, context: dict) -> JSONResponse:
     }
     return JSONResponse(response_data)
 
-def renderReact(request: Request, component: str, props: dict = None, options: dict = None):
-    """
-    Renders a base HTML template configured to initialize a React component.
-    """
-    if props is None:
-        props = {}
-    if options is None:
-        options = {}
-    meta = options.get('meta', [])
-    scripts = options.get('scripts', [])
-    styles = options.get('styles', [])
-    
-    # English: Merge manual options into request SEO state if provided.
-    # Español: Fusionar opciones manuales en el estado SEO de la petición si se proporcionan.
-    if hasattr(request.state, "seo"):
-        request.state.seo.update({
-            "title": options.get("title", request.state.seo.get("title")),
-            "description": options.get("description", request.state.seo.get("description")),
-            "keywords": options.get("keywords", request.state.seo.get("keywords")),
-        })
-    else:
-        request.state.seo = {
-            "title": options.get("title", TITLE_PROJECT),
-            "description": options.get("description", DESCRIPTION_DEFAULT),
-            "keywords": options.get("keywords", KEYWORDS_DEFAULT),
-        }
-
-    meta_tags = '\n'.join([f'<meta name="{m["name"]}" content="{m["content"]}">' for m in meta])
-    style_tags = '\n'.join([f'<link rel="stylesheet" href="{s}">' for s in styles])
-    script_tags = '\n'.join([f'<script src="{s}"></script>' for s in scripts])
-    
-    context = {
-        "component": component,
-        "props": orjson.dumps(props).decode(),
-        "seo": request.state.seo,
-        "title": request.state.seo.get('title', TITLE_PROJECT),
-        "keywords": request.state.seo.get('keywords', KEYWORDS_DEFAULT),
-        "description": request.state.seo.get('description', DESCRIPTION_DEFAULT),
-        "author": options.get('author', AUTHOR_DEFAULT),
-        "lang": options.get('lang', LANG_DEFAULT),
-        "head": f"{meta_tags}\n{style_tags}\n{script_tags}",
-        "scripts_array": scripts,
-        "styles_array": styles,
-        "props_array": props,
-        "translate": Translate.get_translations("translations", request, lang_default=options.get('lang'))
-    }
-
-    if is_frontend_request(request):
-        vite_assets_data = get_vite_assets_data()
-        context["scripts_array"].extend(vite_assets_data["scripts"])
-        context["styles_array"].extend(vite_assets_data["css"])
-
-        props_json = html.escape(orjson.dumps(props).decode())
-        body = f'<div id="root" data-react-page="{component}" data-props=\'{props_json}\'></div>'
-        return render_json_response(body, context)
-
-    return render(request=request, template="lila/react_base", context=context)
-
 def hot_reload() -> str:
     """
     Returns Vite hot reload scripts if DEBUG is True.
@@ -183,53 +70,11 @@ def hot_reload() -> str:
             
         if _VITE_PROJECT_EXISTS:
             return """
-            <script type="module">
-                import RefreshRuntime from "http://localhost:5173/public/build/@react-refresh";
-                RefreshRuntime.injectIntoGlobalHook(window);
-            window.$RefreshReg$ = () => {};
-            window.$RefreshSig$ = () => (type) => type;
-            window.__vite_plugin_react_preamble_installed__ = true;
-        </script>
         <script type="module" src="http://localhost:5173/public/build/@vite/client"></script>
         """
     return ""
 
-def vite_assets() -> str:
-    """
-    Resolves Vite asset tags for production (manifest).
-    In development, it should be used alongside hot_reload().
-    """
-    global _VITE_PROJECT_EXISTS
-    if DEBUG:
-        if _VITE_PROJECT_EXISTS is None:
-            _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
-            
-        if _VITE_PROJECT_EXISTS:
-            return '<script type="module" src="http://localhost:5173/public/build/resources/js/main.jsx"></script>'
-        return ""
-    
-    global MANIFEST_BUILD
-    if not MANIFEST_BUILD:
-        try:
-            from app.build_manifest import manifest
-            MANIFEST_BUILD = manifest
-        except ImportError:
-            return ""
 
-    entry = MANIFEST_BUILD.get("file")
-    css = MANIFEST_BUILD.get("css", [])
-    
-    if not entry:
-        return ""
-
-    html_parts = [f'<script type="module" src="/build/{entry}"></script>']
-    for css_file in css:
-        html_parts.append(f'<link rel="stylesheet" href="/build/{css_file}">')
-        
-    return "\n".join(html_parts)
-
-jinja_env.globals['react'] = react
-jinja_env.globals['vite_assets'] = vite_assets
 jinja_env.globals['hot_reload'] = hot_reload
 
 ASSETS_MANIFEST: dict = {}
