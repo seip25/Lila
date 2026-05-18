@@ -39,17 +39,6 @@ async def home(request: Request):
     return response
 
 
-# English: Example route for changing the language
-# Español: Ejemplo de ruta para cambiar el idioma
-@router.get("/set-language/{lang}")
-async def set_language(request: Request):
-    lang = request.path_params.get("lang", LANG_DEFAULT)
-    referer = request.headers.get("Referer", "/")
-    response = RedirectResponse(url=referer)
-    await Translate.set_lang(request, response, lang)
-    return response
-
-
 @router.get("/changelogs")
 async def changelogs(request: Request):
     response =renderMarkdown(request=request, file="changelogs",translate_files=["changelogs"])

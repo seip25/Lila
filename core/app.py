@@ -118,7 +118,6 @@ class App(Starlette):
             ]))
         super().__init__(
             debug=debug, routes=routes, middleware=middleware,
-            on_startup=on_startup, on_shutdown=on_shutdown
         )
 
         try:

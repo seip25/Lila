@@ -65,9 +65,9 @@ middlewares = [
 
 # English: Initializing the application with debugging enabled and the combined routes.
 # Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
-app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
+app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares)
 
-async def main():
+def main():
     if DEBUG:
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     try:
         if JIT:
             os.environ["PYTHON_JIT"] = "1"
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
         print("Shutting down the application...")
         pass
