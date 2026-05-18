@@ -65,6 +65,17 @@ def seo(title: Any = None, description: Any = None, keywords: Any = None, og: di
     return decorator
 
 
+def locales(languages: list[str]) -> Any:
+    """
+    English: Decorator to enable localized routing. Registers the route for each language path prefix and dynamically sets the active language.
+    Español: Decorador para habilitar el enrutamiento localizado. Registra la ruta para cada prefijo de idioma y establece dinámicamente el idioma activo.
+    """
+    def decorator(func):
+        func._locales = languages
+        return func
+    return decorator
+
+
 class Router:
     def __init__(self, prefix: str = "", default_cache_ttl: int = 30, cache_cookie_keys: list[str] = None, middlewares: list = None) -> None:
         """
@@ -125,9 +136,18 @@ class Router:
             @wraps(func)
             async def validation_wrapper(request: Request):
                 """
-                English: Validation wrapper for route handlers.
-                Español: Wrapper de validación para los manejadores de ruta.
+                English: Validation wrapper for route handlers that dynamically matches and sets the active language from the route path.
+                Español: Wrapper de validación para manejadores de ruta que coincide y establece dinámicamente el idioma activo desde la ruta.
                 """
+                matched_lang = None
+                for lang in getattr(func, "_locales", []):
+                    if request.url.path == f"/{lang}" or request.url.path.startswith(f"/{lang}/"):
+                        matched_lang = lang
+                        break
+                
+                if matched_lang:
+                    request.state.lang = matched_lang
+
                 current_lang = Translate.lang(request=request)
                 
                 seo_meta = self.seo_data.get(real_path, {})
@@ -199,12 +219,17 @@ class Router:
                 
                 return response
 
-            self.routes.append(
-                Route(path=real_path, endpoint=validation_wrapper, methods=methods)
-            )
-            
-            if model is not None:
-                self.docs.append({"path": real_path, "model": model})
+            paths_to_register = [real_path]
+            for lang in getattr(func, "_locales", []):
+                loc_path = f"/{lang}" if real_path == "/" else f"/{lang}/{real_path.lstrip('/')}"
+                paths_to_register.append(self.normalize_path("", loc_path))
+
+            for p in paths_to_register:
+                self.routes.append(
+                    Route(path=p, endpoint=validation_wrapper, methods=methods)
+                )
+                if model is not None:
+                    self.docs.append({"path": p, "model": model})
 
             return func
         return decorator
