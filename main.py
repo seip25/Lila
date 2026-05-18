@@ -71,11 +71,9 @@ app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_
 
 async def main():
     if DEBUG:
-        config = uvicorn.Config("main:app", host=HOST, port=PORT, reload=True)
+        uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
-        config = uvicorn.Config(app, host=HOST, port=PORT, reload=False, access_log=False, log_level="warning")
-    server = uvicorn.Server(config)
-    await server.serve()
+        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False,log_level="warning")
 
 if __name__ == "__main__":
     try:
