@@ -102,8 +102,8 @@ WORKERS = _config["WORKERS"]
 
 PATH_LOG_BASE_DIR = "app/logs"
 PATH_TEMPLATE_NOT_FOUND = "lila/404"
-PATH_TEMPLATES_HTML = "resources/templates/html/"
-PATH_TEMPLATES_MARKDOWN = "resources/templates/markdown/"
+PATH_TEMPLATES_HTML = "resources/html/"
+PATH_TEMPLATES_MARKDOWN = "resources/markdown/"
 PATH_LOCALES = "app/locales"
 PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
 
