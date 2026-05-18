@@ -948,7 +948,7 @@ class Router:
     <title>{model_name.capitalize()} CRUD</title>
     <link rel="icon" type="image/x-icon" href="/img/lila.png" />
     {{{{ asset('css/tailwind.css') | safe }}}}
-    <script src="/js/utils.js"></script>
+    {{{{ asset('js/utils.js') | safe }}}}
     </head>
     <body class="bg-bg-body dark:bg-bg-body-dark text-slate-850 dark:text-slate-200 min-h-screen flex flex-col font-sans transition-colors duration-300">
     <header class="bg-surface dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 py-4 shadow-sm">

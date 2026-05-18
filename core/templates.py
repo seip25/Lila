@@ -138,24 +138,6 @@ def public(path: str) -> str:
             return f"http://localhost:5173/public/{clean_path}"
             
     if not DEBUG:
-        _load_vite_manifest()
-        
-        if clean_path == 'css/tailwind.css':
-            manifest_key = "resources/css/tailwind.css"
-        elif clean_path == 'js/utils.js':
-            manifest_key = "resources/js/utils.js"
-        elif clean_path == 'js/spa.js':
-            manifest_key = "resources/js/spa.js"
-        else:
-            manifest_key = f"public/{clean_path}"
-        
-        if manifest_key in _VITE_MANIFEST:
-            file_path = _VITE_MANIFEST[manifest_key].get("file", clean_path)
-            return f"/{file_path}"
-        elif clean_path in _VITE_MANIFEST:
-            file_path = _VITE_MANIFEST[clean_path].get("file", clean_path)
-            return f"/{file_path}"
-            
         _load_assets_manifest()
         if ASSETS_MANIFEST and clean_path in ASSETS_MANIFEST:
             path_val = ASSETS_MANIFEST[clean_path]
@@ -183,7 +165,44 @@ def asset(path: str) -> str:
         if _VITE_PROJECT_EXISTS is None:
             _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
         if not _VITE_PROJECT_EXISTS:
-            return '<script src="https://cdn.tailwindcss.com"></script>'
+            return """<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+            <style type="text/tailwindcss">
+
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-primary: var(--primary, #1a73e8);
+  --color-primary-dark: var(--primary-dark, #1557b0);
+  --color-secondary: var(--secondary, #e91e63);
+  --color-secondary-dark: var(--secondary-dark, #c2185b);
+  --color-accent: var(--accent, #ffc107);
+  --color-surface: var(--surface, #ffffff);
+  --color-surface-dark: var(--surface-dark, #1e293b);
+  --color-bg-body: var(--bg-body, #f8fafc);
+  --color-bg-body-dark: var(--bg-body-dark, #0f172a);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  --shadow-material: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-material-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --secondary: #e91e63;
+  --secondary-dark: #c2185b;
+  --accent: #ffc107;
+  --surface: #ffffff;
+  --surface-dark: #1e293b;
+  --bg-body: #f8fafc;
+  --bg-body-dark: #0f172a;
+}
+
+                
+            </style>
+            
+            """
             
     if clean_path.endswith('.css'):
         if DEBUG and resolved.startswith('http://localhost:5173'):
@@ -303,4 +322,4 @@ def renderMarkdown(request: Request, file: str, css_files: list = None, js_files
         "js_files": js_files,
     })
 
-    return markdown_templates.TemplateResponse("layout.html", context)
+    return markdown_templates.TemplateResponse(request, "layout.html", context)

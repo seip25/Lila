@@ -27,7 +27,7 @@
         </main>
     </div>
 
-    <script src="../js/utils.js"></script>
+    {{ asset('js/utils.js') | safe }}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dataTable = new ResponsiveDataTable('table', {

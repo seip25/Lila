@@ -35,6 +35,16 @@ export default defineConfig({
         tailwind: resolve(__dirname, 'resources/css/tailwind.css'),
         utils: resolve(__dirname, 'resources/js/utils.js'),
         spa: resolve(__dirname, 'resources/js/spa.js')
+      },
+      output: {
+        entryFileNames: 'js/[name].js',
+        chunkFileNames: 'js/[name].js',
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'css/[name].[ext]';
+          }
+          return 'assets/[name].[ext]';
+        }
       }
     }
   },
