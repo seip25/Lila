@@ -12,7 +12,7 @@ app = typer.Typer()
 # Template for model generation
 MODEL_TEMPLATE = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.orm import Session, load_only
-from lila.core.database import Base
+from core.database import Base
 from app.connections import connection
 import secrets
 import hashlib

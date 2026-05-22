@@ -1,7 +1,7 @@
 from starlette.routing import Route, Mount, WebSocketRoute
 from starlette.staticfiles import StaticFiles
-from lila.core.responses import HTMLResponse, JSONResponse, RedirectResponse
-from lila.core.request import Request
+from core.responses import HTMLResponse, JSONResponse, RedirectResponse
+from core.request import Request
 from app.config import (
     TITLE_PROJECT,
     VERSION_PROJECT,
@@ -12,21 +12,21 @@ from app.config import (
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel, ValidationError
 from argon2 import PasswordHasher
-from lila.core.auth import generate_token_value, get_user_id_by_token as get_user_by_token
-from lila.core.translate import Translate
-from lila.core.security import Security
-from lila.core.logger import Logger
-from lila.core.cache import Cache
+from core.auth import generate_token_value, get_user_id_by_token as get_user_by_token
+from core.translate import Translate
+from core.security import Security
+from core.logger import Logger
+from core.cache import Cache
 
 import datetime
 import re
 import os
 from functools import wraps
 from pathlib import Path
-from lila.core.templates import render
+from core.templates import render
 from app.config import DEBUG
 import asyncio
-from lila.core.templates import is_frontend_request
+from core.templates import is_frontend_request
 import importlib.util
 
 ph = PasswordHasher()

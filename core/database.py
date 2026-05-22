@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from typing import Optional, Type, Dict, Any
-from lila.core.logger import Logger
+from core.logger import Logger
 import re
 
 

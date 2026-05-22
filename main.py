@@ -1,8 +1,8 @@
-from lila.core.app import App
+from core.app import App
 from app.routes.routes import routes
 from app.routes.api import routes as api_routes
 from app.config import DEBUG, JIT, HOST, PORT
-from lila.core.middleware import (
+from core.middleware import (
     Middleware,
     LoggingMiddleware,
     SecurityShieldMiddleware,
@@ -10,7 +10,7 @@ from lila.core.middleware import (
     SecurityHeadersMiddleware,
     ErrorHandlerMiddleware,
 )
-from lila.core.logger import delete_old_logs
+from core.logger import delete_old_logs
 import itertools
 import uvicorn
 import asyncio
