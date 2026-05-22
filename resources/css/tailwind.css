@@ -28,7 +28,7 @@
   --color-ai-purple: #A062FC;
   --color-ai-orange: #FF6E6E;
 
-  --shadow-lila-input: 0 8px 32px 0 rgba(0, 0, 0, 0.04), 0 2px 8px 0 rgba(0, 0, 0, 0.04);
+  --shadow-lila-input: 0 8px 22px 0 rgba(0, 0, 0, 0.04), 0 2px 8px 0 rgba(0, 0, 0, 0.04);
   --shadow-lila-input-focus: 0 12px 40px 0 rgba(26, 115, 232, 0.12), 0 2px 12px 0 rgba(26, 115, 232, 0.06);
   --shadow-lila-card: 0 4px 24px 0 rgba(0, 0, 0, 0.03);
   --shadow-lila-card-hover: 0 12px 36px 0 rgba(0, 0, 0, 0.07);
@@ -59,6 +59,8 @@
   --surface: #1e1f20;
   --surface-dark: #1e1f20;
 
+  --primary: #a8c7fa;
+
   --lila-bg: #131314;
   --lila-surface: #1e1f20;
   --lila-primary: #a8c7fa;
@@ -67,6 +69,10 @@
 }
 
 @layer components {
+
+  :where([data-theme="dark"]) .text-white {
+    color: #0f172a !important;
+  }
 
   .lila-card,
   .card {
@@ -84,7 +90,6 @@
 
   .lila-card:hover,
   .card:hover {
-    transform: translateY(-4px);
     box-shadow: var(--shadow-lila-card-hover);
   }
 
@@ -677,7 +682,7 @@
     width: 100%;
     padding: 0.9rem 1.5rem;
     background-color: var(--lila-surface);
-    border-radius: 9999px;
+    border-radius: 16px;
     box-shadow: var(--shadow-lila-input);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(226, 232, 240, 0.4);
@@ -694,6 +699,7 @@
   :where([data-theme="dark"]) .input-lila {
     border-color: rgba(255, 255, 255, 0.06);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    background-color: #131314;
   }
 
   .form-control:focus,

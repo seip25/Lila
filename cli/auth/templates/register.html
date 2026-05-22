@@ -2,7 +2,8 @@
 {% block title %}{{title}}{% endblock %}
 
 {% block content %}
-<main class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
+<main
+    class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
     <div class="card w-full max-w-md p-8 transform hover:scale-101">
         <h3 class="text-lila text-3xl text-center mb-8">
             {{translate['create account']}}
@@ -10,7 +11,8 @@
 
         <form id="register-form" class="space-y-5">
             <div>
-                <label for="name" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['name']}}</label>
+                <label for="name"
+                    class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['name']}}</label>
                 <input type="text" id="name" name="name" class="input-lila" required>
             </div>
             <div>
@@ -18,11 +20,13 @@
                 <input type="email" id="email" name="email" class="input-lila" required>
             </div>
             <div>
-                <label for="password" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}</label>
+                <label for="password"
+                    class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}</label>
                 <input type="password" id="password" name="password" class="input-lila" required>
             </div>
             <div>
-                <label for="password_2" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['confirm_password']}}</label>
+                <label for="password_2"
+                    class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['confirm_password']}}</label>
                 <input type="password" id="password_2" name="password_2" class="input-lila" required>
             </div>
 
@@ -32,21 +36,21 @@
 
             <div class="text-center pt-2">
                 <p class="text-sm text-slate-500">
-                    {{translate['Already have an account?']}} 
+                    {{translate['Already have an account?']}}
                     <a href="/login" class="link-lila ml-1">{{translate['login']}}</a>
                 </p>
             </div>
-            
+
             <p id="error-message" class="text-red-500 mt-2 text-center text-sm font-semibold"></p>
         </form>
     </div>
 
     <!-- Language Selector -->
     <div class="mt-8 w-full max-w-md flex justify-center gap-2">
-        <a href="?lang=es" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+        <a href="?lang=es" class="btn-outline">
             <span>🇪🇸</span> Español
         </a>
-        <a href="?lang=en" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+        <a href="?lang=en" class="btn-outline">
             <span>🇺🇸</span> English
         </a>
     </div>
