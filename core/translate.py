@@ -30,13 +30,26 @@ class Translate:
 
     @staticmethod
     def lang(request: Request) -> str:
-        """Retrieves the current language from the session or default config, using request state as cache."""
+        """Retrieves the current language from the cookie or default config, using request state as cache."""
         if hasattr(request.state, "lang"):
             return request.state.lang
 
+        cookie_lang = request.cookies.get("lang")
+        if cookie_lang:
+            # If the cookie has a dot '.', it is a legacy signed cookie set via Session.
+            # We unsign it gracefully using Session to maintain backwards compatibility.
+            if "." in cookie_lang:
+                session_lang = Session.getSessionValue(key="lang", request=request)
+                if session_lang:
+                    request.state.lang = session_lang
+                    return session_lang
+            else:
+                # Direct, ultra-fast lookup of the plain language preference
+                request.state.lang = cookie_lang
+                return cookie_lang
+
         l = LANG_DEFAULT or "en"
-        session_lang = Session.getSessionValue(key="lang", request=request)
-        request.state.lang = session_lang if session_lang else l
+        request.state.lang = l
         return request.state.lang
 
     @staticmethod
@@ -65,8 +78,15 @@ class Translate:
 
     @staticmethod
     async def set_lang(request: Request, response, new_lang: str) -> None:
-        """Sets the language in the session cookie."""
-        Session.setSession(new_val=new_lang, response=response, name_cookie="lang")
+        """Sets the language in a plain cookie directly to bypass cryptographic signature overhead."""
+        response.set_cookie(
+            key="lang",
+            value=new_lang,
+            max_age=3600 * 24 * 365,  # 1 year
+            secure=True,
+            httponly=False,
+            samesite="lax",
+        )
         request.state.lang = new_lang
 
     @staticmethod

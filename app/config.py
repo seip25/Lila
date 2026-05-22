@@ -38,6 +38,7 @@ def _load_config() -> dict:
                         "DESCRIPTION_DEFAULT": config_cache.DESCRIPTION_DEFAULT,
                         "KEYWORDS_DEFAULT": config_cache.KEYWORDS_DEFAULT,
                         "AUTHOR_DEFAULT": config_cache.AUTHOR_DEFAULT,
+                        "MINIFY_HTML": getattr(config_cache, "MINIFY_HTML", False),
                     }
             except ImportError:
                 pass
@@ -68,6 +69,7 @@ def _read_from_env(cache_py_path: str, write_cache: bool) -> dict:
         "DESCRIPTION_DEFAULT": getenv("DESCRIPTION_DEFAULT", "A Python web framework"),
         "KEYWORDS_DEFAULT": getenv("KEYWORDS_DEFAULT", "Python, web, framework"),
         "AUTHOR_DEFAULT": getenv("AUTHOR_DEFAULT", "Seip"),
+        "MINIFY_HTML": getenv("MINIFY_HTML", "False").lower() in ("true", "1", "yes"),
     }
     
     if write_cache and not data["DEBUG"]:
@@ -86,6 +88,7 @@ def _read_from_env(cache_py_path: str, write_cache: bool) -> dict:
                 f.write(f'DESCRIPTION_DEFAULT = {repr(data["DESCRIPTION_DEFAULT"])}\n')
                 f.write(f'KEYWORDS_DEFAULT = {repr(data["KEYWORDS_DEFAULT"])}\n')
                 f.write(f'AUTHOR_DEFAULT = {repr(data["AUTHOR_DEFAULT"])}\n')
+                f.write(f'MINIFY_HTML = {repr(data["MINIFY_HTML"])}\n')
         except Exception:
             pass
             
@@ -99,6 +102,7 @@ HOST = _config["HOST"]
 DEBUG = _config["DEBUG"]
 JIT = _config["JIT"]
 WORKERS = _config["WORKERS"]
+MINIFY_HTML = _config["MINIFY_HTML"]
 
 PATH_LOG_BASE_DIR = "app/logs"
 PATH_TEMPLATE_NOT_FOUND = "lila/404"

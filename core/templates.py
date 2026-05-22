@@ -1,7 +1,7 @@
 from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
-from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT
+from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT, MINIFY_HTML
 from core.translate import Translate
 from core.request import Request
 from core.responses import HTMLResponse, JSONResponse
@@ -15,14 +15,19 @@ import json
 
 PROJECT_ROOT = os.getcwd()
 
-jinja_env = Environment(
-    loader=minify_loader(
+if MINIFY_HTML:
+    loader = minify_loader(
         FileSystemLoader(PATH_TEMPLATES_HTML),
         remove_comments=True,
         remove_empty_space=True,
         remove_all_empty_space=True,
         reduce_boolean_attributes=True,
-    ),
+    )
+else:
+    loader = FileSystemLoader(PATH_TEMPLATES_HTML)
+
+jinja_env = Environment(
+    loader=loader,
     auto_reload=DEBUG,
     autoescape=True,
 )
