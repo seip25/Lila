@@ -35,6 +35,7 @@ jinja_env = Environment(
 MANIFEST_BUILD: dict[str, str] = {}
 
 _VITE_PROJECT_EXISTS: bool = None
+STYLES_DEFAULT_TAILWIND: str = None
 
 def is_frontend_request(request: Request) -> bool:
     """
@@ -166,114 +167,28 @@ def asset(path: str, force_static: bool = False) -> str:
     resolved = public(clean_path, force_static=force_static)
     
     if DEBUG and not force_static and clean_path == 'css/tailwind.css':
-        global _VITE_PROJECT_EXISTS
+        global _VITE_PROJECT_EXISTS, STYLES_DEFAULT_TAILWIND
         if _VITE_PROJECT_EXISTS is None:
             _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
         if not _VITE_PROJECT_EXISTS:
-            return """<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-            <style type="text/tailwindcss">
-
-@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
-@theme {
-  --color-primary: var(--primary, #1a73e8);
-  --color-primary-dark: var(--primary-dark, #1557b0);
-  --color-secondary: var(--secondary, #e91e63);
-  --color-secondary-dark: var(--secondary-dark, #c2185b);
-  --color-accent: var(--accent, #ffc107);
-  --color-surface: var(--surface, #ffffff);
-  --color-surface-dark: var(--surface-dark, #1e293b);
-  --color-bg-body: var(--bg-body, #f8fafc);
-  --color-bg-body-dark: var(--bg-body-dark, #0f172a);
-  
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  
-  --shadow-material: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-material-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-:root {
-  --primary: #1a73e8;
-  --primary-dark: #1557b0;
-  --secondary: #e91e63;
-  --secondary-dark: #c2185b;
-  --accent: #ffc107;
-  --surface: #ffffff;
-  --surface-dark: #1e293b;
-  --bg-body: #f8fafc;
-  --bg-body-dark: #0f172a;
-}
-
-
-@layer components {
-  .btn-primary {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-secondary {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-secondary hover:bg-secondary-dark text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-error {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-warning {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-yellow-500 dark:bg-yellow-400 hover:bg-yellow-600 dark:hover:bg-yellow-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-success {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-info {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-outline {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-white dark:bg-surface border border-gray-300 dark:border-gray-800 hover:bg-primary text-gray-600 dark:text-primary-dark hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-outline-primary {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-primary hover:bg-primary text-primary hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-outline-error {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-red-500 dark:border-red-400 hover:bg-red-600 dark:hover:bg-red-500 text-red-500 dark:text-red-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-outline-warning {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-yellow-500 dark:border-yellow-400 hover:bg-yellow-600 dark:hover:bg-yellow-500 text-yellow-500 dark:text-yellow-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-outline-success {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-green-500 dark:border-green-400 hover:bg-green-600 dark:hover:bg-green-500 text-green-500 dark:text-green-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .btn-outline-info {
-    @apply relative overflow-hidden px-6 py-3 rounded-full bg-transparent border border-blue-500 dark:border-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-500 dark:text-blue-400 hover:text-white font-bold shadow-material hover:shadow-material-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .card {
-    @apply bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material hover:shadow-material-lg transition-all duration-300;
-  }
-
-  .text-lila {
-    @apply text-4xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-primary via-purple-600 to-secondary bg-clip-text text-transparent mb-4;
-  }
-
-  .input-lila {
-    @apply w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500;
-  }
-
-  .link-lila {
-    @apply text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors duration-200 underline decoration-2 decoration-transparent hover:decoration-current;
-  }
-
-}
-
-            </style>
+            if STYLES_DEFAULT_TAILWIND is None:
+                css_path = os.path.join(PROJECT_ROOT, "resources", "css", "tailwind.css")
+                if os.path.exists(css_path):
+                    try:
+                        with open(css_path, "r", encoding="utf-8") as f:
+                            lines = f.readlines()
+                        if lines and "@import" in lines[0] and "tailwindcss" in lines[0]:
+                            lines = lines[1:]
+                        STYLES_DEFAULT_TAILWIND = "".join(lines)
+                    except Exception as e:
+                        STYLES_DEFAULT_TAILWIND = f"/* Error reading tailwind.css: {e} */"
+                else:
+                    STYLES_DEFAULT_TAILWIND = "/* resources/css/tailwind.css not found */"
             
+            return f"""<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+            <style type="text/tailwindcss">
+{STYLES_DEFAULT_TAILWIND}
+            </style>
             """
             
     if clean_path.endswith('.css'):
