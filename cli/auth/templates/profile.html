@@ -44,9 +44,8 @@
 
         <hr class="border-slate-200 dark:border-slate-800 my-2" />
 
-        <a href="/logout"
-          class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all">
-          <span>🚪</span> {{translate['logout']}}
+        <a href="/logout" class="flex btn-secondary transition-all">
+          {{translate['logout']}}
         </a>
       </div>
     </aside>
@@ -76,7 +75,8 @@
             </div>
             <div>
               <label for="email" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">Email</label>
-              <input type="email" id="email" name="email" class="input-lila opacity-60 cursor-not-allowed" required value="{{user.email}}" disabled />
+              <input type="email" id="email" name="email" class="input-lila opacity-60 cursor-not-allowed" required
+                value="{{user.email}}" disabled />
             </div>
           </div>
 
@@ -97,7 +97,7 @@
 
           <div class="flex items-center justify-between gap-4 pt-2">
             <p id="message" class="text-sm font-semibold"></p>
-            <button type="submit" class="btn-primary py-2.5 text-xs">
+            <button type="submit" class="btn-primary text-xs">
               {{translate['Save']}}
             </button>
           </div>
@@ -106,13 +106,13 @@
         <hr class="border-slate-250 dark:border-slate-800 my-4" />
 
 
-        <div class="border border-red-200 dark:border-red-950/40 rounded-2xl p-6 bg-red-50/20 dark:bg-red-950/10">
-          <h4 class="text-lg font-black text-red-500 mb-2">{{translate['danger_zone']}}</h4>
+        <div class="border border-gray-200 dark:border-gray-950/40 rounded-2xl p-6 bg-gray-50/20 dark:bg-gray-950/10">
+          <h4 class="text-lg font-black text-gray-800 mb-2">{{translate['danger_zone']}}</h4>
           <p class="text-xs text-slate-500 mb-4">{{translate['once_you_delete_your_account_there_is_no_going_back']}}
           </p>
 
           <form id="delete-account-form">
-            <button type="button" class="btn-error py-2 text-xs" id="show-delete-password">
+            <button type="button" class="btn-secondary" id="show-delete-password">
               {{translate['Delete Account']}}
             </button>
 
@@ -123,7 +123,7 @@
                 <input type="password" id="delete-password" name="password" class="input-lila" required />
               </div>
               <div class="flex items-center gap-4">
-                <button type="submit" class="btn-error py-2 text-xs">
+                <button type="submit" class="btn-error  text-xs">
                   {{translate['Delete Account']}}
                 </button>
                 <p id="delete-message" class="text-sm font-semibold"></p>

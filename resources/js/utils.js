@@ -1,14 +1,17 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const theme_ = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", theme_);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => { document.documentElement.setAttribute("data-theme", window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",); });
+
+})
+
 async function Http(url = "/", method = "GET", body = false, bodyForm = false, headers = {},) {
   const options = { method: method, headers: headers, credentials: "include", }; if (body) options["body"] = JSON.stringify(body); if (bodyForm) options["body"] = bodyForm; const response = await fetch(url, options); if (!response.ok) { const error = await response.json(); throw new Error(error.message || "Error fetch"); }
   const resp = await response.json(); return resp;
 }
 function getUrlParameter(name) { return new URLSearchParams(window.location.search).get(name); }
-function theme(theme_ = false) {
-  let theme = theme_ ? theme_ : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; if (theme_) { localStorage.setItem("theme", theme_); }
-  if (localStorage.getItem("theme") === "dark" || localStorage.getItem("theme") === "light") { theme = localStorage.getItem("theme"); }
-  document.documentElement.setAttribute("data-theme", theme); return theme;
-}
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => { theme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",); }); document.addEventListener("DOMContentLoaded", () => { theme(); }); function lang(l = "es") { return (document.documentElement.lang === l || document.documentElement.lang.startsWith("es")); }
+
+function lang(l = "es") { return (document.documentElement.lang === l || document.documentElement.lang.startsWith("es")); }
 
 class ResponsiveDataTable {
   constructor(containerId, options = {}) { this.container = document.getElementById(containerId); if (!this.container) return; this.defaults = { data: [], columns: [], rowsPerPage: 10, search: true, pagination: true, headerTitles: {}, summaryFields: ["id"], edit: false, delete: false, breakpoint: 768, }; this.options = { ...this.defaults, ...options }; this.currentPage = 1; this.filteredData = [...this.options.data]; this.isMobile = window.innerWidth < this.options.breakpoint; this.init(); window.addEventListener("resize", () => this.handleResize()); }
@@ -84,92 +87,6 @@ class ResponsiveDataTable {
   updateColumns(newColumns) { this.options.columns = newColumns; this.updateTable(); }
 }
 
-function initDrawer() {
-  document.querySelectorAll(".lila-drawer, .lila-drawer-overlay, .lila-drawer-toggle").forEach(el => el.remove());
-
-  const mainEl = document.querySelector("main");
-  const aside = mainEl ? mainEl.querySelector(":scope > aside") : null;
-  if (!aside) return;
-
-  const overlay = document.createElement("div");
-  overlay.className = "lila-drawer-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300";
-  document.body.appendChild(overlay);
-
-  const drawer = document.createElement("div");
-  drawer.className = "lila-drawer fixed top-0 left-0 h-full w-64 bg-surface dark:bg-surface-dark border-r border-slate-200 dark:border-slate-800 shadow-material z-50 p-4 transform -translate-x-full transition-transform duration-300 overflow-y-auto";
-  drawer.innerHTML = aside.innerHTML;
-  document.body.appendChild(drawer);
-
-  const toggle = document.createElement("button");
-  toggle.className = "lila-drawer-toggle fixed bottom-4 right-4 z-40 p-3 bg-primary text-white rounded-full shadow-material hover:scale-105 transition-all text-xl cursor-pointer md:hidden flex items-center justify-center w-12 h-12";
-  toggle.innerHTML = "☰";
-  toggle.setAttribute("aria-label", "Toggle menu");
-
-  const header = document.querySelector("header");
-  if (header) {
-    const nav = header.querySelector("nav");
-    if (nav) {
-      nav.insertBefore(toggle, nav.firstChild);
-    } else {
-      header.prepend(toggle);
-    }
-  } else {
-    document.body.prepend(toggle);
-  }
-
-  function openDrawer() {
-    drawer.classList.add("open");
-    drawer.classList.remove("-translate-x-full");
-    overlay.classList.add("open");
-    overlay.classList.remove("opacity-0", "pointer-events-none");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeDrawer() {
-    drawer.classList.remove("open");
-    drawer.classList.add("-translate-x-full");
-    overlay.classList.remove("open");
-    overlay.classList.add("opacity-0", "pointer-events-none");
-    document.body.style.overflow = "";
-  }
-
-  toggle.addEventListener("click", function (e) {
-    e.stopPropagation();
-    if (drawer.classList.contains("open")) {
-      closeDrawer();
-    } else {
-      openDrawer();
-    }
-  });
-
-  overlay.addEventListener("click", closeDrawer);
-
-  drawer.addEventListener("click", function (e) {
-    if (e.target.tagName === "A") {
-      closeDrawer();
-    }
-  });
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(initDrawer, 100);
-  });
-} else {
-  setTimeout(initDrawer, 100);
-}
-
-document.addEventListener("lila:navigation", function () {
-  setTimeout(initDrawer, 100);
-});
-
-window.initDrawer = initDrawer;
-
-function lila(component, options) {
-  if (component === "snackbar") {
-    snackbar(options);
-  }
-}
 function snackbar(options) {
   let snackbar = document.getElementById("snackbar");
 
@@ -192,7 +109,7 @@ function snackbar(options) {
   }
 
   snackbar.textContent = options.message || "";
-  
+
   setTimeout(() => {
     snackbar.classList.remove("translate-y-12", "opacity-0");
     snackbar.classList.add("translate-y-0", "opacity-100");
@@ -208,8 +125,7 @@ function snackbar(options) {
     snackbar.classList.remove("translate-y-0", "opacity-100");
   }, duration);
 }
-window.ResponsiveDataTable = ResponsiveDataTable; 
-window.Http = Http; 
+window.ResponsiveDataTable = ResponsiveDataTable;
+window.Http = Http;
 window.getUrlParameter = getUrlParameter;
-window.theme = theme;
 window.snackbar = snackbar;
