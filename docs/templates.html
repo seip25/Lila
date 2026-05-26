@@ -34,22 +34,64 @@
 
   <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
   <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
 </head>
 
 <body>
-  <header>
-    <nav>
-      <h1>
-        <a href="../index.html" class="text-blue">Lila Framework</a>
-      </h1>
-      <div>
-        <a href="https://github.com/seip25/Lila" role="button">Github</a>
-      </div>
-    </nav>
-  </header>
+      <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
 
   <main>
-    <aside>
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
       <h4>Menu</h4>
       <a href="install.html">Installation</a>
       <a href="routes.html">Routes</a>
@@ -72,8 +114,8 @@
       <a href="production.html">Production</a>
     </aside>
 
-    <article id="templates-eng">
-      <h1>🎨 Template Rendering (Jinja2)</h1>
+    <article id="templates-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h1>Template Rendering (Jinja2)</h1>
       <p>
         In Lila, you can use
         <strong>Jinja2</strong>
@@ -88,9 +130,7 @@
           parameter.
         </p>
 
-        <h3>
-          Basic Usage in Routes
-        </h3>
+        <h3>Basic Usage in Routes</h3>
 
         <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
           <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -136,12 +176,7 @@ routes=router.get_routes()
         </div>
       </div>
 
-      <h3>
-        The
-        <code
-          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
-        Function
-      </h3>
+      <h3>The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code> Function</h3>
       <p>
         The
         <code
@@ -230,9 +265,7 @@ def render(request: Request, template: str, context: dict = None, files_translat
 
 
       <!-- CONTEXT SYSTEM -->
-      <h3>
-        Base Context Injection
-      </h3>
+      <h3>Base Context Injection</h3>
 
       <p>
         All optimization features work thanks to the base context
@@ -345,7 +378,7 @@ def get_base_context(request, files_translate=[], lang_default=None):
       </div>
 
       <!-- SPA ENGINE -->
-      <h3 class="mt-8 text-2xl font-semibold">⚡ Single Page Application (SPA) Engine</h3>
+      <h3 class="mt-8 text-2xl font-semibold">Single Page Application (SPA) Engine</h3>
       <p>
         Lila includes a built-in SPA navigation engine. It seamlessly converts your standard server-rendered templates
         into a blazing fast Single Page Application.
@@ -413,7 +446,7 @@ document.addEventListener('lila:content-loaded', (e) => {
         </li>
       </ul>
 
-      <h3 class="mt-8 text-2xl font-semibold">🔥 Development Hot Reload (Vite)</h3>
+      <h3 class="mt-8 text-2xl font-semibold">Development Hot Reload (Vite)</h3>
       <p>
         Lila comes integrated with a super-fast development hot reload (HMR) system powered by Vite. When active, saving
         any <code>.html</code>, <code>.jinja</code>, or <code>.md</code> file in your <code>resources/</code> folder
@@ -480,7 +513,7 @@ document.addEventListener('lila:content-loaded', (e) => {
         overhead to your application.
       </p>
 
-      <h3 class="mt-8 text-2xl font-semibold">🎨 Lila Premium CSS Utility Components</h3>
+      <h3 class="mt-8 text-2xl font-semibold">Lila Premium CSS Utility Components</h3>
       <p>
         To accelerate your UI development and enable rapid, professional prototyping, Lila packages a set of pre-configured, high-performance Tailwind CSS utility classes inside <code>resources/css/tailwind.css</code>. All of them natively support Dark Mode:
       </p>
@@ -519,7 +552,7 @@ document.addEventListener('lila:content-loaded', (e) => {
       </ul>
 
 
-      <h3 class="mt-8 text-2xl font-semibold">🚀 Performance Optimizations</h3>
+      <h3 class="mt-8 text-2xl font-semibold">Performance Optimizations</h3>
       <p>
         Lila is designed for high performance. Templates are optimized through several mechanisms:
       </p>

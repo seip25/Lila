@@ -29,21 +29,63 @@
     <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
     <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
     <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
 </head>
 
 <body>
-    <header>
-        <nav>
-            <h1>
-                <a href="../index.html" class="text-blue">Lila Framework</a>
-            </h1>
-            <div>
-                <a href="https://github.com/seip25/Lila" role="button">Github</a>
-            </div>
-        </nav>
+        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
     </header>
     <main>
-        <aside>
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
   <a href="routes.html">Routes</a>
@@ -65,15 +107,9 @@
   <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
-        <article id="upload-eng">
-            <h1>📤 File Upload Helper</h1>
-            <p><strong>
-                    The <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code>
-                    helper provides a complete solution for handling file
-                    uploads in your application,
-                    including validation, security checks, and translation support.
-                </strong></p>
+        <article id="upload-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+            <h1>File Upload Helper</h1>
+            <p><strong>The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code> helper provides a complete solution for handling file uploads in your application, including validation, security checks, and translation support.</strong></p>
 
             <p>This helper automatically handles:
             <ul>
@@ -88,7 +124,7 @@
             </ul>
             </p>
 
-            <h2>📋 Parameters</h2>
+            <h2>Parameters</h2>
             <p>The <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code>
                 function accepts these parameters:</p>
@@ -112,7 +148,7 @@ MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
                 </div>
             </div>
 
-            <h2>🚀 Usage Example</h2>
+            <h2>Usage Example</h2>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">Route Implementation</span>
@@ -134,7 +170,7 @@ async def uploadFile(request: Request):
                 </div>
             </div>
 
-            <h2>🎨 Frontend Implementation</h2>
+            <h2>Frontend Implementation</h2>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">HTML + JavaScript</span>
@@ -181,7 +217,7 @@ async def uploadFile(request: Request):
                 </div>
             </div>
 
-            <h2>📨 Response Format</h2>
+            <h2>Response Format</h2>
             <p>The helper returns a JSONResponse with this structure:</p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -224,8 +260,7 @@ async def uploadFile(request: Request):
             </div>
 
             <div class="mb-8">
-                <h3 class="text-xl text-blue-500 bg-blue-100 p-4 text-center rounded">Important Notes
-                </h3>
+                <h3 class="text-xl text-blue-500 bg-blue-100 p-4 text-center rounded">Important Notes</h3>
 
                 <p>If you are using Windows or the file is not created in the Path, remember to
                     configure it in <code>app/config.py</code></p>

@@ -29,21 +29,63 @@
     <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
     <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
     <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
 </head>
 
 <body>
-    <header>
-        <nav>
-            <h1>
-                <a href="../index.html" class="text-blue">Lila Framework</a>
-            </h1>
-            <div>
-                <a href="https://github.com/seip25/Lila" role="button">Github</a>
-            </div>
-        </nav>
+        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
     </header>
     <main>
-        <aside>
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
             <h4>Menu</h4>
             <a href="install.html">Installation</a>
             <a href="routes.html">Routes</a>
@@ -65,8 +107,8 @@
             <a href="minify.html">Minify</a>
             <a href="production.html">Production</a>
         </aside>
-        <article id="locales-eng">
-            <h1>🌍 Internationalization (Translations)</h1>
+        <article id="locales-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+            <h1>Internationalization (Translations)</h1>
             <p>Translations are used to internationalize an application and display content in different
                 languages. In Lila, translations are stored in the <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/locales</code>
@@ -74,7 +116,7 @@
                 and
                 can be dynamically loaded into the application.</p>
 
-            <h2>🛤️ Localized Routing & Language Detection</h2>
+            <h2>️ Localized Routing & Language Detection</h2>
             <p>Instead of manually creating duplicate routes (like <code>/</code>, <code>/es</code>, and <code>/en</code>) and forcing the language inside each renderer, Lila provides the highly elegant <code>@locales</code> decorator from <code>core.routing</code>. This registers all localized path prefixes for the handler automatically and dynamically sets the active language for the request.</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -137,7 +179,7 @@ async def custom_home(request: Request):
                 </div>
             </div>
 
-            <h2>📄 Translation Files</h2>
+            <h2>Translation Files</h2>
             <p>To load a locale file, use the <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate</code>
                 class from
@@ -203,7 +245,7 @@ async def custom_home(request: Request):
                                     </code></pre>
                 </div>
             </div>
-            <h2>🔧 Using Translations</h2>
+            <h2>Using Translations</h2>
             <p>Get a specific translation:</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -228,7 +270,7 @@ msg_error_login = Translate.t(
                 </div>
             </div>
 
-            <h2>⚡ Helpers and Performance</h2>
+            <h2>Helpers and Performance</h2>
             <p>Lila includes helpers to manage the application state and ensure high performance through caching.</p>
 
             <h3>Setting the Language</h3>
@@ -295,7 +337,7 @@ except ValidationError as e:
                 within the request state to minimize session decryption overhead.
             </p>
 
-            <h2>🎨 Usage in Templates</h2>
+            <h2>Usage in Templates</h2>
             <p>Translations are automatically available in the <code>translate</code> context variable:</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">

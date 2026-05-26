@@ -29,21 +29,63 @@
     <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
     <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
     <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
 </head>
 
 <body>
-    <header>
-        <nav>
-            <h1>
-                <a href="../index.html" class="text-blue">Lila Framework</a>
-            </h1>
-            <div>
-                <a href="https://github.com/seip25/Lila" role="button">Github</a>
-            </div>
-        </nav>
+        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
     </header>
     <main>
-        <aside>
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
             <h4>Menu</h4>
             <a href="install.html">Installation</a>
             <a href="routes.html">Routes</a>
@@ -65,11 +107,9 @@
             <a href="minify.html">Minify</a>
             <a href="production.html">Production</a>
         </aside>
-        <article id="cli_commands-eng">
+        <article id="cli_commands-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <div>
-                <h1>
-                    CLI Commands Reference
-                </h1>
+                <h1>CLI Commands Reference</h1>
                 <p>
                     Lila Framework provides powerful CLI tools to speed up development. All commands
                     follow the pattern
@@ -80,9 +120,7 @@
 
             <!-- Model Generator -->
             <div>
-                <h2>
-                    Model Generator
-                </h2>
+                <h2>Model Generator</h2>
                 <p>
                     Create SQLAlchemy models with CRUD methods automatically.
                 </p>
@@ -116,9 +154,7 @@ lila-model list-models
 
             <!-- Scaffold Generator -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Scaffold Generator
-                </h2>
+                <h2>Scaffold Generator</h2>
                 <p>
                     Generate complete CRUD functionality from existing models.
                 </p>
@@ -148,9 +184,7 @@ lila-scaffold-crud --model Product --name products
 
             <!-- Migrations -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Migrations
-                </h2>
+                <h2>Migrations</h2>
                 <p>
                     Run database migrations to create tables from models.
                 </p>
@@ -181,9 +215,7 @@ lila-migrations migrate --refresh
 
             <!-- Auth -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Authentication
-                </h2>
+                <h2>Authentication</h2>
                 <p>
                     Generate authentication system with login, register, and password recovery.
                 </p>
@@ -211,9 +243,7 @@ lila-auth main
 
             <!-- Admin Panel -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Admin Panel
-                </h2>
+                <h2>Admin Panel</h2>
                 <p>
                     Create admin users and admin panel.
                 </p>
@@ -244,9 +274,7 @@ lila-create-panel-admin --password mypassword
 
             <!-- Minify -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Minify Assets
-                </h2>
+                <h2>Minify Assets</h2>
                 <p>
                     Minify CSS and JavaScript files in-place for production.
                 </p>
@@ -274,9 +302,7 @@ lila-minify
 
             <!-- Optimize Assets -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Optimize Assets (Ahead-of-Time)
-                </h2>
+                <h2>Optimize Assets (Ahead-of-Time)</h2>
                 <p>
                     Create a production-ready manifest mapping, convert images to WebP, and generate parallel
                     <code>.min.js</code> and <code>.min.css</code> files without modifying your original files. The
@@ -307,9 +333,7 @@ lila-optimize
 
             <!-- Secret Key -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    Security Utilities
-                </h2>
+                <h2>Security Utilities</h2>
                 <p>
                     Generate a new secure <code class="font-mono text-blue-600 dark:text-blue-400">SECRET_KEY</code> for
                     your <code class="font-mono text-blue-600 dark:text-blue-400">.env</code> file.
@@ -338,9 +362,7 @@ lila-secret-key
 
             <!-- SEO -->
             <div class="space-y-4 mt-8">
-                <h2>
-                    SEO Generators
-                </h2>
+                <h2>SEO Generators</h2>
                 <p>
                     Generate <code class="font-mono text-blue-600 dark:text-blue-400">sitemap.xml</code> and <code
                         class="font-mono text-blue-600 dark:text-blue-400">robots.txt</code> files automatically based

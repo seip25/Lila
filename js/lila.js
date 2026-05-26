@@ -73,9 +73,14 @@ document.addEventListener("click", function (e) {
     overlay.addEventListener("click", closeDrawer);
 
     drawer.addEventListener("click", function (e) {
-      if (e.target.tagName === "A") {
+      if (e.target.closest("a")) {
         closeDrawer();
       }
+    });
+
+    // Update the drawer content dynamically when the aside is loaded
+    document.addEventListener("lila:aside-loaded", () => {
+      drawer.innerHTML = aside.innerHTML;
     });
   }
 

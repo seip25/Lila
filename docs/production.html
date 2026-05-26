@@ -29,21 +29,63 @@
   <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
   <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
   <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
 </head>
 
 <body>
-  <header>
-    <nav>
-      <h1>
-        <a href="../index.html" class="text-blue">Lila Framework</a>
-      </h1>
-      <div>
-        <a href="https://github.com/seip25/Lila" role="button">Github</a>
-      </div>
-    </nav>
-  </header>
+      <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
   <main>
-    <aside>
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
       <h4>Menu</h4>
       <a href="install.html">Installation</a>
       <a href="routes.html">Routes</a>
@@ -65,19 +107,16 @@
       <a href="minify.html">Minify</a>
       <a href="production.html">Production</a>
     </aside>
-    <article id="production-eng">
-      <h2>🚀 Deployment to Production
-      </h2>
+    <article id="production-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h2>Deployment to Production</h2>
 
-      <h3>🐧 Linux Server
-        (with systemd)</h3>
+      <h3>Linux Server (with systemd)</h3>
       <p>
         To deploy your Lila application on a Linux server, it's recommended to use a virtual
         environment and a systemd service to manage the process.
       </p>
 
-      <h4>1. Create a
-        Virtual Environment</h4>
+      <h4>1. Create a Virtual Environment</h4>
 
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -99,8 +138,7 @@ pip install lila-framework
         </div>
       </div>
 
-      <h4>2. Create a Start
-        Script</h4>
+      <h4>2. Create a Start Script</h4>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -120,8 +158,7 @@ python <span data-path>/path/to/your/project</span>/main.py
         </div>
       </div>
 
-      <h4>3. Create a
-        systemd Service</h4>
+      <h4>3. Create a systemd Service</h4>
 
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -156,8 +193,7 @@ WantedBy=multi-user.target
         </div>
       </div>
 
-      <h4>4. Enable and
-        Start the Service</h4>
+      <h4>4. Enable and Start the Service</h4>
 
 
 
@@ -181,8 +217,7 @@ chmod +x <span data-path>/path/to/your/project</span>/start_lila.sh
         </div>
       </div>
 
-      <h4>5. Disable Debug
-        Mode</h4>
+      <h4>5. Disable Debug Mode</h4>
       <p>
         In your `.env` file, make sure to set `DEBUG=False` for production.
       </p>
@@ -297,8 +332,7 @@ server {
       </div>
 
 
-      <h3>🪟 Windows Server
-      </h3>
+      <h3>Windows Server</h3>
       <p>
         On Windows, you can use the Task Scheduler to run your application at startup.
       </p>
@@ -308,48 +342,68 @@ server {
         <li>Set the action to run your script.</li>
       </ol>
 
-      <div class="mt-8">
-        <form onsubmit="generateServiceNginx(event)">
-          <fieldset>
-            <legend>Production Configurator</legend>
+      <div class="mt-12">
+        <form onsubmit="generateServiceNginx(event)" class="bg-slate-50/50 dark:bg-slate-900/20 p-6 md:p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 max-w-2xl mx-auto shadow-sm">
+          <fieldset class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <legend class="sr-only">Production Configurator</legend>
 
-            <div>
-              <h3 class="text-2xl font-bold  ">🚀 Production Configurator</h3>
-              <p class="text-gray-400 mb-4">Fill in your server details to automatically update the snippets above.</p>
+            <div class="md:col-span-2 mb-2">
+              <h3 class="text-xl md:text-2xl font-bold font-heading text-slate-800 dark:text-slate-100 flex items-center gap-2">Production Configurator</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Fill in your server details to automatically update the snippets above.
+              </p>
             </div>
 
-            <div>
-              <label for="service_path">Project Path</label>
-              <input type="text" id="service_path" placeholder="/var/www/lila" value="/var/www/lila">
+            <div class="flex flex-col gap-1.5">
+              <label for="service_path" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Project Path
+              </label>
+              <input type="text" id="service_path" placeholder="/var/www/lila" value="/var/www/lila"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-sm">
             </div>
 
-            <div>
-              <label for="service_name">Service Name</label>
-              <input type="text" id="service_name" placeholder="lila" value="lila">
+            <div class="flex flex-col gap-1.5">
+              <label for="service_name" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Service Name
+              </label>
+              <input type="text" id="service_name" placeholder="lila" value="lila"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-sm">
             </div>
 
-            <div>
-              <label for="service_user">Service User</label>
-              <input type="text" id="service_user" placeholder="www-data" value="www-data">
+            <div class="flex flex-col gap-1.5">
+              <label for="service_user" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Service User
+              </label>
+              <input type="text" id="service_user" placeholder="www-data" value="www-data"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-sm">
             </div>
 
-            <div>
-              <label for="service_group">Service Group</label>
-              <input type="text" id="service_group" placeholder="www-data" value="www-data">
+            <div class="flex flex-col gap-1.5">
+              <label for="service_group" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Service Group
+              </label>
+              <input type="text" id="service_group" placeholder="www-data" value="www-data"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-sm">
             </div>
 
-            <div>
-              <label for="service_port">Service Port</label>
-              <input type="text" id="service_port" placeholder="3002" value="3002">
+            <div class="flex flex-col gap-1.5">
+              <label for="service_port" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Service Port
+              </label>
+              <input type="text" id="service_port" placeholder="3002" value="3002"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-sm">
             </div>
 
-            <div>
-              <label for="service_domain">Domain</label>
-              <input type="text" id="service_domain" placeholder="example.com" value="example.com">
+            <div class="flex flex-col gap-1.5">
+              <label for="service_domain" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Domain
+              </label>
+              <input type="text" id="service_domain" placeholder="example.com" value="example.com"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-sm">
             </div>
 
             <div class="md:col-span-2 mt-4">
-              <button type="submit" class="w-full bg-blue-600 py-4 rounded-lg">
+              <button type="submit" class="w-full py-3.5 px-6 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98] transition-all duration-200">
                 Update Documentation
               </button>
             </div>
