@@ -122,7 +122,7 @@
         method. The default parameters are:
         <br />
         <code
-          class="font-semibold rounded-lg py-1 px-1 bg-blue-50 text-blue-500">path: str = '/public', directory: str = 'public', name:  str='public'</code>
+          class="font-semibold rounded-lg py-1 px-1 bg-blue-50 text-blue-500">path: str = '/', directory: str = 'public', name:  str='public'</code>
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -141,7 +141,7 @@
 from lila.core.routing import Router
 # Creating an instance of the Router
 router = Router()
-# Mounting the static files in the 'public' folder, with URL '/public' by default
+# Mounting the static files in the 'public' folder, with URL '/' by default
 router.mount()
 </code>
 </pre>
