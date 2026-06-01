@@ -190,7 +190,7 @@ def menu(models: list = [], request: Request = None) -> str:
     """Generate the admin menu as an <aside> component with Tailwind CSS."""
     current_path = request.url.path if request else ""
     
-    active_dash = "flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if current_path == "/admin" else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-primary dark:hover:text-primary font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
+    active_dash = "flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if current_path == "/admin" else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:bg-gray-800 dark:hover:bg-gray-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
     
     m = f'<a href="/admin" class="{active_dash}"><span>📊</span> Dashboard</a>'
     
@@ -202,7 +202,7 @@ def menu(models: list = [], request: Request = None) -> str:
             model_plural = f"{model_name}s"
             path = f"/admin/{model_plural}"
             is_active = current_path == path
-            active_class = "flex items-center gap-2 px-3 py-2 bg-secondary text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if is_active else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-secondary dark:hover:text-secondary font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
+            active_class = "flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-xl font-bold shadow-material transition-all text-sm cursor-pointer" if is_active else "flex items-center gap-2 px-3 py-2 text-slate-650 dark:text-slate-405 hover:text-gray-800 dark:hover:text-gray-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all text-sm cursor-pointer"
             m += f'<a href="{path}" class="{active_class}"><span>📁</span> {model_name.capitalize()}</a>'
         m += '</div>'
 
@@ -212,12 +212,12 @@ def menu(models: list = [], request: Request = None) -> str:
     m += '</div>'
 
     return f"""
-    <aside class="w-full md:w-64 flex-shrink-0">
+    <aside class="w-full  flex-shrink-0">
         <div class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
             <div class="flex items-center p-2 mb-6 border-b border-slate-100 dark:border-slate-850 pb-4">
                  <img src="/img/lila.png" alt="Lila" width="36" height="36" class="mr-3 bg-white p-1 rounded-full shadow-sm">
                  <div>
-                     <h4 class="m-0 text-md font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila Admin</h4>
+                     <h4 class="m-0 text-md font-black bg-gradient-to-r from-gray-800 to-gray-200 dark:from-gray-200 dark:to-gray-800 bg-clip-text text-transparent">Lila Admin</h4>
                      <p class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Control Panel</p>
                  </div>
             </div>

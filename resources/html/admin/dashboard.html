@@ -10,54 +10,74 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
+<body
+    class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
     <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
         <!-- Dynamic Sidebar menu -->
-           <div class="w-25">
-        {{ menu | safe }}
+        <div class="w-50 md:w-full">
+            {{ menu | safe }}
         </div>
 
         <!-- Main Dashboard Workspace -->
         <main class="flex-1 space-y-6">
-            <header class="flex items-center justify-between bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
-                <h2 class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Admin Dashboard</h2>
+            <header
+                class="flex items-center justify-between bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+                <h2
+                    class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Admin Dashboard</h2>
                 <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Lila Engine Active</div>
             </header>
 
             <!-- Metrics Section -->
-            <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
+            <article
+                class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
                 <h4 class="text-lg font-black tracking-tight mb-6 flex items-center gap-2">
                     <span>⚡</span> Server Metrics
                 </h4>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                     <div class="space-y-4">
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                        <div
+                            class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                             <div>
-                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila Memory</span>
-                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="lilaMemory">{{ lila_memory|round(0) }}</span> <span class="text-sm font-semibold text-slate-400">MB</span>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila
+                                    Memory</span>
+                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="lilaMemory">{{
+                                    lila_memory|round(0) }}</span> <span
+                                    class="text-sm font-semibold text-slate-400">MB</span>
                             </div>
                             <span class="text-2xl">🧠</span>
                         </div>
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                        <div
+                            class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                             <div>
-                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila CPU</span>
-                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="lilaCpuUsage">{{ lila_cpu_usage|round(0) }}</span> <span class="text-sm font-semibold text-slate-400">%</span>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila
+                                    CPU</span>
+                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100"
+                                    id="lilaCpuUsage">{{ lila_cpu_usage|round(0) }}</span> <span
+                                    class="text-sm font-semibold text-slate-400">%</span>
                             </div>
                             <span class="text-2xl">⚡</span>
                         </div>
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                        <div
+                            class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                             <div>
-                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">System Memory</span>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">System
+                                    Memory</span>
                                 <span class="text-md font-black text-slate-850 dark:text-slate-100">
-                                    <span id="systemUsedMemory">{{ system_used_memory|round(0) }}</span> / <span id="systemTotalMemory">{{ system_total_memory|round(0) }}</span>
+                                    <span id="systemUsedMemory">{{ system_used_memory|round(0) }}</span> / <span
+                                        id="systemTotalMemory">{{ system_total_memory|round(0) }}</span>
                                 </span> <span class="text-xs font-semibold text-slate-400">MB</span>
                             </div>
                             <span class="text-2xl">💾</span>
                         </div>
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                        <div
+                            class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                             <div>
-                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Server CPU</span>
-                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="cpuUsage">{{ cpu_usage|round(0) }}</span> <span class="text-sm font-semibold text-slate-400">%</span>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Server
+                                    CPU</span>
+                                <span class="text-2xl font-black text-slate-850 dark:text-slate-100" id="cpuUsage">{{
+                                    cpu_usage|round(0) }}</span> <span
+                                    class="text-sm font-semibold text-slate-400">%</span>
                             </div>
                             <span class="text-2xl">⚙️</span>
                         </div>
@@ -70,7 +90,8 @@
             </article>
 
             <!-- Logs Section -->
-            <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
+            <article
+                class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material">
                 <h4 class="text-lg font-black tracking-tight mb-6 flex items-center gap-2">
                     <span>📁</span> System Logs
                 </h4>
@@ -84,7 +105,7 @@
             </article>
         </main>
     </div>
- {{ asset('js/utils.js', force_static=True) | safe }}
+    {{ asset('js/utils.js', force_static=True) | safe }}
     <script>
         let memoryChart, cpuChart;
 
@@ -115,12 +136,12 @@
                 data: {
                     labels: ['Used', 'Free'],
                     datasets: [{
-                        data: [{{ system_used_memory }}, {{ system_total_memory - system_used_memory }}],
+                        data: [0, 0],
                         backgroundColor: ['#e91e63', '#1a73e8'],
                         borderWidth: 0
                     }]
                 },
-                options: { 
+                options: {
                     plugins: { legend: { display: false } },
                     cutout: '75%'
                 }
@@ -131,17 +152,17 @@
                 data: {
                     labels: ['Used', 'Free'],
                     datasets: [{
-                        data: [{{ cpu_usage }}, {{ 100 - cpu_usage }}],
+                        data: [0, 0],
                         backgroundColor: ['#ffc107', '#10b981'],
                         borderWidth: 0
                     }]
                 },
-                options: { 
+                options: {
                     plugins: { legend: { display: false } },
                     cutout: '75%'
                 }
             });
-
+            updateCharts();
             setInterval(updateCharts, 10000);
         });
     </script>
