@@ -13,7 +13,6 @@ from core.middleware import (
 from core.logger import delete_old_logs
 import itertools
 import uvicorn
-import asyncio
 import os
 
 # English: Combining application and API routes into a single list.
