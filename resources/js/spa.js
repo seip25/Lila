@@ -7,7 +7,6 @@
   const TIMEOUT_MS = 5000;
 
   const pageCache = new Map();
-  const prefetchQueue = new Set();
   const langsHistory = {};
 
   /**
@@ -299,81 +298,6 @@
     await revalidate(url, push, true);
   }
 
-  /**
-   * Prefetches page data in the background and stores it in cache.
-   * 
-   * @param {string} url - The target URL to prefetch
-   * @returns {Promise<void>}
-   */
-  async function prefetch(url) {
-    const cacheKey = getCacheKey(url);
-    if (pageCache.has(cacheKey) || prefetchQueue.has(cacheKey)) {
-      logDebug('Skipping prefetch (already cached or in queue):', url);
-      return;
-    }
-
-    logDebug('Initiating prefetch for:', url);
-    prefetchQueue.add(cacheKey);
-
-    try {
-      const separator = url.includes('?') ? '&' : '?';
-      const response = await fetch(`${url}${separator}source=frontend`, {
-        headers: {
-          'X-Lila-SPA': 'true',
-          'Accept': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        pageCache.set(cacheKey, data);
-        logDebug('Prefetch successful and cached:', url);
-        
-        const currentLang = data.lang || 'en';
-        if (data.translations) {
-          langsHistory[currentLang] = data.translations;
-        }
-      }
-    } catch (error) {
-    } finally {
-      prefetchQueue.delete(cacheKey);
-    }
-  }
-
-  /**
-   * Helper to check if a link is eligible for prefetching.
-   * 
-   * @param {HTMLAnchorElement} link - The anchor element to check
-   * @returns {boolean}
-   */
-  function shouldPrefetchLink(link) {
-    if (!link || !link.href) {
-      return false;
-    }
-    if (!link.href.startsWith(window.location.origin)) {
-      return false;
-    }
-    if (link.hasAttribute('download')) {
-      return false;
-    }
-    if (link.hasAttribute('data-no-spa')) {
-      return false;
-    }
-    if (link.hasAttribute('data-no-prefetch')) {
-      return false;
-    }
-    if (link.target === '_blank') {
-      return false;
-    }
-
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (conn && (conn.saveData || /\b(2g|3g)\b/.test(conn.effectiveType || ''))) {
-      return false;
-    }
-
-    return true;
-  }
-
   window.lilaNav = { navigate };
 
   /**
@@ -382,8 +306,6 @@
    * @returns {void}
    */
   function initSPA() {
-    let prefetchTimeout = null;
-
     document.addEventListener('click', (e) => {
       const link = e.target.closest('a');
 
@@ -400,38 +322,6 @@
         navigate(link.href);
       }
     });
-
-    document.addEventListener('mouseover', (e) => {
-      const link = e.target.closest('a');
-      if (link && shouldPrefetchLink(link)) {
-        if (prefetchTimeout) {
-          clearTimeout(prefetchTimeout);
-        }
-        logDebug('Link hovered, queuing prefetch in 80ms:', link.href);
-        prefetchTimeout = setTimeout(() => {
-          logDebug('Debounce complete, prefetching:', link.href);
-          prefetch(link.href);
-        }, 80);
-      }
-    });
-
-    document.addEventListener('mouseout', (e) => {
-      const link = e.target.closest('a');
-      if (link) {
-        if (prefetchTimeout) {
-          clearTimeout(prefetchTimeout);
-          prefetchTimeout = null;
-        }
-      }
-    });
-
-    document.addEventListener('touchstart', (e) => {
-      const link = e.target.closest('a');
-      if (link && shouldPrefetchLink(link)) {
-        logDebug('Touchstart detected on link, prefetching immediately:', link.href);
-        prefetch(link.href);
-      }
-    }, { passive: true });
 
     window.addEventListener('popstate', (e) => {
       if (e.state && e.state.url) {
