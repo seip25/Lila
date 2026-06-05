@@ -11,23 +11,25 @@ app = typer.Typer()
 
 # Template for model generation
 MODEL_TEMPLATE = '''from sqlalchemy import Column, Integer, String, TIMESTAMP, func
-from sqlalchemy.orm import Session, load_only
-from core.database import Base
-from app.connections import connection
-import secrets
-import hashlib
-import datetime
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from core.base_model import BaseModel
 
-ph = PasswordHasher()
-
-class {model_name}(Base):
+class {model_name}(BaseModel):
     """
     {model_name} Model
     
+    Inherits standard CRUD and helper methods from BaseModel:
+    - get_all(select, limit, **filters)
+    - get_by_id(db, id)
+    - insert(db, params)
+    - update(db, id, params)
+    - delete(db, id)
+    - get_all_without_orm(select, limit, **filters)
+    - get_by_id_without_orm(id, select)
+    - get_related(model_class, foreign_key_field)
+    - get_related_many(model_class, foreign_key_field, limit)
+    
     Example column types you can use:
-    - Integer: Column(Integer, primary_key=True, autoincrement=True)
+    - Integer: Column(Integer, primary_key=True, autoincrement=True, index=True)
     - String: Column(String(length=50), nullable=False)
     - Unique String: Column(String(length=50), unique=True)
     - TIMESTAMP: Column(TIMESTAMP, nullable=False, server_default=func.now())
@@ -42,7 +44,7 @@ class {model_name}(Base):
     __tablename__ = "{table_name}"
     
     # Define your columns here
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String(length=100), nullable=False)
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
@@ -53,141 +55,6 @@ class {model_name}(Base):
     # price = Column(Float, nullable=True)
     # is_available = Column(Integer, default=1)
     # updated_at = Column(TIMESTAMP, nullable=True, onupdate=func.now())
-
-    @classmethod
-    def get_all(cls, select: str = "id,name", limit: int = 1000):
-        """
-        Get all active records with selected columns
-        
-        Args:
-            select: Comma-separated column names to select
-            limit: Maximum number of records to return
-            
-        Returns:
-            List of dictionaries with selected columns
-        """
-        db = connection.get_session()
-        try:
-            column_names = [c.strip() for c in select.split(',')]
-            columns_to_load = [getattr(cls, c) for c in column_names]
-            result = db.query(cls).options(load_only(*columns_to_load)).filter(cls.active == 1).limit(limit).all()
-            items = [
-                {{col: getattr(row, col) for col in column_names}}
-                for row in result
-            ]
-            return items
-        finally:
-            db.close()
-
-    @classmethod
-    def get_by_id(cls, db: Session, id: int):
-        """
-        Get a single record by ID
-        
-        Args:
-            db: Database session
-            id: Record ID
-            
-        Returns:
-            Model instance or None
-        """
-        return db.query(cls).filter(cls.id == id, cls.active == 1).first()
-
-    @classmethod
-    def insert(cls, db: Session, params: dict) -> '{model_name}':
-        """
-        Insert a new record
-        
-        Args:
-            db: Database session
-            params: Dictionary with column values
-            
-        Returns:
-            Created model instance
-        """
-        record = cls(
-            name=params.get("name"),
-            active=params.get("active", 1),
-            created_at=datetime.datetime.now()
-            # Add more fields as needed
-        )
-        db.add(record)
-        return record
-
-    @classmethod
-    def update(cls, db: Session, id: int, params: dict) -> bool:
-        """
-        Update a record by ID
-        
-        Args:
-            db: Database session
-            id: Record ID
-            params: Dictionary with column values to update
-            
-        Returns:
-            True if updated, False otherwise
-        """
-        record = cls.get_by_id(db, id)
-        if record:
-            for key, value in params.items():
-                if hasattr(record, key):
-                    setattr(record, key, value)
-            return True
-        return False
-
-    @classmethod
-    def delete(cls, db: Session, id: int) -> bool:
-        """
-        Soft delete a record by ID (sets active to 0)
-        
-        Args:
-            db: Database session
-            id: Record ID
-            
-        Returns:
-            True if deleted, False otherwise
-        """
-        record = cls.get_by_id(db, id)
-        if record:
-            record.active = 0
-            return True
-        return False
-
-    @staticmethod
-    def get_all_without_orm(select: str = "id,name,created_at", limit: int = 1000) -> list:
-        """
-        Get all records using raw SQL (without ORM)
-        
-        Args:
-            select: Comma-separated column names
-            limit: Maximum number of records
-            
-        Returns:
-            List of dictionaries
-        """
-        return connection.query(
-            query=f"SELECT {{select}} FROM {table_name} WHERE active = 1 LIMIT {{limit}}", 
-            return_rows=True
-        )
-
-    @staticmethod
-    def get_by_id_without_orm(id: int, select: str = "id,name") -> dict:
-        """
-        Get a single record by ID using raw SQL (without ORM)
-        
-        Args:
-            id: Record ID
-            select: Comma-separated column names
-            
-        Returns:
-            Dictionary with record data or None
-        """
-        params = {{"id": id}}
-        return connection.query(
-            query=f"SELECT {{select}} FROM {table_name} WHERE id = :id AND active = 1 LIMIT 1", 
-            params=params, 
-            return_row=True
-        )
 '''
 
 

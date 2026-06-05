@@ -1,12 +1,12 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, func, DateTime, ForeignKey
-from sqlalchemy.orm import load_only
-from core.database import Base
+from sqlalchemy import Column, Integer, String, TIMESTAMP, func, DateTime
+from core.base_model import BaseModel
 import datetime
 import secrets
 from app.connections import connection
 
-class LoginAttempt(Base):
+class LoginAttempt(BaseModel):
     __tablename__ = "login_attempts"
+    _delete_logic = False
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(length=255), unique=True, index=True, nullable=False)
@@ -46,18 +46,13 @@ class LoginAttempt(Base):
         return attempt
 
     @classmethod
-    def get_all(cls, select: str = "id,email,attempts,locked_at", limit: int = 1000):
-        db = connection.get_session()
-        try:
-            column_names = [c.strip() for c in select.split(',')]
-            columns_to_load = [getattr(cls, c) for c in column_names]
-            result = db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
-            return [{col: getattr(row, col) for col in column_names} for row in result]
-        finally:
-            db.close()
+    def get_all(cls, select: str = "id,email,attempts,locked_at", limit: int = 1000, **filters):
+        return super().get_all(select=select, limit=limit, **filters)
 
-class LoginAttemptHistory(Base):
+
+class LoginAttemptHistory(BaseModel):
     __tablename__ = "login_attemp_history"
+    _delete_logic = False
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(length=255), nullable=False)
@@ -66,8 +61,10 @@ class LoginAttemptHistory(Base):
     details = Column(String(length=255), nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-class LoginSuccessHistory(Base):
+
+class LoginSuccessHistory(BaseModel):
     __tablename__ = "login_success_history"
+    _delete_logic = False
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(length=255), nullable=False)
@@ -76,8 +73,10 @@ class LoginSuccessHistory(Base):
     details = Column(String(length=255), nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-class PasswordResetToken(Base):
+
+class PasswordResetToken(BaseModel):
     __tablename__ = "password_reset_tokens"
+    _delete_logic = False
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False, index=True)
@@ -110,12 +109,5 @@ class PasswordResetToken(Base):
         return reset_token.user_id
 
     @classmethod
-    def get_all(cls, select: str = "id,user_id,token,expires_at,created_at", limit: int = 1000):
-        db = connection.get_session()
-        try:
-            column_names = [c.strip() for c in select.split(',')]
-            columns_to_load = [getattr(cls, c) for c in column_names]
-            result = db.query(cls).options(load_only(*columns_to_load)).limit(limit).all()
-            return [{col: getattr(row, col) for col in column_names} for row in result]
-        finally:
-            db.close()
+    def get_all(cls, select: str = "id,user_id,token,expires_at,created_at", limit: int = 1000, **filters):
+        return super().get_all(select=select, limit=limit, **filters)
