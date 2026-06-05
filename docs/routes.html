@@ -538,6 +538,46 @@ async def slow(request: Request):
                 changes during development.
             </p>
 
+            <h3>SPA Performance: Client-Side Caching &amp; Prefetching</h3>
+            <p>
+                To deliver a native application experience with near-instantaneous (0ms) page transitions, Lila's SPA navigation engine (<code>spa.js</code>) combines <b>SWR (Stale-While-Revalidate) caching</b> and <b>smart link prefetching</b>.
+            </p>
+            
+            <h4>1. Client-Side SWR Caching</h4>
+            <p>
+                When a user clicks an internal link, the SPA engine checks its local client-side memory cache:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 my-4">
+                <li><b>Stale Cache Hit:</b> If cached data is available, Lila immediately renders the cached page, eliminating loading indicators.</li>
+                <li><b>Silent Revalidation:</b> In the background, Lila requests the latest version from the server. If the server content has changed, Lila updates the DOM and the cache seamlessly without interrupting the user.</li>
+                <li><b>Cache Miss:</b> If the page is not in the cache, the loader makes a standard background request and renders the page upon completion.</li>
+            </ul>
+
+            <h4>2. Smart Hover &amp; Touch Prefetching</h4>
+            <p>
+                Lila anticipates user navigation by prefetching eligible links ahead of time:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 my-4">
+                <li><b>Desktop Hover Debounce:</b> On desktop, if the cursor hovers over an eligible link for more than <b>80ms</b>, Lila automatically prefetches the page JSON payload in the background. The 80ms delay prevents redundant requests during fast mouse movements.</li>
+                <li><b>Mobile TouchStart Acceleration:</b> On mobile/touch devices, a <code>touchstart</code> event on a link initiates an immediate prefetch, taking advantage of the typical 100-300ms delay before a click event fires.</li>
+            </ul>
+
+            <h4>3. Bandwidth and Connection Safeguards</h4>
+            <p>
+                To respect user bandwidth and reduce server load, Lila implements several intelligent safeguards:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 my-4">
+                <li><b>Network Detection:</b> Prefetching is automatically <b>disabled</b> if the user is on a slow connection (2G, 3G) or if <code>saveData</code> mode is enabled in the browser.</li>
+                <li><b>Route Filtering:</b> External links, downloads (using the <code>download</code> attribute), links with <code>target="_blank"</code>, and routes marked with <code>data-no-spa</code> are ignored by the SPA engine.</li>
+                <li><b>Granular Prefetch Control:</b> You can disable prefetching on specific links by adding the <code>data-no-prefetch</code> attribute:
+                    <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
+                        <div class="editor-content bg-gray-900 dark:bg-black p-3 text-gray-300">
+                            &lt;a href="/expensive-page" data-no-prefetch&gt;Not Prefetched&lt;/a&gt;
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
             <h3>Route Prefixes and HTTP Method Shortcuts</h3>
 
             <p>
