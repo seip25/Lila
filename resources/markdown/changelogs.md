@@ -1,5 +1,33 @@
 # {{ translate["changelogs"] }}
 
+## 1.1.4
+
+### {{ translate["version_114_title"] }}
+
+{{ translate["version_114_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/models.html)
+
+## 1.1.3
+
+### {{ translate["version_113_title"] }}
+
+{{ translate["version_113_desc"] }}
+
+[Docs](https://seip25.github.io/Lila/docs/seo.html)
+
+## 1.1.2
+
+### {{ translate["version_112_title"] }}
+
+{{ translate["version_112_desc"] }}
+
+## 1.1.1
+
+### {{ translate["version_111_title"] }}
+
+{{ translate["version_111_desc"] }}
+
 ## 1.1.0
 
 ### {{ translate["lila_premium_css_utilities"] }}

@@ -1,4 +1,344 @@
-{
+"""
+Core translations and changelogs default dictionary mappings.
+Mapeos de diccionarios por defecto para traducciones y registros de cambios del núcleo.
+"""
+
+CORE_TRANSLATIONS = {
+  "Welcome to the Lila Framework": {
+    "es": "Bienvenido a Lila Framework",
+    "en": "Welcome to the Lila Framework"
+  },
+  "A_modern_Starlette": {
+    "es": "Un Framework moderno, rápido y elegante construido sobre Starlette",
+    "en": "A modern, fast, and elegant web framework built on Starlette"
+  },
+  "documentation": {
+    "es": "La documentación para comenzar , la tienes en el siguiente  ",
+    "en": "The documentation , you have it in the following "
+  },
+  "here": {
+    "es": "aquí",
+    "en": "here"
+  },
+  "Go to docs": {
+    "es": "Puedes dirigirte a",
+    "en": "You can go to"
+  },
+  "view_api_docs": {
+    "es": "para ver la documentación de tu API",
+    "en": "to view your API documentation"
+  },
+  "go_to_markdown": {
+    "es": "Puedes dirigirte a",
+    "en": "You can go to"
+  },
+  "view_markdown_example": {
+    "es": "para ver un ejemplo de renderizar, escrito en Markdown",
+    "en": "to view an example of rendering written in Markdown"
+  },
+  "also_left_in": {
+    "es": "También te hemos dejado en",
+    "en": "We have also left in"
+  },
+  "and_in": {
+    "es": "y en",
+    "en": "and in"
+  },
+  "examples_of_how_to_use": {
+    "es": "ejemplos de cómo utilizar",
+    "en": "examples of how to use"
+  },
+  "routes_queries_crud": {
+    "es": "rutas, querys_params, rest_crud_generate",
+    "en": "routes, query_params, rest_crud_generate"
+  },
+  "crud_with_30_lines": {
+    "es": "Para hacer CRUDS con 30 líneas de código",
+    "en": "To make CRUDS with 30 lines of code"
+  },
+  "with_middlewares_validations": {
+    "es": "con middlewares, validaciones",
+    "en": "with middlewares, validations"
+  },
+  "and_more": {
+    "es": "y mucho más",
+    "en": "and much more"
+  },
+  "invalid_method": {
+    "es": "Método no permitido",
+    "en": "Method not allowed"
+  },
+  "invalid_content_type": {
+    "es": "Content-Type debe ser multipart/form-data",
+    "en": "Content-Type must be multipart/form-data"
+  },
+  "file_not_found": {
+    "es": "No se encontró archivo en el campo especificado",
+    "en": "No file found in specified field"
+  },
+  "invalid_extension": {
+    "es": "Extensión de archivo no permitida",
+    "en": "File extension not allowed"
+  },
+  "file_too_large": {
+    "es": "Archivo demasiado grande. Tamaño máximo: ",
+    "en": "File too large. Maximum size: "
+  },
+  "upload_success": {
+    "es": "Archivo(s) subido(s) correctamente",
+    "en": "File(s) uploaded successfully"
+  },
+  "server_error": {
+    "es": "Error en el servidor",
+    "en": "Server error"
+  },
+  "empty_file": {
+    "es": "El archivo está vacío",
+    "en": "File is empty"
+  },
+  "confirm_password": {
+    "es": "Confirmar contraseña",
+    "en": "Confirm password"
+  },
+  "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)": {
+    "es": "Documentación de Lila Js (Templates Reactivos con Vanilla Js Javascript)",
+    "en": "Lila Js Documentation (Reactive Templates with Vanilla Js Javascript)"
+  },
+  "example_reactive_lila_js": {
+    "es": "Ejemplo de Lila Js Reactivo",
+    "en": "Example of Reactive Lila Js"
+  },
+  "forgot your password": {
+    "es": "Olvidaste tu contraseña?",
+    "en": "Forgot your Password?"
+  },
+  "create account": {
+    "es": "Crear cuenta",
+    "en": "Create account"
+  },
+  "We have left you the example of login, register with Lila-JS, in": {
+    "es": "Te hemos dejado ejemplo de login,register con Lila-JS , en",
+    "en": "We have left you the example of login, register with Lila-JS, in"
+  },
+  "Lila-JS is a minimalist JavaScript library for building reactive web components with ease.": {
+    "es": "Lila-JS es una librería de JavaScript minimalista para construir componentes web reactivos con facilidad.",
+    "en": "Lila-JS is a minimalist JavaScript library for building reactive web components with ease."
+  },
+  "If you want to see the documentation, we leave the link here.": {
+    "es": " Si quieres mirar la documentación , te dejamos el link aquí ",
+    "en": "If you want to see the documentation, we leave the link here."
+  },
+  "Here we leave you the link so you can see the reactivity, Lila-Js routes, for css we use BaseCoat": {
+    "es": "Aquí te dejamos el enlace para que puedas ver la simpleza, reactividad,componentes, rutas de Lila-Js, para el css usamos BaseCoat",
+    "en": "Here we leave you the link so you can see the simplicity,reactivity,components, Lila-Js routes, for css we use BaseCoat"
+  },
+  "Recover password": {
+    "es": "Recuperar contraseña",
+    "en": "Recover password"
+  },
+  "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one": {
+    "en": "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one",
+    "es": "¿Olvidaste tu contraseña? No hay problema. Simplemente indícanos tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña y podrás elegir una nueva."
+  },
+  "Already have an account?": {
+    "en": "Already have an account?",
+    "es": "Ya tienes una cuenta?"
+  },
+  "Welcome to My Website": {
+    "es": "Bienvenido a mi sitio web",
+    "en": "Welcome to My Website"
+  },
+  "home": {
+    "es": "Inicio",
+    "en": "Home"
+  },
+  "features": {
+    "es": "Características",
+    "en": "Features"
+  },
+  "easy_write": {
+    "es": "Fácil de escribir",
+    "en": "Easy to write"
+  },
+  "convert_html": {
+    "es": "Se convierte a HTML",
+    "en": "Converts to HTML"
+  },
+  "supports_links": {
+    "es": "Soporta enlaces e imágenes",
+    "en": "Supports links and images"
+  },
+  "example_code": {
+    "es": "Ejemplo de código",
+    "en": "Example Code"
+  },
+  "star_on_github": {
+    "es": "Dale una ⭐ en GitHub",
+    "en": "Give it a ⭐ on GitHub"
+  },
+  "like_lila": {
+    "es": "¿Te gusta Lila Framework?",
+    "en": "Do you like Lila Framework?"
+  },
+  "Are you sure you want to delete this item?": {
+    "es": "¿Estás seguro de que deseas eliminar este elemento?",
+    "en": "Are you sure you want to delete this item?"
+  },
+  "Error occurred": {
+    "es": "Ocurrió un error",
+    "en": "Error occurred"
+  },
+  "Operation failed": {
+    "es": "La operación falló",
+    "en": "Operation failed"
+  },
+  "Operation successful": {
+    "es": "Operación exitosa",
+    "en": "Operation successful"
+  },
+  "changelogs": {
+    "es": "Puedes ver aqui las novedades y cambios , que hemos realizado en Lila Framework",
+    "en": "Changelogs and new features , that we have done in Lila Framework"
+  },
+  "Invalid data": {
+    "es": "Datos inválidos",
+    "en": "Invalid data"
+  },
+  "Account locked. Try again in 5 minutes.": {
+    "es": "Cuenta bloqueada. Inténtalo de nuevo en 5 minutos.",
+    "en": "Account locked. Try again in 5 minutes."
+  },
+  "Invalid credentials": {
+    "es": "Credenciales inválidas",
+    "en": "Invalid credentials"
+  },
+  "Login successful": {
+    "es": "Inicio de sesión exitoso",
+    "en": "Login successful"
+  },
+  "Email already exists": {
+    "es": "El correo electrónico ya existe",
+    "en": "Email already exists"
+  },
+  "User created successfully": {
+    "es": "Usuario creado exitosamente",
+    "en": "User created successfully"
+  },
+  "If an account with that email exists, a password reset link has been sent.": {
+    "es": "Si existe una cuenta con ese correo electrónico, se ha enviado un enlace para restablecer la contraseña.",
+    "en": "If an account with that email exists, a password reset link has been sent."
+  },
+  "Passwords not match": {
+    "es": "Las contraseñas no coinciden",
+    "en": "Passwords not match"
+  },
+  "Error creating account, check your entered data": {
+    "es": "Error al crear la cuenta, comprueba los datos introducidos",
+    "en": "Error creating account, check your entered data"
+  },
+  "Error creating account": {
+    "es": "Error al crear la cuenta",
+    "en": "Error creating account"
+  },
+  "Incorrect email or password": {
+    "es": "Correo electrónico o contraseña incorrectos",
+    "en": "Incorrect email or password"
+  },
+  "Delete Account": {
+    "es": "Eliminar cuenta",
+    "en": "Delete Account"
+  },
+  "Are your sure you want to delete your account? This action cannot be undone.": {
+    "es": "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+    "en": "Are you sure you want to delete your account? This action cannot be undone."
+  },
+  "Account deleted successfully": {
+    "es": "Cuenta eliminada exitosamente",
+    "en": "Account deleted successfully"
+  },
+  "Authentication required": {
+    "es": "Autenticación requerida",
+    "en": "Authentication required"
+  },
+  "User is inactive": {
+    "es": "Usuario inactivo",
+    "en": "User is inactive"
+  },
+  "Session already active": {
+    "es": "Sesión ya activa",
+    "en": "Session already active"
+  },
+  "User not found": {
+    "es": "Usuario no encontrado",
+    "en": "User not found"
+  },
+  "Incorrect password": {
+    "es": "Contraseña incorrecta",
+    "en": "Incorrect password"
+  },
+  "Session expired": {
+    "es": "Sesión expirada",
+    "en": "Session expired"
+  },
+  "Error updating profile": {
+    "es": "Error al actualizar el perfil",
+    "en": "Error updating profile"
+  },
+  "Profile updated successfully": {
+    "es": "Perfil actualizado exitosamente",
+    "en": "Profile updated successfully"
+  },
+  "Incorrect current password": {
+    "es": "Contraseña actual incorrecta",
+    "en": "Incorrect current password"
+  },
+  "Error deleting account": {
+    "es": "Error al eliminar la cuenta",
+    "en": "Error deleting account"
+  },
+  "current": {
+    "es": "actual",
+    "en": "current"
+  },
+  "is required": {
+    "es": "es requerido",
+    "en": "is required"
+  },
+  "new": {
+    "es": "Nueva",
+    "en": "New"
+  },
+  "Request new password reset link": {
+    "es": "Volver a enviar link",
+    "en": "Request new password reset link"
+  },
+  "Invalid or expired token": {
+    "es": "Token inválido o expirado",
+    "en": "Invalid or expired token"
+  },
+  "Your password reset link is invalid or has expired.": {
+    "es": "Tu enlace de restablecimiento de contraseña es inválido o ha expirado.",
+    "en": "Your password reset link is invalid or has expired."
+  },
+  "by_default_we_use": {
+    "es": "Por defecto utilizamos spa.js y utils.js con",
+    "en": "By default we use spa.js and utils.js with"
+  },
+  "lila_css_docs": {
+    "es": "Si quieres más documentación sobre Lila CSS, encuéntrala aquí. Usa HTML semántico en su mayoría, listo para usar automáticamente con contenedores, grids, colores, etc.",
+    "en": "If you want more documentation about Lila CSS, find it here. It mostly uses semantic HTML, ready for automatic use with containers, grids, colors, etc."
+  },
+  "danger_zone": {
+    "es": "Ten cuidado",
+    "en": "Danger zone"
+  },
+  "once_you_delete_your_account_there_is_no_going_back": {
+    "es": "Una vez que elimines tu cuenta, no hay vuelta atrás. Asegúrate.",
+    "en": "Once you delete your account, there is no going back. Be sure."
+  }
+}
+
+CORE_CHANGELOGS = {
   "changelogs": {
     "es": "Puedes ver aquí las novedades y cambios que hemos realizado en Lila Framework",
     "en": "Changelogs and new features that we have done in Lila Framework"
@@ -334,5 +674,38 @@
   "lila_premium_css_utilities_desc": {
     "es": "Introducción de un conjunto de clases CSS premium preconfiguradas (.card, .text-lila, .input-lila, .link-lila, y variantes de botones) en la hoja de estilos nativa y en el resolvedor fallback de CDN. Todos los componentes cuentan con soporte nativo completo para Dark Mode y simplifican enormemente la maquetación de interfaces responsivas y profesionales.",
     "en": "Introduction of a suite of premium pre-configured CSS component classes (.card, .text-lila, .input-lila, .link-lila, and button variants) in the native stylesheet and CDN fallback resolver. All components feature complete native Dark Mode support out-of-the-box and massively simplify rapid layout design."
+  },
+  "version_114_title": {
+    "es": "Soporte BaseModel, CLI Interactivo y Traducciones Core",
+    "en": "BaseModel Support, Interactive CLI & Core Translations"
+  },
+  "version_114_desc": {
+    "es": "Se implementó un BaseModel intermedio para unificar operaciones CRUD (ActiveRecord) y resolver de forma segura relaciones (evitando DetachedInstanceError). Se rediseñó el comando lila-model para ser interactivo con paso a paso en consola. Las traducciones internas del framework se movieron al Core, simplificando el translations.json del usuario.",
+    "en": "Implemented an intermediate BaseModel to unify CRUD (ActiveRecord) operations and safely resolve relationships (avoiding DetachedInstanceError). Redesigned lila-model to offer an interactive step-by-step console wizard. Moved internal framework translations to the Core, simplifying the user's translations.json."
+  },
+  "version_113_title": {
+    "es": "Configuración APP_URL y Mejoras SEO",
+    "en": "APP_URL Configuration & SEO Improvements"
+  },
+  "version_113_desc": {
+    "es": "Se introdujo la variable de entorno APP_URL para mejorar la generación del sitemap.xml y robots.txt a través de lila-seo. Los assets en producción ahora usan APP_URL para resolver URLs absolutas.",
+    "en": "Introduced the APP_URL environment variable to improve sitemap.xml and robots.txt generation via lila-seo. Production assets now leverage APP_URL to resolve absolute URLs."
+  },
+  "version_112_title": {
+    "es": "Optimización del Pipeline de Vite y Hot Reload",
+    "en": "Vite Pipeline & Hot Reload Optimizations"
+  },
+  "version_112_desc": {
+    "es": "Mejoras de rendimiento en el servidor de desarrollo de Vite (HMR) y la resolución automática de assets estáticos.",
+    "en": "Performance optimizations in Vite's development server (HMR) and automatic static assets resolution."
+  },
+  "version_111_title": {
+    "es": "Correcciones en Conexiones de Base de Datos",
+    "en": "Database Connection Bugfixes"
+  },
+  "version_111_desc": {
+    "es": "Corrección de pequeños errores de reconexión y transacciones pendientes en SQLite y MySQL.",
+    "en": "Fixed minor connection pooling and pending transaction bugs in SQLite and MySQL."
   }
 }
+

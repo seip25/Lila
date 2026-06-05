@@ -1,25 +1,204 @@
 /**
  * Lila-SPA Navigation Engine
- * Provides Single Page Application behavior for Twig and React.
+ * Provides Single Page Application behavior with SWR caching and hover prefetching.
  */
 (function () {
   const CONTENT_ID = 'lila-spa-content';
   const TIMEOUT_MS = 5000;
 
+  const pageCache = new Map();
+  const prefetchQueue = new Set();
+  const langsHistory = {};
+
+  const initialLang = document.documentElement.lang || 'en';
+  if (window.LILA_TRANSLATIONS) {
+    langsHistory[initialLang] = window.LILA_TRANSLATIONS;
+  }
+
   /**
-   * Navigates to a new page using SPA logic.
+   * Normalizes a URL for caching and routing keys.
+   * 
+   * @param {string} url - The URL to normalize
+   * @returns {string}
+   */
+  function getCacheKey(url) {
+    try {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.delete('source');
+      urlObj.searchParams.delete('set-lang');
+      return urlObj.pathname + urlObj.search + urlObj.hash;
+    } catch (e) {
+      return url;
+    }
+  }
+
+  /**
+   * Instantly translates all text nodes in the DOM on the client side.
+   * 
+   * @param {string} targetLang - The target language code
+   * @returns {void}
+   */
+  function translatePageInstant(targetLang) {
+    const currentLang = document.documentElement.lang || 'en';
+    const currentDict = langsHistory[currentLang];
+    const targetDict = langsHistory[targetLang];
+    
+    if (!currentDict || !targetDict) {
+      return;
+    }
+
+    const walker = document.createTreeWalker(
+      document.getElementById(CONTENT_ID) || document.body,
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+      const text = node.nodeValue.trim();
+      if (!text) {
+        continue;
+      }
+
+      let originalKey = null;
+      for (const [key, val] of Object.entries(currentDict)) {
+        if (val === text || key === text) {
+          originalKey = key;
+          break;
+        }
+      }
+
+      if (originalKey && targetDict[originalKey]) {
+        const leftSpace = node.nodeValue.match(/^\s*/)[0];
+        const rightSpace = node.nodeValue.match(/\s*$/)[0];
+        node.nodeValue = leftSpace + targetDict[originalKey] + rightSpace;
+      }
+    }
+
+    document.documentElement.lang = targetLang;
+  }
+
+  /**
+   * Renders the fetched page content to the DOM.
+   * 
+   * @param {Object} data - The page response JSON data
+   * @param {string} url - The target URL
+   * @param {boolean} push - Whether to push to history
+   * @param {string} [responseUrl] - The final resolved URL
+   * @returns {void}
+   */
+  function renderPage(data, url, push, responseUrl) {
+    if (data.meta) {
+      document.title = data.meta.title || document.title;
+      ['description', 'keywords', 'author'].forEach(name => {
+        const el = document.querySelector(`meta[name="${name}"]`);
+        if (el && data.meta[name]) el.setAttribute("content", data.meta[name]);
+      });
+    }
+
+    if (data.css && Array.isArray(data.css)) {
+      data.css.forEach(href => {
+        if (!document.head.querySelector(`link[href="${href}"]`)) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      });
+    }
+
+    const container = document.getElementById(CONTENT_ID);
+    if (container) {
+      container.innerHTML = data.body;
+
+      const partialScripts = container.querySelectorAll('script');
+      const partialLinks = container.querySelectorAll('link[rel="stylesheet"]');
+
+      partialLinks.forEach(link => {
+        if (!document.head.querySelector(`link[href="${link.href}"]`)) {
+          document.head.appendChild(link.cloneNode(true));
+        }
+        link.remove();
+      });
+
+      partialScripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.textContent = oldScript.textContent;
+        
+        if (oldScript.src) {
+           const existing = document.head.querySelector(`script[src="${oldScript.src}"]`);
+           if (existing && (oldScript.hasAttribute('data-spa-reload') || oldScript.src.includes('source=frontend'))) {
+              existing.remove();
+           }
+           if (!document.head.querySelector(`script[src="${oldScript.src}"]`)) {
+              document.head.appendChild(newScript);
+           }
+        } else {
+          const content = oldScript.textContent.trim();
+          if (content) {
+            Array.from(document.head.querySelectorAll('script:not([src])'))
+              .filter(s => s.textContent.trim() === content)
+              .forEach(s => s.remove());
+            document.head.appendChild(newScript);
+          }
+        }
+        oldScript.remove();
+      });
+
+      if (!url.includes('set-lang=true')) {
+        const hash = url.split('#')[1];
+        if (hash) {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }
+
+    if (push) {
+      let finalUrl = responseUrl || url;
+      try {
+        const urlObj = new URL(finalUrl);
+        const hasSetLang = urlObj.searchParams.has('set-lang');
+        urlObj.searchParams.delete('source');
+        urlObj.searchParams.delete('set-lang');
+        if (hasSetLang) {
+          urlObj.searchParams.delete('lang');
+        }
+        finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+      } catch (e) {
+        finalUrl = finalUrl.replace(/[?&]source=frontend/, '').replace(/[?&]set-lang=true/, '');
+      }
+      window.history.pushState({ url: finalUrl }, data.meta?.title || '', finalUrl);
+    }
+
+    document.dispatchEvent(new CustomEvent('lila:navigation', {
+      detail: { url, data }
+    }));
+    document.dispatchEvent(new CustomEvent('lila:content-loaded', {
+      detail: { url, data }
+    }));
+  }
+
+  /**
+   * Revalidates page data from the server.
    * 
    * @param {string} url - The target URL
-   * @param {boolean} [push=true] - Whether to push to browser history
+   * @param {boolean} push - Whether to push to history on render
+   * @param {boolean} [forceRender=false] - Whether to force DOM updates
    * @returns {Promise<void>}
    */
-  async function navigate(url, push = true) {
+  async function revalidate(url, push, forceRender = false) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-      let requestUrl = url;
-
+      const requestUrl = url;
       const separator = requestUrl.includes('?') ? '&' : '?';
       const response = await fetch(`${requestUrl}${separator}source=frontend`, {
         signal: controller.signal,
@@ -41,115 +220,142 @@
       }
 
       const data = await response.json();
+      const cacheKey = getCacheKey(url);
 
-      if (data.meta) {
-        document.title = data.meta.title || document.title;
-        ['description', 'keywords', 'author'].forEach(name => {
-          const el = document.querySelector(`meta[name="${name}"]`);
-          if (el && data.meta[name]) el.setAttribute("content", data.meta[name]);
-        });
+      const cached = pageCache.get(cacheKey);
+      const contentChanged = !cached || cached.body !== data.body || JSON.stringify(cached.meta) !== JSON.stringify(data.meta);
+
+      pageCache.set(cacheKey, data);
+      
+      const currentLang = data.lang || 'en';
+      if (data.translations) {
+        langsHistory[currentLang] = data.translations;
       }
 
-      if (data.css && Array.isArray(data.css)) {
-        data.css.forEach(href => {
-          if (!document.head.querySelector(`link[href="${href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = href;
-            document.head.appendChild(link);
-          }
-        });
+      if (forceRender || contentChanged) {
+        renderPage(data, url, push, response.url);
       }
-
-      const container = document.getElementById(CONTENT_ID);
-      if (container) {
-        container.innerHTML = data.body;
-
-        const partialScripts = container.querySelectorAll('script');
-        const partialLinks = container.querySelectorAll('link[rel="stylesheet"]');
-
-        partialLinks.forEach(link => {
-          if (!document.head.querySelector(`link[href="${link.href}"]`)) {
-            document.head.appendChild(link.cloneNode(true));
-          }
-          link.remove();
-        });
-
-        partialScripts.forEach(oldScript => {
-          const newScript = document.createElement('script');
-          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-          newScript.textContent = oldScript.textContent;
-          
-          if (oldScript.src) {
-             const existing = document.head.querySelector(`script[src="${oldScript.src}"]`);
-             if (existing && (oldScript.hasAttribute('data-spa-reload') || oldScript.src.includes('source=frontend'))) {
-                existing.remove();
-             }
-             if (!document.head.querySelector(`script[src="${oldScript.src}"]`)) {
-                document.head.appendChild(newScript);
-             }
-          } else {
-            const content = oldScript.textContent.trim();
-            if (content) {
-              Array.from(document.head.querySelectorAll('script:not([src])'))
-                .filter(s => s.textContent.trim() === content)
-                .forEach(s => s.remove());
-              document.head.appendChild(newScript);
-            }
-          }
-          oldScript.remove();
-        });
-
-        if (!url.includes('set-lang=true')) {
-          const hash = url.split('#')[1];
-          if (hash) {
-            const element = document.getElementById(hash);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth' });
-            }
-          } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }
-      }
-
-      if (push) {
-        let finalUrl = response.url || url;
-        try {
-          const urlObj = new URL(finalUrl);
-          const hasSetLang = urlObj.searchParams.has('set-lang');
-          urlObj.searchParams.delete('source');
-          urlObj.searchParams.delete('set-lang');
-          if (hasSetLang) {
-            urlObj.searchParams.delete('lang');
-          }
-          finalUrl = urlObj.pathname + urlObj.search + urlObj.hash;
-        } catch (e) {
-          finalUrl = finalUrl.replace(/[?&]source=frontend/, '').replace(/[?&]set-lang=true/, '');
-        }
-        window.history.pushState({ url: finalUrl }, data.meta?.title || '', finalUrl);
-      }
-
-      document.dispatchEvent(new CustomEvent('lila:navigation', {
-        detail: { url, data }
-      }));
-      document.dispatchEvent(new CustomEvent('lila:content-loaded', {
-        detail: { url, data }
-      }));
-
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.warn('SPA Navigation timeout, redirecting...');
-      } else {
+      if (error.name !== 'AbortError') {
         console.error('SPA Navigation failed:', error);
       }
-      window.location.href = url;
+      if (forceRender) {
+        window.location.href = url;
+      }
     }
+  }
+
+  /**
+   * Navigates to a new page using SPA SWR cache revalidation.
+   * 
+   * @param {string} url - The target URL
+   * @param {boolean} [push=true] - Whether to push history
+   * @returns {Promise<void>}
+   */
+  async function navigate(url, push = true) {
+    try {
+      const urlObj = new URL(url, window.location.origin);
+      const targetLang = urlObj.searchParams.get('lang');
+      if (targetLang && targetLang !== document.documentElement.lang) {
+        translatePageInstant(targetLang);
+      }
+    } catch (e) {
+    }
+
+    const cacheKey = getCacheKey(url);
+    const cachedData = pageCache.get(cacheKey);
+
+    if (cachedData) {
+      renderPage(cachedData, url, push);
+      revalidate(url, false);
+      return;
+    }
+
+    await revalidate(url, push, true);
+  }
+
+  /**
+   * Prefetches page data in the background and stores it in cache.
+   * 
+   * @param {string} url - The target URL to prefetch
+   * @returns {Promise<void>}
+   */
+  async function prefetch(url) {
+    const cacheKey = getCacheKey(url);
+    if (pageCache.has(cacheKey) || prefetchQueue.has(cacheKey)) {
+      return;
+    }
+
+    prefetchQueue.add(cacheKey);
+
+    try {
+      const separator = url.includes('?') ? '&' : '?';
+      const response = await fetch(`${url}${separator}source=frontend`, {
+        headers: {
+          'X-Lila-SPA': 'true',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        pageCache.set(cacheKey, data);
+        
+        const currentLang = data.lang || 'en';
+        if (data.translations) {
+          langsHistory[currentLang] = data.translations;
+        }
+      }
+    } catch (error) {
+    } finally {
+      prefetchQueue.delete(cacheKey);
+    }
+  }
+
+  /**
+   * Helper to check if a link is eligible for prefetching.
+   * 
+   * @param {HTMLAnchorElement} link - The anchor element to check
+   * @returns {boolean}
+   */
+  function shouldPrefetchLink(link) {
+    if (!link || !link.href) {
+      return false;
+    }
+    if (!link.href.startsWith(window.location.origin)) {
+      return false;
+    }
+    if (link.hasAttribute('download')) {
+      return false;
+    }
+    if (link.hasAttribute('data-no-spa')) {
+      return false;
+    }
+    if (link.hasAttribute('data-no-prefetch')) {
+      return false;
+    }
+    if (link.target === '_blank') {
+      return false;
+    }
+
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn && (conn.saveData || /\b(2g|3g)\b/.test(conn.effectiveType || ''))) {
+      return false;
+    }
+
+    return true;
   }
 
   window.lilaNav = { navigate };
 
+  /**
+   * Registers event listeners for clicks, hovers, and touches.
+   * 
+   * @returns {void}
+   */
   function initSPA() {
+    let prefetchTimeout = null;
+
     document.addEventListener('click', (e) => {
       const link = e.target.closest('a');
 
@@ -165,6 +371,35 @@
         navigate(link.href);
       }
     });
+
+    document.addEventListener('mouseover', (e) => {
+      const link = e.target.closest('a');
+      if (link && shouldPrefetchLink(link)) {
+        if (prefetchTimeout) {
+          clearTimeout(prefetchTimeout);
+        }
+        prefetchTimeout = setTimeout(() => {
+          prefetch(link.href);
+        }, 80);
+      }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      const link = e.target.closest('a');
+      if (link) {
+        if (prefetchTimeout) {
+          clearTimeout(prefetchTimeout);
+          prefetchTimeout = null;
+        }
+      }
+    });
+
+    document.addEventListener('touchstart', (e) => {
+      const link = e.target.closest('a');
+      if (link && shouldPrefetchLink(link)) {
+        prefetch(link.href);
+      }
+    }, { passive: true });
 
     window.addEventListener('popstate', (e) => {
       if (e.state && e.state.url) {

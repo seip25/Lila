@@ -21,6 +21,9 @@
   <div id="lila-spa-content">
     {% block content %}{% endblock %}
   </div>
+  <script>
+    window.LILA_TRANSLATIONS = {{ translate | tojson | safe }};
+  </script>
   <script src="{{public('js/utils.js')}}"></script>
   <script src="{{public('js/spa.js')}}"></script>
   {% block scripts %}{% endblock %}
