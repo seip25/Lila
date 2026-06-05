@@ -12,6 +12,7 @@ lila/
 │   ├── app.py               # App class (extends Starlette) + getenvironment helper
 │   ├── routing.py           # Router with HTTP decorators, WebSocket, REST CRUD generation, OpenAPI/Swagger
 │   ├── database.py          # Database class (SQLAlchemy: MySQL, PostgreSQL, SQLite)
+│   ├── base_model.py        # BaseModel class (ORM CRUD boilerplate, soft delete, relation helpers)
 │   ├── templates.py         # Jinja2 render, Markdown, templates utilities
 │   ├── session.py           # Signed cookie sessions + async get/set/delete helpers
 │   ├── auth.py              # JWT tokens (generate, verify), password hashing
@@ -96,6 +97,25 @@ async def login(request: Request):
 - `db.query_orm(model, operation, instance, session, filters, values)`: ORM operations (select, insert, update, delete).
 - `db.migrate(use_base)`: Run migrations.
 - `Base`: SQLAlchemy declarative base for model definitions.
+
+### Base Model (`core/base_model.py`)
+
+- `BaseModel`: Class inheriting from `Base`. Models should inherit from `BaseModel` for automatic ActiveRecord CRUD methods, soft-delete configuration, and relationship helpers.
+- Configuration variables on `BaseModel` subclasses:
+  - `_delete_logic` (bool, default `True`): Soft delete instead of hard delete.
+  - `_active_field` (str, default `"active"`): Field name for indicating active status (value 1).
+  - `_primary_key` (str, default `"id"`): Primary key column name.
+- Class Methods:
+  - `BaseModel.get_all(select=None, limit=1000, **filters)`: Returns active list of dicts.
+  - `BaseModel.get_by_id(db, id)`: Returns record by ID.
+  - `BaseModel.insert(db, params)`: Inserts a record.
+  - `BaseModel.update(db, id, data)`: Updates record by ID.
+  - `BaseModel.delete(db, id)`: Deletes (or soft-deletes) record by ID.
+  - `BaseModel.get_all_without_orm(select=None, limit=1000, **filters)`: Performance raw SQL fetch.
+  - `BaseModel.get_by_id_without_orm(id, select=None)`: Raw SQL fetch single record.
+- Instance Methods:
+  - `instance.get_related(model_class, foreign_key_field=None)`: Safely fetches related one-to-one/many-to-one record.
+  - `instance.get_related_many(model_class, foreign_key_field=None, limit=1000)`: Safely fetches related one-to-many list.
 
 ### Templates (`core/templates.py`)
 
@@ -202,8 +222,42 @@ items = connection.query("SELECT * FROM items WHERE active = 1", return_rows=Tru
 item = connection.query("SELECT * FROM items WHERE id = :id", params={"id": 1}, return_row=True)
 ```
 
-### ORM operations
+### ORM & BaseModel operations
 
+Using the built-in ActiveRecord-style methods on `BaseModel` subclasses:
+```python
+# Assuming Item inherits from BaseModel
+session = connection.get_session()
+
+# Select all active records
+items = Item.get_all()
+
+# Select active records with specific field filter
+items_filtered = Item.get_all(active=1, category_id=5)
+
+# Select only specific columns (returns list of dicts)
+items_dict = Item.get_all(select="id,name")
+
+# Find record by primary key (ID)
+item = Item.get_by_id(session, 1)
+
+# Create a record
+new_item = Item.insert(session, {"name": "Item Name", "price": 9.99})
+session.commit()
+
+# Update a record
+Item.update(session, 1, {"name": "Updated Name"})
+
+# Delete a record (soft delete active=0 if _delete_logic=True)
+Item.delete(session, 1)
+
+# Safely fetch relationship data (expunged from session to avoid DetachedInstanceError)
+user = User.get_by_id(session, 1)
+profile = user.get_related(Profile)  # One-to-One / Many-to-One
+posts = user.get_related_many(Post)   # One-to-Many
+```
+
+Direct database connection ORM queries:
 ```python
 session = connection.get_session()
 new_id = connection.query_orm(model=Item, operation="insert", instance=Item(name="x"), session=session)
@@ -262,9 +316,16 @@ LANG_DEFAULT=en
 lila-init
 ```
 
-#### Generate SQLAlchemy models from database
+#### Generate SQLAlchemy models (scaffold & list)
 ```bash
-lila-model
+# Start interactive BaseModel wizard (prompts for table, primary keys, soft delete, custom columns)
+lila-model create
+
+# Generate a skeleton model directly
+lila-model create --name Product --table products
+
+# List all generated models in app/models/
+lila-model list-models
 ```
 
 #### Generate CRUD REST API + HTML interface
