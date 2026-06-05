@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -108,88 +108,182 @@
   <a href="production.html">Production</a>
 </aside>
     <article id="models-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
-      <h1>️ Models (SQLAlchemy)</h1>
-      <h5>Models are used to define the structure of data in the application.</h5>
-      <p>
-        <a href="https://www.sqlalchemy.org/" target="_blank">SQLAlchemy</a> as the default
-        ORM
-        for
-        database management.
-        SQLAlchemy allows creating database models,
-        executing queries, and handling migrations
-        efficiently.
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white font-heading">️ Models (SQLAlchemy & BaseModel)</h1>
+      <h5 class="text-lg text-slate-600 dark:text-slate-400 mt-2">Models define the structure of data in the application, featuring inherited CRUD actions.</h5>
+      <p class="mt-4 text-slate-600 dark:text-slate-300">
+        Lila uses <a href="https://www.sqlalchemy.org/" target="_blank" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">SQLAlchemy</a> as the default ORM. 
+        Instead of writing raw queries or manually handling connections for basic CRUD, models in Lila inherit from <code>BaseModel</code> (defined in <code>core/base_model.py</code>), which implements standardized ActiveRecord operations, soft delete, relationship safely-handling helpers, and database query wrappers.
       </p>
 
-      <h2>Using Models</h2>
-      <p>
-        The `Base` class, imported from `lila.core.database`, serves as the foundation for
-        all models .
-        Models inherit from `Base` to define database tables with SQLAlchemy.
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Using BaseModel</h2>
+      <p class="mt-4 text-slate-600 dark:text-slate-300">
+        The <code>BaseModel</code> class serves as the foundation. All models should inherit from <code>BaseModel</code> to gain automatic CRUD methods without boilerplate code. Key identifiers like primary keys are optimized with <code>index=True</code> for faster querying.
       </p>
 
-      <h2>Example: User Model</h2>
-      This example demonstrates how to create a `User` model using SQLAlchemy.
-      The model defines a `users` table with columns such as `id`, `name`, `email`,
-      `password`,
-      `token`,
-      `active`, and `created_at`.
-      </h5>
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Example: User Model</h2>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Here is how you define a <code>User</code> model. Notice that you don't write any class query methods, yet they are fully available:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
           <span class="editor-title text-gray-300 dark:text-gray-400">app/models/user.py</span>
           <div class="flex space-x-2">
-            <div class="control close"></div>
-            <div class="control minimize"></div>
-            <div class="control maximize"></div>
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
           </div>
         </div>
-        <div class="editor-content">
-          <pre>
+        <div class="editor-content p-4">
+          <pre><code class="language-python">from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from core.base_model import BaseModel
 
-        <code class="language-python">
-from sqlalchemy import Column, Integer, String, TIMESTAMP, func
-from sqlalchemy.orm import Session
-from lila.core.database import Base
-from app.connections import connection 
-
-class User(Base):
+class User(BaseModel):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Primary key is indexed for database performance
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String(length=50), nullable=False)
     email = Column(String(length=50), unique=True)
     password = Column(String(length=150), nullable=False)
     token = Column(String(length=150), nullable=True)
     active = Column(Integer, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
-
-    @classmethod
-    def get_all(cls, limit: int = 1000):
-        db = connection.get_session()
-        try:
-            result = db.query(cls).filter(cls.active == 1).limit(limit).all()
-            return result
-        finally:
-            db.close()
-
-    @classmethod
-    def get_by_id(cls, id: int):
-        db = connection.get_session()
-        try:
-            return db.query(cls).filter(cls.id == id, cls.active == 1).first()
-        finally:
-            db.close()
-
-# Example usage
-users = User.get_all()
-user = User.get_by_id(1)
-                    </code>
-                    </pre>
+</code></pre>
         </div>
       </div>
-      <br />
-      <p>
+
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Model Custom Configurations</h2>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        You can configure the behavior of <code>BaseModel</code> by setting specific class-level fields:
+      </p>
+      <ul class="list-disc pl-6 mt-3 space-y-2 text-slate-600 dark:text-slate-300">
+        <li><code>_delete_logic = True</code>: If <code>True</code> (default), calling <code>delete()</code> performs a soft delete (updates active field to 0). Set to <code>False</code> to perform hard deletion.</li>
+        <li><code>_active_field = "active"</code>: The name of the column storing the soft delete state (default <code>"active"</code>).</li>
+        <li><code>_primary_key = "id"</code>: The name of the primary key field (default <code>"id"</code>).</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Built-in CRUD Methods</h2>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Once a class inherits from <code>BaseModel</code>, the following methods are readily available:
+      </p>
+      
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">1. Class Methods (ActiveRecord)</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python">from app.connections import connection
+
+# 1. Fetch all active records (filtered by active=1 automatically)
+users = User.get_all()
+
+# 2. Fetch specific columns to optimize memory (returns list of dicts)
+user_emails = User.get_all(select="id,email")
+
+# 3. Filter by fields and limit
+recent_users = User.get_all(limit=10, active=1)
+
+# Get a session for modifying operations
+db = connection.get_session()
+
+# 4. Fetch a single record by primary key (filtered by active=1 automatically)
+user = User.get_by_id(db, 1)
+
+# 5. Insert a new record
+new_user = User.insert(db, {
+    "name": "Alex",
+    "email": "alex@example.com",
+    "password": "hashed_password"
+})
+db.commit() # Save changes to database
+
+# 6. Update a record by ID
+User.update(db, 1, {"name": "Alex Updated"})
+
+# 7. Delete a record (performs soft delete by default)
+User.delete(db, 1)
+</code></pre>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">2. Relationship Helpers</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        In standard SQLAlchemy, accessing relationships (like <code>user.posts</code>) after the database session has closed raises a <code>DetachedInstanceError</code>. 
+        Lila solves this by offering relationship helpers on <code>BaseModel</code> that manage their own session lifecycle and immediately <strong>expunge</strong> (detach) the retrieved records from the session. 
+        This makes the returned models safe to pass and access anywhere — inside **Routes**, **Services**, or even directly in **Jinja2 Templates** without session issues.
+      </p>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">A. One-to-One / Many-to-One (<code>get_related</code>)</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Fetches a single related object. By default, Lila checks the current model for a foreign key column named <code>{target_model}_id</code>. If that is not found, it checks for <code>id_{target_model}</code>.
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python"># Looks for 'profile_id' (or 'id_profile') on the user instance
+profile = user.get_related(Profile)
+
+# If your foreign key column is named differently, pass it explicitly:
+profile = user.get_related(Profile, foreign_key_field="custom_profile_fk")</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">B. One-to-Many (<code>get_related_many</code>)</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Fetches a list of related objects. By default, Lila looks for a foreign key column referencing this model on the <strong>target model</strong> named <code>{current_model}_id</code>. If not found, it checks for <code>id_{current_model}</code> on the target model.
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python"># Inside User model, this looks for 'user_id' (or 'id_user') on the Post model:
+posts = user.get_related_many(Post)
+
+# If the foreign key on the Post model is different (e.g. 'author_id'):
+posts = user.get_related_many(Post, foreign_key_field="author_id")
+
+# You can also set a limit on the number of returned records (default is 1000)
+recent_posts = user.get_related_many(Post, limit=10)</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">C. Usage in Routes / Jinja2 Templates</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Because these helpers decouple the returned models from the active database session, you can load and pass them directly to your template context:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python"># In app/routes/routes.py
+@router.get("/profile")
+async def user_profile(request: Request):
+    db = connection.get_session()
+    user = User.get_by_id(db, id=1) # Fetch active user
+    
+    # Safely fetch relationships without keeping the session open
+    profile = user.get_related(Profile)
+    posts = user.get_related_many(Post, limit=5)
+    
+    return render(request, "pages/profile", {
+        "user": user,
+        "profile": profile,
+        "posts": posts
+    })</code></pre>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">3. Performance Raw SQL Fallbacks (Non-ORM)</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        If you need raw performance without ORM overhead, use these raw SQL wrappers:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python"># Fetches active rows directly using connection.query (returns list of dicts)
+raw_users = User.get_all_without_orm(select="id, name", limit=5)
+
+# Fetches single active row directly (returns dict)
+raw_user = User.get_by_id_without_orm(id=1, select="name, email")
+</code></pre>
+        </div>
+      </div>
+
+      <p class="mt-6 text-slate-600 dark:text-slate-300">
         For details on SQLAlchemy, visit the official documentation:
-        <a href="https://www.sqlalchemy.org/" target="_blank" class="underline text-blue font-semibold">SQLAlchemy
+        <a href="https://www.sqlalchemy.org/" target="_blank" class="underline text-blue-600 dark:text-blue-400 font-semibold hover:underline">SQLAlchemy
           Documentation</a>.
       </p>
     </article>

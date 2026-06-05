@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Configuration & ENV_CONFIG</title>
+    <meta name="description"
+        content="Learn how to configure your Lila application using .env variables and the ENV_CONFIG proxy for custom environment access." />
+    <meta name="keywords" content="Python, Configuration, Environment Variables, ENV_CONFIG, .env, Settings" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Configuration & ENV_CONFIG" />
+    <meta property="og:description"
+        content="Learn how to configure your Lila application using .env variables and the ENV_CONFIG proxy for custom environment access." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+  <h4>Menu</h4>
+</aside>
+
+        <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  INTRO                                                      -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h2>Configuration & ENV_CONFIG</h2>
+
+            <p>
+                Lila uses a <b>.env</b> file as the single source of truth for all application settings.
+                Framework variables like <code class="code-inline">DEBUG</code>, <code class="code-inline">PORT</code>, and <code class="code-inline">SECRET_KEY</code>
+                are loaded automatically with proper type casting (string, integer, boolean).
+                For any custom variable you add to <code class="code-inline">.env</code>, the <code class="code-inline">ENV_CONFIG</code> proxy gives you instant access from anywhere in your project — no extra registration needed.
+            </p>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  .env FILE                                                  -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>The .env File</h3>
+            <p>
+                After running <code class="code-inline">lila-init</code>, your project includes a <code class="code-inline">.env</code> file with all framework defaults.
+                To change any setting, just edit this file — no code changes are needed.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        .env
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-bash">
+# ─── Server ────────────────────────────────────────────
+SECRET_KEY='your-secret-key-here'
+DEBUG=True
+PORT=8001
+HOST=127.0.0.1
+JIT=False
+WORKERS=1
+MINIFY_HTML=False
+
+# ─── Application URL ──────────────────────────────────
+# Production URL for sitemaps, robots.txt, canonical links.
+# Leave empty in development — uses http://HOST:PORT automatically.
+APP_URL=""
+
+# ─── Project Metadata ─────────────────────────────────
+TITLE_PROJECT='My App'
+VERSION_PROJECT='1'
+DESCRIPTION_PROJECT='My awesome project'
+LANG_DEFAULT='en'
+
+# ─── SEO Defaults ─────────────────────────────────────
+DESCRIPTION_DEFAULT='A Python web framework'
+KEYWORDS_DEFAULT='Python, web, framework'
+AUTHOR_DEFAULT='Your Name'
+
+# ─── Your Custom Variables ─────────────────────────────
+# Add any variable here and access it via ENV_CONFIG
+STRIPE_API_KEY='sk_test_...'
+REDIS_URL='redis://localhost:6379'
+                    </code></pre>
+                </div>
+            </div>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  FRAMEWORK VARIABLES TABLE                                  -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>Built-in Framework Variables</h3>
+            <p>
+                These variables are recognized by the framework automatically. They are type-casted (string → int, bool, etc.) and available as module-level constants via <code class="code-inline">from app.config import ...</code>
+            </p>
+
+            <div class="overflow-x-auto mb-8 mt-4">
+                <table class="w-full text-sm text-left border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                    <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Variable</th>
+                            <th class="px-4 py-3 font-semibold">Type</th>
+                            <th class="px-4 py-3 font-semibold">Default</th>
+                            <th class="px-4 py-3 font-semibold">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">SECRET_KEY</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Secret key for signing sessions and tokens</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">PORT</td>
+                            <td class="px-4 py-3 text-slate-500">int</td>
+                            <td class="px-4 py-3"><code class="code-inline">8001</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Server port</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">HOST</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"127.0.0.1"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Server host address</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">APP_URL</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Production URL (sitemaps, robots.txt, canonical links). Falls back to http://HOST:PORT when empty.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DEBUG</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">True</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Enable debug mode (hot reload, error pages)</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">JIT</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">True</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Enable Python JIT compilation</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">WORKERS</td>
+                            <td class="px-4 py-3 text-slate-500">int</td>
+                            <td class="px-4 py-3"><code class="code-inline">1</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Number of Uvicorn worker processes</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">MINIFY_HTML</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">False</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Minify HTML output in templates</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">TITLE_PROJECT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"Lila project"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project title (used in templates and SEO)</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">VERSION_PROJECT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"1"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project version</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESCRIPTION_PROJECT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project description for OpenAPI docs</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LANG_DEFAULT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"en"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default language for i18n</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESCRIPTION_DEFAULT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"A Python web framework"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default meta description for SEO</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">KEYWORDS_DEFAULT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"Python, web, framework"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default meta keywords for SEO</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">AUTHOR_DEFAULT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"Seip"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default author for meta tags</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  USING FRAMEWORK VARIABLES                                  -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>Using Framework Variables</h3>
+            <p>
+                All built-in variables are exported as module-level constants from <code class="code-inline">app.config</code>.
+                Import them directly — they are loaded once at startup with automatic type casting.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        Importing framework variables
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from app.config import DEBUG, PORT, HOST, SECRET_KEY
+
+if DEBUG:
+    print(f"Running in debug mode on {HOST}:{PORT}")
+                    </code></pre>
+                </div>
+            </div>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  ENV_CONFIG — CUSTOM VARIABLES                              -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>ENV_CONFIG — Access Any .env Variable</h3>
+            <p>
+                <code class="code-inline">ENV_CONFIG</code> is a dict-like proxy that gives you instant access to
+                <b>any</b> variable defined in your <code class="code-inline">.env</code> file — including custom ones
+                that are not part of the framework. No registration, no configuration — just add the variable to
+                <code class="code-inline">.env</code> and read it.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        Using ENV_CONFIG
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from app.config import ENV_CONFIG
+
+# Access with [] — raises KeyError if not found
+stripe_key = ENV_CONFIG["STRIPE_API_KEY"]
+
+# Access with .get() — returns a default if not found
+redis_url = ENV_CONFIG.get("REDIS_URL", "redis://localhost:6379")
+
+# Check if a variable exists
+if "CUSTOM_FEATURE_FLAG" in ENV_CONFIG:
+    print("Feature flag is set!")
+
+# Works with any variable in .env — no registration needed
+api_version = ENV_CONFIG.get("API_VERSION", "v1")
+                    </code></pre>
+                </div>
+            </div>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  REAL WORLD EXAMPLE                                         -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>Real-World Example</h3>
+            <p>
+                A common pattern is combining framework variables with custom <code class="code-inline">ENV_CONFIG</code> variables
+                in your routes and services:
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        app/routes/api.py
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.routing import Router
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+from app.config import DEBUG, ENV_CONFIG
+
+router = Router("api")
+
+@router.get("/status")
+async def status(request: Request):
+    return JSONResponse({
+        "debug": DEBUG,
+        "api_version": ENV_CONFIG.get("API_VERSION", "v1"),
+        "feature_x": ENV_CONFIG.get("ENABLE_FEATURE_X", "false"),
+    })
+
+@router.post("/payment")
+async def create_payment(request: Request):
+    # Access your Stripe key — defined only in .env
+    stripe_key = ENV_CONFIG["STRIPE_API_KEY"]
+    # ... payment logic
+    return JSONResponse({"success": True})
+                    </code></pre>
+                </div>
+            </div>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  APP/CONFIG.PY STRUCTURE                                    -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>How app/config.py Works</h3>
+            <p>
+                After running <code class="code-inline">lila-init</code>, your <code class="code-inline">app/config.py</code> is clean and minimal.
+                The <code class="code-inline">ConfigLoader</code> handles all the .env loading, type casting, and production caching internally:
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        app/config.py
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+import os
+from os import path
+from lila.core.config import ConfigLoader, ENV_CONFIG
+
+# All framework variables loaded and exported automatically
+_cfg = ConfigLoader.load(cache_dir=path.dirname(__file__))
+globals().update(_cfg)
+
+# Project-specific paths (not loaded from .env)
+PATH_LOG_BASE_DIR = "app/logs"
+PATH_TEMPLATE_NOT_FOUND = "lila/404"
+PATH_TEMPLATES_HTML = "resources/html/"
+PATH_TEMPLATES_MARKDOWN = "resources/markdown/"
+PATH_LOCALES = "app/locales"
+PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
+                    </code></pre>
+                </div>
+            </div>
+
+            <p>
+                That's it — <b>no duplication</b>. Each framework variable is defined once in the schema and exported automatically.
+                To change any value, edit <code class="code-inline">.env</code> and restart the server.
+            </p>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  PRODUCTION CACHING                                         -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>Production Caching</h3>
+            <p>
+                When <code class="code-inline">DEBUG=False</code>, Lila automatically generates a <code class="code-inline">config_cache.py</code>
+                file in your <code class="code-inline">app/</code> directory. This compiled cache is loaded on subsequent startups
+                without re-reading <code class="code-inline">.env</code>, giving you <b>faster boot times in production</b>.
+            </p>
+            <p>
+                The cache is automatically invalidated and regenerated whenever the <code class="code-inline">.env</code> file is modified (checked via file modification timestamp).
+            </p>
+
+            <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl p-5 mt-6 mb-6">
+                <div class="flex items-start gap-3">
+                    <span class="text-amber-500 text-lg mt-0.5">⚡</span>
+                    <div>
+                        <p class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Performance Note</p>
+                        <p class="text-sm text-amber-700 dark:text-amber-400">
+                            <code class="code-inline">ENV_CONFIG</code> reads values that were loaded at startup — it does <b>not</b> re-read <code class="code-inline">.env</code> on every access.
+                            This means there is <b>zero performance overhead</b> when using <code class="code-inline">ENV_CONFIG</code> in your route handlers.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!--  API REFERENCE                                              -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <h3>API Reference</h3>
+
+            <div class="overflow-x-auto mb-8 mt-4">
+                <table class="w-full text-sm text-left border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                    <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Method</th>
+                            <th class="px-4 py-3 font-semibold">Returns</th>
+                            <th class="px-4 py-3 font-semibold">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ENV_CONFIG["KEY"]</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Get a value. Raises <code class="code-inline">KeyError</code> if not found.</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ENV_CONFIG.get("KEY", default)</td>
+                            <td class="px-4 py-3 text-slate-500">str | None</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Get a value with a fallback default. Returns <code class="code-inline">None</code> if not found and no default given.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">"KEY" in ENV_CONFIG</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Check if a variable exists in the configuration.</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ConfigLoader.load(cache_dir)</td>
+                            <td class="px-4 py-3 text-slate-500">dict</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Load all framework config from .env. Called once in <code class="code-inline">app/config.py</code>.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ConfigLoader.get("KEY", default)</td>
+                            <td class="px-4 py-3 text-slate-500">any</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Get any config value. Checks framework fields first, then raw .env values.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </article>
+    </main>
+
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>
