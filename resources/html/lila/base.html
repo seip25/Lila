@@ -23,6 +23,7 @@
   </div>
   <script>
     window.LILA_TRANSLATIONS = {{ translate | tojson | safe }};
+    window.LILA_DEBUG = {{ debug | tojson | safe }};
   </script>
   <script src="{{public('js/utils.js')}}"></script>
   <script src="{{public('js/spa.js')}}"></script>

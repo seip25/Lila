@@ -235,6 +235,7 @@ def get_base_context(request: Request, files_translate: list[str] = None, lang_d
         "translate": translations,
         "author": AUTHOR_DEFAULT,
         "app_url": APP_URL or f"http://{HOST}:{PORT}",
+        "debug": DEBUG,
     }
 
 

@@ -10,9 +10,22 @@
   const prefetchQueue = new Set();
   const langsHistory = {};
 
+  /**
+   * Logs debug messages to the console if debugging is enabled.
+   * 
+   * @param {...*} args - The arguments to log
+   * @returns {void}
+   */
+  function logDebug(...args) {
+    if (window.LILA_DEBUG) {
+      console.log('[Lila SPA]', ...args);
+    }
+  }
+
   const initialLang = document.documentElement.lang || 'en';
   if (window.LILA_TRANSLATIONS) {
     langsHistory[initialLang] = window.LILA_TRANSLATIONS;
+    logDebug('Initial translations loaded for language:', initialLang);
   }
 
   /**
@@ -44,8 +57,11 @@
     const targetDict = langsHistory[targetLang];
     
     if (!currentDict || !targetDict) {
+      logDebug('Missing dictionaries for translation from', currentLang, 'to', targetLang);
       return;
     }
+
+    logDebug('Translating page instantly from', currentLang, 'to', targetLang);
 
     const walker = document.createTreeWalker(
       document.getElementById(CONTENT_ID) || document.body,
@@ -89,6 +105,8 @@
    * @returns {void}
    */
   function renderPage(data, url, push, responseUrl) {
+    logDebug('Rendering page:', url, 'Push state:', push);
+
     if (data.meta) {
       document.title = data.meta.title || document.title;
       ['description', 'keywords', 'author'].forEach(name => {
@@ -194,6 +212,7 @@
    * @returns {Promise<void>}
    */
   async function revalidate(url, push, forceRender = false) {
+    logDebug('Revalidating URL from server:', url);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -211,6 +230,7 @@
       clearTimeout(timeoutId);
 
       if (response.status === 401 || response.status === 403) {
+        logDebug('Unauthorized/Forbidden response, redirecting window:', url);
         window.location.href = url;
         return;
       }
@@ -224,6 +244,8 @@
 
       const cached = pageCache.get(cacheKey);
       const contentChanged = !cached || cached.body !== data.body || JSON.stringify(cached.meta) !== JSON.stringify(data.meta);
+
+      logDebug('Revalidation completed. Content changed:', contentChanged);
 
       pageCache.set(cacheKey, data);
       
@@ -253,6 +275,7 @@
    * @returns {Promise<void>}
    */
   async function navigate(url, push = true) {
+    logDebug('Navigating to:', url);
     try {
       const urlObj = new URL(url, window.location.origin);
       const targetLang = urlObj.searchParams.get('lang');
@@ -266,11 +289,13 @@
     const cachedData = pageCache.get(cacheKey);
 
     if (cachedData) {
+      logDebug('Cache hit for URL:', url);
       renderPage(cachedData, url, push);
       revalidate(url, false);
       return;
     }
 
+    logDebug('Cache miss for URL, initiating server load:', url);
     await revalidate(url, push, true);
   }
 
@@ -283,9 +308,11 @@
   async function prefetch(url) {
     const cacheKey = getCacheKey(url);
     if (pageCache.has(cacheKey) || prefetchQueue.has(cacheKey)) {
+      logDebug('Skipping prefetch (already cached or in queue):', url);
       return;
     }
 
+    logDebug('Initiating prefetch for:', url);
     prefetchQueue.add(cacheKey);
 
     try {
@@ -300,6 +327,7 @@
       if (response.ok) {
         const data = await response.json();
         pageCache.set(cacheKey, data);
+        logDebug('Prefetch successful and cached:', url);
         
         const currentLang = data.lang || 'en';
         if (data.translations) {
@@ -368,6 +396,7 @@
         !e.ctrlKey && !e.metaKey && !e.shiftKey) {
 
         e.preventDefault();
+        logDebug('SPA link clicked:', link.href);
         navigate(link.href);
       }
     });
@@ -378,7 +407,9 @@
         if (prefetchTimeout) {
           clearTimeout(prefetchTimeout);
         }
+        logDebug('Link hovered, queuing prefetch in 80ms:', link.href);
         prefetchTimeout = setTimeout(() => {
+          logDebug('Debounce complete, prefetching:', link.href);
           prefetch(link.href);
         }, 80);
       }
@@ -397,6 +428,7 @@
     document.addEventListener('touchstart', (e) => {
       const link = e.target.closest('a');
       if (link && shouldPrefetchLink(link)) {
+        logDebug('Touchstart detected on link, prefetching immediately:', link.href);
         prefetch(link.href);
       }
     }, { passive: true });
