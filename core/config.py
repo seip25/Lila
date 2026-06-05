@@ -28,6 +28,7 @@ FRAMEWORK_SCHEMA = [
     ("SECRET_KEY",           "str",  ""),
     ("PORT",                 "int",  8001),
     ("HOST",                 "str",  "127.0.0.1"),
+    ("APP_URL",              "str",  ""),
     ("DEBUG",                "bool", True),
     ("JIT",                  "bool", False),
     ("WORKERS",              "int",  1),

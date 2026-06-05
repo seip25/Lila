@@ -1,7 +1,7 @@
 from starlette.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
-from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT, MINIFY_HTML
+from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT, MINIFY_HTML, APP_URL, HOST, PORT
 from core.translate import Translate
 from core.request import Request
 from core.responses import HTMLResponse, JSONResponse
@@ -145,11 +145,14 @@ def public(path: str, force_static: bool = False) -> str:
             
     if not DEBUG or force_static:
         _load_assets_manifest()
+        resolved_path = f"/{clean_path}"
         if ASSETS_MANIFEST and clean_path in ASSETS_MANIFEST:
             path_val = ASSETS_MANIFEST[clean_path]
-            if path_val.startswith('/'):
-                return path_val
-            return f"/{path_val}"
+            resolved_path = path_val if path_val.startswith('/') else f"/{path_val}"
+        
+        if not DEBUG and APP_URL:
+            return f"{APP_URL.rstrip('/')}{resolved_path}"
+        return resolved_path
             
     return f"/{clean_path}"
 
@@ -231,6 +234,7 @@ def get_base_context(request: Request, files_translate: list[str] = None, lang_d
         "lang": current_lang,
         "translate": translations,
         "author": AUTHOR_DEFAULT,
+        "app_url": APP_URL or f"http://{HOST}:{PORT}",
     }
 
 

@@ -11,12 +11,32 @@ if os.getcwd() not in sys.path:
 
 app = typer.Typer()
 
+def _get_base_url(domain: str = None) -> str:
+    """
+    English: Resolves the base URL for SEO files. Priority: CLI --domain flag > APP_URL from .env > fallback HOST:PORT.
+    Español: Resuelve la URL base para archivos SEO. Prioridad: flag --domain del CLI > APP_URL de .env > fallback HOST:PORT.
+    """
+    if domain:
+        return domain.rstrip("/")
+    
+    try:
+        from app.config import APP_URL, HOST, PORT
+        if APP_URL:
+            return APP_URL.rstrip("/")
+        return f"http://{HOST}:{PORT}"
+    except ImportError:
+        return "http://localhost:8000"
+
 @app.command()
-def sitemap(domain: str = "http://localhost:8000"):
+def sitemap(domain: str = None):
     """
     English: Generates a sitemap.xml based on the application routes.
+             Uses APP_URL from .env by default, or --domain to override.
     Español: Genera un sitemap.xml basado en las rutas de la aplicación.
+             Usa APP_URL de .env por defecto, o --domain para sobreescribir.
     """
+    base_url = _get_base_url(domain)
+    
     try:
         # English: Attempt to discover routes from common locations.
         # Español: Intentar descubrir rutas desde ubicaciones comunes.
@@ -54,7 +74,7 @@ def sitemap(domain: str = "http://localhost:8000"):
             
         processed_paths.add(path)
         
-        full_url = f"{domain.rstrip('/')}{path}"
+        full_url = f"{base_url}{path}"
         xml_content += f"  <url>\n    <loc>{full_url}</loc>\n    <lastmod>{today}</lastmod>\n    <priority>0.8</priority>\n  </url>\n"
     
     xml_content += "</urlset>"
@@ -63,21 +83,25 @@ def sitemap(domain: str = "http://localhost:8000"):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(xml_content, encoding="utf-8")
     
-    typer.echo(f"✅ Sitemap generated at {output_path}")
+    typer.echo(f"✅ Sitemap generated at {output_path} (base URL: {base_url})")
 
 @app.command()
-def robots(domain: str = "http://localhost:8000"):
+def robots(domain: str = None):
     """
     English: Generates a robots.txt file.
+             Uses APP_URL from .env by default, or --domain to override.
     Español: Genera un archivo robots.txt.
+             Usa APP_URL de .env por defecto, o --domain para sobreescribir.
     """
-    content = f"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\n\nSitemap: {domain.rstrip('/')}/sitemap.xml"
+    base_url = _get_base_url(domain)
+    
+    content = f"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\n\nSitemap: {base_url}/sitemap.xml"
     
     output_path = Path("public/robots.txt")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(content, encoding="utf-8")
     
-    typer.echo(f"✅ Robots.txt generated at {output_path}")
+    typer.echo(f"✅ Robots.txt generated at {output_path} (base URL: {base_url})")
 
 if __name__ == "__main__":
     app()

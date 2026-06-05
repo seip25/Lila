@@ -16,14 +16,18 @@ app = typer.Typer()
 
 @app.command()
 def create():
-    key_replace= "SECRET_KEY='SECRET_KEY'"
+    import re
     new_key=generate_token_value()
     content=None
     try:
         with open(PATH_ENV, "r", encoding="utf-8") as f:
             content = f.read() 
-        content = content.replace(key_replace, f"SECRET_KEY='{new_key}'")
-        print()
+        # Match SECRET_KEY='...' or SECRET_KEY="..." or SECRET_KEY=...
+        content, count = re.subn(r"(SECRET_KEY\s*=\s*['\"])(.*?)(['\"])", rf"\g<1>{new_key}\g<3>", content)
+        if count == 0:
+            # Fallback if no quotes used
+            content, count = re.subn(r"(SECRET_KEY\s*=\s*)([^\s'\"#]+)", rf"\g<1>'{new_key}'", content)
+            
         with open(PATH_ENV, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"key generated is SECRET_KEY='{new_key}'")
