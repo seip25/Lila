@@ -78,32 +78,99 @@ def to_snake_case(text: str) -> str:
 
 @app.command()
 def create(
-    name: str = typer.Option("Model", "--name", "-n", help="Name of the model (e.g., User, Product, Category)"),
-    table: str = typer.Option(None, "--table", "-t", help="Table name (defaults to snake_case of model name)")
+    name: str = typer.Option(None, "--name", "-n", help="Name of the model (e.g., User, Product, Category)"),
+    table: str = typer.Option(None, "--table", "-t", help="Table name (defaults to snake_case of model name)"),
+    interactive: bool = typer.Option(False, "--interactive", "-i", help="Force interactive mode")
 ):
     """
-    Create a new SQLAlchemy model skeleton
+    Create a new SQLAlchemy model skeleton (interactively or via options)
     
     Examples:
         python -m cli.model create --name User
         python -m cli.model create --name Product --table products
         python -m cli.model create -n Category
-    
-    The generated model will include:
-    - Basic CRUD methods (get_all, get_by_id, insert, update, delete)
-    - ORM and raw SQL query examples
-    - Common column types as comments for reference
-    - Soft delete functionality (active column)
+        python -m cli.model create (triggers interactive mode)
     """
+    is_interactive = interactive or (name is None)
+    
+    if is_interactive:
+        typer.echo("Welcome to the Lila Interactive Model Builder!\n")
+        if not name:
+            name = typer.prompt("Enter model name (e.g., Product, Customer)").strip()
+            if not name:
+                typer.echo("Model name cannot be empty.")
+                raise typer.Exit(code=1)
+                
     # Capitalize first letter of model name
     model_name = capitalize_first(name)
     
-    # Generate table name (snake_case by default)
-    if table is None:
-        table_name = to_snake_case(model_name) + "s"  # Pluralize by adding 's'
-    else:
+    if is_interactive and table is None:
+        default_table = to_snake_case(model_name) + "s"
+        table_name = typer.prompt("Enter table name", default=default_table).strip()
+    elif table:
         table_name = table
+    else:
+        table_name = to_snake_case(model_name) + "s"
+        
+    has_id = True
+    has_active = True
+    has_created = True
+    has_updated = False
+    custom_columns = []
     
+    if is_interactive:
+        has_id = typer.confirm("Include standard primary key 'id' column?", default=True)
+        has_active = typer.confirm("Enable soft delete logic (adds 'active' column)?", default=True)
+        has_created = typer.confirm("Add 'created_at' timestamp column?", default=True)
+        has_updated = typer.confirm("Add 'updated_at' timestamp column?", default=True)
+        
+        add_columns = typer.confirm("\nWould you like to add custom columns interactively?", default=False)
+        while add_columns:
+            col_name = typer.prompt("   Name of the column").strip()
+            if not col_name:
+                break
+                
+            col_type = typer.prompt(
+                "   Type (String, Integer, Float, Text, Boolean)",
+                default="String"
+            ).strip().capitalize()
+            
+            # Normalize type
+            if col_type in ("String", "Str"):
+                col_type = "String"
+            elif col_type in ("Integer", "Int"):
+                col_type = "Integer"
+            elif col_type in ("Float", "Double", "Decimal"):
+                col_type = "Float"
+            elif col_type in ("Text", "Txt"):
+                col_type = "Text"
+            elif col_type in ("Boolean", "Bool"):
+                col_type = "Boolean"
+            else:
+                col_type = "String"
+                
+            length_str = ""
+            if col_type == "String":
+                length = typer.prompt("   String length", default=100, type=int)
+                length_str = f"length={length}"
+                
+            nullable = typer.confirm("   Nullable?", default=True)
+            unique = typer.confirm("   Unique?", default=False)
+            
+            default_val = typer.prompt("   Default value (leave empty for None)", default="").strip()
+            
+            col_def = {
+                "name": col_name,
+                "type": col_type,
+                "length": length_str,
+                "nullable": nullable,
+                "unique": unique,
+                "default": default_val
+            }
+            custom_columns.append(col_def)
+            
+            add_columns = typer.confirm("\nAdd another column?", default=False)
+            
     # Create models directory if it doesn't exist
     models_dir = Path("app/models")
     models_dir.mkdir(parents=True, exist_ok=True)
@@ -118,27 +185,80 @@ def create(
         if not overwrite:
             typer.echo("Operation cancelled.")
             raise typer.Exit()
-    
+            
     # Generate model content
-    model_content = MODEL_TEMPLATE.format(
-        model_name=model_name,
-        table_name=table_name
-    )
-    
+    if not is_interactive:
+        model_content = MODEL_TEMPLATE.format(
+            model_name=model_name,
+            table_name=table_name
+        )
+    else:
+        lines = []
+        lines.append("from sqlalchemy import Column, Integer, String, TIMESTAMP, Float, Text, Boolean, func")
+        lines.append("from core.base_model import BaseModel")
+        lines.append("")
+        lines.append(f"class {model_name}(BaseModel):")
+        lines.append('    """')
+        lines.append(f"    {model_name} Model")
+        lines.append('    """')
+        lines.append(f'    __tablename__ = "{table_name}"')
+        
+        if not has_active:
+            lines.append("    _delete_logic = False")
+            
+        lines.append("")
+        
+        if has_id:
+            lines.append("    id = Column(Integer, primary_key=True, autoincrement=True, index=True)")
+            
+        for col in custom_columns:
+            col_type_str = col["type"]
+            if col["length"]:
+                col_type_str += f"({col['length']})"
+                
+            col_args = [col_type_str]
+            if not col["nullable"]:
+                col_args.append("nullable=False")
+            if col["unique"]:
+                col_args.append("unique=True")
+                
+            if col["default"]:
+                def_val = col["default"]
+                if col["type"] == "Boolean":
+                    def_val = "True" if def_val.lower() in ("true", "1", "yes") else "False"
+                elif col["type"] in ("Integer", "Float"):
+                    # Check if numeric
+                    pass
+                else:
+                    def_val = f"'{def_val}'"
+                col_args.append(f"default={def_val}")
+                
+            col_str = f"    {col['name']} = Column({', '.join(col_args)})"
+            lines.append(col_str)
+            
+        if has_active:
+            lines.append("    active = Column(Integer, nullable=False, default=1)")
+            
+        if has_created:
+            lines.append("    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())")
+            
+        if has_updated:
+            lines.append("    updated_at = Column(TIMESTAMP, nullable=True, onupdate=func.now())")
+            
+        model_content = "\n".join(lines) + "\n"
+        
     # Write to file
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(model_content)
+        
+    typer.echo("Model created successfully!")
+    typer.echo(f"Location: app/models/{filename}")
+    typer.echo(f"Model name: {model_name}")
+    typer.echo(f"Table name: {table_name}")
     
-    typer.echo(f"✅ Model created successfully!")
-    typer.echo(f"📁 Location: app/models/{filename}")
-    typer.echo(f"📝 Model name: {model_name}")
-    typer.echo(f"🗄️  Table name: {table_name}")
-    
-
-    
-    typer.echo(f"\n💡 Next steps:")
-    typer.echo(f"   1. Edit app/models/{filename} to add your custom columns")
-    typer.echo(f"   2. Run migrations: python -m cli.migrations migrate")
+    typer.echo("\nNext steps:")
+    typer.echo(f"   1. Edit app/models/{filename} to review your custom columns")
+    typer.echo(f"   2. Run migrations: python -m cli.migrations")
 
 
 @app.command()
