@@ -1,6 +1,6 @@
 /**
  * Lila-SPA Navigation Engine
- * Provides Single Page Application behavior with SWR caching and hover prefetching.
+ * Provides Single Page Application behavior with SWR caching.
  */
 (function () {
   const CONTENT_ID = 'lila-spa-content';
