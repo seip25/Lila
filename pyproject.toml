@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lila-framework"
+version = "1.1.4"
+description = "Framework web Python"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Andrés Paiva Silveira", email = "andrespaivasilveiraa@gmail.com" }
+]
+ 
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "License :: OSI Approved :: MIT License", 
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "starlette==1.0.0",
+    "jinja2==3.1.6",
+    "uvicorn==0.37.0",
+    "pydantic==2.12.5",
+    "pydantic[email]",
+    "python-dotenv==1.1.1",
+    "itsdangerous==2.2.0",
+    "mysql-connector-python==9.4.0",
+    "argon2-cffi==25.1.0",
+    "markdown==3.9",
+    "SQLAlchemy==2.0.48",
+    "PyJWT==2.10.1",
+    "psutil==7.1.0",
+    "python-multipart==0.0.20",
+    "typer==0.19.2",
+    "rjsmin==1.2.4",
+    "rcssmin==1.2.1",
+    "jinja2-htmlmin==1.0.1",
+    "starlette-compress==1.6.1",
+    "pillow==11.3.0",
+    "psycopg==3.2.10",
+    "orjson==3.11.7"
+]
+
+[project.scripts]
+lila-init = "lila.cli.scaffold:main"
+lila-minify = "lila.cli.minify:main"
+lila-optimize = "lila.cli.optimize:main"
+lila-auth = "lila.cli.auth:app"
+lila-create-admin = "lila.cli.create_admin:app"
+lila-create-panel-admin = "lila.cli.create_panel_admin:app"
+lila-migrations = "lila.cli.migrations:app"
+lila-model = "lila.cli.model:app" 
+lila-scaffold-crud = "lila.cli.scaffold_crud:app"
+lila-secret-key = "lila.cli.secret_key:app"
+lila-seo = "lila.cli.seo:app"
+
+[tool.setuptools.package-data]
+lila = [
+    "app/**/*",
+    "cli/**/*",
+    "public/**/*",
+    "templates/**/*",
+    "resources/**/*",
+    "uploads/**/*",
+    "vite.config.js",
+    "package.json",
+    ".env",
+    ".gitignore",
+    "AGENTS.md",
+    "main.py"
+]
+
+[tool.setuptools.packages.find]
+where = ["."] 
+include = ["lila*"]  
+
+[project.urls]
+Homepage = "https://seip25.github.io/Lila/"  
+Repository = "https://github.com/seip25/Lila" 
