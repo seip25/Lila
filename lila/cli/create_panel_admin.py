@@ -6,7 +6,10 @@ if os.getcwd() not in sys.path:
 import typer
 import os
 import subprocess
-from app.connections import connection
+try:
+    from app.connections import connection
+except ImportError:
+    connection = None
 from argon2 import PasswordHasher
 from lila.core.auth import generate_token_value
 
@@ -110,6 +113,10 @@ all_routes = list(itertools.chain(all_routes, admin_routes))
 
 @app.command(name="create_panel_admin")
 def create_admin(username: str = "admin", password: str = None):
+    if not os.path.exists("main.py") or not os.path.exists("app"):
+        typer.echo("❌ Error: This command must be run inside a Lila project root directory.")
+        raise typer.Exit(code=1)
+
     if not ensure_connection_or_migrate():
         typer.echo("Failed to initialize the database.")
         raise typer.Exit(code=1)

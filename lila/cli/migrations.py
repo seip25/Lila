@@ -1,11 +1,17 @@
 import sys
 import os
-sys.path.insert(0, os.getcwd())
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
 
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
-from app.connections import connection
+try:
+    from app.connections import connection
+    from app.models.user import User #Import models for migrations in models
+except ImportError:
+    connection = None
+    User = None
+
 from lila.core.database import Base #Import Base  for migrations in models
-from app.models.user import User #Import models for migrations in models
 import typer
 import asyncio
 import importlib
@@ -56,6 +62,9 @@ async def migrate_async(connection,refresh:bool=False)->bool:
 @app.command()
 def migrate(refresh: bool = False):
     """Run database migrations"""
+    if connection is None:
+        typer.echo("❌ Error: 'app.connections' not found. Make sure you are in the root directory of your Lila project.")
+        raise typer.Exit(code=1)
     success = asyncio.run(migrate_async(connection, refresh))
     if not success:
         raise typer.Exit(code=1)

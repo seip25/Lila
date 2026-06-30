@@ -14,7 +14,6 @@ SCAFFOLD_ITEMS = {
     "app": "app",
     "public": "public",
     "resources": "resources",
-    "uploads": "uploads",
     ".gitignore": ".gitignore",
     ".env": ".env",
     "AGENTS.md": "AGENTS.md",

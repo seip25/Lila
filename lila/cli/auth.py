@@ -7,7 +7,10 @@ import typer
 from pathlib import Path
 import os
 import subprocess
-from app.connections import connection
+try:
+    from app.connections import connection
+except ImportError:
+    connection = None
 
 app = typer.Typer()
 
@@ -123,6 +126,10 @@ def _create_auth_model():
 
 @app.command()
 def main(template: str = "True", route: str = "True"):
+    if not os.path.exists("main.py") or not os.path.exists("app"):
+        typer.echo("❌ Error: This command must be run inside a Lila project root directory.")
+        raise typer.Exit(code=1)
+
     if connection is None:
         subprocess.run([sys.executable, "-m", "lila.cli.migrations"], cwd=user_project_root)
         typer.echo("Database connection established and migrations run.")

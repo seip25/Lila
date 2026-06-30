@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lila-framework"
-version = "1.1.4"
+version = "1.1.5"
 description = "Framework web Python"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -79,6 +79,16 @@ lila = [
     ".gitignore",
     "AGENTS.md",
     "main.py"
+]
+
+[tool.setuptools.exclude-package-data]
+lila = [
+    "**/*.pyc",
+    "**/__pycache__",
+    "**/__pycache__/**/*",
+    "app/logs/**/*",
+    "app/cache/**/*",
+    "**/*.sqlite"
 ]
 
 [tool.setuptools.packages.find]

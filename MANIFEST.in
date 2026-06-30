@@ -1,0 +1,8 @@
+graft lila
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude *.sqlite
+global-exclude *.db
+global-exclude *.log
+prune lila/app/logs
+prune lila/app/cache
