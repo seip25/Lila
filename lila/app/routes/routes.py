@@ -1,5 +1,5 @@
 from lila.core.request import Request 
-from lila.core.routing import Router, locales 
+from lila.core.routing import Router, locales ,seo
 from lila.core.templates import render,renderMarkdown
 from lila.core.responses import RedirectResponse
 from lila.core.translate import Translate
@@ -11,6 +11,7 @@ router = Router()
  
 @router.get("/")
 @locales(["es", "en"])
+@seo( title="Lila Framework",description="Framework",keywords="framework,lila,python")
 async def home(request: Request):
     """
     English: Example rendering HTML file with Jinja2, using the @locales decorator to automatically register localized prefixes.
