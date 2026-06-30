@@ -227,9 +227,29 @@ def asset(path: str, force_static: bool = False) -> str:
         border: 1px solid rgba(255, 255, 255, 0.04);
       }
 
+      .text-lila {
+        color: var(--lila-primary);
+      }
+      
+      :root[data-theme="dark"] .text-lila {
+        color: var(--lila-primary);
+      }
+
       .lila-card:hover,
       .card:hover {
         box-shadow: var(--shadow-lila-card-hover);
+      }
+
+      .lila-link {
+        background-color: transparent;
+        color: var(--lila-primary);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .lila-link:hover {
+        color: var(--lila-primary-hover);
       }
 
       .lila-btn,
@@ -299,6 +319,11 @@ def asset(path: str, force_static: bool = False) -> str:
         background-color: var(--lila-surface);
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         text-decoration: none;
+      }
+
+      :root[data-theme="dark"] .lila-btn-secondary,
+      :root[data-theme="dark"] .btn-secondary {
+        color: #ffffff;
       }
 
       .lila-btn-outline,
