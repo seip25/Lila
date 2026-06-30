@@ -146,15 +146,14 @@
         </div>
       </div>
       <div id="tailwind-integration" class="mt-8">
-        <h2>Built-in Tailwind CSS v4 Support</h2>
+        <h2>Zero-Dependency CDN Style Delivery</h2>
         <p>
-          Lila includes native, top-tier integration with **Tailwind CSS v4** + **Vite** right out-of-the-box.
+          Lila includes a zero-dependency, build-free styling system right out-of-the-box.
         </p>
         <ul>
-          <li><b>Zero-Config CDN Fallback:</b> When starting your application for the first time or if you do not want to use Node.js/Vite, Lila automatically detects the absence of <code class="code-inline">package-lock.json</code> in <code>DEBUG</code> mode and seamlessly loads Tailwind CSS from the official Play CDN. Your styles will look gorgeous instantly without running any npm command!</li>
-          <li><b>Vite Hot Reload:</b> As soon as you run <code class="code-inline">npm install</code> and start the Vite dev server with <code class="code-inline">npm run dev</code>, Lila automatically upgrades the styling engine to use the local high-performance Vite compiler with full Hot Module Replacement (HMR)!</li>
-          <li><b>Production Ready:</b> Building your assets with <code class="code-inline">npm run build</code> compiles fully optimized, minified, and hashed CSS files mapped via the production assets manifest.</li>
-          <li><b>Customization &amp; Removal:</b> If you prefer to use another CSS framework (such as Lila CSS or Bootstrap), simply edit your main layout base file at <code class="code-inline">resources/html/lila/base.html</code> and change or remove the <code class="code-inline">{{ asset('css/tailwind.css') | safe }}</code> call!</li>
+          <li><b>Google Fonts &amp; Play CDN:</b> By default, Lila loads the premium fonts Outfit and Inter alongside the official Tailwind CSS Play CDN dynamically in the browser. You do not need to install Node.js, Vite, or any npm dependencies.</li>
+          <li><b>Custom Component Layer:</b> The styling engine automatically injects the Lila design system components (such as cards, premium inputs, buttons, and layouts) with complete support for light and dark modes natively.</li>
+          <li><b>Customization &amp; Removal:</b> If you prefer to use another CSS framework (such as Bootstrap or pure CSS), simply edit your main layout base file at <code class="code-inline">resources/html/lila/base.jinja</code> and change or remove the <code class="code-inline">{{ asset('css/tailwind.css') | safe }}</code> call!</li>
         </ul>
       </div>
 

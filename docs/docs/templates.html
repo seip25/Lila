@@ -311,15 +311,6 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
       <ul class="rounded bg-surface py-4 px-4">
         <li class="flex flex-col md:flex-row md:items-start mb-4">
-          <strong>hot_reload():</strong>
-          <p class="ml-2">
-            Injects Vite's Hot Module Replacement (HMR) scripts.
-            <strong>Only active when DEBUG=True</strong>.
-            Place it in the <code>&lt;head&gt;</code> of your main layout.
-          </p>
-        </li>
-
-        <li class="flex flex-col md:flex-row md:items-start mb-4">
           <strong>public(path):</strong>
           <p class="ml-2">
             Resolves paths to static assets under the <code>public/</code> directory. In addition, it automatically checks the system assets manifest in RAM to swap files for their optimized, compressed, or minified versions (e.g., swapping <code>.css</code> for <code>.min.css</code>, or images for their highly optimized <code>.webp</code> versions) in production seamlessly.
@@ -329,15 +320,7 @@ def get_base_context(request, files_translate=[], lang_default=None):
         <li class="flex flex-col md:flex-row md:items-start">
           <strong>asset(path):</strong>
           <p class="ml-2">
-            Resolves and returns the full HTML tag (e.g. <code>&lt;link rel="stylesheet"&gt;</code> or <code>&lt;script&gt;</code>) for CSS/JS assets, supporting both Vite live HMR development and zero-dependency fallbacks:
-            <br />
-            • <b>Single Source of Truth:</b> You write code exclusively in the <code>resources/</code> folder (e.g. <code>resources/js/utils.js</code>, <code>resources/css/tailwind.css</code>).
-            <br />
-            • <b>Development Mode (HMR):</b> In development (<code>DEBUG=True</code>), the assets are served hot from Vite's development server (<code>http://localhost:5173</code>) with instant browser updates upon file edits.
-            <br />
-            • <b>Production & Fallbacks:</b> When you run <code>npm run build</code>, Vite compiles, minifies, and bundles these assets directly into their standard physical locations in <code>public/</code> (e.g. <code>public/js/utils.js</code>). In production (<code>DEBUG=False</code>), or if Node.js/Vite is not active, Lila serves these pre-compiled and optimized static assets directly with zero performance overhead.
-            <br />
-            • <b>Smart Play CDN Fallback:</b> If Node.js/Vite is not installed yet, calling <code>asset('css/tailwind.css')</code> automatically loads the official Tailwind CSS Play CDN to keep your styles fully functional out-of-the-box!
+            Resolves and returns the full HTML tag (e.g. <code>&lt;link rel="stylesheet"&gt;</code>) for CSS/JS assets, loading the zero-dependency Google Fonts, Tailwind Play CDN, theme variables, and custom Lila styles dynamically.
           </p>
         </li>
       </ul>

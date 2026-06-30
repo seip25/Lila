@@ -183,15 +183,6 @@ lila-optimize
           instead of the original file, saving you from rewriting your HTML!
         </p>
 
-        <h2 class="mt-8">Modern Alternative: Unified Vite Asset Pipeline</h2>
-        <p>
-          If you are working in a modern frontend environment with Node.js and npm installed, Lila includes built-in support for a <strong>Vite + Tailwind CSS v4</strong> pipeline which replaces the need for <code>lila-minify</code> or <code>lila-optimize</code>:
-        </p>
-        <ul class="list-disc pl-5 mt-2 mb-4">
-          <li><strong>Zero-Config Dev:</strong> Simply run <code>npm run dev</code> to boot both the Vite dev server and the Python uvicorn server in parallel, providing full Hot Module Replacement (HMR) for CSS and JS assets in real-time.</li>
-          <li><strong>Production Builds:</strong> Run <code>npm run build</code> to compile, bundle, and generate cached hashed files (e.g. <code>utils-CnU24iax.js</code>) via Vite's native <code>manifest.json</code>. Lila resolves these hashed files automatically in production.</li>
-          <li><strong>Zero-Dependency Fallbacks:</strong> If Node.js is not present on a target system, Lila falls back seamlessly to static files in the <code>public/</code> folder, ensuring your project always runs out-of-the-box.</li>
-        </ul>
       </article>
     </div>
   </main>
