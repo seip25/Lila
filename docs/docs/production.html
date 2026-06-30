@@ -252,30 +252,7 @@ DEBUG=False
       </p>
 
 
-      <h4>6. Build Assets for Production</h4>
-      <p>
-        If you opted to use the <strong>Vite & Tailwind CSS v4</strong> pipeline for dynamic assets, you MUST compile your resources for production before deploying.
-        Running the build compiles, bundles, and minifies your source files (from <code>resources/</code>) and writes them directly into the standard <code>public/</code> folder for high-speed serving:
-      </p>
 
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
-        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-          <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
-          <div class="flex space-x-2">
-            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-          </div>
-        </div>
-        <div class="editor-content">
-          <pre><code class="language-bash">
-npm run build
-          </code></pre>
-        </div>
-      </div>
-      <p class="mt-2 mb-6">
-        <em>Note:</em> In production mode (<code>DEBUG=False</code>), the <code>asset()</code> and <code>public()</code> template helpers will instantly serve these optimized compiled assets directly with zero performance overhead.
-      </p>
 
 
       <h4>7. Configure Nginx (Optional)</h4>
