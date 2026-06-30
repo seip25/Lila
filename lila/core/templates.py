@@ -38,18 +38,6 @@ _VITE_PROJECT_EXISTS: bool = None
 STYLES_DEFAULT_TAILWIND: str = None
 
 def hot_reload() -> str:
-    """
-    Returns Vite hot reload scripts if DEBUG is True.
-    """
-    global _VITE_PROJECT_EXISTS
-    if DEBUG:
-        if _VITE_PROJECT_EXISTS is None:
-            _VITE_PROJECT_EXISTS = os.path.exists(os.path.join(PROJECT_ROOT, "package-lock.json"))
-            
-        if _VITE_PROJECT_EXISTS:
-            return """
-        <script type="module" src="http://localhost:5173/public/@vite/client"></script>
-        """
     return ""
 
 
