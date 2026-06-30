@@ -341,7 +341,7 @@ def get_base_context(request, files_translate=[], lang_default=None):
 &lt;html&gt;
 &lt;head&gt;
   &lt;title&gt;{{ title }}&lt;/title&gt;
-  &lt;!-- Load Tailwind CSS v4 dynamically with CDN fallback and HMR support --&gt;
+  &lt;!-- Load Tailwind CSS dynamically via Lila CDN --&gt;
   {{ asset('css/tailwind.css') | safe }}
 &lt;/head&gt;
 &lt;body&gt;
@@ -349,9 +349,6 @@ def get_base_context(request, files_translate=[], lang_default=None):
   
   &lt;!-- Load javascript --&gt;
   &lt;script src="{{ public('js/main.js') }}"&gt;&lt;/script&gt;
-  
-  &lt;!-- Inject Vite hot-reload script in development mode --&gt;
-  {{ hot_reload() | safe }}
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
         </div>
@@ -359,75 +356,6 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
 
       </div>
-
-
-
-      <h3 class="mt-8 text-2xl font-semibold">Development Hot Reload (Vite)</h3>
-      <p>
-        Lila comes integrated with a super-fast development hot reload (HMR) system powered by Vite. When active, saving
-        any <code>.html</code>, <code>.jinja</code>, or <code>.md</code> file in your <code>resources/</code> folder
-        triggers an instant full page reload in the browser.
-      </p>
-
-      <h4>Setup Instructions</h4>
-      <ol class="list-decimal list-inside rounded bg-surface py-4 px-6 mb-4 space-y-2">
-        <li>
-          <strong>Install Node.js & npm:</strong> Make sure you have <a href="https://nodejs.org/"
-            target="_blank">Node.js</a> and <code>npm</code> installed on your system.
-        </li>
-        <li>
-          <strong>Install Dependencies:</strong> Run the following command in your project root to install the Vite and
-          Tailwind CSS dev tools:
-          <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
-            <div class="editor-content bg-gray-900 dark:bg-black p-3">
-              <pre><code class="language-bash">npm install</code></pre>
-            </div>
-          </div>
-        </li>
-        <li>
-          <strong>Restart Python Server:</strong> Stop and restart your python backend (e.g.
-          <code>python main.py</code>). This allows Lila to scan the project directory, automatically detect the
-          <code>package-lock.json</code> file, and confirm the environment is set up.
-        </li>
-        <li>
-          <strong>Enable Debug Mode:</strong> Ensure <code>DEBUG=True</code> is set in your <code>.env</code> file.
-        </li>
-        <li>
-          <strong>Run Vite Dev Server:</strong> In a separate terminal tab, run the dev server:
-          <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
-            <div class="editor-content bg-gray-900 dark:bg-black p-3">
-              <pre><code class="language-bash">npm run dev</code></pre>
-            </div>
-          </div>
-        </li>
-      </ol>
-
-      <h4>Integrating the Hot Reload Script</h4>
-      <p>
-        To include the live-reloader in your pages, Lila provides the <code>hot_reload()</code> global helper. Make sure
-        your base HTML template (typically located at <code>resources/html/lila/base.html</code>) includes the following
-        line inside its <code>&lt;body&gt;</code> tag:
-      </p>
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
-        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-          <span class="editor-title text-gray-300 dark:text-gray-400">
-            <i class="fas fa-html5 mr-2"></i>resources/html/lila/base.html
-          </span>
-        </div>
-        <div class="editor-content bg-gray-900 dark:bg-black">
-          <pre><code class="language-html">&lt;body&gt;
-  &lt;!-- Your layout content here --&gt;
-  
-  &lt;!-- Inject Vite hot-reload script in development mode --&gt;
-  {{ hot_reload() | safe }}
-&lt;/body&gt;</code></pre>
-        </div>
-      </div>
-      <p>
-        <strong>Note:</strong> In production (when <code>DEBUG=False</code> in <code>.env</code>), the
-        <code>hot_reload()</code> helper returns an empty string <code>""</code> automatically, introducing zero
-        overhead to your application.
-      </p>
 
       <h3 class="mt-8 text-2xl font-semibold">Lila Premium CSS Utility Components</h3>
       <p>
