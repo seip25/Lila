@@ -582,7 +582,7 @@ def asset(path: str, force_static: bool = False) -> str:
         border-radius: 16px;
         box-shadow: var(--shadow-lila-input);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(226, 232, 240, 0.4);
+        border: 1px solid rgba(128, 128, 128, 0.25);
         outline: none;
         color: inherit;
       }
