@@ -19,13 +19,13 @@ def read_file(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
-login_template_content = read_file("cli/auth/templates/login.html")
-register_template_content = read_file("cli/auth/templates/register.html")
-forgot_password_template_content = read_file("cli/auth/templates/forgot-password.html")
-change_password_template_content = read_file("cli/auth/templates/change-password.html")
-invalid_token_template_content = read_file("cli/auth/templates/invalid-token.html")
-authenticated_template_content = read_file("cli/auth/templates/dashboard.html")
-profile_template_content = read_file("cli/auth/templates/profile.html")
+login_template_content = read_file("cli/auth/templates/login.jinja")
+register_template_content = read_file("cli/auth/templates/register.jinja")
+forgot_password_template_content = read_file("cli/auth/templates/forgot-password.jinja")
+change_password_template_content = read_file("cli/auth/templates/change-password.jinja")
+invalid_token_template_content = read_file("cli/auth/templates/invalid-token.jinja")
+authenticated_template_content = read_file("cli/auth/templates/dashboard.jinja")
+profile_template_content = read_file("cli/auth/templates/profile.jinja")
 
 auth_file_content = read_file("cli/auth/routes/auth.py")
 dashboard_file_content = read_file("cli/auth/routes/authenticated.py")
@@ -38,11 +38,11 @@ def _create_templates():
     templates_dir.mkdir(parents=True, exist_ok=True)
 
     templates = {
-        "login.html": login_template_content,
-        "register.html": register_template_content,
-        "forgot-password.html": forgot_password_template_content,
-        "change-password.html": change_password_template_content,
-        "invalid-token.html": invalid_token_template_content
+        "login.jinja": login_template_content,
+        "register.jinja": register_template_content,
+        "forgot-password.jinja": forgot_password_template_content,
+        "change-password.jinja": change_password_template_content,
+        "invalid-token.jinja": invalid_token_template_content
     }
 
     for filename, content in templates.items():
@@ -55,8 +55,8 @@ def _create_templates():
     template_dashboard_dir = Path("resources/html/authenticated")
     template_dashboard_dir.mkdir(parents=True, exist_ok=True)
     templates_dashboard = {
-        "dashboard.html": authenticated_template_content,
-        "profile.html": profile_template_content
+        "dashboard.jinja": authenticated_template_content,
+        "profile.jinja": profile_template_content
     }
     for filename, content in templates_dashboard.items():
         file_path = template_dashboard_dir / filename
