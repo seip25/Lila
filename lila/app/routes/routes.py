@@ -11,7 +11,7 @@ router = Router()
  
 @router.get("/")
 @locales(["es", "en"])
-@seo( title="Lila Framework",description="Framework",keywords="framework,lila,python")
+@seo( title="Lila Framework",description="Framework for developers",keywords="framework,lila,python,AI,machine learning,etc")
 async def home(request: Request):
     """
     English: Example rendering HTML file with Jinja2, using the @locales decorator to automatically register localized prefixes.
