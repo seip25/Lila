@@ -298,6 +298,14 @@ TITLE_PROJECT=My App
 LANG_DEFAULT=en
 ```
 
+## Programmatic Configuration in App
+Lila allows configuring these parameters directly when initializing the `App` class:
+- `translate` (bool, default `True`): If `False`, validation translations and defaults are loaded, but the user's local `locales/translations.json` is ignored.
+- `debug_html` (bool, default `False`): If `True`, registers the `/debug` dashboard panel at runtime.
+- Overrides for settings (can bypass `.env` / `app/config.py` definitions):
+  - `secret_key`, `title`, `version`, `description`, `lang_default`, `minify_html`
+  - `path_log_base_dir`, `path_template_not_found`, `path_templates_html`, `path_templates_markdown`, `path_locales`, `path_uploads`
+
 ## Important Notes
 
 - All route handlers are `async` functions receiving a Starlette `Request` object.
@@ -353,9 +361,11 @@ lila-migrations
 lila-minify
 ```
 
-#### Set up Vite + Tailwind CSS v4 environment
+#### Run database containers with Docker (MySQL/PostgreSQL)
 ```bash
-lila-react
+lila-docker start [mysql|postgres|all]
+lila-docker stop [mysql|postgres|all]
+lila-docker ps   # Shows status of database containers (also runs by default on "lila-docker")
 ```
 
 #### Generate SEO Sitemap & Robots

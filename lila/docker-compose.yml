@@ -1,34 +1,27 @@
 services:
-  web:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
+  mysql:
+    image: mysql:8.0
+    container_name: lila-mysql
     environment:
-      - DEBUG=True
-      - PORT=8000
-      - HOST=0.0.0.0
-    # Uncomment if you want to use database services:
-    # depends_on:
-    #   - db_mysql
-    #   - db_postgres
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lila_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
 
-  # db_mysql:
-  #   image: mysql:8.0
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: root
-  #     MYSQL_DATABASE: lila_db
-  #   ports:
-  #     - "3306:3306"
-
-  # db_postgres:
+  # postgres:
   #   image: postgres:15
+  #   container_name: lila-postgres
   #   environment:
   #     POSTGRES_USER: postgres
   #     POSTGRES_PASSWORD: root
   #     POSTGRES_DB: lila_db
   #   ports:
   #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  mysql_data:
+  # postgres_data:

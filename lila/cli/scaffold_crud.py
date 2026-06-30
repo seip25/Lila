@@ -340,8 +340,8 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
             field_type = "password" if col == "password" else "text"
             form_fields.append(
                 f'      <div>\n'
-                f'        <label class="block text-sm">{col.capitalize()}</label>\n'
-                f'        <input name="{col}" type="{field_type}" class="w-full p-2 border rounded" />\n'
+                f'        <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{col.capitalize()}</label>\n'
+                f'        <input name="{col}" type="{field_type}" class="input-lila" />\n'
                 f'      </div>'
             )
     
@@ -356,49 +356,54 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>{model_name.capitalize()} CRUD</title>
     <link rel="icon" type="image/x-icon" href="{{{{ public('img/lila.png') }}}}" />
-    <link rel="stylesheet" href="{{{{ public('css/lila.css') }}}}" />
+    {{{{ asset('css/tailwind.css') | safe }}}}
     <script src="{{{{ public('js/utils.js') }}}}"></script>
   </head>
-  <body>
-    <header class="shadow">
-      <nav class="container">
-        <h2 class="mt-4 mb-4">{model_name.capitalize()} CRUD</h2>
+  <body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 min-h-screen flex flex-col font-sans transition-colors duration-300">
+    <header class="bg-surface dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 py-4 shadow-sm">
+      <nav class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+        <h2 class="text-xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{model_name.capitalize()} CRUD</h2>
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Resource Scaffold</span>
       </nav>
     </header>
-    <main class="container mt-4">
-      <div class="flex justify-between items-center mb-4">
-        <button id="create-btn" class="mb-4" onclick="openDialog('{{{{translate['Create']}}}}')">
-          {{{{translate['Create']}}}}
+    <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-1">
+      <div class="flex justify-between items-center mb-6">
+        <button id="create-btn" class="btn btn-primary" onclick="openDialog('{{{{translate['Create']}}}}')">
+          <span>➕</span> {{{{translate['Create']}}}}
         </button>
-        <button class="mb-4 outline" onclick="fetchData{model_name}()">
-          {{{{translate['Refresh']}}}}
+        <button class="btn btn-outline" onclick="fetchData{model_name}()">
+          <span>🔄</span> {{{{translate['Refresh']}}}}
         </button>
       </div>
 
-      <div id="datatable-container"></div>
+      <div id="datatable-container" class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-material overflow-x-auto"></div>
 
-      <dialog id="crud-dialog" class="p-4 rounded w-full max-w-md">
-        <article>
-          <h2 id="crud-title" class="text-xl font-semibold mb-4"></h2>
+      <dialog id="crud-dialog" class="p-6 rounded-2xl w-full max-w-md bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-850 shadow-material-lg backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm">
+        <article class="flex flex-col gap-6">
+          <h2 id="crud-title" class="text-2xl font-black text-slate-850 dark:text-slate-100 tracking-tight"></h2>
           <form id="crud-form" method="dialog" class="space-y-4">
 {form_fields_html}
 
             <div class="text-right mt-4" id="form_messages"></div>
-            <div class="flex justify-end gap-4 space-x-2">
-              <button type="button" id="cancel-btn" class="ghost">
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-850">
+              <button type="button" id="cancel-btn" class="btn btn-light">
                 {{{{translate['Cancel']}}}}
               </button>
-              <button type="submit">{{{{translate['Save']}}}}</button>
+              <button type="submit" class="btn btn-primary">{{{{translate['Save']}}}}</button>
             </div>
           </form>
         </article>
       </dialog>
     </main>
 
-    <footer class="bg-surface py-4 mt-auto">
-      <div class="container mx-auto px-4 flex justify-between items-center">
-        <a href="?lang=es" class="underline">Español (Esp)</a>
-        <a href="?lang=en" class="underline">English (US)</a>
+    <footer class="bg-surface dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 py-6 transition-colors duration-300 mt-auto">
+      <div class="max-w-6xl mx-auto px-4 flex justify-center gap-2">
+        <a href="?lang=es" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+          <span>🇪🇸</span> Español
+        </a>
+        <a href="?lang=en" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface dark:bg-surface-dark hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+          <span>🇺🇸</span> English
+        </a>
       </div>
     </footer>
 
@@ -627,20 +632,20 @@ def main(
     template_dir = Path(f"resources/html/{route_name}")
     template_dir.mkdir(parents=True, exist_ok=True)
     
-    template_file = template_dir / "index.html"
+    template_file = template_dir / "index.jinja"
     
     if template_file.exists():
-        overwrite = typer.confirm(f"Template {route_name}/index.html already exists. Overwrite?")
+        overwrite = typer.confirm(f"Template {route_name}/index.jinja already exists. Overwrite?")
         if not overwrite:
             typer.echo("Skipping template generation.")
         else:
             with open(template_file, 'w', encoding='utf-8') as f:
                 f.write(template_content)
-            typer.echo(f"✅ Template created: resources/html/{route_name}/index.html")
+            typer.echo(f"✅ Template created: resources/html/{route_name}/index.jinja")
     else:
         with open(template_file, 'w', encoding='utf-8') as f:
             f.write(template_content)
-        typer.echo(f"✅ Template created: resources/html/{route_name}/index.html")
+        typer.echo(f"✅ Template created: resources/html/{route_name}/index.jinja")
     
     # Add import to main.py
     typer.echo(f"\n🔗 Adding routes to main.py...")

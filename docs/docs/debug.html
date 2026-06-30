@@ -98,13 +98,16 @@
 
             <!-- Enabling Debug Mode -->
             <div class="space-y-4 mt-8">
-                <h2>Enabling Debug Mode</h2>
+                <h2>Enabling Debug Mode & Dashboard</h2>
                 <p>
-                    The debugging and profiling features are only active when your application is in debug mode. Ensure that <code>DEBUG=True</code> is set in your <code>app/config.py</code> or your `.env` configuration file.
+                    The debugging and profiling features are only active when your application is in debug mode (<code>DEBUG=True</code> in your <code>.env</code> or config).
+                </p>
+                <p>
+                    In addition, the <strong>Debug Dashboard (<code>/debug</code>)</strong> is disabled by default to keep the framework extremely lightweight. To enable it, pass <code>debug_html=True</code> during the <code>App</code> initialization in <code>main.py</code>:
                 </p>
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
                     <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                        <span class="editor-title text-gray-300 dark:text-gray-400">app/config.py</span>
+                        <span class="editor-title text-gray-300 dark:text-gray-400">main.py</span>
                         <div class="flex space-x-2">
                             <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                             <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -113,8 +116,13 @@
                     </div>
                     <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                         <pre><code class="language-python">
-# Debug must be set to True
-DEBUG = True
+from lila.core.app import App
+
+app = App(
+    debug=True,
+    debug_html=True,  # Enables the /debug dashboard panel
+    # ...
+)
                         </code></pre>
                     </div>
                 </div>

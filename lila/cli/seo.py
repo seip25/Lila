@@ -20,11 +20,15 @@ def _get_base_url(domain: str = None) -> str:
         return domain.rstrip("/")
     
     try:
-        from app.config import APP_URL, HOST, PORT
-        if APP_URL:
-            return APP_URL.rstrip("/")
-        return f"http://{HOST}:{PORT}"
-    except ImportError:
+        from lila.core.config import ENV_CONFIG
+        app_url = ENV_CONFIG.get("APP_URL")
+        if app_url:
+            return app_url.rstrip("/")
+        
+        host = ENV_CONFIG.get("HOST", "127.0.0.1")
+        port = ENV_CONFIG.get("PORT", "8000")
+        return f"http://{host}:{port}"
+    except Exception:
         return "http://localhost:8000"
 
 @app.command()

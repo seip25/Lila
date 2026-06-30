@@ -62,6 +62,7 @@ lila-model = "lila.cli.model:app"
 lila-scaffold-crud = "lila.cli.scaffold_crud:app"
 lila-secret-key = "lila.cli.secret_key:app"
 lila-seo = "lila.cli.seo:app"
+lila-docker = "lila.cli.docker:app"
 
 [tool.setuptools.package-data]
 lila = [
@@ -71,8 +72,8 @@ lila = [
     "templates/**/*",
     "resources/**/*",
     "uploads/**/*",
-    "vite.config.js",
-    "package.json",
+    "docker-compose.yml",
+    "docker/**/*",
     ".env",
     ".gitignore",
     "AGENTS.md",

@@ -56,19 +56,13 @@ https://pypi.org/project/lila-framework/
 
 ---
 
-## Vite & Tailwind CSS v4 Unified Asset Pipeline
-
-Lila features a complete frontend asset builder pipeline driven by **Vite** and **Tailwind CSS v4** which organizes your source styles (`resources/css/tailwind.css`) and scripts (`resources/js/utils.js`) into a unified `resources/` folder:
-- **Zero Configuration**: Dynamically switches between Vite's hot-reload server in development (`DEBUG=True`) and optimized, minified, hashed files resolved via `manifest.json` in production (`DEBUG=False`).
-- **Dynamic Dark/Light Modes**: Built-in `@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` configuration maps Lila's theme switcher with Tailwind's `dark:` classes out-of-the-box.
+## CDN & Style Delivery
+Lila features zero-dependency, compiled-free style delivery. The framework uses `asset('css/tailwind.css')` to automatically load Google Fonts (Outfit & Inter), Tailwind Play CDN, theme configuration, and the custom Lila design system components. Everything compiles in the browser instantly with full support for dark/light themes.
 
 ---
 
-## Pipeline de Activos Unificado con Vite y Tailwind CSS v4
-
-Lila cuenta con un pipeline de compilación de front-end impulsado por **Vite** y **Tailwind CSS v4** que organiza tus estilos fuente (`resources/css/tailwind.css`) y scripts (`resources/js/utils.js`) en la carpeta unificada `resources/`:
-- **Configuración Cero**: Alterna de forma dinámica entre el servidor hot-reload de Vite en desarrollo (`DEBUG=True`) y archivos optimizados, minificados y con hash de caché a través de `manifest.json` en producción (`DEBUG=False`).
-- **Temas Oscuro/Claro Dinámicos**: Configurado nativamente a través de `@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` para que todas las clases `dark:` respondan de inmediato al selector de temas del framework sin configuraciones adicionales.
+## CDN y Entrega de Estilos
+Lila no requiere dependencias de Node.js o Vite para procesar el frontend. A través del helper `asset('css/tailwind.css')`, inyecta dinámicamente Google Fonts (Outfit e Inter), Tailwind Play CDN, configuraciones de tema y la capa de componentes CSS de Lila. Todo se procesa directamente en el navegador, soportando tema oscuro y claro nativamente.
 
 ---
 
