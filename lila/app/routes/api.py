@@ -20,18 +20,6 @@ async def api(request: Request):
     return JSONResponse({"api": True})
 
 
-# English: Define an API route that supports GET and POST methods.
-# Español: Define una ruta de API que soporta los métodos GET y POST.
-@router.route(path="/token", methods=["GET", "POST"])
-# English: Middleware to validate the JWT Token.
-# Español: Middleware para validar token de JWT.
-@validate_token
-async def api_token(request: Request):
-    """Api Token function"""  # use doc for descripction http://127.0.0.1:8001/openapi.json and http://127.0.0.1:8001/docs
-    print(get_user_by_token(request=request))
-    return JSONResponse({"api": True})
-
-
 # English: Example data model using Pydantic.
 # Español: Ejemplo de modelo de datos usando Pydantic.
 class ExampleModel(BaseModel):

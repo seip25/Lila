@@ -26,24 +26,5 @@ async def home(request: Request):
     )
     return response
 
-# English : Example for render 'markdown' file
-# Español : Ejemplo para renderizar un archivo 'markdown'
-@router.get("/markdown")
-async def home(request: Request):
-    # English: Define a list of CSS files to include in the response
-    # Español: Define una lista de archivos CSS para incluir en la respuesta
-    css = ["/public/css/styles.css"]
-    # English: Renders a markdown file with materialcss styling
-    # Español: Renderiza un archivo markdown con el estilo materialcss
-    response = renderMarkdown(
-        request=request, file="example", css_files=css
-    )
-    return response
-
-
-@router.get("/changelogs")
-async def changelogs(request: Request):
-    response =renderMarkdown(request=request, file="changelogs",translate_files=["changelogs"])
-    return response
 
 routes = router.get_routes()
