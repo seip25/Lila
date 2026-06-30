@@ -48,7 +48,55 @@ class App(Starlette):
         public_name: str = "public",
         on_startup: list = None,
         on_shutdown: list = None,
+        translate: bool = True,
+        debug_html: bool = False,
+        secret_key: Optional[str] = None,
+        title: Optional[str] = None,
+        version: Optional[str] = None,
+        description: Optional[str] = None,
+        lang_default: Optional[str] = None,
+        minify_html: Optional[bool] = None,
+        path_log_base_dir: Optional[str] = None,
+        path_template_not_found: Optional[str] = None,
+        path_templates_html: Optional[str] = None,
+        path_templates_markdown: Optional[str] = None,
+        path_locales: Optional[str] = None,
+        path_uploads: Optional[str] = None,
     ):
+        import app.config as config_module
+        if secret_key is not None:
+            config_module.SECRET_KEY = secret_key
+        if title is not None:
+            config_module.TITLE_PROJECT = title
+        if version is not None:
+            config_module.VERSION_PROJECT = version
+        if description is not None:
+            config_module.DESCRIPTION_PROJECT = description
+        if lang_default is not None:
+            config_module.LANG_DEFAULT = lang_default
+        if minify_html is not None:
+            config_module.MINIFY_HTML = minify_html
+        if path_log_base_dir is not None:
+            config_module.PATH_LOG_BASE_DIR = path_log_base_dir
+        if path_template_not_found is not None:
+            config_module.PATH_TEMPLATE_NOT_FOUND = path_template_not_found
+        if path_templates_html is not None:
+            if not path_templates_html.endswith("/"):
+                path_templates_html += "/"
+            config_module.PATH_TEMPLATES_HTML = path_templates_html
+        if path_templates_markdown is not None:
+            if not path_templates_markdown.endswith("/"):
+                path_templates_markdown += "/"
+            config_module.PATH_TEMPLATES_MARKDOWN = path_templates_markdown
+        if path_locales is not None:
+            config_module.PATH_LOCALES = path_locales
+        if path_uploads is not None:
+            config_module.PATH_UPLOADS = path_uploads
+
+        from lila.core.translate import Translate
+        Translate.translate_enabled = translate
+        self.debug_html = debug_html
+
         routes = routes or []
 
         middleware = middleware or []
@@ -63,7 +111,7 @@ class App(Starlette):
             middleware.append(
                 Middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
             )
-        if debug and DEBUG:
+        if debug and DEBUG and debug_html:
             middleware.append(Middleware(DebugMiddleware))
             routerDebug = Router("debug")
 
@@ -138,16 +186,7 @@ class App(Starlette):
             Logger.error(f"Error initializing application: {e}", exception=e)
 
     async def _404_page(self, request, exc):
-        path = request.url.path.lower()
-        if not (
-            any(path.endswith(ext) for ext in STATIC_EXTENSIONS)
-            or any(p in path for p in EXCLUDED_PATHS)
-        ):
-            Logger.warning(
-                f"404 Not Found: {request.url.path} - {await Logger.request(request=request)}"
-            )
-
-        template_path = Path(f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}.html")
+        template_path = Path(f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}.jinja")
         if template_path.exists():
             return render(request=request, template=PATH_TEMPLATE_NOT_FOUND)
         return HTMLResponse(

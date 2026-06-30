@@ -12,6 +12,7 @@ class Translate:
     Clase de utilidad de traducción central para cargar, almacenar en caché y recuperar traducciones.
     """
     _PROCESSED_CACHE: dict[str, dict[str, dict]] = {}
+    translate_enabled = True
 
     @staticmethod
     def load_translations(file_name: str) -> dict:
@@ -21,6 +22,10 @@ class Translate:
         """
         if file_name in _TRANSLATIONS_CACHE:
             return _TRANSLATIONS_CACHE[file_name]
+
+        if not getattr(Translate, "translate_enabled", True) and file_name == "translations":
+            _TRANSLATIONS_CACHE[file_name] = {}
+            return {}
 
         file_path = Path(PATH_LOCALES) / f"{file_name}.json"
         try:
