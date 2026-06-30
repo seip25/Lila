@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Minify</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+      <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+  <main>
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+      <h4>Menu</h4>
+      <a href="install.html">Installation</a>
+      <a href="routes.html">Routes</a>
+      <a href="static.html">Static</a>
+      <a href="templates.html">Templates</a>
+      <a href="session.html">Session</a>
+      <a href="upload.html">Uploads Files</a>
+      <a href="markdown.html">Markdown/HTML</a>
+      <a href="locales.html">Internationalization</a>
+      <a href="models.html">Models</a>
+      <a href="middlewares.html">Middlewares</a>
+      <a href="cli.html">CLI Commands</a>
+      <a href="connections.html">Connections</a>
+      <a href="migrations.html">Migrations</a>
+      <a href="auth.html">Auth Cli </a>
+      <a href="scaffold.html">Scaffold CRUD</a>
+      <a href="rest_api.html">API Rest CRUD</a>
+      <a href="admin.html">Admin Panel</a>
+      <a href="minify.html">Minify</a>
+      <a href="production.html">Production</a>
+    </aside>
+    <div>
+      <article id="minify-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+        <h1>Minify Files for Production</h1>
+        <p>
+          With the <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-minify</code>
+          command you can minify your js and css files
+          located in the <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js</code>
+          and <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/css</code>
+          folders.
+        </p>
+
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class="editor-content">
+            <pre><code class="language-bash">
+lila-minify
+</code></pre>
+          </div>
+        </div>
+
+
+      </article>
+      <article id="optimize-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+        <h2 class="mt-8">Asset Optimizer (lila-optimize)</h2>
+        <p>
+          For maximum Lighthouse scores and zero-CPU overhead in production, use the <code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-optimize</code>
+          command.
+        </p>
+        <p>
+          Unlike <code>lila-minify</code> which overwrites files, <code>lila-optimize</code> acts as an Ahead-of-Time
+          asset builder:
+        </p>
+        <ul class="list-disc pl-5 mt-2 mb-4">
+          <li><strong>Images:</strong> Converts <code>.png</code>, <code>.jpg</code>, and <code>.jpeg</code> to
+            <code>.webp</code> using Pillow (quality 80%).</li>
+          <li><strong>CSS/JS:</strong> Generates parallel <code>.min.css</code> and <code>.min.js</code> files without
+            destroying your original source code.</li>
+          <li><strong>Manifest:</strong> Generates an <code>app/assets_manifest.json</code> dictionary.</li>
+        </ul>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400">Terminal Command</span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class="editor-content">
+            <pre><code class="language-bash">
+lila-optimize
+</code></pre>
+          </div>
+        </div>
+
+        <h3 class="mt-4">Silent Magic (Templates)</h3>
+        <p>
+          When <code>DEBUG=False</code>, Lila automatically loads the manifest into RAM. The
+          <code>{{ '{{' }} public('img/logo.png') {{ '}}' }}</code> Jinja helper performs a fast dictionary lookup. If a
+          <code>.webp</code> or <code>.min.js</code> version exists in the manifest, it will automatically serve it
+          instead of the original file, saving you from rewriting your HTML!
+        </p>
+
+        <h2 class="mt-8">Modern Alternative: Unified Vite Asset Pipeline</h2>
+        <p>
+          If you are working in a modern frontend environment with Node.js and npm installed, Lila includes built-in support for a <strong>Vite + Tailwind CSS v4</strong> pipeline which replaces the need for <code>lila-minify</code> or <code>lila-optimize</code>:
+        </p>
+        <ul class="list-disc pl-5 mt-2 mb-4">
+          <li><strong>Zero-Config Dev:</strong> Simply run <code>npm run dev</code> to boot both the Vite dev server and the Python uvicorn server in parallel, providing full Hot Module Replacement (HMR) for CSS and JS assets in real-time.</li>
+          <li><strong>Production Builds:</strong> Run <code>npm run build</code> to compile, bundle, and generate cached hashed files (e.g. <code>utils-CnU24iax.js</code>) via Vite's native <code>manifest.json</code>. Lila resolves these hashed files automatically in production.</li>
+          <li><strong>Zero-Dependency Fallbacks:</strong> If Node.js is not present on a target system, Lila falls back seamlessly to static files in the <code>public/</code> folder, ensuring your project always runs out-of-the-box.</li>
+        </ul>
+      </article>
+    </div>
+  </main>
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

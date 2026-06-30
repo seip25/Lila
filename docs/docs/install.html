@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Python Web Framework</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+      <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+
+  <main>
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="templates.html">Templates</a>
+  <a href="session.html">Session</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="models.html">Models</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="auth.html">Auth Cli </a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="minify.html">Minify</a>
+  <a href="production.html">Production</a>
+</aside>
+
+    <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">Install</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="p-4 text-white">
+          <div class="flex items-center">
+            <span class="text-green-400 mr-2">$</span><span>python -m venv venv</span>
+          </div>
+          <div class="flex items-center">
+            <span class="text-green-400 mr-2">$</span><span>source venv/bin/activate
+              <span class="text-gray-500"># On Windows, `venv\Scripts\activate`</span></span>
+          </div>
+          <div class="flex items-center">
+            <span class="text-green-400 mr-2">$</span><span>pip install lila-framework</span>
+          </div>
+          <div class="flex items-center">
+            <span class="text-green-400 mr-2">$</span><span>lila-init</span>
+          </div>
+
+          <div class="flex items-center">
+            <span class="text-green-400 mr-2">$</span><span>python main.py </span>
+          </div>
+          <div class="inline-block w-2 h-4 bg-white animate-pulse" role="presentation"></div>
+        </div>
+      </div>
+      <div id="tailwind-integration" class="mt-8">
+        <h2>Built-in Tailwind CSS v4 Support</h2>
+        <p>
+          Lila includes native, top-tier integration with **Tailwind CSS v4** + **Vite** right out-of-the-box.
+        </p>
+        <ul>
+          <li><b>Zero-Config CDN Fallback:</b> When starting your application for the first time or if you do not want to use Node.js/Vite, Lila automatically detects the absence of <code class="code-inline">package-lock.json</code> in <code>DEBUG</code> mode and seamlessly loads Tailwind CSS from the official Play CDN. Your styles will look gorgeous instantly without running any npm command!</li>
+          <li><b>Vite Hot Reload:</b> As soon as you run <code class="code-inline">npm install</code> and start the Vite dev server with <code class="code-inline">npm run dev</code>, Lila automatically upgrades the styling engine to use the local high-performance Vite compiler with full Hot Module Replacement (HMR)!</li>
+          <li><b>Production Ready:</b> Building your assets with <code class="code-inline">npm run build</code> compiles fully optimized, minified, and hashed CSS files mapped via the production assets manifest.</li>
+          <li><b>Customization &amp; Removal:</b> If you prefer to use another CSS framework (such as Lila CSS or Bootstrap), simply edit your main layout base file at <code class="code-inline">resources/html/lila/base.html</code> and change or remove the <code class="code-inline">{{ asset('css/tailwind.css') | safe }}</code> call!</li>
+        </ul>
+      </div>
+
+      <div id="app-py-eng" class="mt-8">
+        <h2>️ Application Configuration</h2>
+        <p>
+          <strong>Purpose:</strong> Configure and start the application.
+          main.py is the main entry point where the application is configured
+          and initialized.
+        </p>
+
+        <h3>Production Configuration Caching (`config_cache.py`)</h3>
+        <p>
+          Lila is built with maximum performance in mind. Reading from a `.env` file on every request is a known disk I/O bottleneck in python web applications. To eliminate this, Lila features an intelligent, automated config caching mechanism:
+        </p>
+        <ul>
+          <li><b>How it works:</b> In production mode (when `DEBUG=False` in your `.env`), Lila reads the environment variables from `.env` once and compiles them into a static Python file named <code class="code-inline">config_cache.py</code> inside your `app/` folder.</li>
+          <li><b>High-Speed Imports:</b> On subsequent requests/startups, Lila completely bypasses the `.env` disk reader and directly imports <code class="code-inline">app.config_cache</code> at compiled CPython speeds.</li>
+          <li><b>Smart Invalidation:</b> Lila automatically detects if your `.env` file has been modified since the cache was generated by comparing their file modification times, automatically regenerating the cache file on-the-fly when changes are detected.</li>
+          <li><b>Development Friendly:</b> When `DEBUG=True`, the caching system is completely disabled so you always see your configuration changes instantly without having to clear any cache.</li>
+        </ul>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+              <i class="fas fa-file-code mr-2"></i>main.py Explanation
+            </span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
+ from lila.core.app import App
+from app.routes.routes import routes
+from app.routes.api import routes as api_routes
+from lila.core.middleware import Middleware
+from app.config import PORT, HOST, DEBUG,JIT
+from app.middlewares.security import (
+    LoggingMiddleware, 
+    SecurityHeadersMiddleware,
+    SecurityShieldMiddleware,
+    RateLimitMiddleware,
+    ErrorHandlerMiddleware,
+)
+from lila.core.logger import delete_old_logs
+import itertools
+import uvicorn
+import asyncio
+import os
+
+# English: Combining application and API routes into a single list.
+# Español: Combinando las rutas de la aplicación y la API en una única lista.
+all_routes = list(itertools.chain(routes, api_routes))
+
+#English : Marker for the api routes in main.py (also used by scaffold generator)
+#Español: Marcardor para añadir automaticamente rutas api en main.py (también usado por generador de scaffold)
+# api_marker
+
+#English : Marker for the auth routes in main.py
+#Español: Marcardor para añadir automaticamente rutas auth en main.py
+# auth_marker 
+
+# English: Marker for the admin routes in main.py.
+# Español: Marcador para las rutas de administrador en main.py.
+# admin_marker
+
+   
+cors = None
+
+# English: CORS usage example
+# Español : Ejemplo de utilización de CORS
+# cors={
+#     "origin": ["*"],
+#     "allow_credentials" : True,
+#     "allow_methods":["*"],
+#     "allow_headers": ["*"]
+# }
+# app = App(debug=True, routes=all_routes,cors=cors)
+
+
+#English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
+#Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
+# middlewares = [
+#     Middleware(LoggingMiddleware),
+#     Middleware(SecurityHeadersMiddleware),
+#     Middleware(SecurityShieldMiddleware),
+#     Middleware(RateLimitMiddleware),
+#     Middleware(ErrorHandlerMiddleware)
+#      ]
+
+middlewares = [
+    Middleware(ErrorHandlerMiddleware)
+]
+
+# English: Initializing the application with debugging enabled and the combined routes.
+# Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
+app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
+
+def main():
+    # English: Starting the Uvicorn server with the application instance.
+    # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
+
+if __name__ == "__main__":
+    try:
+        if JIT:
+            os.environ["PYTHON_JIT"] = "1"
+        main()
+    except KeyboardInterrupt:
+        print("Shutting down the application...")
+        pass
+            </code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Python Web Framework</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+
+  <link rel="icon" type="image/png" href="img/lila.png" alt="Lila Framework Logo" />
+
+  <link rel="stylesheet" href="css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="css/lila.css" />
+
+  <!-- Google Fonts for Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemini: {
+              blue: '#1a73e8',
+              blueBg: '#f0f4f9',
+              blueHover: '#e1ecf8',
+              indigo: '#4f46e5',
+              purple: '#8b5cf6',
+              accent: '#4285f4',
+              darkBg: '#090d16',
+              darkCard: '#131b2e',
+              darkBorder: '#1e293b',
+              darkHover: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body
+  class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans transition-all duration-300">
+  <header
+    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    <nav class="max-w-6xl mx-auto px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-xl gemini-gradient-bg flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-500/20">
+          L
+        </div>
+        <h1
+          class="text-2xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Lila Framework</h1>
+      </div>
+
+      <div class="flex items-center gap-3 hidden sm:block">
+        <a href="docs/documentation.html"
+          class="px-5 py-2.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-950/60">
+          Documentation
+        </a>
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="px-5 py-2.5 rounded-full text-sm font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+          Github
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-12 flex-1 flex flex-col gap-16 w-full">
+    <!-- Hero Section -->
+    <section class="text-center flex flex-col items-center gap-6 py-8">
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider">
+        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+        ✨ Lila Framework v1.1.3 is Live
+      </div>
+
+      <h1
+        class="text-5xl md:text-7xl font-extrabold font-heading tracking-tight leading-none bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent max-w-4xl">Python Web Development</h1>
+
+      <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl font-medium">
+        A high-performance async framework built on Starlette and Pydantic. Designed for absolute simplicity, maximum
+        flexibility, and lightning speed.
+      </p>
+
+      <div class="flex flex-wrap justify-center items-center gap-4 mt-4">
+        <a href="docs/documentation.html"
+          class="px-8 py-3.5 rounded-full text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
+          Get Started
+        </a>
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="px-8 py-3.5 rounded-full text-base font-semibold border border-slate-300 bg-white hover:bg-slate-50 transition-all duration-300 dark:border-slate-700 dark:bg-[#131b2e] dark:hover:bg-slate-800">
+          View on GitHub
+        </a>
+      </div>
+    </section>
+
+    <!-- Description & Terminal Installer Section -->
+    <section
+      class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#131b2e] rounded-3xl p-8 lg:p-12 border border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-100/50 dark:shadow-none">
+      <div class="lg:col-span-6 flex flex-col gap-6">
+        <h2 class="text-3xl font-bold font-heading text-slate-800 dark:text-white tracking-tight">Designed for Modern APIs & Web Apps</h2>
+        <p class="text-slate-500 dark:text-slate-400">
+          <strong>Lila</strong> combines the asynchronous execution power of
+          <a href="https://www.starlette.io/"
+            class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Starlette</a>
+          and the rapid, bulletproof data validation of
+          <a href="https://docs.pydantic.dev/latest/"
+            class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pydantic</a>.
+          It empowers you to build highly scalable RESTful services with automatic routing and built-in database tools.
+        </p>
+        <div
+          class="p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30 flex items-start gap-4">
+          <span class="text-2xl mt-0.5">⚡</span>
+          <div>
+            <h4 class="font-semibold text-blue-700 dark:text-blue-400">Search Engine Integrated</h4>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Lila features dynamic automated integrations with SEO metadata tools, optimized for Google Bots and AI
+              scrapers.
+            </p>
+          </div>
+        </div>
+        <p class="text-sm font-medium text-slate-400 dark:text-slate-500">
+          * Supports Python 3.9+ with native async/await coroutines.
+        </p>
+        <small class="text-xs font-medium text-slate-400 dark:text-slate-500">Recommended: 3.14 version</small>
+      </div>
+
+      <div class="lg:col-span-6">
+        <div
+          class="bg-[#0b0f19] rounded-2xl border border-slate-800/80 shadow-2xl overflow-hidden font-mono text-sm relative group">
+          <!-- Window Header -->
+          <div class="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500/90 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500/90 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500/90 rounded-full"></div>
+            </div>
+
+          </div>
+
+          <!-- Terminal Output -->
+          <div class="p-6 text-slate-300 space-y-3 min-h-[300px] flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span>python -m venv venv</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span>source venv/bin/activate <span class="text-slate-500 ml-2"># Windows:
+                    venv\Scripts\activate</span></span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span class="text-green-400 font-medium">pip install lila-framework</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span>lila-init</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span>lila-migrations</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span>lila-create-panel-admin</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span class="text-indigo-400 font-semibold">python main.py</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-slate-900 text-xs text-slate-500">
+              <span>⚡ System compiled successfully</span>
+              <span class="w-2.5 h-4 bg-blue-500 animate-pulse"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Features Section -->
+    <section id="features" class="flex flex-col gap-12 py-4">
+      <div class="text-center flex flex-col gap-4">
+        <h2 class="text-4xl font-extrabold font-heading text-slate-800 dark:text-white tracking-tight">Engineered for Superior Developer Experience</h2>
+        <p class="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">
+          Lila provides robust tools out of the box to significantly accelerate your development cycles.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-2xl">
+            🎯
+          </div>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Simplicity First</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Intuitive and minimalist design. Lila is built to be simple to write, offering an elegant framework API that
+            gets you running in seconds.
+          </p>
+        </article>
+
+        <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-2xl">
+            🔧
+          </div>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Flexibility</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Supports SQLite, MySQL, and PostgreSQL seamlessly. Easily adapt to any infrastructure model, from simple
+            scripts to production scale.
+          </p>
+        </article>
+
+        <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
+          <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-950/50 flex items-center justify-center text-2xl">
+            ⚡
+          </div>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Maximum Speed</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Powered by Starlette async coroutines, Lila delivers extremely low latency for real-time application
+            handlers and REST interfaces.
+          </p>
+        </article>
+
+        <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
+          <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-950/50 flex items-center justify-center text-2xl">
+            🛡️
+          </div>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Strict Validation</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Utilizes Pydantic parsing systems to guarantee robust, type-checked inputs and outputs. Never let malformed
+            payloads pass your routes.
+          </p>
+        </article>
+
+        <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-yellow-50 dark:bg-yellow-950/50 flex items-center justify-center text-2xl">
+            📊
+          </div>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Automatic Admin Panel</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Generate fully customizable admin dashboard tools instantaneously. Track your system resources, server
+            metrics, and view real-time logs.
+          </p>
+        </article>
+
+        <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-2xl">
+            🌍
+          </div>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Built-in i18n</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Native localization architecture to build systems supporting dynamic content translation tailored to user
+            location and preferences.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer
+    class="bg-white dark:bg-[#131b2e] border-t border-slate-200/50 dark:border-slate-800/50 py-12 transition-all duration-300">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col items-center gap-8">
+      <div class="flex flex-wrap justify-center gap-8">
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="text-sm font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+          GitHub Repo
+        </a>
+        <a href="https://github.com/seip25/" target="_blank"
+          class="text-sm font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+          Personal Github
+        </a>
+        <a href="https://www.linkedin.com/in/andres-paiva-silveira-88b65a207/" target="_blank"
+          class="text-sm font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+          LinkedIn
+        </a>
+      </div>
+
+      <div class="flex flex-wrap justify-center items-center gap-4">
+        <a href="https://pepy.tech/projects/lila-framework" target="_blank"
+          class="hover:scale-105 transition-transform">
+          <img src="https://static.pepy.tech/badge/lila-framework" alt="PyPI Downloads" class="h-6" />
+        </a>
+        <a href="https://www.paypal.com/donate/?business=C65NYY5JGJZDS&no_recurring=0&item_name=Si+te+gusta+mi+trabajo%2C+puedes+apoyarme.%0ALas+donaciones+me+ayudan+a+dedicar+m%C3%A1s+tiempo+a+mejorar+este+proyecto&currency_code=USD"
+          target="_blank" class="hover:scale-105 transition-transform">
+          <img src="https://img.shields.io/badge/Donar-PayPal-0070ba?style=flat&logo=paypal" alt="Donar" class="h-6" />
+        </a>
+      </div>
+
+      <div class="text-center border-t border-slate-200/50 dark:border-slate-800/50 w-full pt-8">
+        <p class="text-sm text-slate-400 dark:text-slate-500">
+          &copy; 2026 Lila Framework. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+
+  <script src="js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="js/anime.js"></script>
+</body>
+
+</html>

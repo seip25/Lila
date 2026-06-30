@@ -1,0 +1,450 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Session Management</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+      <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+
+  <main>
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+      <h4>Menu</h4>
+      <a href="install.html">Installation</a>
+      <a href="routes.html">Routes</a>
+      <a href="static.html">Static</a>
+      <a href="templates.html">Templates</a>
+      <a href="session.html">Session</a>
+      <a href="upload.html">Uploads Files</a>
+      <a href="markdown.html">Markdown/HTML</a>
+      <a href="locales.html">Internationalization</a>
+      <a href="models.html">Models</a>
+      <a href="middlewares.html">Middlewares</a>
+      <a href="cli.html">CLI Commands</a>
+      <a href="connections.html">Connections</a>
+      <a href="migrations.html">Migrations</a>
+      <a href="auth.html">Auth Cli </a>
+      <a href="scaffold.html">Scaffold CRUD</a>
+      <a href="rest_api.html">API Rest CRUD</a>
+      <a href="admin.html">Admin Panel</a>
+      <a href="minify.html">Minify</a>
+      <a href="production.html">Production</a>
+    </aside>
+
+    <article id="session-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h1>Session Management</h1>
+      <p>
+        Lila provides a simple yet powerful session management system built on top of
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">itsdangerous</code>
+        for cryptographically signed session data. This ensures that session data cannot be
+        tampered with on the client side.
+      </p>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
+        class provides a set of static methods to handle session data.
+      </p>
+
+      <h2>Setting Session Data</h2>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">setSession</code>
+        method is used to store session data in a cookie. It can handle strings, dictionaries,
+        and lists, which are automatically serialized to JSON.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            setSession example
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">
+from lila.core.session import Session
+from lila.core.responses import JSONResponse
+
+@router.route("/set-session", methods=["GET"])
+async def set_session_example(request: Request):
+  response = JSONResponse({"message": "Session has been set"})
+  session_data = {"user_id": 123, "username": "lila_user"}
+  Session.setSession(new_val=session_data, response=response, name_cookie="user_session")
+  return response
+          </code></pre>
+        </div>
+      </div>
+
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">setSession</code>
+        method accepts several parameters to customize the cookie, such as
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">secure</code>,
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">samesite</code>,
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">max_age</code>,
+        etc.
+      </p>
+
+      <h2>Getting Session Data</h2>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSession</code>
+        method retrieves the raw, signed session data from a cookie. To get the unsigned and
+        validated data, use
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSessionValue</code>
+        or
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">unsign</code>.
+      </p>
+
+      <h2>Unsigning and Validating Session Data</h2>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">unsign</code>
+        and
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSessionValue</code>
+        methods get the session data in its original form after verifying the signature.
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">getSessionValue</code>
+        is recommended because it also gracefully handles expired signatures.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            getSessionValue example
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">
+from lila.core.session import Session
+
+@router.route("/get-session", methods=["GET"])
+async def get_session_example(request: Request):
+  session_data = Session.getSessionValue(request=request, key="user_session")
+  if session_data:
+    return JSONResponse({"session_data": session_data})
+  else:
+    return JSONResponse({"message": "No session found or session is invalid/expired."}, status_code=401)
+          </code></pre>
+        </div>
+      </div>
+
+      <h2>️ Deleting a Session</h2>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">deleteSession</code>
+        method is used to delete a session cookie from the client's browser.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            deleteSession example
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">
+from lila.core.session import Session
+from lila.core.responses import JSONResponse
+
+@router.route("/logout", methods=["GET"])
+async def logout(request: Request):
+  response = JSONResponse({"message": "Logged out successfully"})
+  Session.deleteSession(response=response, name_cookie="user_session")
+  return response
+          </code></pre>
+        </div>
+      </div>
+
+      <h2>Simplified Async Helpers</h2>
+      <p>
+        For convenience, Lila provides async static methods in the
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
+        class that simplify common operations.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            Simplified Helpers
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">
+from lila.core.session import Session
+
+# Get session data
+data = await Session.get(request, key="auth")
+
+# Set session data (requires response)
+await Session.set(request, response, data={"id": 1}, key="auth")
+
+# Delete session data
+await Session.delete(response, key="auth")
+          </code></pre>
+        </div>
+      </div>
+
+      <h2>Full Session Class Reference</h2>
+      <p>
+        Here is the full code for the
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Session</code>
+        class for your reference.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            lila/core/session.py
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">
+import orjson
+from app.config import SECRET_KEY
+from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
+from lila.core.request import Request
+from typing import Union, Optional, Dict, List
+from lila.core.logger import Logger
+
+serializer = URLSafeTimedSerializer(SECRET_KEY)
+
+class Session:
+    @staticmethod
+    def setSession(
+        new_val: str | dict | list,
+        response,
+        name_cookie: str = "session",
+        secure: bool = True,
+        samesite: str = "strict",
+        max_age: int = 3600,
+        domain: Optional[str] = None,
+        http_only: bool = True,
+        path: str = "/",
+    ) -> bool:
+        try:
+            if isinstance(new_val, (dict, list)):
+                new_val = orjson.dumps(new_val).decode()
+            else:
+                new_val = str(new_val)
+
+            signed_session = serializer.dumps(new_val)
+
+            response.set_cookie(
+                key=name_cookie,
+                value=signed_session,
+                max_age=max_age,
+                expires=max_age,
+                secure=secure,
+                httponly=http_only,
+                samesite=samesite,
+                domain=domain,
+                path=path,
+            )
+            return True
+        except (TypeError, ValueError, Exception) as e:
+            Logger.error(f"Error setting session: {str(e)}")
+            return False
+
+    @staticmethod
+    def getSession(key: str, request: Request) -> Optional[str]:
+        return request.cookies.get(key)
+
+    @staticmethod
+    def unsign(
+        key: str, request: Request, max_age: Optional[int] = None
+    ) -> Union[Dict, List, str, None]:
+        """Unsign and return the session data for the given cookie key."""
+        session_data = request.cookies.get(key)
+        if not session_data:
+            return None
+
+        try:
+            unsigned_data = serializer.loads(session_data, max_age=max_age)
+            try:
+                return orjson.loads(unsigned_data)
+            except orjson.JSONDecodeError:
+                return unsigned_data
+
+        except SignatureExpired:
+            Logger.warning(f"Session expired for cookie: {key}")
+            return None
+        except BadSignature:
+            Logger.warning(f"Invalid session signature for cookie: {key}")
+            return None
+        except Exception as e:
+            Logger.error(f"Error unsigning session: {str(e)}")
+            return None
+
+    @staticmethod
+    def deleteSession(response, name_cookie: str) -> bool:
+        try:
+            response.delete_cookie(name_cookie)
+            return True
+        except Exception as e:
+            Logger.error(f"Error deleting session: {str(e)}")
+            return False
+
+    @staticmethod
+    def getSessionValue(
+        request: Request, key: str = "auth", max_age: Optional[int] = 3600
+    ) -> Union[Dict, List, str, None]:
+        """Convenience wrapper around unsign with a default max_age."""
+        return Session.unsign(key=key, request=request, max_age=max_age)
+
+    @staticmethod
+    async def get(request: Request, key: str = "auth") -> Union[Dict, List, str, None]:
+        """Async helper to get session data."""
+        return Session.unsign(key=key, request=request)
+
+    @staticmethod
+    async def set(
+        request: Request, response, data: dict, key: str = "auth", max_age: int = 3600
+    ) -> bool:
+        """Async helper to set session data."""
+        return Session.setSession(new_val=data, response=response, name_cookie=key, max_age=max_age)
+
+    @staticmethod
+    async def delete(response, key: str = "auth") -> bool:
+        """Async helper to delete session data."""
+        return Session.deleteSession(response=response, name_cookie=key)
+          </code></pre>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

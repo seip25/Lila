@@ -33,8 +33,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         tailwind: resolve(__dirname, 'resources/css/tailwind.css'),
-        utils: resolve(__dirname, 'resources/js/utils.js'),
-        spa: resolve(__dirname, 'resources/js/spa.js')
+        utils: resolve(__dirname, 'resources/js/utils.js')
       },
       output: {
         entryFileNames: 'js/[name].js',

@@ -1,21 +1,17 @@
 # About Lila
 
-Lila is a  Python framework based on Starlette and Pydantic. Designed for developers seeking simplicity, flexibility, and robustness, it enables efficient and customizable Web or API application development. Its modular structure and support for advanced configurations make it suitable for both beginners and experienced developers.
+Lila is a minimalist Python framework based on Starlette and Pydantic. Designed for developers seeking simplicity, flexibility, and robustness, it enables efficient and customizable Web or API application development. Its modular structure and support for advanced configurations make it suitable for both beginners and experienced developers.
 
 
 # Acerca de  Lila (Español)
 
-Lila es un framework  de Python basado en Starlette y Pydantic. Diseñado para desarrolladores que buscan simplicidad, flexibilidad y robustez, permite crear aplicaciones Web o APIs de manera eficiente y personalizable. Su estructura modular y soporte para configuraciones avanzadas lo hacen ideal tanto para principiantes como para desarrolladores experimentados.
+Lila es un framework minimalista de Python basado en Starlette y Pydantic. Diseñado para desarrolladores que buscan simplicidad, flexibilidad y robustez, permite crear aplicaciones Web o APIs de manera eficiente y personalizable. Su estructura modular y soporte para configuraciones avanzadas lo hacen ideal tanto para principiantes como para desarrolladores experimentados.
 
 # Learning Lila
 https://seip25.github.io/Lila 
 
 # Documentación de Lila
 https://seip25.github.io/Lila
-
-
-https://pypi.org/project/lila-framework/   
- 
 
 ## Key Features
 
@@ -53,22 +49,6 @@ https://pypi.org/project/lila-framework/
 - **Seguridad Robusta**: Cuenta con bloqueo de IPs, filtrado de URLs y sanitización de solicitudes para prevenir ataques maliciosos y solicitudes sospechosas.
 - **Generador de APIs REST**: Genera APIs REST con solo unas pocas líneas de código. Incluye validaciones de campos y soporte para middlewares.
 
-
----
-
-## Vite & Tailwind CSS v4 Unified Asset Pipeline
-
-Lila features a complete frontend asset builder pipeline driven by **Vite** and **Tailwind CSS v4** which organizes your source styles (`resources/css/tailwind.css`) and scripts (`resources/js/utils.js`) into a unified `resources/` folder:
-- **Zero Configuration**: Dynamically switches between Vite's hot-reload server in development (`DEBUG=True`) and optimized, minified, hashed files resolved via `manifest.json` in production (`DEBUG=False`).
-- **Dynamic Dark/Light Modes**: Built-in `@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` configuration maps Lila's theme switcher with Tailwind's `dark:` classes out-of-the-box.
-
----
-
-## Pipeline de Activos Unificado con Vite y Tailwind CSS v4
-
-Lila cuenta con un pipeline de compilación de front-end impulsado por **Vite** y **Tailwind CSS v4** que organiza tus estilos fuente (`resources/css/tailwind.css`) y scripts (`resources/js/utils.js`) en la carpeta unificada `resources/`:
-- **Configuración Cero**: Alterna de forma dinámica entre el servidor hot-reload de Vite en desarrollo (`DEBUG=True`) y archivos optimizados, minificados y con hash de caché a través de `manifest.json` en producción (`DEBUG=False`).
-- **Temas Oscuro/Claro Dinámicos**: Configurado nativamente a través de `@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));` para que todas las clases `dark:` respondan de inmediato al selector de temas del framework sin configuraciones adicionales.
 
 ---
 
@@ -121,7 +101,4 @@ Lila cuenta con un pipeline de compilación de front-end impulsado por **Vite** 
 At this stage, all official modifications to the framework will be made only by the original author. However, any feedback or suggestions to improve the project are welcome.
 
 Actualmente, todas las modificaciones oficiales al framework serán realizadas únicamente por el autor original. Sin embargo, se agradece cualquier comentario o sugerencia que pueda mejorar el proyecto.
-
-
-[![Donar](https://img.shields.io/badge/Donar-PayPal-blue)](https://www.paypal.com/donate/?business=C65NYY5JGJZDS&no_recurring=0&item_name=Si+te+gusta+mi+trabajo%2C+puedes+apoyarme.%0ALas+donaciones+me+ayudan+a+dedicar+m%C3%A1s+tiempo+a+mejorar+este+proyecto&currency_code=USD)  
 

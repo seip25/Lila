@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Python Web Framework</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <meta property="og:title" content="Lila Framework - Python Web Framework" />
+  <meta property="og:description"
+    content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+  <meta name="twitter:description"
+    content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+      <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+
+  <main>
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+      <h4>Menu</h4>
+      <a href="install.html">Installation</a>
+      <a href="routes.html">Routes</a>
+      <a href="static.html">Static</a>
+      <a href="templates.html">Templates</a>
+      <a href="session.html">Session</a>
+      <a href="upload.html">Uploads Files</a>
+      <a href="markdown.html">Markdown/HTML</a>
+      <a href="locales.html">Internationalization</a>
+      <a href="models.html">Models</a>
+      <a href="middlewares.html">Middlewares</a>
+      <a href="cli.html">CLI Commands</a>
+      <a href="connections.html">Connections</a>
+      <a href="migrations.html">Migrations</a>
+      <a href="auth.html">Auth Cli </a>
+      <a href="scaffold.html">Scaffold CRUD</a>
+      <a href="rest_api.html">API Rest CRUD</a>
+      <a href="admin.html">Admin Panel</a>
+      <a href="minify.html">Minify</a>
+      <a href="production.html">Production</a>
+    </aside>
+
+    <article id="templates-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h1>Template Rendering (Jinja2)</h1>
+      <p>
+        In Lila, you can use
+        <strong>Jinja2</strong>
+        to render HTML with server data
+      </p>
+
+      <div>
+        <p>
+          Jinja2 is the default for rendering HTML templates. You can pass
+          data like translations, values, lists, or dictionaries using the
+          <code>context</code>
+          parameter.
+        </p>
+
+        <h3>Basic Usage in Routes</h3>
+
+        <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+          <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+            <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+              <i class="fas fa-code mr-2"></i>Render function
+            </span>
+            <div class="flex space-x-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div class="editor-content bg-gray-900 dark:bg-black">
+            <pre><code class="language-python">
+from lila.core.templates import render
+from lila.core.responses import Response
+from lila.core.routing import Router
+from lila.core.request import Request
+
+router = Router()
+
+@router.get("/")
+async def home(request: Request):
+    """Home page"""
+    
+    context = {
+        "title": "Lila Framework",
+        "message": "Hello from Lila!"
+    }
+    response = render(
+        request, 
+        "index.html", # HTML template name in resources/html/
+        context=context
+    )
+    # Renders the 'index' template
+    
+    return response
+
+routes=router.get_routes()
+</code>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <h3>The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code> Function</h3>
+      <p>
+        The
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code>
+        function is located in
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.templates</code>:
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
+            Template
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class=" ">
+          <pre><code class="language-python">
+def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
+
+</code>
+</pre>
+        </div>
+      </div>
+
+      <h3 class="text-2xl font-semibold">Parameter Description</h3>
+      <ul class="rounded bg-surface py-4 px-4">
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>request:</strong>
+          <p>
+            The
+            <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">Request</code>
+            object.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>template (str):</strong>
+          <p>
+            Template name (without the
+            <code
+              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.html</code>
+            extension).
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>context (dict):</strong>
+          <p>
+            Data to pass to the template (dictionaries, lists, etc.).
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>files_translate (list):</strong>
+          <p>
+            List of additional translation files.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>lang_default (str):</strong>
+          <p>
+            Forced default language (ideal for SEO in routes like
+            <code
+              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/es</code>,
+            <code
+              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/en</code>,
+            etc.).
+          </p>
+        </li>
+      </ul>
+      <p>
+        In Lila, you can also use
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">translate</code>
+        to pass translations to Jinja2, and parameters like
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">title</code>
+        or
+        <code
+          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">version</code>
+        (ideal for structuring APIs: "v1", "v2").
+      </p>
+      </div>
+
+
+      <!-- CONTEXT SYSTEM -->
+      <h3>Base Context Injection</h3>
+
+      <p>
+        All optimization features work thanks to the base context
+        automatically injected into Jinja2 templates:
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+            Base Context
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+
+        </div>
+        <div class="editor-content">
+          <pre><code class="language-python">
+def get_base_context(request, files_translate=[], lang_default=None):
+    context = {
+        "title": TITLE_PROJECT,
+        "version": VERSION_PROJECT,
+        "lang": lang_default if lang_default else lang(request),
+        "translate": t("translations", request, lang_default=lang_default),
+        "description": DESCRIPTION_DEFAULT,
+        "keywords": KEYWORDS_DEFAULT,
+        "author": AUTHOR_DEFAULT,
+    }
+
+    for file_name in files_translate:
+        context["translate"].update(
+            t(file_name, request, lang_default=lang_default)
+        )
+
+    return context
+      </code></pre>
+        </div>
+      </div>
+      <h3 class=" mt-8 text-2xl font-semibold">Jinja2 Helpers</h3>
+      <p>Lila provides several helpers to make your templates more powerful:</p>
+
+      <ul class="rounded bg-surface py-4 px-4">
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>hot_reload():</strong>
+          <p class="ml-2">
+            Injects Vite's Hot Module Replacement (HMR) scripts.
+            <strong>Only active when DEBUG=True</strong>.
+            Place it in the <code>&lt;head&gt;</code> of your main layout.
+          </p>
+        </li>
+
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>public(path):</strong>
+          <p class="ml-2">
+            Resolves paths to static assets under the <code>public/</code> directory. In addition, it automatically checks the system assets manifest in RAM to swap files for their optimized, compressed, or minified versions (e.g., swapping <code>.css</code> for <code>.min.css</code>, or images for their highly optimized <code>.webp</code> versions) in production seamlessly.
+          </p>
+        </li>
+
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>asset(path):</strong>
+          <p class="ml-2">
+            Resolves and returns the full HTML tag (e.g. <code>&lt;link rel="stylesheet"&gt;</code> or <code>&lt;script&gt;</code>) for CSS/JS assets, supporting both Vite live HMR development and zero-dependency fallbacks:
+            <br />
+            • <b>Single Source of Truth:</b> You write code exclusively in the <code>resources/</code> folder (e.g. <code>resources/js/utils.js</code>, <code>resources/css/tailwind.css</code>).
+            <br />
+            • <b>Development Mode (HMR):</b> In development (<code>DEBUG=True</code>), the assets are served hot from Vite's development server (<code>http://localhost:5173</code>) with instant browser updates upon file edits.
+            <br />
+            • <b>Production & Fallbacks:</b> When you run <code>npm run build</code>, Vite compiles, minifies, and bundles these assets directly into their standard physical locations in <code>public/</code> (e.g. <code>public/js/utils.js</code>). In production (<code>DEBUG=False</code>), or if Node.js/Vite is not active, Lila serves these pre-compiled and optimized static assets directly with zero performance overhead.
+            <br />
+            • <b>Smart Play CDN Fallback:</b> If Node.js/Vite is not installed yet, calling <code>asset('css/tailwind.css')</code> automatically loads the official Tailwind CSS Play CDN to keep your styles fully functional out-of-the-box!
+          </p>
+        </li>
+      </ul>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
+            <i class="fas fa-code mr-2"></i>Usage Example
+          </span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;{{ title }}&lt;/title&gt;
+  &lt;!-- Load Tailwind CSS v4 dynamically with CDN fallback and HMR support --&gt;
+  {{ asset('css/tailwind.css') | safe }}
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to Lila!&lt;/h1&gt;
+  
+  &lt;!-- Load javascript --&gt;
+  &lt;script src="{{ public('js/main.js') }}"&gt;&lt;/script&gt;
+  
+  &lt;!-- Inject Vite hot-reload script in development mode --&gt;
+  {{ hot_reload() | safe }}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </div>
+      </div>
+
+
+      </div>
+
+
+
+      <h3 class="mt-8 text-2xl font-semibold">Development Hot Reload (Vite)</h3>
+      <p>
+        Lila comes integrated with a super-fast development hot reload (HMR) system powered by Vite. When active, saving
+        any <code>.html</code>, <code>.jinja</code>, or <code>.md</code> file in your <code>resources/</code> folder
+        triggers an instant full page reload in the browser.
+      </p>
+
+      <h4>Setup Instructions</h4>
+      <ol class="list-decimal list-inside rounded bg-surface py-4 px-6 mb-4 space-y-2">
+        <li>
+          <strong>Install Node.js & npm:</strong> Make sure you have <a href="https://nodejs.org/"
+            target="_blank">Node.js</a> and <code>npm</code> installed on your system.
+        </li>
+        <li>
+          <strong>Install Dependencies:</strong> Run the following command in your project root to install the Vite and
+          Tailwind CSS dev tools:
+          <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
+            <div class="editor-content bg-gray-900 dark:bg-black p-3">
+              <pre><code class="language-bash">npm install</code></pre>
+            </div>
+          </div>
+        </li>
+        <li>
+          <strong>Restart Python Server:</strong> Stop and restart your python backend (e.g.
+          <code>python main.py</code>). This allows Lila to scan the project directory, automatically detect the
+          <code>package-lock.json</code> file, and confirm the environment is set up.
+        </li>
+        <li>
+          <strong>Enable Debug Mode:</strong> Ensure <code>DEBUG=True</code> is set in your <code>.env</code> file.
+        </li>
+        <li>
+          <strong>Run Vite Dev Server:</strong> In a separate terminal tab, run the dev server:
+          <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
+            <div class="editor-content bg-gray-900 dark:bg-black p-3">
+              <pre><code class="language-bash">npm run dev</code></pre>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <h4>Integrating the Hot Reload Script</h4>
+      <p>
+        To include the live-reloader in your pages, Lila provides the <code>hot_reload()</code> global helper. Make sure
+        your base HTML template (typically located at <code>resources/html/lila/base.html</code>) includes the following
+        line inside its <code>&lt;body&gt;</code> tag:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
+            <i class="fas fa-html5 mr-2"></i>resources/html/lila/base.html
+          </span>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">&lt;body&gt;
+  &lt;!-- Your layout content here --&gt;
+  
+  &lt;!-- Inject Vite hot-reload script in development mode --&gt;
+  {{ hot_reload() | safe }}
+&lt;/body&gt;</code></pre>
+        </div>
+      </div>
+      <p>
+        <strong>Note:</strong> In production (when <code>DEBUG=False</code> in <code>.env</code>), the
+        <code>hot_reload()</code> helper returns an empty string <code>""</code> automatically, introducing zero
+        overhead to your application.
+      </p>
+
+      <h3 class="mt-8 text-2xl font-semibold">Lila Premium CSS Utility Components</h3>
+      <p>
+        To accelerate your UI development and enable rapid, professional prototyping, Lila packages a set of pre-configured, high-performance Tailwind CSS utility classes inside <code>resources/css/tailwind.css</code>. All of them natively support Dark Mode:
+      </p>
+
+      <ul class="rounded bg-surface py-4 px-4 my-4 space-y-4">
+        <li>
+          <strong><code>.card</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A beautiful, fully-responsive Material Design container card with light/dark border coloring, rounded-2xl padding, and smooth transition shadows.
+          </p>
+        </li>
+        <li>
+          <strong><code>.text-lila</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A premium, high-impact gradient title class styling using Lila's custom primary/secondary colors. Ideal for hero headers!
+          </p>
+        </li>
+        <li>
+          <strong><code>.input-lila</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A state-of-the-art interactive input class with elegant borders, dynamic focus ring effects, light/dark text support, and a smooth cursor placeholder transition.
+          </p>
+        </li>
+        <li>
+          <strong><code>.link-lila</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            A gorgeous navigational anchor link styling with custom primary color transitions and sleek animated underlines.
+          </p>
+        </li>
+        <li>
+          <strong><code>.btn-primary</code> / <code>.btn-secondary</code> / <code>.btn-outline</code></strong>
+          <p class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            Pre-configured button styles featuring smooth translate-y hover elevations, beautiful color variations, and integrated loading/icon layout alignment.
+          </p>
+        </li>
+      </ul>
+
+
+      <h3 class="mt-8 text-2xl font-semibold">Performance Optimizations</h3>
+      <p>
+        Lila is designed for high performance. Templates are optimized through several mechanisms:
+      </p>
+      <ul class="rounded bg-surface py-4 px-4">
+        <li><strong>Request State Caching:</strong> Core data like the current language and SEO metadata are cached in
+          the request object to avoid redundant processing or cryptographic operations.</li>
+        <li><strong>Translation Caching:</strong> Processed translation dictionaries are cached in memory per language.
+        </li>
+        <li><strong>Template Minification:</strong> In production, HTML templates are automatically minified to reduce
+          payload size.</li>
+      </ul>
+
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

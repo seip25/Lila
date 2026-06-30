@@ -171,17 +171,4 @@ cython_debug/
 .pypirc
 
 *.sqlite
-*.db
-
-
-.log
-public/js/utils.min.js
-public/css/lila.min.css
-
-# Vite
-.vite
-node_modules
-public/build
-package-lock.json
-app/build_manifest.py
-app/config_cache.py 
+*.db 

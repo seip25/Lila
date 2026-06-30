@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Middlewares</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main>
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+            <h4>Menu</h4>
+            <a href="install.html">Installation</a>
+            <a href="routes.html">Routes</a>
+            <a href="static.html">Static</a>
+            <a href="templates.html">Templates</a>
+            <a href="session.html">Session</a>
+            <a href="upload.html">Uploads Files</a>
+            <a href="markdown.html">Markdown/HTML</a>
+            <a href="locales.html">Internationalization</a>
+            <a href="models.html">Models</a>
+            <a href="middlewares.html">Middlewares</a>
+            <a href="cli.html">CLI Commands</a>
+            <a href="connections.html">Connections</a>
+            <a href="migrations.html">Migrations</a>
+            <a href="auth.html">Auth Cli </a>
+            <a href="scaffold.html">Scaffold CRUD</a>
+            <a href="rest_api.html">API Rest CRUD</a>
+            <a href="admin.html">Admin Panel</a>
+            <a href="minify.html">Minify</a>
+            <a href="production.html">Production</a>
+        </aside>
+        <article id="middlewares-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+            <h1>️ Middlewares</h1>
+            <h5>Middleware functions are used to intercept requests before they reach the main logic of the application. In Lila, core middlewares are defined in the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/middleware.py</code> file. Middlewares can be used for tasks such as authentication, logging, security, and error handling.</h5>
+            <p>
+                Lila uses a unified <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Middleware</code>
+                manager that provides both class-based HTTP middlewares and route decorators.
+            </p>
+
+            <h2>Default Route Middlewares</h2>
+            <p>
+                Lila includes several built-in middlewares that can be used as decorators on your routes:
+            </p>
+            <ul>
+                <li>
+                    <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@login_required</code>:
+                    Validates an active session. If not found, redirects to a login page (default: <code
+                        class="text-blue-600">/login</code>).
+                </li>
+                <li>
+                    <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@session_active</code>:
+                    Checks if a session is already active. If so, redirects to a dashboard (default: <code
+                        class="text-blue-600">/dashboard</code>).
+                </li>
+                <li>
+                    <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@validate_token</code>:
+                    Validates a JWT token from the <code
+                        class="text-blue-600">Authorization: Bearer &lt;token&gt;</code> header.
+                </li>
+            </ul>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Example usage in routes</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.middleware import login_required, session_active, validate_token
+
+# Require authentication for this route
+@router.get('/dashboard')
+@login_required
+async def dashboard(request: Request):
+    return render(request=request, template='dashboard')
+
+# Redirect authenticated users away from login page
+@router.get('/login')
+@session_active
+async def login_page(request: Request):
+    return render(request=request, template='login')
+
+# Validate JWT for API routes
+@router.get('/api/data')
+@validate_token
+async def api_data(request: Request):
+    return JSONResponse({"data": "secure"})
+                    </code></pre>
+                </div>
+            </div>
+
+            <h2>️ Creating Custom Middlewares</h2>
+            <p>
+                You can easily create your own route middlewares using the <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">create_decorator</code>
+                helper. This tool automatically handles the boilerplate of Python decorators.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">core/middleware.py (Custom
+                        Middleware)</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.middleware import create_decorator
+
+@create_decorator
+async def check_admin(request: Request, role="admin"):
+    # If the logic returns a response, it breaks the chain and returns it
+    # If it returns True or None, it continues to the route
+    user = request.state.user
+    if user.get("role") != role:
+        return JSONResponse({"error": "Unauthorized"}, status_code=403)
+    return True
+
+# Usage in routes:
+# @check_admin -> uses default role="admin"
+# @check_admin(role="superadmin") -> uses custom role
+                    </code></pre>
+                </div>
+            </div>
+
+            <h2>️ Router-Level Middlewares</h2>
+            <p>
+                Instead of decorating every route manually, you can assign one or more middlewares to a <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Router</code> during initialization. Every route registered on that router will inherit them and run them in left-to-right order.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Router-level middleware inheritance</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.routing import Router
+from lila.core.middleware import login_required, validate_token
+
+# Both middlewares will automatically run for every route in this router
+auth_router = Router(prefix="v1/api", middlewares=[login_required, validate_token])
+
+@auth_router.get("/user")
+async def user_details(request: Request):
+    return JSONResponse({"user": request.state.user})
+                    </code></pre>
+                </div>
+            </div>
+
+            <h2>Global Security Middlewares</h2>
+            <p>
+                Lila includes a set of global HTTP middlewares for application-wide protection. These are configured in
+                <code class="text-blue-600">main.py</code> using the <code class="text-blue-600">Middleware</code>
+                class.
+            </p>
+            <ul>
+                <li><code class="text-blue-600">LoggingMiddleware</code>: Automatically logs requests (ignoring static
+                    files).</li>
+                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds security headers like
+                    X-XSS-Protection, X-Frame-Options, and the custom <strong>Powered-By: Lila Framework</strong>
+                    header. It also performs automatic XSS detection in query parameters using the <code>Security</code>
+                    class.</li>
+                <li><code class="text-blue-600">SecurityShieldMiddleware</code>: Blocks malicious paths and IPs.</li>
+                <li><code class="text-blue-600">RateLimitMiddleware</code>: Protects against brute force and DoS
+                    attacks.</li>
+                <li><code class="text-blue-600">ErrorHandlerMiddleware</code>: Gracefully handles exceptions and
+                    Pydantic validation errors.</li>
+            </ul>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">main.py configuration</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.middleware import (
+    Middleware,
+    LoggingMiddleware, 
+    SecurityHeadersMiddleware,
+    SecurityShieldMiddleware,
+    RateLimitMiddleware,
+    ErrorHandlerMiddleware,
+)
+
+middlewares = [
+    Middleware(LoggingMiddleware),
+    Middleware(SecurityHeadersMiddleware),
+    Middleware(SecurityShieldMiddleware),
+    Middleware(RateLimitMiddleware),
+    Middleware(ErrorHandlerMiddleware)
+]
+
+app = App(..., middleware=middlewares)
+                    </code></pre>
+                </div>
+            </div>
+
+        </article>
+    </main>
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

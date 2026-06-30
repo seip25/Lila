@@ -26,7 +26,6 @@ from pathlib import Path
 from lila.core.templates import render
 from app.config import DEBUG
 import asyncio
-from lila.core.templates import is_frontend_request
 import importlib.util
 
 ph = PasswordHasher()
@@ -175,7 +174,7 @@ class Router:
 
                 request.state.seo = self._process_seo_metadata(seo_meta, current_lang, request)
 
-                is_spa = is_frontend_request(request)
+
                 
                 session_cookie = ""
                 for key in cookie_keys:
@@ -188,7 +187,7 @@ class Router:
                 
                 cache_key = None
                 if ttl > 0 and request.method == "GET" and not DEBUG:
-                    cache_key = f"route:{request.method}:{request.url.path}:{str(request.query_params)}:{current_lang}:{session_cookie}:{auth_header}:spa={is_spa}"
+                    cache_key = f"route:{request.method}:{request.url.path}:{str(request.query_params)}:{current_lang}:{session_cookie}:{auth_header}"
                     cached_data = Cache.get(cache_key)
                     if cached_data:
                         from starlette.responses import Response

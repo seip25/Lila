@@ -18,15 +18,12 @@
 
 <body
   class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col">
-  <div id="lila-spa-content">
-    {% block content %}{% endblock %}
-  </div>
+  {% block content %}{% endblock %}
   <script>
     window.LILA_TRANSLATIONS = {{ translate | tojson | safe }};
     window.LILA_DEBUG = {{ debug | tojson | safe }};
   </script>
   <script src="{{public('js/utils.js')}}"></script>
-  <script src="{{public('js/spa.js')}}"></script>
   {% block scripts %}{% endblock %}
 </body>
 

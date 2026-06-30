@@ -321,8 +321,8 @@ CORE_TRANSLATIONS = {
     "en": "Your password reset link is invalid or has expired."
   },
   "by_default_we_use": {
-    "es": "Por defecto utilizamos spa.js y utils.js con",
-    "en": "By default we use spa.js and utils.js with"
+    "es": "Por defecto utilizamos utils.js con",
+    "en": "By default we use utils.js with"
   },
   "lila_css_docs": {
     "es": "Si quieres más documentación sobre Lila CSS, encuéntrala aquí. Usa HTML semántico en su mayoría, listo para usar automáticamente con contenedores, grids, colores, etc.",
@@ -376,12 +376,12 @@ CORE_CHANGELOGS = {
     "en": "Introduction of beta versions for the in-memory cache system and experimental CLI commands for SEO."
   },
   "performance_improvements": {
-    "es": "Mejoras de Rendimiento y Motor SPA",
-    "en": "Performance and SPA Engine Improvements"
+    "es": "Mejoras de Rendimiento",
+    "en": "Performance Improvements"
   },
   "performance_improvements_desc": {
-    "es": "Se optimizaron funciones internas del core y el Router para reducir los tiempos de carga. Mejoras en la inyección de assets, renderizado React y manejo de navegación en el SPA.",
-    "en": "Internal core functions and the Router were optimized to reduce load times. Improvements in asset injection, React rendering, and SPA navigation handling."
+    "es": "Se optimizaron funciones internas del core y el Router para reducir los tiempos de carga. Mejoras en la inyección de assets y renderizado React.",
+    "en": "Internal core functions and the Router were optimized to reduce load times. Improvements in asset injection and React rendering."
   },
   "minor_fixes_polish": {
     "es": "Pulido General y Corrección de Bugs",

@@ -37,34 +37,6 @@ MANIFEST_BUILD: dict[str, str] = {}
 _VITE_PROJECT_EXISTS: bool = None
 STYLES_DEFAULT_TAILWIND: str = None
 
-def is_frontend_request(request: Request) -> bool:
-    """
-    Check if the current request is a frontend SPA request.
-    """
-    return request.query_params.get('source') == 'frontend' or request.headers.get('x-lila-spa') == 'true'
-
-def render_json_response(body: str, context: dict) -> JSONResponse:
-    """
-    Render a JSON response for SPA navigation.
-    """
-    seo_data = context.get("seo", {})
-    response_data = {
-        "meta": {
-            "title": seo_data.get("title", context.get("title", TITLE_PROJECT)),
-            "description": seo_data.get("description", context.get("description", DESCRIPTION_DEFAULT)),
-            "keywords": seo_data.get("keywords", context.get("keywords", KEYWORDS_DEFAULT)),
-            "author": context.get("author", AUTHOR_DEFAULT)
-        },
-        "lang": context.get("lang", LANG_DEFAULT),
-        "scripts": context.get("scripts_array", []),
-        "css": context.get("styles_array", []),
-        "fonts": [],
-        "body": body,
-        "props": context.get("props_array", {}),
-        "translations": context.get("translate", {})
-    }
-    return JSONResponse(response_data)
-
 def hot_reload() -> str:
     """
     Returns Vite hot reload scripts if DEBUG is True.
@@ -139,8 +111,6 @@ def public(path: str, force_static: bool = False) -> str:
                 return "http://localhost:5173/public/resources/css/tailwind.css"
             elif clean_path == 'js/utils.js':
                 return "http://localhost:5173/public/resources/js/utils.js"
-            elif clean_path == 'js/spa.js':
-                return "http://localhost:5173/public/resources/js/spa.js"
             return f"http://localhost:5173/public/{clean_path}"
             
     if not DEBUG or force_static:
@@ -250,15 +220,6 @@ def render(request: Request, template: str, context: dict = None, files_translat
     try:
         full_context = get_base_context(request, files_translate, lang_default)
         full_context.update(context)
-
-        if is_frontend_request(request):
-            full_context["layout"] = "lila/empty.html"
-            full_context["request"] = request
-            template_obj = jinja_env.get_template(f"{template}.{extension}")
-            body = template_obj.render(full_context)
-
-            return render_json_response(body, full_context)
-
         template_obj = jinja_env.get_template(f"{template}.{extension}")
         body = template_obj.render(full_context)
         return HTMLResponse(content=body)

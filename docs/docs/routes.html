@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Python Web Framework</title>
+    <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+    <meta name="description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="keywords" content="Python, Web Framework, API, Starlette, Pydantic, SQLAlchemy, JWT" />
+    <meta name="author" content="Lila Framework Team" />
+
+    <meta property="og:title" content="Lila Framework - Python Web Framework" />
+    <meta property="og:description"
+        content="Lila is a Python web framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Python Web Framework" />
+    <meta name="twitter:description"
+        content="Lila is a Python framework based on Starlette and Pydantic, designed for simplicity, flexibility, and high performance." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gemini: {
+                            blue: '#1a73e8',
+                            blueBg: '#f0f4f9',
+                            blueHover: '#e1ecf8',
+                            indigo: '#4f46e5',
+                            purple: '#8b5cf6',
+                            accent: '#4285f4',
+                            darkBg: '#090d16',
+                            darkCard: '#131b2e',
+                            darkBorder: '#1e293b',
+                            darkHover: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <header
+        class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+        <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+                    L
+                </div>
+                <h1
+                    class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="../index.html"
+                    class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+                    Home
+                </a>
+                <a href="https://github.com/seip25/Lila" target="_blank"
+                    class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+                    Github
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <aside
+            class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+            <h4>Menu</h4>
+            <a href="install.html">Installation</a>
+            <a href="routes.html">Routes</a>
+            <a href="static.html">Static</a>
+            <a href="templates.html">Templates</a>
+            <a href="session.html">Session</a>
+            <a href="upload.html">Uploads Files</a>
+            <a href="markdown.html">Markdown/HTML</a>
+            <a href="locales.html">Internationalization</a>
+            <a href="models.html">Models</a>
+            <a href="middlewares.html">Middlewares</a>
+            <a href="cli.html">CLI Commands</a>
+            <a href="connections.html">Connections</a>
+            <a href="migrations.html">Migrations</a>
+            <a href="auth.html">Auth Cli </a>
+            <a href="scaffold.html">Scaffold CRUD</a>
+            <a href="rest_api.html">API Rest CRUD</a>
+            <a href="admin.html">Admin Panel</a>
+            <a href="minify.html">Minify</a>
+            <a href="production.html">Production</a>
+        </aside>
+
+
+
+        <article id="routes-eng"
+            class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+            <h2> Routes</h2>
+
+            <p>
+                Routes are the access points to the application. In Lila, routes are defined in the
+                <code class="code-inline">routes</code> directory (by default, but you can place them
+                wherever you want) and
+                imported into <code class="code-inline">main.py</code> for use. Routes can be configured
+                to handle HTTP requests, API
+                methods, and more.
+            </p>
+
+            <p>
+                In addition to JSONResponse you can use HTMLResponse, RedirectResponse and
+                PlainTextResponse, or
+                StreamingResponse, to transmit data in real-time (useful for streaming video/audio or
+                large responses).
+            </p>
+
+            <p>
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-code mr-2"></i>routes/api.py
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+# Import from lila.core JSONResponse.
+from lila.core.responses import JSONResponse 
+
+# Manages routes for API endpoints.
+from lila.core.routing import Router  
+# Initializes the router instance to handle API app.routes.
+router = Router()
+
+# Defines a simple API route that supports the GET method.
+@router.route(path='/api', methods=['GET'])
+async def api(request: Request):
+    """Api function"""
+    # English: Returns a simple JSON response for API verification.
+    return JSONResponse({'api': True})   
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>Get URL Parameters</h3>
+
+            <p>
+                In this function, we receive a parameter via the URL using <code class="code-inline">{param}</code>.
+                If the parameter is not provided, it defaults to <code class="code-inline">'default'</code>.
+                The response is a JSON containing the received value.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-code mr-2"></i>Receiving GET Parameters
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+@router.route(path='/url_with_param/{param}', methods=['GET']) 
+async def param(request: Request):  
+    param = request.path_params.get('param', 'default') 
+    return JSONResponse({"received_param": param})
+            </code></pre>
+                </div>
+            </div>
+
+            <p>
+                Or you can also do it like this:
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-code mr-2"></i>Receiving GET Query Parameters
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python"> 
+@router.route(path='/url_with_query', methods=['GET','POST']) 
+async def query_param(request: Request):  
+    query_param = request.query_params.get('query_param', 'default_value')
+    return JSONResponse({"received_param": query_param})
+            </code></pre>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-shield-alt mr-2"></i>Automatic Sanitization
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python"> 
+# All POST/PUT/PATCH routes automatically sanitize the body
+# Query parameters are also checked for XSS patterns
+@router.post('/secure-route', model=MyModel)
+async def secure_handler(request: Request):
+    # request.state.data is already sanitized
+    data = request.state.data
+    return JSONResponse({"status": "safe"})
+            </code></pre>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-import mr-2"></i>Basic Imports
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.responses import JSONResponse  # Simplifies sending JSON responses.
+from lila.core.routing import Router  # Manages API app.routes.
+from lila.core.request import Request  # Handles HTTP requests in the application.
+from pydantic import EmailStr, BaseModel  # Validates and parses data models for input validation.
+from lila.core.middleware import validate_token
+
+router = Router()
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>️ Middleware and Decorators Usage</h3>
+
+            <p>
+                Middlewares allow intercepting requests before they reach the main logic of the API.
+                In this example, we use <code class="code-inline">@validate_token</code> to validate a
+                JWT token in the
+                request header.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-shield-alt mr-2"></i>Middleware Validation
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+@router.route(path='/api/token', methods=['GET','POST'])
+@validate_token  # Middleware to validate JWT token.
+async def api_token(request: Request):
+    return JSONResponse({'api': True})
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>️ Router-Level Middleware Inheritance</h3>
+
+            <p>
+                You can apply one or more middlewares directly to a <code class="code-inline">Router</code> instance
+                during initialization. When you do this, <b>every route</b> registered on that router will automatically
+                inherit and execute those middlewares in the exact sequence they are defined (left-to-right).
+            </p>
+            <p>
+                This pattern is perfect for creating dedicated authentication groups, admin-only sections, rate-limited
+                zones, or custom logging areas without having to manually apply decorators to every single endpoint.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-link mr-2"></i>Applying Middlewares to Router
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.routing import Router
+from lila.core.middleware import login_required, validate_token
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+
+# All routes registered on this router will require the login session first,
+# then they will validate the JWT token.
+auth_router = Router(prefix="api/v1", middlewares=[login_required, validate_token])
+
+# This route automatically inherits and executes both middlewares first!
+@auth_router.get("/profile")
+async def get_profile(request: Request):
+    # If the execution reaches here, the user is guaranteed to be authenticated.
+    return JSONResponse({"profile": "User Profile Data"})
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>️ Creating Custom Route Middlewares</h3>
+
+            <p>
+                Creating a custom route middleware in Lila is exceptionally simple. A route middleware is a standard
+                Python decorator that intercepts the request, runs custom logic, and then either returns an early
+                response (like a redirect or an error code) or lets the execution continue by calling and returning the
+                output of the next function.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-code mr-2"></i>Creating a Custom Middleware
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from functools import wraps
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+
+def require_premium_role(func):
+    """
+    Route middleware to enforce that the user has a premium subscription.
+    """
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        # Read a session variable or header
+        is_premium = request.session.get("is_premium", False)
+        
+        if not is_premium:
+            # Short-circuit the request and return an early response
+            return JSONResponse({"error": "Forbidden", "message": "Premium role required"}, status_code=403)
+            
+        # Continue with the execution of the next middleware or route handler
+        return await func(request, *args, **kwargs)
+        
+    return wrapper
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>Data Validation with Pydantic</h3>
+
+            <p>
+                Pydantic allows defining data models that automatically validate user input.
+                Additionally, specifying a model in the route generates automatic documentation in
+                <code class="code-inline">/docs</code>.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-check-square mr-2"></i>Validation with Pydantic
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from pydantic import EmailStr, BaseModel
+from lila.core.responses import JSONResponse
+
+class ExampleModel(BaseModel):
+    email: EmailStr  # Ensures a valid email.
+    password: str  # String for password.
+
+@router.route(path='/api/example', methods=['POST'], model=ExampleModel)
+async def login(request: Request):
+    # Validation is automatic! 
+    # Validated data is injected into request.state.data
+    user_data = request.state.data
+    return JSONResponse({"email": user_data.email, "status": "validated"})
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>Automatic Documentation Generation</h3>
+
+            <p>
+                Thanks to the integration with Pydantic, the API documentation is generated
+                automatically
+                and is accessible from <code class="code-inline">/docs</code>. You can also generate an
+                OpenAPI JSON file for external tools.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-alt mr-2"></i>Documentation Generation
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+router.swagger_ui()  # Enables Swagger UI for API documentation.
+router.openapi_json()  # Generates OpenAPI JSON for external tools.
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>Importing Routes in main.py</h3>
+
+            <p>
+                To use the routes defined in the router, you need to obtain them with
+                <code class="code-inline">router.get_routes()</code> and import them into <code
+                    class="code-inline">main.py</code>.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Route Import
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+routes = router.get_routes()  # Retrieves all defined app.routes.
+            </code></pre>
+                </div>
+            </div>
+
+            <h3>Performance: Route Caching</h3>
+
+            <p>
+                Lila includes a built-in caching system for <code class="code-inline">GET</code> requests to improve
+                performance. By default, all routes are cached for <b>30 seconds</b>, but you can customize this
+                globally or per route.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-bolt mr-2"></i>Caching Configuration
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+# Global configuration (default is 30s)
+# By default, it isolates cache by user checking "session", "auth", "auth_admin" cookies.
+# You can customize the cookies to check using cache_cookie_keys.
+router = Router(default_cache_ttl=60, cache_cookie_keys=["my_custom_session"]) 
+
+# Disable caching for a specific route
+@router.get("/live-data", cache_ttl=0)
+async def live(request: Request):
+    return JSONResponse({"time": time.time()})
+
+# Set a custom TTL for a specific route
+@router.get("/slow-data", cache_ttl=300) # 5 minutes
+async def slow(request: Request):
+    return JSONResponse({"data": "long-lived"})
+            </code></pre>
+                </div>
+            </div>
+
+            <p>
+                <strong>Note:</strong> Caching is automatically <b>disabled</b> when <code
+                    class="code-inline">DEBUG = True</code> in your configuration to ensure you always see the latest
+                changes during development.
+            </p>
+
+            <h3>SPA Performance: Client-Side Caching &amp; Prefetching</h3>
+            <p>
+                To deliver a native application experience with near-instantaneous (0ms) page transitions, Lila's SPA navigation engine (<code>spa.js</code>) combines <b>SWR (Stale-While-Revalidate) caching</b> and <b>smart link prefetching</b>.
+            </p>
+            
+            <h4>1. Client-Side SWR Caching</h4>
+            <p>
+                When a user clicks an internal link, the SPA engine checks its local client-side memory cache:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 my-4">
+                <li><b>Stale Cache Hit:</b> If cached data is available, Lila immediately renders the cached page, eliminating loading indicators.</li>
+                <li><b>Silent Revalidation:</b> In the background, Lila requests the latest version from the server. If the server content has changed, Lila updates the DOM and the cache seamlessly without interrupting the user.</li>
+                <li><b>Cache Miss:</b> If the page is not in the cache, the loader makes a standard background request and renders the page upon completion.</li>
+            </ul>
+
+            <h4>2. Smart Hover &amp; Touch Prefetching</h4>
+            <p>
+                Lila anticipates user navigation by prefetching eligible links ahead of time:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 my-4">
+                <li><b>Desktop Hover Debounce:</b> On desktop, if the cursor hovers over an eligible link for more than <b>80ms</b>, Lila automatically prefetches the page JSON payload in the background. The 80ms delay prevents redundant requests during fast mouse movements.</li>
+                <li><b>Mobile TouchStart Acceleration:</b> On mobile/touch devices, a <code>touchstart</code> event on a link initiates an immediate prefetch, taking advantage of the typical 100-300ms delay before a click event fires.</li>
+            </ul>
+
+            <h4>3. Bandwidth and Connection Safeguards</h4>
+            <p>
+                To respect user bandwidth and reduce server load, Lila implements several intelligent safeguards:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 my-4">
+                <li><b>Network Detection:</b> Prefetching is automatically <b>disabled</b> if the user is on a slow connection (2G, 3G) or if <code>saveData</code> mode is enabled in the browser.</li>
+                <li><b>Route Filtering:</b> External links, downloads (using the <code>download</code> attribute), links with <code>target="_blank"</code>, and routes marked with <code>data-no-spa</code> are ignored by the SPA engine.</li>
+                <li><b>Granular Prefetch Control:</b> You can disable prefetching on specific links by adding the <code>data-no-prefetch</code> attribute:
+                    <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-3">
+                        <div class="editor-content bg-gray-900 dark:bg-black p-3 text-gray-300">
+                            &lt;a href="/expensive-page" data-no-prefetch&gt;Not Prefetched&lt;/a&gt;
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            <h3>Route Prefixes and HTTP Method Shortcuts</h3>
+
+            <p>
+                Routes can now have a <code class="code-inline">prefix</code>, which allows grouping
+                multiple endpoints under a common path.
+                Additionally, you can define routes directly with HTTP methods as functions: <code
+                    class="code-inline">get</code>,
+                <code class="code-inline">post</code>, <code class="code-inline">put</code>, <code
+                    class="code-inline">delete</code>.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-code mr-2"></i>routes/api_v2.py
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+# English: Initialize the router instance for managing API routes.
+router = Router(prefix="v1/api")
+
+# English: Define a simple API route that supports GET method.
+@router.get("/")
+async def api(request: Request):
+    """Api function"""  # use doc for description http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
+    # English: Returns a simple JSON response for API verification.
+    return JSONResponse({"api": True})
+
+# Español: Define una ruta de API que soporta los métodos GET y POST.
+@router.route(path="/token", methods=["GET", "POST"])
+# English: Middleware to validate the JWT Token.
+@validate_token
+async def api_token(request: Request):
+    """Api Token function"""  # use doc for description http://127.0.0.1:8000/openapi.json and http://127.0.0.1:8000/docs
+    print(get_user_by_token(request=request))
+    return JSONResponse({"api": True})
+        </code></pre>
+                </div>
+            </div>
+
+            <p>
+                Using prefixes helps organize your API under a common version path (e.g., <code
+                    class="code-inline">v1/api</code>),
+                while method-specific decorators (<code class="code-inline">@router.get</code>, <code
+                    class="code-inline">@router.post</code>, etc.)
+                make route definitions cleaner and more intuitive.
+            </p>
+            <h3>HTTP Method Examples with Prefix and Pydantic Models</h3>
+
+            <p>
+                Routes now support the HTTP methods <code class="code-inline">get</code>, <code
+                    class="code-inline">post</code>,
+                <code class="code-inline">put</code>, and <code class="code-inline">delete</code>
+                directly.
+                You can also attach Pydantic models for automatic input validation and documentation
+                generation.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-file-code mr-2"></i>routes/v1_api_example.py
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.responses import JSONResponse
+from lila.core.routing import Router
+from lila.core.request import Request
+from pydantic import BaseModel
+
+router = Router(prefix="v1/api")
+
+# ---------------- GET Example ----------------
+@router.get("/items/{item_id}")
+async def get_item(request: Request):
+    """Fetch an item by ID."""
+    item_id = request.path_params.get("item_id")
+    return JSONResponse({"item_id": item_id, "status": "fetched"})
+
+# ---------------- POST Example ----------------
+class CreateItemModel(BaseModel):
+    name: str
+    description: str
+
+@router.post("/items", model=CreateItemModel)
+async def create_item(request: Request):
+    """Create a new item."""
+    # Data is already validated and available in request.state.data
+    input_data = request.state.data
+    return JSONResponse({"name": input_data.name, "description": input_data.description})
+
+# ---------------- PUT Example ----------------
+class UpdateItemModel(BaseModel):
+    name: str
+    description: str
+
+@router.put("/items/{item_id}", model=UpdateItemModel)
+async def update_item(request: Request):
+    """Update an existing item by ID."""
+    item_id = request.path_params.get("item_id")
+    # Data is already validated and available in request.state.data
+    input_data = request.state.data
+    return JSONResponse({"item_id": item_id, "updated_name": input_data.name})
+
+# ---------------- DELETE Example ----------------
+@router.delete("/items/{item_id}")
+async def delete_item(request: Request):
+    """Delete an item by ID."""
+    item_id = request.path_params.get("item_id")
+    return JSONResponse({"item_id": item_id, "status": "deleted"})
+        </code></pre>
+                </div>
+            </div>
+
+            <p>
+                These examples demonstrate how to:
+            <ul>
+                <li>Use a <code class="code-inline">prefix</code> for versioned API endpoints.</li>
+                <li>Use method-specific decorators like <code class="code-inline">@router.get</code>,
+                    <code class="code-inline">@router.post</code>, etc.
+                </li>
+                <li>Automatically validate input and generate documentation using Pydantic models.</li>
+                <li>Receive URL parameters and JSON bodies.</li>
+            </ul>
+            Documentation is automatically generated at <code class="code-inline">/docs</code> and <code
+                class="code-inline">/openapi.json</code>.
+            </p>
+
+            <h3>️ Manual Validation with RequestParser</h3>
+            <p>
+                While assigning a <code class="code-inline">model=ExampleModel</code> to the route automatically
+                validates incoming data and injects it into <code class="code-inline">request.state.data</code>,
+                sometimes you may need more granular control over parsing the request body or query parameters manually.
+            </p>
+            <p>
+                For these edge cases, Lila provides a built-in <code class="code-inline">RequestParser</code> in the
+                <code class="code-inline">lila.core.controller</code> module. It safely parses and validates the data
+                against a Pydantic model and returns a standardized dictionary with the results.
+            </p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-check-double mr-2"></i>Manual Parsing Example
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">
+from lila.core.controller import RequestParser
+from pydantic import BaseModel
+from lila.core.responses import JSONResponse
+
+class MyCustomModel(BaseModel):
+    username: str
+    age: int
+
+parser = RequestParser()
+
+@router.post("/manual-parse")
+async def manual_parse_endpoint(request: Request):
+    # Parses the JSON body and validates it against MyCustomModel
+    result = await parser.parse_body(request, MyCustomModel)
+    
+    if not result["success"]:
+        # Returns standard validation errors
+        return JSONResponse({"error": True, "details": result["errors"]}, status_code=400)
+    
+    # Access the validated Pydantic model
+    validated_data = result["data"]
+    return JSONResponse({"status": "parsed", "user": validated_data.username})
+            </code></pre>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>
