@@ -1,4 +1,4 @@
-{% extends layout | default('lila/base.html') %}
+{% extends layout | default('lila/base.jinja') %}
 {% block title %}{{title}}{% endblock %}
 
 {% block content %}
@@ -6,10 +6,15 @@
     class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
     <div class="card w-full max-w-md p-8 transform hover:scale-101">
         <h3 class="text-lila text-3xl text-center mb-8">
-            {{translate['login']}}
+            {{translate['create account']}}
         </h3>
 
-        <form id="login-form" class="space-y-6">
+        <form id="register-form" class="space-y-5">
+            <div>
+                <label for="name"
+                    class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['name']}}</label>
+                <input type="text" id="name" name="name" class="input-lila" required>
+            </div>
             <div>
                 <label for="email" class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">Email</label>
                 <input type="email" id="email" name="email" class="input-lila" required>
@@ -19,20 +24,20 @@
                     class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['password']}}</label>
                 <input type="password" id="password" name="password" class="input-lila" required>
             </div>
-
-            <div class="flex items-center justify-end">
-                <a href="/forgot-password" class="text-xs link-lila">
-                    {{translate['forgot your password']}}
-                </a>
+            <div>
+                <label for="password_2"
+                    class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['confirm_password']}}</label>
+                <input type="password" id="password_2" name="password_2" class="input-lila" required>
             </div>
 
-            <button type="submit" class="btn-primary w-full justify-center">
-                {{translate['login']}}
+            <button type="submit" class="btn-primary w-full justify-center mt-4">
+                {{translate['register']}}
             </button>
 
             <div class="text-center pt-2">
                 <p class="text-sm text-slate-500">
-                    <a href="/register" class="btn-outline text-primary">{{translate['create account']}}</a>
+                    {{translate['Already have an account?']}}
+                    <a href="/login" class="link-lila ml-1">{{translate['login']}}</a>
                 </p>
             </div>
 
@@ -52,13 +57,13 @@
 </main>
 
 <script>
-    document.getElementById('login-form').addEventListener('submit', async function (event) {
+    document.getElementById('register-form').addEventListener('submit', async function (event) {
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
         const errorMessage = document.getElementById('error-message');
         try {
-            const response = await fetch('/login', {
+            const response = await fetch('/register', {
                 method: 'POST',
                 body: JSON.stringify(Object.fromEntries(formData)),
                 headers: { 'Content-Type': 'application/json' }
@@ -67,7 +72,7 @@
             if (response.ok && result.success) {
                 window.location.replace('/dashboard');
             } else {
-                errorMessage.textContent = result.msg || 'An unknown error occurred.';
+                errorMessage.textContent = result.msg || 'Failed to register.';
             }
         } catch (error) {
             errorMessage.textContent = 'Failed to connect to the server.';

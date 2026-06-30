@@ -1,4 +1,4 @@
-{% extends layout | default('lila/base.html') %}
+{% extends layout | default('lila/base.jinja') %}
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
@@ -28,10 +28,12 @@
         {{ translate['Go to docs'] }}
       </a>
 
+      {% if debug_html %}
       <a href="/debug/" target="_blank" class="btn-secondary">
         <span>🐛</span>
         Debug
       </a>
+      {% endif %}
     </div>
 
     <!-- Info Box -->

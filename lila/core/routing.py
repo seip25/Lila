@@ -929,7 +929,7 @@ class Router:
             )
 
     def generate_html_template(self, model_name, columns, prefix_path="",rewrite_tempalte : bool=False):
-        template_path = Path(PATH_TEMPLATES_HTML) / model_name / "index.html"
+        template_path = Path(PATH_TEMPLATES_HTML) / model_name / "index.jinja"
         template_path.parent.mkdir(parents=True, exist_ok=True)
         sensitive_fields = {"password", "active", "token", "hash"}
         cols_js = ",\n      ".join(
