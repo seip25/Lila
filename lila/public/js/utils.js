@@ -1,15 +1,131 @@
-document.addEventListener("DOMContentLoaded",()=>{const c=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",c),window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{document.documentElement.setAttribute("data-theme",window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})});async function u(c="/",e="GET",s=!1,l=!1,p={}){const d={method:e,headers:p,credentials:"include"};s&&(d.body=JSON.stringify(s)),l&&(d.body=l);const h=await fetch(c,d);if(!h.ok){const o=await h.json();throw new Error(o.message||"Error fetch")}return await h.json()}function g(c){return new URLSearchParams(window.location.search).get(c)}function b(c="es"){return document.documentElement.lang===c||document.documentElement.lang.startsWith("es")}class f{constructor(e,s={}){this.container=document.getElementById(e),this.container&&(this.defaults={data:[],columns:[],rowsPerPage:10,search:!0,pagination:!0,headerTitles:{},summaryFields:["id"],edit:!1,delete:!1,breakpoint:768},this.options={...this.defaults,...s},this.currentPage=1,this.filteredData=[...this.options.data],this.isMobile=window.innerWidth<this.options.breakpoint,this.init(),window.addEventListener("resize",()=>this.handleResize()))}init(){this.renderContainer(),this.updateTable(),this.options.search&&this.setupSearch()}handleResize(){const e=this.isMobile;this.isMobile=window.innerWidth<this.options.breakpoint,e!==this.isMobile&&this.updateTable()}renderContainer(){this.container.innerHTML=`
+document.addEventListener('DOMContentLoaded', () => {
+  const theme_ = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", theme_);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => { document.documentElement.setAttribute("data-theme", window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",); });
+
+})
+
+async function Http(url = "/", method = "GET", body = false, bodyForm = false, headers = {},) {
+  const options = { method: method, headers: headers, credentials: "include", }; if (body) options["body"] = JSON.stringify(body); if (bodyForm) options["body"] = bodyForm; const response = await fetch(url, options); if (!response.ok) { const error = await response.json(); throw new Error(error.message || "Error fetch"); }
+  const resp = await response.json(); return resp;
+}
+function getUrlParameter(name) { return new URLSearchParams(window.location.search).get(name); }
+
+function lang(l = "es") { return (document.documentElement.lang === l || document.documentElement.lang.startsWith("es")); }
+
+class ResponsiveDataTable {
+  constructor(containerId, options = {}) { this.container = document.getElementById(containerId); if (!this.container) return; this.defaults = { data: [], columns: [], rowsPerPage: 10, search: true, pagination: true, headerTitles: {}, summaryFields: ["id"], edit: false, delete: false, breakpoint: 768, }; this.options = { ...this.defaults, ...options }; this.currentPage = 1; this.filteredData = [...this.options.data]; this.isMobile = window.innerWidth < this.options.breakpoint; this.init(); window.addEventListener("resize", () => this.handleResize()); }
+  init() { this.renderContainer(); this.updateTable(); if (this.options.search) this.setupSearch(); }
+  handleResize() { const wasMobile = this.isMobile; this.isMobile = window.innerWidth < this.options.breakpoint; if (wasMobile !== this.isMobile) this.updateTable(); }
+  renderContainer() {
+    this.container.innerHTML = `
       <section class="w-full">
-        ${this.options.search?`<div class="mb-6 flex items-center justify-between"><input type="search"class="datatable-search-input w-full max-w-xs px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all text-slate-800 dark:text-slate-100"placeholder="${b()?"Buscar...":"Search..."}"aria-label="Search"/></div>`:""}
+        ${this.options.search
+        ? `<div class="mb-6 flex items-center justify-between"><input type="search" class="datatable-search-input w-full max-w-xs px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all text-slate-800 dark:text-slate-100" placeholder="${lang() ? "Buscar..." : "Search..."}" aria-label="Search"/></div>`
+        : ""
+      }
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80">
           <table class="datatable-table min-w-full divide-y divide-slate-100 dark:divide-slate-850 text-sm hidden"></table>
           <div class="datatable-mobile"></div>
         </div>
 
-        ${this.options.pagination?'<nav class="datatable-pagination mt-6 flex items-center justify-center gap-1.5" aria-label="Pagination"></nav>':""}
-      </section>`}renderTable(){const e=this.container.querySelector(".datatable-table"),s=this.container.querySelector(".datatable-mobile");this.isMobile?(e.classList.add("hidden"),s.classList.remove("hidden"),this.renderMobileView()):(e.classList.remove("hidden"),s.classList.add("hidden"),this.renderDesktopTable())}renderDesktopTable(){const e=this.container.querySelector(".datatable-table");e.innerHTML=`
+        ${this.options.pagination ? `<nav class="datatable-pagination mt-6 flex items-center justify-center gap-1.5" aria-label="Pagination"></nav>` : ""}
+      </section>`;
+  }
+  renderTable() { const table = this.container.querySelector(".datatable-table"); const mobileView = this.container.querySelector(".datatable-mobile"); if (this.isMobile) { table.classList.add("hidden"); mobileView.classList.remove("hidden"); this.renderMobileView(); } else { table.classList.remove("hidden"); mobileView.classList.add("hidden"); this.renderDesktopTable(); } }
+  renderDesktopTable() {
+    const table = this.container.querySelector(".datatable-table"); table.innerHTML = `
       <thead>
         <tr class="datatable-header"></tr>
       </thead>
-      <tbody class="datatable-body divide-y divide-slate-100 dark:divide-slate-850"></tbody>`;const s=e.querySelector("thead tr");if(this.options.columns.forEach(r=>{const o=document.createElement("th");o.scope="col",o.className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800",o.textContent=this.options.headerTitles[r.key]||r.title||r.key,s.appendChild(o)}),this.options.edit||this.options.delete){const r=document.createElement("th");r.scope="col",r.className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800",r.textContent=b()?"Acciones":"Actions",s.appendChild(r)}const l=(this.currentPage-1)*this.options.rowsPerPage,p=l+this.options.rowsPerPage,d=this.filteredData.slice(l,p),h=e.querySelector("tbody");d.forEach(r=>{const o=document.createElement("tr");if(o.className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors",this.options.columns.forEach(i=>{const t=document.createElement("td");t.className="px-6 py-4 text-slate-700 dark:text-slate-300 whitespace-nowrap align-middle font-medium";const a=r[i.key];a&&typeof a=="string"&&/<[a-z][\s\S]*>/i.test(a)?t.innerHTML=a:t.textContent=a||"-",o.appendChild(t)}),this.options.edit||this.options.delete){const i=document.createElement("td");i.className="px-6 py-4 whitespace-nowrap align-middle";const t=document.createElement("div");if(t.className="flex items-center gap-2",this.options.edit){const a=document.createElement("button");a.className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary transition-all cursor-pointer",a.textContent=b()?"Editar":"Edit",a.onclick=n=>this.handleAction("edit",n,r),t.appendChild(a)}if(this.options.delete){const a=document.createElement("button");a.className="px-3 py-1.5 bg-red-50 dark:bg-red-950/20 text-red-555 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold border border-transparent transition-all cursor-pointer",a.textContent=b()?"Eliminar":"Delete",a.onclick=n=>this.handleAction("delete",n,r),t.appendChild(a)}i.appendChild(t),o.appendChild(i)}h.appendChild(o)})}renderMobileView(){const e=this.container.querySelector(".datatable-mobile");e.innerHTML="";const s=(this.currentPage-1)*this.options.rowsPerPage,l=s+this.options.rowsPerPage;this.filteredData.slice(s,l).forEach(d=>{const h=document.createElement("article");h.className="mb-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4";const r=document.createElement("h3");r.className="text-base font-black text-slate-850 dark:text-slate-100 border-b border-slate-250 dark:border-slate-800 pb-2 mb-2 flex items-center justify-between",this.options.summaryFields.forEach(i=>{const t=d[i];r.innerHTML+=`<span>${t||"-"}</span>`}),h.appendChild(r);const o=document.createElement("dl");if(o.className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs pb-2 border-b border-slate-200 dark:border-slate-800 mb-2",this.options.columns.forEach(i=>{if(this.options.summaryFields.includes(i.key))return;const t=document.createElement("dt");t.className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider",t.textContent=this.options.headerTitles[i.key]||i.title||i.key;const a=document.createElement("dd");a.className="text-slate-700 dark:text-slate-300 font-semibold text-right break-all";const n=d[i.key];n&&typeof n=="string"&&/<[a-z][\s\S]*>/i.test(n)?a.innerHTML=n:a.textContent=n||"-",o.appendChild(t),o.appendChild(a)}),h.appendChild(o),this.options.edit||this.options.delete){const i=document.createElement("div");if(i.className="flex items-center gap-2 justify-end",this.options.edit){const t=document.createElement("button");t.className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary transition-all cursor-pointer",t.textContent=b()?"Editar":"Edit",t.onclick=a=>this.handleAction("edit",a,d),i.appendChild(t)}if(this.options.delete){const t=document.createElement("button");t.className="px-3 py-1.5 bg-red-50 dark:bg-red-950/20 text-red-555 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold border border-transparent transition-all cursor-pointer",t.textContent=b()?"Eliminar":"Delete",t.onclick=a=>this.handleAction("delete",a,d),i.appendChild(t)}h.appendChild(i)}e.appendChild(h)})}renderPagination(){const e=this.container.querySelector(".datatable-pagination");if(!e||!this.options.pagination)return;e.innerHTML="";const s=Math.ceil(this.filteredData.length/this.options.rowsPerPage);if(s<=1)return;const l="px-3 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer ",p=l+"bg-primary border-primary text-white hover:bg-primary-dark shadow-material",d=l+"border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800",h=l+"border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 opacity-50 cursor-not-allowed",r=document.createElement("button");r.textContent="«",r.className=this.currentPage===1?h:d,r.disabled=this.currentPage===1,r.onclick=()=>this.changePage(this.currentPage-1),e.appendChild(r);const o=5;let i=Math.max(1,this.currentPage-Math.floor(o/2)),t=i+o-1;if(t>s&&(t=s,i=Math.max(1,t-o+1)),i>1){const n=document.createElement("button");n.className=d,n.textContent="1",n.onclick=()=>this.changePage(1),e.appendChild(n),i>2&&e.appendChild(this.createEllipsis())}for(let n=i;n<=t;n++){const m=document.createElement("button");m.className=n===this.currentPage?p:d,m.textContent=n,m.onclick=()=>this.changePage(n),e.appendChild(m)}if(t<s){t<s-1&&e.appendChild(this.createEllipsis());const n=document.createElement("button");n.className=d,n.textContent=s,n.onclick=()=>this.changePage(s),e.appendChild(n)}const a=document.createElement("button");a.className=this.currentPage===s?h:d,a.textContent="»",a.disabled=this.currentPage===s,a.onclick=()=>this.changePage(this.currentPage+1),e.appendChild(a)}createEllipsis(){const e=document.createElement("span");return e.className="text-slate-400 px-1",e.textContent="...",e}changePage(e){this.currentPage=e,this.updateTable()}handleAction(e,s,l){if(!this.options[e])return;const p=typeof this.options[e]=="function"?this.options[e]:window[this.options[e]];typeof p=="function"&&p(s,l.id||l)}setupSearch(){const e=this.container.querySelector(".datatable-search-input");e&&e.addEventListener("input",s=>{const l=s.target.value.toLowerCase().trim();this.filteredData=this.options.data.filter(p=>this.options.columns.some(d=>String(p[d.key]||"").toLowerCase().includes(l))),this.currentPage=1,this.updateTable()})}updateTable(){this.renderTable(),this.options.pagination&&this.renderPagination()}updateData(e){this.options.data=e,this.filteredData=[...e],this.currentPage=1,this.updateTable()}updateColumns(e){this.options.columns=e,this.updateTable()}}function x(c){let e=document.getElementById("snackbar");e||(e=document.createElement("div"),e.id="snackbar",document.body.appendChild(e)),e.className="fixed bottom-4 left-4 z-50 max-w-sm p-4 text-white rounded-xl shadow-material-lg transform translate-y-12 opacity-0 transition-all duration-300 flex items-center gap-2 font-bold text-sm pointer-events-none",c.type==="success"?e.classList.add("bg-green-600"):c.type==="error"?e.classList.add("bg-red-500"):c.type==="warning"?e.classList.add("bg-amber-500"):e.classList.add("bg-primary"),e.textContent=c.message||"",setTimeout(()=>{e.classList.remove("translate-y-12","opacity-0"),e.classList.add("translate-y-0","opacity-100")},10);const s=c.duration||3e3;e.timeoutId&&clearTimeout(e.timeoutId),e.timeoutId=setTimeout(function(){e.classList.add("translate-y-12","opacity-0"),e.classList.remove("translate-y-0","opacity-100")},s)}window.ResponsiveDataTable=f;window.Http=u;window.getUrlParameter=g;window.snackbar=x;
+      <tbody class="datatable-body divide-y divide-slate-100 dark:divide-slate-850"></tbody>`; const headerRow = table.querySelector("thead tr"); this.options.columns.forEach((column) => { const th = document.createElement("th"); th.scope = "col"; th.className = "px-6 py-3.5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800"; th.textContent = this.options.headerTitles[column.key] || column.title || column.key; headerRow.appendChild(th); }); if (this.options.edit || this.options.delete) { const th = document.createElement("th"); th.scope = "col"; th.className = "px-6 py-3.5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800"; th.textContent = lang() ? "Acciones" : "Actions"; headerRow.appendChild(th); }
+    const startIndex = (this.currentPage - 1) * this.options.rowsPerPage; const endIndex = startIndex + this.options.rowsPerPage; const paginatedData = this.filteredData.slice(startIndex, endIndex); const tbody = table.querySelector("tbody"); paginatedData.forEach((item) => {
+      const row = document.createElement("tr"); row.className = "hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors"; this.options.columns.forEach((column) => {
+        const td = document.createElement("td"); td.className = "px-6 py-4 text-slate-700 dark:text-slate-300 whitespace-nowrap align-middle font-medium"; const value = item[column.key]; if (value && typeof value === "string" && /<[a-z][\s\S]*>/i.test(value)) { td.innerHTML = value; } else { td.textContent = value || "-"; }
+        row.appendChild(td);
+      }); if (this.options.edit || this.options.delete) {
+        const td = document.createElement("td"); td.className = "px-6 py-4 whitespace-nowrap align-middle"; const actionsDiv = document.createElement("div"); actionsDiv.className = "flex items-center gap-2"; if (this.options.edit) { const btn = document.createElement("button"); btn.className = "px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary transition-all cursor-pointer"; btn.textContent = lang() ? "Editar" : "Edit"; btn.onclick = (e) => this.handleAction("edit", e, item); actionsDiv.appendChild(btn); }
+        if (this.options.delete) { const btn = document.createElement("button"); btn.className = "px-3 py-1.5 bg-red-50 dark:bg-red-950/20 text-red-555 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold border border-transparent transition-all cursor-pointer"; btn.textContent = lang() ? "Eliminar" : "Delete"; btn.onclick = (e) => this.handleAction("delete", e, item); actionsDiv.appendChild(btn); }
+        td.appendChild(actionsDiv); row.appendChild(td);
+      }
+      tbody.appendChild(row);
+    });
+  }
+  renderMobileView() {
+    const mobileView = this.container.querySelector(".datatable-mobile"); mobileView.innerHTML = ""; const startIndex = (this.currentPage - 1) * this.options.rowsPerPage; const endIndex = startIndex + this.options.rowsPerPage; const paginatedData = this.filteredData.slice(startIndex, endIndex); paginatedData.forEach((item) => {
+      const card = document.createElement("article"); card.className = "mb-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4"; const summary = document.createElement("h3"); summary.className = "text-base font-black text-slate-850 dark:text-slate-100 border-b border-slate-250 dark:border-slate-800 pb-2 mb-2 flex items-center justify-between"; this.options.summaryFields.forEach((fieldKey) => { const value = item[fieldKey]; summary.innerHTML += `<span>${value || "-"}</span>`; }); card.appendChild(summary); const details = document.createElement("dl"); details.className = "grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs pb-2 border-b border-slate-200 dark:border-slate-800 mb-2"; this.options.columns.forEach((column) => {
+        if (this.options.summaryFields.includes(column.key)) return; const dt = document.createElement("dt"); dt.className = "font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"; dt.textContent = this.options.headerTitles[column.key] || column.title || column.key; const dd = document.createElement("dd"); dd.className = "text-slate-700 dark:text-slate-300 font-semibold text-right break-all"; const cellValue = item[column.key]; if (cellValue && typeof cellValue === "string" && /<[a-z][\s\S]*>/i.test(cellValue)) { dd.innerHTML = cellValue; } else { dd.textContent = cellValue || "-"; }
+        details.appendChild(dt); details.appendChild(dd);
+      }); card.appendChild(details); if (this.options.edit || this.options.delete) {
+        const actions = document.createElement("div"); actions.className = "flex items-center gap-2 justify-end"; if (this.options.edit) { const btn = document.createElement("button"); btn.className = "px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary transition-all cursor-pointer"; btn.textContent = lang() ? "Editar" : "Edit"; btn.onclick = (e) => this.handleAction("edit", e, item); actions.appendChild(btn); }
+        if (this.options.delete) { const btn = document.createElement("button"); btn.className = "px-3 py-1.5 bg-red-50 dark:bg-red-950/20 text-red-555 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold border border-transparent transition-all cursor-pointer"; btn.textContent = lang() ? "Eliminar" : "Delete"; btn.onclick = (e) => this.handleAction("delete", e, item); actions.appendChild(btn); }
+        card.appendChild(actions);
+      }
+      mobileView.appendChild(card);
+    });
+  }
+  renderPagination() {
+    const pagination = this.container.querySelector(".datatable-pagination"); if (!pagination || !this.options.pagination) return; pagination.innerHTML = ""; const pageCount = Math.ceil(this.filteredData.length / this.options.rowsPerPage,); if (pageCount <= 1) return;
+    const btnClass = "px-3 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer ";
+    const activeBtnClass = btnClass + "bg-primary border-primary text-white hover:bg-primary-dark shadow-material";
+    const inactiveBtnClass = btnClass + "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800";
+    const disabledBtnClass = btnClass + "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 opacity-50 cursor-not-allowed";
+
+    const prevButton = document.createElement("button"); prevButton.textContent = "«"; prevButton.className = this.currentPage === 1 ? disabledBtnClass : inactiveBtnClass; prevButton.disabled = this.currentPage === 1; prevButton.onclick = () => this.changePage(this.currentPage - 1); pagination.appendChild(prevButton); const maxVisible = 5; let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2)); let end = start + maxVisible - 1; if (end > pageCount) { end = pageCount; start = Math.max(1, end - maxVisible + 1); }
+    if (start > 1) { const firstButton = document.createElement("button"); firstButton.className = inactiveBtnClass; firstButton.textContent = "1"; firstButton.onclick = () => this.changePage(1); pagination.appendChild(firstButton); if (start > 2) pagination.appendChild(this.createEllipsis()); }
+    for (let i = start; i <= end; i++) { const button = document.createElement("button"); button.className = i === this.currentPage ? activeBtnClass : inactiveBtnClass; button.textContent = i; button.onclick = () => this.changePage(i); pagination.appendChild(button); }
+    if (end < pageCount) { if (end < pageCount - 1) pagination.appendChild(this.createEllipsis()); const lastButton = document.createElement("button"); lastButton.className = inactiveBtnClass; lastButton.textContent = pageCount; lastButton.onclick = () => this.changePage(pageCount); pagination.appendChild(lastButton); }
+    const nextButton = document.createElement("button"); nextButton.className = this.currentPage === pageCount ? disabledBtnClass : inactiveBtnClass; nextButton.textContent = "»"; nextButton.disabled = this.currentPage === pageCount; nextButton.onclick = () => this.changePage(this.currentPage + 1); pagination.appendChild(nextButton);
+  }
+  createEllipsis() { const span = document.createElement("span"); span.className = "text-slate-400 px-1"; span.textContent = "..."; return span; }
+  changePage(page) { this.currentPage = page; this.updateTable(); }
+  handleAction(type, event, item) { if (!this.options[type]) return; const callback = typeof this.options[type] === "function" ? this.options[type] : window[this.options[type]]; if (typeof callback === "function") callback(event, item.id || item); }
+  setupSearch() { const searchInput = this.container.querySelector(".datatable-search-input"); if (!searchInput) return; searchInput.addEventListener("input", (e) => { const term = e.target.value.toLowerCase().trim(); this.filteredData = this.options.data.filter((item) => this.options.columns.some((column) => String(item[column.key] || "").toLowerCase().includes(term),),); this.currentPage = 1; this.updateTable(); }); }
+  updateTable() { this.renderTable(); if (this.options.pagination) this.renderPagination(); }
+  updateData(newData) { this.options.data = newData; this.filteredData = [...newData]; this.currentPage = 1; this.updateTable(); }
+  updateColumns(newColumns) { this.options.columns = newColumns; this.updateTable(); }
+}
+
+function snackbar(options) {
+  let snackbar = document.getElementById("snackbar");
+
+  if (!snackbar) {
+    snackbar = document.createElement("div");
+    snackbar.id = "snackbar";
+    document.body.appendChild(snackbar);
+  }
+
+  snackbar.className = "fixed bottom-4 left-4 z-50 max-w-sm p-4 text-white rounded-xl shadow-material-lg transform translate-y-12 opacity-0 transition-all duration-300 flex items-center gap-2 font-bold text-sm pointer-events-none";
+
+  if (options.type === "success") {
+    snackbar.classList.add("bg-green-600");
+  } else if (options.type === "error") {
+    snackbar.classList.add("bg-red-500");
+  } else if (options.type === "warning") {
+    snackbar.classList.add("bg-amber-500");
+  } else {
+    snackbar.classList.add("bg-primary");
+  }
+
+  snackbar.textContent = options.message || "";
+
+  setTimeout(() => {
+    snackbar.classList.remove("translate-y-12", "opacity-0");
+    snackbar.classList.add("translate-y-0", "opacity-100");
+  }, 10);
+
+  const duration = options.duration || 3000;
+  if (snackbar.timeoutId) {
+    clearTimeout(snackbar.timeoutId);
+  }
+
+  snackbar.timeoutId = setTimeout(function () {
+    snackbar.classList.add("translate-y-12", "opacity-0");
+    snackbar.classList.remove("translate-y-0", "opacity-100");
+  }, duration);
+}
+window.ResponsiveDataTable = ResponsiveDataTable;
+window.Http = Http;
+window.getUrlParameter = getUrlParameter;
+window.snackbar = snackbar;
