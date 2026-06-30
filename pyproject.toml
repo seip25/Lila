@@ -63,6 +63,7 @@ lila-scaffold-crud = "lila.cli.scaffold_crud:app"
 lila-secret-key = "lila.cli.secret_key:app"
 lila-seo = "lila.cli.seo:app"
 lila-docker = "lila.cli.docker:app"
+lila-dev = "lila.cli.dev:main"
 
 [tool.setuptools.package-data]
 lila = [

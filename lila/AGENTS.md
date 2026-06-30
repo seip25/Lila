@@ -368,6 +368,11 @@ lila-docker stop [mysql|postgres|all]
 lila-docker ps   # Shows status of database containers (also runs by default on "lila-docker")
 ```
 
+#### Run development server (starts local uvicorn on main.py)
+```bash
+lila-dev
+```
+
 #### Generate SEO Sitemap & Robots
 ```bash
 lila-seo sitemap --domain https://yourdomain.com
