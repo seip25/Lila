@@ -178,7 +178,6 @@ async def login(request: Request):
 - `lila-admin`: Generate admin panel.
 - `lila-migrations`: Run database migrations.
 - `lila-minify`: Minify CSS/JS for production.
-- `lila-react`: Set up Vite + Tailwind CSS v4 environment.
 - `lila-seo`: Generate sitemap.xml and robots.txt.
 
 ### SEO Optimization (`core/routing.py` & `cli/seo.py`)
