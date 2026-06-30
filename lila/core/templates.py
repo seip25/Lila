@@ -615,6 +615,23 @@ def asset(path: str, force_static: bool = False) -> str:
 
 jinja_env.globals['asset'] = asset
 
+def get_flashes(request: Request) -> list[dict]:
+    """
+    English: Returns queued flash messages and clears them so they aren't shown again.
+    Español: Retorna los mensajes flash en cola y los limpia para que no se muestren de nuevo.
+    """
+    flashes = []
+    if hasattr(request.state, "_flash_messages"):
+        flashes.extend(request.state._flash_messages)
+        request.state._flash_messages = []
+    if hasattr(request.state, "_new_flashes"):
+        flashes.extend(request.state._new_flashes)
+        request.state._new_flashes = []
+    return flashes
+
+
+jinja_env.globals['get_flashes'] = get_flashes
+
 templates = Jinja2Templates(env=jinja_env)
 markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
 def get_base_context(request: Request, files_translate: list[str] = None, lang_default: str = None) -> dict:
@@ -640,10 +657,11 @@ def get_base_context(request: Request, files_translate: list[str] = None, lang_d
         "version": VERSION_PROJECT,
         "lang": current_lang,
         "translate": translations,
-        "author": AUTHOR_DEFAULT,
+        "author": seo_data.get("author", AUTHOR_DEFAULT),
         "app_url": APP_URL or f"http://{HOST}:{PORT}",
         "debug": DEBUG,
         "debug_html": getattr(request.app, "debug_html", False),
+        "get_flashes": lambda: get_flashes(request),
     }
 
 

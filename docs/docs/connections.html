@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -155,6 +155,25 @@ mysql_connection = connection
 
                 </code>
                 </pre>
+        </div>
+      <h3>Transaction Context Manager</h3>
+      <p>
+        Lila provides a built-in context manager to safely run database operations. It automatically commits the session on success, or rolls back on exception, closing the session automatically.
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">
+            <i class="fas fa-database mr-2"></i>Using connection.transaction()
+          </span>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-python">
+# Automatically opens a session, commits at the end, and handles rollbacks/cleanup!
+with connection.transaction() as db:
+    new_user = User(email="test@example.com", name="Lila")
+    db.add(new_user)
+          </code></pre>
         </div>
       </div>
 

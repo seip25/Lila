@@ -27,6 +27,8 @@ from lila.core.templates import render
 from app.config import DEBUG
 import asyncio
 import importlib.util
+import inspect
+import pydantic
 
 ph = PasswordHasher()
 
@@ -48,7 +50,16 @@ class CachedStaticFiles(StaticFiles):
         return response
 
 
-def seo(title: Any = None, description: Any = None, keywords: Any = None, og: dict = None) -> Any:
+def seo(
+    title: Any = None,
+    description: Any = None,
+    keywords: Any = None,
+    og: dict = None,
+    canonical: Any = None,
+    author: Any = None,
+    robots: Any = None,
+    **kwargs
+) -> Any:
     """
     English: Decorator to attach SEO metadata to a route handler.
     Español: Decorador para adjuntar metadatos SEO a un manejador de ruta.
@@ -56,10 +67,15 @@ def seo(title: Any = None, description: Any = None, keywords: Any = None, og: di
     def decorator(func):
         if not hasattr(func, "_seo"):
             func._seo = {}
-        if title: func._seo['title'] = title
-        if description: func._seo['description'] = description
-        if keywords: func._seo['keywords'] = keywords
-        if og: func._seo['og'] = og
+        if title is not None: func._seo['title'] = title
+        if description is not None: func._seo['description'] = description
+        if keywords is not None: func._seo['keywords'] = keywords
+        if og is not None: func._seo['og'] = og
+        if canonical is not None: func._seo['canonical'] = canonical
+        if author is not None: func._seo['author'] = author
+        if robots is not None: func._seo['robots'] = robots
+        for k, v in kwargs.items():
+            func._seo[k] = v
         return func
     return decorator
 
@@ -125,6 +141,19 @@ class Router:
             for m in reversed(self.middlewares):
                 current_func = m(current_func)
 
+            # Inspect signature to auto-detect Pydantic validation parameters
+            body_param_name = None
+            body_model_class = None
+            try:
+                sig = inspect.signature(func)
+                for param_name, param in sig.parameters.items():
+                    if param_name != "request" and inspect.isclass(param.annotation) and issubclass(param.annotation, pydantic.BaseModel):
+                        body_param_name = param_name
+                        body_model_class = param.annotation
+                        break
+            except Exception:
+                pass
+
             if hasattr(func, "_seo"):
                 current_seo = self.seo_data.get(real_path, {})
                 for k, v in func._seo.items():
@@ -174,8 +203,6 @@ class Router:
 
                 request.state.seo = self._process_seo_metadata(seo_meta, current_lang, request)
 
-
-                
                 session_cookie = ""
                 for key in cookie_keys:
                     val = request.cookies.get(key)
@@ -201,7 +228,9 @@ class Router:
                 if request.query_params and Security.check_xss(str(request.query_params)):
                     return JSONResponse({"success": False, "msg": "Potential XSS detected in query parameters"}, status_code=400)
 
-                if model and request.method in ["POST", "PUT", "PATCH"]:
+                target_model = body_model_class or model
+                validated_data = None
+                if target_model and request.method in ["POST", "PUT", "PATCH"]:
                     try:
                         body = await request.json()
                         sanitized_body = Security.sanitize_data(body)
@@ -209,20 +238,24 @@ class Router:
                         if Security.check_xss(str(sanitized_body)):
                              return JSONResponse({"success": False, "msg": "Potential XSS detected in body"}, status_code=400)
 
-                        validated_data = model(**sanitized_body)
+                        validated_data = target_model(**sanitized_body)
                         request.state.data = validated_data
                     except ValidationError as e:
-                        return self.response_validation_error(e,current_lang)
+                        return self.response_validation_error(e, current_lang)
                     except Exception as e:
                         msg = "Invalid JSON Body" if current_lang == "en" else "JSON inválido"
                         if DEBUG:
                             print(f"Routing Error: {e}")
                         return JSONResponse({"success": False, "msg": msg}, status_code=400)
                 
+                kwargs = {}
+                if body_param_name and validated_data is not None:
+                    kwargs[body_param_name] = validated_data
+
                 if asyncio.iscoroutinefunction(current_func):
-                    response = await current_func(request)
+                    response = await current_func(request, **kwargs)
                 else:
-                    response = current_func(request)
+                    response = current_func(request, **kwargs)
 
                 if ttl > 0 and request.method == "GET" and not DEBUG and cache_key:
                     if hasattr(response, "status_code") and response.status_code == 200:

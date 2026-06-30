@@ -132,9 +132,15 @@
                     <pre><code class="language-python">
 from lila.core.routing import seo
 
-# Basic usage
+# Basic usage (now supports title, description, keywords, og, canonical, author, robots, etc.)
 @router.get("/")
-@seo(title="Home Page", description="Welcome to our site")
+@seo(
+    title="Home Page",
+    description="Welcome to our site",
+    canonical="https://mywebsite.com/",
+    author="Lila Team",
+    robots="index, follow"
+)
 async def index(request):
     return render(request, "index")
 
@@ -146,7 +152,7 @@ async def about(request):
 
 # Integration with translations (uses locales/translations.json)
 @router.get("/contact")
-@seo(title="translate:contact_title")
+@seo(title="translate:contact_title", custom_meta_val="Arbitrary Custom Key")
 async def contact(request):
     return render(request, "contact")
             </code></pre>
@@ -210,6 +216,9 @@ SEO_CONFIG = {
     &lt;title&gt;{{ seo.title | default(title) }}&lt;/title&gt;
     &lt;meta name="description" content="{{ seo.description | default(description) }}"&gt;
     &lt;meta name="keywords" content="{{ seo.keywords | default(keywords) }}"&gt;
+    {% if seo.canonical %}&lt;link rel="canonical" href="{{ seo.canonical }}" /&gt;{% endif %}
+    {% if seo.robots %}&lt;meta name="robots" content="{{ seo.robots }}" /&gt;{% endif %}
+    &lt;meta name="author" content="{{ seo.author | default(author) }}"&gt;
 &lt;/head&gt;
             </code></pre>
                 </div>

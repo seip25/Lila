@@ -5,6 +5,7 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from typing import Optional, Type, Dict, Any
 from lila.core.logger import Logger
 import re
+from contextlib import contextmanager
 
 
 class Base(DeclarativeBase):
@@ -92,6 +93,22 @@ class Database:
         if not self.SessionLocal:
             raise Exception("Database not connected. Call `connect()` first.")
         return self.SessionLocal()
+
+    @contextmanager
+    def transaction(self) -> Session:
+        """
+        English: Context manager to handle a database session transaction with automatic commit/rollback.
+        Español: Gestor de contexto para manejar una transacción de sesión de base de datos con commit/rollback automático.
+        """
+        session = self.get_session()
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
 
     def prepare_migrate(self, tables: list) -> None:
         self.tables.extend(tables)

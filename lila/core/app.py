@@ -107,6 +107,9 @@ class App(Starlette):
         
         middleware.append(Middleware(middleware_compress))
 
+        from lila.core.middleware import FlashMiddleware
+        middleware.append(Middleware(FlashMiddleware))
+
         if trusted_hosts:
             middleware.append(
                 Middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)

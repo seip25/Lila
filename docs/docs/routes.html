@@ -429,9 +429,16 @@ class ExampleModel(BaseModel):
     email: EmailStr  # Ensures a valid email.
     password: str  # String for password.
 
-@router.route(path='/api/example', methods=['POST'], model=ExampleModel)
-async def login(request: Request):
-    # Validation is automatic! 
+# Method 1: Inject via Model Parameter
+@router.post('/api/example')
+async def login(request: Request, body: ExampleModel):
+    # Validation is completely automatic!
+    # Validated body is directly passed as an argument.
+    return JSONResponse({"email": body.email, "status": "validated"})
+
+# Method 2: Inject via route decorator parameter
+@router.route(path='/api/example2', methods=['POST'], model=ExampleModel)
+async def login_legacy(request: Request):
     # Validated data is injected into request.state.data
     user_data = request.state.data
     return JSONResponse({"email": user_data.email, "status": "validated"})

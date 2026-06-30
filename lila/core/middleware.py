@@ -289,3 +289,44 @@ class Middleware(StarletteMiddleware):
 login_required = Middleware.login_required
 session_active = Middleware.session_active
 validate_token = Middleware.validate_token
+
+
+class FlashMiddleware(BaseHTTPMiddleware):
+    """
+    English: Middleware that processes and persists flash messages across requests.
+    Español: Middleware que procesa y persiste mensajes flash a través de las peticiones.
+    """
+    async def dispatch(self, request: Request, call_next):
+        import orjson
+        from lila.core.session import serializer
+
+        cookie_flashes = request.cookies.get("_flash")
+        flashes = []
+        if cookie_flashes:
+            try:
+                unsigned_data = serializer.loads(cookie_flashes, max_age=3600)
+                flashes = orjson.loads(unsigned_data)
+            except Exception:
+                pass
+
+        request.state._flash_messages = flashes
+        request.state._new_flashes = []
+
+        response = await call_next(request)
+
+        if hasattr(request.state, "_new_flashes") and request.state._new_flashes:
+            new_signed = serializer.dumps(orjson.dumps(request.state._new_flashes).decode())
+            response.set_cookie(
+                key="_flash",
+                value=new_signed,
+                max_age=3600,
+                expires=3600,
+                httponly=True,
+                samesite="strict",
+                path="/"
+            )
+        elif cookie_flashes:
+            response.delete_cookie("_flash", path="/")
+
+        return response
+

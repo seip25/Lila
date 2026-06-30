@@ -107,3 +107,22 @@ class Session:
     async def delete(response, key: str = "auth") -> bool:
         """Async helper to delete session data."""
         return Session.deleteSession(response=response, name_cookie=key)
+
+    @staticmethod
+    def flash(request: Request, message: str, category: str = "info") -> None:
+        """
+        English: Queues a flash message to be shown on the next request.
+        Español: Pone en cola un mensaje flash para ser mostrado en la siguiente petición.
+        """
+        if not hasattr(request.state, "_new_flashes"):
+            request.state._new_flashes = []
+        request.state._new_flashes.append({"message": message, "category": category})
+
+
+def flash(request: Request, message: str, category: str = "info") -> None:
+    """
+    English: Queues a flash message to be shown on the next request.
+    Español: Pone en cola un mensaje flash para ser mostrado en la siguiente petición.
+    """
+    Session.flash(request, message, category)
+

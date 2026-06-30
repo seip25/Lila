@@ -369,4 +369,41 @@ lila-seo sitemap --domain https://yourdomain.com
 lila-seo robots --domain https://yourdomain.com
 ```
 
+### Core Enhancements Reference
+
+#### 1. Flash Messages
+- Queue a flash message in views:
+  ```python
+  from lila.core.session import flash
+  flash(request, "Task completed!", category="success")
+  ```
+- Render flashes in templates:
+  ```html
+  {% for item in get_flashes() %}
+    <div class="alert alert-{{ item.category }}">{{ item.message }}</div>
+  {% endfor %}
+  ```
+
+#### 2. DB Transactions Context Manager
+- Safely run queries/updates using automatic commits and rollbacks:
+  ```python
+  with connection.transaction() as db:
+      db.add(new_instance)
+  ```
+
+#### 3. Automatic Pydantic Validation on API Routes
+- Type-annotate Pydantic model directly on your route handler function:
+  ```python
+  @router.post("/items")
+  async def create_item(request: Request, body: ItemCreateSchema):
+      # body is already parsed and validated!
+      print(body.name)
+  ```
+
+#### 4. Extended @seo Decorator
+- Passes canonical links, robots controls, author fields, or any custom meta:
+  ```python
+  @seo(title="Title", author="Me", canonical="https://...", custom_field="val")
+  ```
+
 
