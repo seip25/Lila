@@ -597,7 +597,7 @@ def asset(path: str, force_static: bool = False) -> str:
       .form-control:focus,
       .input-lila:focus {
         box-shadow: var(--shadow-lila-input-focus);
-        border-color: rgba(26, 115, 232, 0.35);
+        border: 1px solid rgba(128, 128, 128, 0.25);
         transform: translateY(-1px);
       }
     }
