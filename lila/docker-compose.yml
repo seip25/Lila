@@ -37,6 +37,8 @@ services:
       - DEBUG=${DEBUG:-False}
       - DB_HOST=mysql
       - DB_PORT=3306
+      - HOST=0.0.0.0
+      - PORT=8000
     depends_on:
       mysql:
         condition: service_healthy

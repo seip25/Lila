@@ -121,8 +121,10 @@ class ConfigLoader:
         """
         English: Loads configuration from the compiled Python cache file.
                  Returns None if cache is invalid or DEBUG is True.
+                 Prioritizes OS environment variables (like those set by Docker).
         Español: Carga la configuración desde el archivo Python de caché compilado.
                  Retorna None si el caché es inválido o DEBUG es True.
+                 Prioriza variables de entorno del SO (como las de Docker).
         """
         try:
             import importlib.util
@@ -136,11 +138,15 @@ class ConfigLoader:
                 if getattr(module, "DEBUG", True):
                     return None
 
-                # English: Read all fields from cache using the schema — no manual listing.
-                # Español: Leer todos los campos del caché usando el schema — sin listado manual.
+                # English: Read all fields from cache using the schema, prioritizing OS environment variables.
+                # Español: Leer todos los campos del caché usando el schema, priorizando variables de entorno del SO.
                 data = {}
-                for key, _, default in FRAMEWORK_SCHEMA:
-                    data[key] = getattr(module, key, default)
+                for key, type_name, default in FRAMEWORK_SCHEMA:
+                    env_val = os.environ.get(key)
+                    if env_val is not None:
+                        data[key] = _cast_value(env_val, type_name)
+                    else:
+                        data[key] = getattr(module, key, default)
                 return data
         except Exception:
             pass

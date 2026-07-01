@@ -304,6 +304,16 @@ def main():
                 f"app/connections.py updated with database configuration."
             )
 
+        # English: Generate requirements.txt if it does not exist.
+        # Español: Generar requirements.txt si no existe.
+        req_path = destination_base_path / "requirements.txt"
+        if not req_path.exists():
+            req_path.write_text("lila-framework\n", encoding="utf-8")
+            print(
+                f"Archivo 'requirements.txt' generado. / "
+                f"File 'requirements.txt' generated."
+            )
+
         readme_content = f"""
 # {project_info["TITLE_PROJECT"]}
 
