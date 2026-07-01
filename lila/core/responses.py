@@ -32,8 +32,8 @@ class StreamingResponse(LilaResponseMixin, StarletteStreamingResponse):
 
 def _default_encoder(obj: Any) -> Any:
     if isinstance(obj, BaseModel):
-        return obj.model_dump()
-    if isinstance(obj, (set, tuple)):
+        return obj.model_dump(mode="json")
+    if isinstance(obj, set):
         return list(obj)
     if isinstance(obj, Decimal):
         return float(obj)
