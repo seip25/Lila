@@ -259,7 +259,7 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
         @router.route(path=f"/{default_route}/{model_plural}", methods=["GET"], cache_ttl=0)
         @admin_required
         async def model_list(request: Request, model=model, model_name=model_name):
-            items = model.get_all()
+            items = await model.get_all_async()
 
             headers = items[0].keys() if items else []
             html_lang = Translate.lang(request=request)

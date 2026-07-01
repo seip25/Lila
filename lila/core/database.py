@@ -175,6 +175,52 @@ class Database:
             Logger.error(f"Query error: {e}")
         return result
 
+    async def query_async(
+        self,
+        query: str,
+        params: Optional[dict] = None,
+        return_rows: bool = False,
+        return_row: bool = False,
+    ) -> Any:
+        """
+        English: Non-blocking version of query() using asyncio.Future query deduplication.
+                 Safe for concurrent SELECT queries without blocking the event loop.
+        Español: Versión no bloqueante de query() usando deduplicación de asyncio.Future.
+        """
+        import asyncio
+        from lila.core.base_model import _PENDING_QUERIES
+        from typing import Any
+
+        is_select = query.strip().upper().startswith("SELECT")
+
+        if is_select:
+            params_tuple = tuple(sorted(params.items())) if params else ()
+            cache_key = f"db_query:{query}:{params_tuple}:{return_rows}:{return_row}"
+            loop = asyncio.get_running_loop()
+
+            if cache_key in _PENDING_QUERIES:
+                return await asyncio.shield(_PENDING_QUERIES[cache_key])
+
+            future: asyncio.Future = loop.create_future()
+            _PENDING_QUERIES[cache_key] = future
+            try:
+                result = await loop.run_in_executor(
+                    None, lambda: self.query(query, params, return_rows, return_row)
+                )
+                future.set_result(result)
+                return result
+            except Exception as exc:
+                future.set_exception(exc)
+                raise
+            finally:
+                _PENDING_QUERIES.pop(cache_key, None)
+        else:
+            # Writes bypass deduplication but run in the executor to avoid blocking
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(
+                None, lambda: self.query(query, params, return_rows, return_row)
+            )
+
     def commit(self) -> None:
         if self.connection and not self.auto_commit:
             try:

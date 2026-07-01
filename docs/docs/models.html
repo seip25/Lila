@@ -162,6 +162,24 @@ class User(BaseModel):
         <li><code>_primary_key = "id"</code>: The name of the primary key field (default <code>"id"</code>).</li>
       </ul>
 
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">Memory Optimization with __slots__</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        For custom python classes (like DTOs, service containers, or auxiliary objects) that you instantiate frequently, you can define <code>__slots__</code> to instruct Python to avoid creating a dynamic <code>__dict__</code> dictionary for each instance. This can reduce RAM usage by up to 60-70% for these helper objects:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python">class ProductDTO:
+    __slots__ = ['id', 'name', 'price']  # Disables dynamic __dict__ to save RAM
+    def __init__(self, id, name, price):
+        self.id = id
+        self.name = name
+        self.price = price</code></pre>
+        </div>
+      </div>
+      <div class="bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500 p-4 rounded-r-xl my-4 text-sm text-slate-700 dark:text-slate-300">
+        <strong>Warning:</strong> Do <strong>NOT</strong> add <code>__slots__</code> to your SQLAlchemy / BaseModel subclasses. SQLAlchemy relies on dynamic class attributes which conflict with __slots__ definitions.
+      </div>
+
       <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Built-in CRUD Methods</h2>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
         Once a class inherits from <code>BaseModel</code>, the following methods are readily available:
@@ -204,7 +222,56 @@ User.delete(db, 1)
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">2. Relationship Helpers</h3>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">2. Async Class Methods (Deduplicated)</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Lila provides non-blocking async counterparts for <code>get_all()</code> and <code>get_by_id()</code> to prevent blocking the event loop in concurrent ASGI routes. These async methods utilize **automatic query deduplication (Single-flight)**.
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python"># Fetch all users asynchronously (non-blocking)
+# Concurrent calls will share a single DB query!
+users = await User.get_all_async(limit=10)
+
+# Fetch a user by primary key asynchronously (non-blocking)
+# Concurrent calls for the same ID share a single query!
+user = await User.get_by_id_async(user_id=1)</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">Writing Custom Async Model Methods</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        You can easily create your own custom async query methods by defining a standard synchronous query method, and then wrapping it inside an async method using the inherited <code>cls.run_async()</code> helper.
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python">class User(BaseModel):
+    # ... columns ...
+
+    @classmethod
+    def get_by_email(cls, db: Session, email: str, active: int = 1):
+        """Standard synchronous query method."""
+        return db.query(cls).filter(cls.email == email, cls.active == active).first()
+
+    @classmethod
+    async def get_by_email_async(cls, email: str, active: int = 1):
+        """Non-blocking, query-deduplicated version."""
+        # 1. Define a unique fingerprint to collapse concurrent requests
+        cache_key = f"{cls.__tablename__}:get_by_email:{email}:{active}"
+        
+        # 2. Define the execution wrapper that opens/closes the database session
+        def _fetch():
+            db = connection.get_session()
+            try:
+                return cls.get_by_email(db, email, active)
+            finally:
+                db.close()
+                
+        # 3. run_async takes care of deduplication, thread pool delegation, and resolution!
+        return await cls.run_async(cache_key, _fetch)</code></pre>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">3. Relationship Helpers</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
         In standard SQLAlchemy, accessing relationships (like <code>user.posts</code>) after the database session has closed raises a <code>DetachedInstanceError</code>. 
         Lila solves this by offering relationship helpers on <code>BaseModel</code> that manage their own session lifecycle and immediately <strong>expunge</strong> (detach) the retrieved records from the session. 

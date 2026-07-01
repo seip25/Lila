@@ -54,15 +54,16 @@ async def register(request: Request):
     if valid_pass:
         return valid_pass
     
+    # Non-blocking async check with query deduplication
+    if await User.get_by_email_async(input.email):
+        msg = Translate.t(key="User already exists", request=request)
+        return JSONResponse({"success": False, "msg": msg})
+    if await User.get_by_email_async(input.email, 0):
+        msg = Translate.t(key="User is inactive", request=request)
+        return JSONResponse({"success": False, "msg": msg})
+        
     db = connection.get_session()
     try:
-        if User.get_by_email(db, input.email):
-            msg = Translate.t(key="User already exists", request=request)
-            return JSONResponse({"success": False, "msg": msg})
-        if User.get_by_email(db, input.email, 0):
-            msg = Translate.t(key="User is inactive", request=request)
-            return JSONResponse({"success": False, "msg": msg})
-            
         user = User(email=input.email, name=input.name)
         user.set_password(input.password)
         db.add(user)
@@ -82,20 +83,25 @@ async def register(request: Request):
 @router.post("/login", model=LoginModel)
 async def login(request: Request):
     input = request.state.data
-    db = connection.get_session()
-    try:
-        user = User.get_by_email(db, input.email)
-        if not user or not user.check_password(input.password):
+    # Non-blocking async fetch
+    user = await User.get_by_email_async(input.email)
+    if not user or not user.check_password(input.password):
+        db = connection.get_session()
+        try:
             client_ip = request.client.host if request.client else "unknown"
             LoginAttempt.record_attempt(db, input.email, client_ip, False)
             db.commit()
-            msg = Translate.t(key="Invalid email or password", request=request)
-            return JSONResponse({"success": False, "msg": msg})
-        
-        if not user.active:
-            msg = Translate.t(key="User is inactive", request=request)
-            return JSONResponse({"success": False, "msg": msg})
+        finally:
+            db.close()
+        msg = Translate.t(key="Invalid email or password", request=request)
+        return JSONResponse({"success": False, "msg": msg})
+    
+    if not user.active:
+        msg = Translate.t(key="User is inactive", request=request)
+        return JSONResponse({"success": False, "msg": msg})
 
+    db = connection.get_session()
+    try:
         client_ip = request.client.host if request.client else "unknown"
         LoginAttempt.record_attempt(db, input.email, client_ip, True)
         
@@ -130,14 +136,18 @@ async def forgot_password(request: Request):
         if not email:
              return JSONResponse({"success": False, "msg": "Email is required"}, status_code=400)
         
-        db = connection.get_session()
-        user = User.get_by_email(db, email)
+        # Non-blocking async fetch
+        user = await User.get_by_email_async(email)
         if user:
-            token = PasswordResetToken.create_token(db, user.id)
-            db.commit() 
-            if DEBUG:
-                url = f"http://{HOST}:{PORT}/change-password/{token}"
-                print(f"DEBUG {url}")
+            db = connection.get_session()
+            try:
+                token = PasswordResetToken.create_token(db, user.id)
+                db.commit() 
+                if DEBUG:
+                    url = f"http://{HOST}:{PORT}/change-password/{token}"
+                    print(f"DEBUG {url}")
+            finally:
+                db.close()
         
         msg = Translate.t(key="If the email exists, a reset link has been sent", request=request)
         return JSONResponse({"success": True, "msg": msg})

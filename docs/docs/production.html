@@ -319,6 +319,80 @@ server {
         <li>Set the action to run your script.</li>
       </ol>
 
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Docker Deployment Workflow</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Each Lila project comes preconfigured with a multi-container Docker structure that packages both the Python app (with Python 3.13-slim) and a MySQL database into isolated containers.
+      </p>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        All container and network names are automatically prefixed with <code>LILA_PROJECT_NAME</code> (which you define in your <code>.env</code> file at scaffolding). This keeps them fully isolated, allowing you to deploy multiple distinct Lila projects on the same VPS without port or namespace conflicts.
+      </p>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">1. Build the Production Image</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Run this to build the lightweight Python 3.13 production image, caching dependencies for faster rebuilds:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash">lila-docker build</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">2. Start the Stack (MySQL & App)</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        To start both the MySQL database and the Python app container in production mode (headless/daemon):
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash">lila-docker start prod</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">3. View Container Logs & Status</h4>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash"># Check container status
+lila-docker ps
+
+# Tail Python app logs
+lila-docker logs
+
+# Tail MySQL logs
+lila-docker logs mysql</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">4. Run CLI Commands inside Docker</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        To run migrations or scaffold models inside your running production container, use <code>lila-docker exec</code>:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash">lila-docker exec app bash
+
+# Inside the container shell:
+lila-migrations
+lila-model create MyModel</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">5. Multi-Project VPS Reverse Proxy (Nginx)</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Configure a different <code>PORT</code> and <code>DB_PORT</code> in the <code>.env</code> file for each project. Nginx can then reverse-proxy traffic to each container:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-ini"># Project A .env: PORT=8001, LILA_PROJECT_NAME=shop
+# Project B .env: PORT=8002, LILA_PROJECT_NAME=blog
+
+# In Nginx configuration for Shop:
+location / {
+    proxy_pass http://127.0.0.1:8001;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}</code></pre>
+        </div>
+      </div>
+
       <div class="mt-12">
         <form onsubmit="generateServiceNginx(event)" class="bg-slate-50/50 dark:bg-slate-900/20 p-6 md:p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 max-w-2xl mx-auto shadow-sm">
           <fieldset class="grid grid-cols-1 md:grid-cols-2 gap-6">
