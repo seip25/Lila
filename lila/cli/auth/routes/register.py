@@ -36,7 +36,6 @@ async def register(request: Request):
     if valid_pass:
         return valid_pass
 
-    # Non-blocking async check with query deduplication
     if await User.get_by_email_async(input.email):
         msg = Translate.t(key="User already exists", request=request)
         return JSONResponse({"success": False, "msg": msg})

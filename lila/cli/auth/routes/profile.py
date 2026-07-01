@@ -36,18 +36,14 @@ async def update_profile(request: Request):
     session_data = await Session.get(request, "auth")
     user_id = session_data.get("user_id")
 
-    # Non-blocking async fetch
     user_db = await User.get_by_id_async(user_id)
     if not user_db:
         return JSONResponse({"success": False, "msg": Translate.t(key="Error updating profile", request=request)})
-
-    # Perform slow Argon2 verification outside of database session
     if not user_db.check_password(input.password):
         return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
 
     db = connection.get_session()
     try:
-        # Fetch the model within the session transaction to perform the write
         user_to_update = User.get_by_id(db, user_id)
         user_to_update.name = input.name
         if input.password_2 and len(input.password_2) >= 8:
@@ -72,12 +68,9 @@ async def delete_account(request: Request):
     user_id = session_data.get("user_id")
     password = input.password
 
-    # Non-blocking async fetch
     user_db = await User.get_by_id_async(user_id)
     if not user_db:
         return JSONResponse({"success": False, "msg": Translate.t(key="Error deleting account", request=request)})
-
-    # Perform slow Argon2 verification outside of database session
     if not user_db.check_password(password):
         return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
 

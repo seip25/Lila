@@ -23,7 +23,6 @@ async def forgot_password(request: Request):
         if not email:
             return JSONResponse({"success": False, "msg": "Email is required"}, status_code=400)
 
-        # Non-blocking async fetch
         user = await User.get_by_email_async(email)
         if user:
             from app.models.auth import PasswordResetToken

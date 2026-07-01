@@ -27,7 +27,6 @@ async def login(request: Request):
     from app.models.auth import LoginAttempt
     input = request.state.data
 
-    # Non-blocking async fetch
     user = await User.get_by_email_async(input.email)
     if not user or not user.check_password(input.password):
         db = connection.get_session()
