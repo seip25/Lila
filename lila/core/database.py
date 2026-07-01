@@ -74,7 +74,7 @@ class Database:
                     max_overflow=max_overflow,
                 )
                 self.SessionLocal = sessionmaker(
-                    autocommit=self.auto_commit, autoflush=self.auto_flush, bind=self.engine
+                    autocommit=False, autoflush=self.auto_flush, bind=self.engine
                 )
             except ImportError as e:
                 if "psycopg" in str(e).lower():

@@ -214,10 +214,10 @@ config = {{
     "user": os.getenv("DB_USER", "{project_info['DB_USER']}"),
     "password": os.getenv("DB_PASSWORD", "{project_info['DB_PASSWORD']}"),
     "database": os.getenv("DB_NAME", "{project_info['DB_NAME']}"),
-    "auto_commit": True,
+    "auto_commit": False,
     "pool_size": 20,
     "max_overflow": 40,
-}}
+}
 connection = Database(config=config)
 connection.connect()
 
@@ -249,7 +249,7 @@ connection.connect()
 #     "user": os.getenv("DB_USER", "root"),
 #     "password": os.getenv("DB_PASSWORD", "root"),
 #     "database": os.getenv("DB_NAME", "lila_db"),
-#     "auto_commit": True,
+#     "auto_commit": False,
 #     "pool_size": 20,
 #     "max_overflow": 40,
 # }
