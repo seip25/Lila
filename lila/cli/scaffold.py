@@ -217,7 +217,7 @@ config = {{
     "auto_commit": False,
     "pool_size": 20,
     "max_overflow": 40,
-}
+}}
 connection = Database(config=config)
 connection.connect()
 
