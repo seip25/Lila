@@ -64,14 +64,28 @@ class Database:
             temp_engine.dispose()
 
             try:
+                pool_size = self.config.get("pool_size", 20)
+                max_overflow = self.config.get("max_overflow", 40)
                 self.engine = create_engine(
                     f"{db_type}+{connector}://{user}:{password}@{host}:{port}/{database}",
                     isolation_level=isolation_level,
                     execution_options={"autocommit": self.auto_commit},
+                    pool_size=pool_size,
+                    max_overflow=max_overflow,
                 )
                 self.SessionLocal = sessionmaker(
                     autocommit=self.auto_commit, autoflush=self.auto_flush, bind=self.engine
                 )
+            except ImportError as e:
+                if "psycopg" in str(e).lower():
+                    print(
+                        "\n❌ PostgreSQL driver not found. Install it with:\n"
+                        "   pip install lila-framework[psycopg]\n"
+                        "   or: pip install psycopg==3.2.10\n"
+                    )
+                else:
+                    print(f"Database driver import error: {e}")
+                return False
             except SQLAlchemyError as e:
                 print(f"Database connection error: {e}")
                 return False

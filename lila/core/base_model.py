@@ -11,8 +11,27 @@ from lila.core.database import Base
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.orm import Session, load_only
 from app.connections import connection
+import asyncio
 import datetime
 from typing import Type, List, Dict, Any, Optional
+
+# ──────────────────────────────────────────────────────────────────────────────
+# English: Query deduplication registry for async SELECT methods.
+#          Maps a unique query fingerprint → asyncio.Future.
+#          When multiple concurrent async requests ask for the exact same query,
+#          only one thread executes against the DB; all others await the same
+#          Future. This prevents redundant DB round-trips and respects the
+#          connection pool_size configured in Database.
+#          Only used for SELECT operations — writes always execute immediately.
+# Español: Registro de deduplicación de queries para métodos async SELECT.
+#          Mapea una huella única de query → asyncio.Future.
+#          Cuando múltiples peticiones async concurrentes piden exactamente la
+#          misma query, solo un hilo ejecuta contra la DB; los demás esperan el
+#          mismo Future. Esto evita round-trips redundantes y respeta el
+#          pool_size del Database.
+#          Solo se usa para operaciones SELECT — las escrituras siempre ejecutan.
+# ──────────────────────────────────────────────────────────────────────────────
+_PENDING_QUERIES: Dict[str, asyncio.Future] = {}
 
 class BaseModel(Base):
     __abstract__ = True
@@ -63,6 +82,51 @@ class BaseModel(Base):
             db.close()
 
     @classmethod
+    async def get_all_async(
+        cls,
+        select: str = None,
+        limit: int = 1000,
+        **filters,
+    ) -> List[Dict[str, Any]]:
+        """
+        English: Non-blocking version of get_all() for use in async Starlette route handlers.
+                 Uses asyncio.Future deduplication: if N concurrent requests arrive for the
+                 exact same query, only ONE thread hits the database. All other callers
+                 await the same Future and receive the result with zero extra DB round-trips.
+                 This is safe only for SELECT — use get_all() for write-after-read patterns.
+                 Example:
+                     @router.get("/products")
+                     async def list_products(request):
+                         items = await Product.get_all_async(limit=50)
+                         return JSONResponse(items)
+        Español: Versión no bloqueante de get_all() para usar en rutas async de Starlette.
+                 Usa deduplicación de asyncio.Future: si N peticiones concurrentes llegan
+                 para la misma query exacta, solo UN hilo toca la base de datos. Los demás
+                 esperan el mismo Future y reciben el resultado sin round-trips extra a la DB.
+                 Solo seguro para SELECT — usar get_all() para patrones write-after-read.
+        """
+        cache_key = f"{cls.__tablename__}:get_all:{select}:{limit}:{tuple(sorted(filters.items()))}"
+        loop = asyncio.get_running_loop()
+
+        if cache_key in _PENDING_QUERIES:
+            # Another coroutine is already fetching this exact data — wait for it.
+            return await asyncio.shield(_PENDING_QUERIES[cache_key])
+
+        future: asyncio.Future = loop.create_future()
+        _PENDING_QUERIES[cache_key] = future
+        try:
+            result = await loop.run_in_executor(
+                None, lambda: cls.get_all(select=select, limit=limit, **filters)
+            )
+            future.set_result(result)
+            return result
+        except Exception as exc:
+            future.set_exception(exc)
+            raise
+        finally:
+            _PENDING_QUERIES.pop(cache_key, None)
+
+    @classmethod
     def get_by_id(cls, db: Session, id: Any) -> Optional[Any]:
         """
         English: Get a record by its primary key ID.
@@ -72,6 +136,47 @@ class BaseModel(Base):
         if cls._delete_logic and hasattr(cls, cls._active_field):
             query = query.filter(getattr(cls, cls._active_field) == 1)
         return query.first()
+
+    @classmethod
+    async def get_by_id_async(cls, id: Any) -> Optional[Any]:
+        """
+        English: Non-blocking version of get_by_id() for use in async Starlette route handlers.
+                 Uses asyncio.Future deduplication: concurrent requests for the same ID share
+                 a single DB round-trip. Opens its own session internally.
+                 Example:
+                     @router.get("/products/{id}")
+                     async def get_product(request):
+                         product = await Product.get_by_id_async(request.path_params["id"])
+                         return JSONResponse(product or {})
+        Español: Versión no bloqueante de get_by_id() para usar en rutas async de Starlette.
+                 Usa deduplicación de asyncio.Future: peticiones concurrentes del mismo ID
+                 comparten un único round-trip a la DB. Abre su propia sesión internamente.
+        """
+        cache_key = f"{cls.__tablename__}:get_by_id:{id}"
+        loop = asyncio.get_running_loop()
+
+        if cache_key in _PENDING_QUERIES:
+            return await asyncio.shield(_PENDING_QUERIES[cache_key])
+
+        future: asyncio.Future = loop.create_future()
+        _PENDING_QUERIES[cache_key] = future
+
+        def _fetch():
+            db = connection.get_session()
+            try:
+                return cls.get_by_id(db, id)
+            finally:
+                db.close()
+
+        try:
+            result = await loop.run_in_executor(None, _fetch)
+            future.set_result(result)
+            return result
+        except Exception as exc:
+            future.set_exception(exc)
+            raise
+        finally:
+            _PENDING_QUERIES.pop(cache_key, None)
 
     @classmethod
     def insert(cls, db: Session, params: Dict[str, Any]) -> Any:

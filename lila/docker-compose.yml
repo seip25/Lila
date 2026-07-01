@@ -1,27 +1,98 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Lila Framework — Docker Compose
+#
+# DEVELOPMENT (default):
+#   lila-docker start mysql     → Only MySQL (run your app with: python main.py)
+#
+# PRODUCTION:
+#   lila-docker start prod      → MySQL + Python app container
+#   lila-docker stop            → Stop everything
+#
+# Multi-project VPS support:
+#   Each project uses LILA_PROJECT_NAME from .env to name containers and
+#   networks uniquely, so multiple Lila projects can coexist on one server.
+#   Configure different PORT and DB_PORT per project in each project's .env.
+#
+# Nginx reverse proxy example:
+#   proxy_pass http://127.0.0.1:${PORT};  # per-project port from .env
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
+  # ── Python App (Production only) ──────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: ${LILA_PROJECT_NAME:-lila}-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/venv
+    env_file:
+      - .env
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - lila_net
+    profiles:
+      - prod
+
+  # ── MySQL Database ─────────────────────────────────────────────────────────
   mysql:
     image: mysql:8.0
-    container_name: lila-mysql
+    container_name: ${LILA_PROJECT_NAME:-lila}-mysql
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: lila_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-lila_db}
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - lila_net
 
+  # ── PostgreSQL (Optional — uncomment to use) ───────────────────────────────
   # postgres:
-  #   image: postgres:15
-  #   container_name: lila-postgres
+  #   image: postgres:16
+  #   container_name: ${LILA_PROJECT_NAME:-lila}-postgres
+  #   restart: unless-stopped
   #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: root
-  #     POSTGRES_DB: lila_db
+  #     POSTGRES_USER: ${DB_USER:-postgres}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
+  #     POSTGRES_DB: ${DB_NAME:-lila_db}
   #   ports:
-  #     - "5432:5432"
+  #     - "${DB_PORT:-5432}:5432"
   #   volumes:
   #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - lila_net
+  # Note: install psycopg driver: pip install lila-framework[psycopg]
 
 volumes:
   mysql_data:
   # postgres_data:
+
+networks:
+  lila_net:
+    name: ${LILA_PROJECT_NAME:-lila}_network
+    driver: bridge

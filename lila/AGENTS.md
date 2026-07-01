@@ -406,4 +406,191 @@ lila-seo robots --domain https://yourdomain.com
   @seo(title="Title", author="Me", canonical="https://...", custom_field="val")
   ```
 
+---
 
+## Performance Best Practices
+
+### Async Database Queries (non-blocking)
+
+Lila routes are `async def` (ASGI). Calling synchronous ORM methods from an async route **blocks the event loop** while the DB query runs, degrading throughput under concurrent load.
+
+`BaseModel` provides async variants with **query deduplication**: when N concurrent requests trigger the exact same SELECT, only one DB round-trip happens. All other callers await the same `asyncio.Future` and receive the result automatically.
+
+```python
+# ✅ Non-blocking (use in async routes for SELECT operations)
+@router.get("/products")
+async def list_products(request: Request):
+    items = await Product.get_all_async(limit=100)
+    return JSONResponse(items)
+
+@router.get("/products/{id}")
+async def get_product(request: Request):
+    product = await Product.get_by_id_async(request.path_params["id"])
+    return JSONResponse(product or {})
+
+# ✅ Synchronous (use in CLI, migrations, background tasks, write-after-read)
+@router.post("/products")
+async def create_product(request: Request):
+    db = connection.get_session()
+    Product.insert(db, request.state.data.dict())
+    db.commit()
+    db.close()
+    return JSONResponse({"success": True})
+```
+
+**Query deduplication only applies to SELECT** — writes (`insert`, `update`, `delete`) always execute immediately.
+
+### Connection Pool Configuration
+
+`Database` defaults to `pool_size=20, max_overflow=40` for MySQL/PostgreSQL. These values align with `run_in_executor`'s thread pool to prevent threads queuing for a DB connection.
+
+Adjust in `app/connections.py`:
+```python
+config = {
+    "type": "mysql",
+    ...
+    "pool_size": 30,      # Max open connections at once
+    "max_overflow": 60,   # Extra connections allowed under peak load
+}
+```
+
+> **Rule of thumb**: `pool_size` should match or exceed `ThreadPoolExecutor` workers (default: `os.cpu_count() * 5`).
+
+### Memory Optimization with `__slots__`
+
+For custom helper classes (DTOs, service objects, data containers) that create **many instances**, use `__slots__` to eliminate the per-instance `__dict__`, reducing RAM by up to 60-70%.
+
+```python
+# Without __slots__: each instance allocates a __dict__ (~200+ bytes)
+class Producto:
+    __slots__ = ['id', 'nombre', 'precio']  # Evita __dict__ dinámico
+    def __init__(self, id, nombre, precio):
+        self.id = id
+        self.nombre = nombre
+        self.precio = precio
+```
+
+> **Do NOT use `__slots__` on SQLAlchemy models** — it is incompatible with SQLAlchemy's descriptor system. Only use it on plain Python helper classes.
+
+### ASGI Server (uvicorn + uvloop + httptools)
+
+Lila uses `uvicorn[standard]` which automatically activates `uvloop` (faster event loop) and `httptools` (faster HTTP parser) on Linux/macOS. No configuration needed — performance is improved automatically.
+
+For even higher throughput, **Granian** is a Rust-based ASGI server compatible with Starlette. It offers ~30-50% more throughput and lower memory overhead than uvicorn in benchmarks. It is a drop-in replacement:
+```bash
+pip install granian
+granian --interface asgi main:app --port 8000
+```
+Granian does not support Windows. Evaluate it for production VPS deployments where maximum performance is required.
+
+---
+
+## Docker Workflow
+
+### Architecture
+
+Each Lila project gets its own isolated Docker environment:
+- **MySQL container**: always running, named `{LILA_PROJECT_NAME}-mysql`
+- **Python app container** (prod only): named `{LILA_PROJECT_NAME}-app`
+- **Private network**: named `{LILA_PROJECT_NAME}_network` — containers on different projects cannot communicate
+
+This allows multiple Lila projects to coexist on one VPS without port or name conflicts.
+
+### Setup (lila-init)
+
+When running `lila-init`, the CLI asks for a project name and optional MySQL setup. The project name is sanitized (spaces → underscores, lowercase) and written to `.env` as `LILA_PROJECT_NAME`. This name is used by `docker-compose.yml` to namespace all resources.
+
+### Development Workflow
+
+```bash
+# Start only MySQL (run your Python app locally)
+lila-docker start
+# or: lila-docker start mysql
+
+# Run app normally
+python main.py
+# or: lila-dev
+```
+
+### Production Workflow
+
+```bash
+# 1. Build the Docker image (first time, or after requirements change)
+lila-docker build
+
+# 2. Start full stack (MySQL + Python app)
+lila-docker start prod
+
+# 3. View app logs
+lila-docker logs
+lila-docker logs --no-follow  # print last 100 lines
+
+# 4. Stop everything
+lila-docker stop
+```
+
+### Running CLI Commands in Production Containers
+
+When the app is running inside Docker, use `lila-docker exec` to run commands inside the container:
+
+```bash
+lila-docker exec app bash
+# Inside container:
+lila-migrations migrate
+lila-model create Product
+```
+
+### Multi-Project VPS with Nginx
+
+Each project configures its own `PORT` and `DB_PORT` in `.env`. Nginx routes traffic by domain to each container's port.
+
+**Project A `.env`**: `PORT=8001`, `DB_PORT=3307`, `LILA_PROJECT_NAME=shop`
+**Project B `.env`**: `PORT=8002`, `DB_PORT=3308`, `LILA_PROJECT_NAME=blog`
+
+```nginx
+# /etc/nginx/sites-available/shop.com
+server {
+    listen 443 ssl;
+    server_name shop.com;
+    location / {
+        proxy_pass http://127.0.0.1:8001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### .env Docker Variables Reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `LILA_PROJECT_NAME` | `lila` | Unique project name — used for container and network naming |
+| `PORT` | `8000` | Port exposed by the Python app container |
+| `DB_NAME` | `lila_db` | MySQL database name |
+| `DB_USER` | `root` | MySQL user |
+| `DB_PASSWORD` | `root` | MySQL root password |
+| `DB_PORT` | `3306` | Host port mapped to MySQL container |
+
+> **Security note**: Change `DB_PASSWORD` in `.env` before deploying to production. The `.env` file is already in `.gitignore`.
+
+### PostgreSQL (Optional)
+
+PostgreSQL support requires the psycopg driver, installed separately:
+```bash
+pip install lila-framework[psycopg]
+# or: pip install psycopg==3.2.10
+```
+
+Uncomment the `postgres` service in `docker-compose.yml` and update `app/connections.py`:
+```python
+config = {
+    "type": "postgresql",
+    "host": "127.0.0.1",
+    "port": 5432,
+    "user": "postgres",
+    "password": "root",
+    "database": "lila_db",
+}
+```

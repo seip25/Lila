@@ -28,7 +28,7 @@ classifiers = [
 dependencies = [
     "starlette==1.0.0",
     "jinja2==3.1.6",
-    "uvicorn==0.49.0",
+    "uvicorn[standard]==0.49.0",
     "pydantic==2.12.5",
     "pydantic[email]",
     "python-dotenv==1.1.1",
@@ -46,9 +46,13 @@ dependencies = [
     "jinja2-htmlmin==1.0.1",
     "starlette-compress==1.6.1",
     "pillow==11.3.0",
-    "psycopg==3.2.10",
     "orjson==3.11.7"
 ]
+
+[project.optional-dependencies]
+# English: Install PostgreSQL support with: pip install lila-framework[psycopg]
+# Español: Instalar soporte PostgreSQL con: pip install lila-framework[psycopg]
+psycopg = ["psycopg==3.2.10"]
 
 [project.scripts]
 lila-init = "lila.cli.scaffold:main"

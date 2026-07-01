@@ -84,34 +84,75 @@ def _prompt(label_en: str, label_es: str, default: str) -> str:
     return value if value else default
 
 
+def _to_docker_name(name: str) -> str:
+    """
+    English: Sanitizes a project name for Docker container/network naming.
+             Replaces spaces and hyphens with underscores, lowercases everything.
+    Español: Sanitiza un nombre de proyecto para contenedores/redes Docker.
+    """
+    import re
+    name = name.strip().lower()
+    name = re.sub(r'[\s\-]+', '_', name)  # spaces and hyphens -> underscores
+    name = re.sub(r'[^a-z0-9_]', '', name)  # remove non-alphanumeric/underscore
+    return name or "lila_project"
+
+
 def _collect_project_info(project_dir_name: str) -> dict:
     """
-    English: Interactively collects project metadata from the user via terminal prompts.
-    Español: Recolecta interactivamente los metadatos del proyecto del usuario via prompts de terminal.
+    English: Interactively collects project metadata and optional database config.
+    Español: Recolecta interactivamente los metadatos del proyecto y la config de DB opcional.
     """
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
+    default_docker_name = _to_docker_name(project_dir_name)
 
     print("\n📝 Configuración del proyecto / Project configuration")
     print("   (Presiona Enter para usar el valor por defecto / Press Enter to use defaults)\n")
 
-    return {
+    project_name_raw = _prompt("Project name (used for Docker containers)", "Nombre del proyecto (para Docker)", project_dir_name)
+    docker_name = _to_docker_name(project_name_raw)
+
+    info = {
+        "LILA_PROJECT_NAME": docker_name,
         "TITLE_PROJECT": _prompt("Project title", "Título del proyecto", default_title),
         "DESCRIPTION_PROJECT": _prompt("Description", "Descripción", ""),
         "AUTHOR_DEFAULT": _prompt("Author", "Autor", ""),
         "LANG_DEFAULT": _prompt("Default language (en/es/...)", "Idioma por defecto (en/es/...)", "en"),
         "DESCRIPTION_DEFAULT": _prompt("SEO meta description", "SEO meta descripción", "A Python web framework"),
         "KEYWORDS_DEFAULT": _prompt("SEO keywords", "SEO palabras clave", "Python, web, framework"),
+        # DB defaults (SQLite unless user sets up MySQL)
+        "DB_TYPE": "sqlite",
+        "DB_HOST": "127.0.0.1",
+        "DB_PORT": "3306",
+        "DB_NAME": docker_name,
+        "DB_USER": "root",
+        "DB_PASSWORD": "root",
     }
+
+    # ── MySQL setup ────────────────────────────────────────────────────────────
+    print("\n🗄️  Configuración de base de datos / Database setup")
+    setup_mysql = input("  ¿Quieres configurar MySQL ahora? / Configure MySQL now? [s/N]: ").strip().lower()
+    if setup_mysql in ("s", "y", "si", "yes"):
+        info["DB_TYPE"] = "mysql"
+        info["DB_HOST"] = _prompt("MySQL host", "Host MySQL", "127.0.0.1")
+        info["DB_PORT"] = _prompt("MySQL port", "Puerto MySQL", "3306")
+        info["DB_NAME"] = _prompt("Database name", "Nombre de la base de datos", docker_name)
+        info["DB_USER"] = _prompt("MySQL user", "Usuario MySQL", "root")
+        info["DB_PASSWORD"] = _prompt("MySQL password", "Contraseña MySQL", "root")
+        print("  ✅ MySQL configurado. Las credenciales se guardarán en .env / MySQL configured. Credentials saved to .env")
+    else:
+        print("  ℹ️  Usando SQLite por defecto / Using SQLite by default (app/connections.py)")
+
+    return info
 
 
 def _write_env_file(env_path: Path, project_info: dict) -> None:
     """
-    English: Writes the .env file with the collected project metadata and framework defaults.
-    Español: Escribe el archivo .env con los metadatos del proyecto recolectados y los defaults del framework.
+    English: Writes the .env file with project metadata, DB config, and Docker vars.
+    Español: Escribe el archivo .env con metadatos del proyecto, config DB y vars Docker.
     """
     import secrets
     secret_key = secrets.token_hex(32)
-    env_content = f"""# ─── Server ────────────────────────────────────────────
+    env_content = f"""# ─── Server ────────────────────────────────────────────────
 SECRET_KEY='{secret_key}'
 DEBUG=True
 PORT=8000
@@ -119,26 +160,105 @@ HOST="127.0.0.1"
 JIT=False
 WORKERS="1"
 
-# ─── Application URL ──────────────────────────────────
+# ─── Application URL ─────────────────────────────────────────
 # English: Production URL for sitemaps, robots.txt, and canonical links.
 #          Leave empty in development — the framework uses http://HOST:PORT automatically.
 # Español: URL de producción para sitemaps, robots.txt y links canónicos.
-#          Dejar vacío en desarrollo — el framework usa http://HOST:PORT automáticamente.
 #          Example: APP_URL="https://my-lila-app.com"
 APP_URL=""
 
-# ─── Project Metadata ─────────────────────────────────
+# ─── Project Metadata ─────────────────────────────────────────
 TITLE_PROJECT='{project_info["TITLE_PROJECT"]}'
 VERSION_PROJECT='1'
 DESCRIPTION_PROJECT='{project_info["DESCRIPTION_PROJECT"]}'
 LANG_DEFAULT='{project_info["LANG_DEFAULT"]}'
 
-# ─── SEO Defaults ─────────────────────────────────────
+# ─── SEO Defaults ───────────────────────────────────────────────
 DESCRIPTION_DEFAULT="{project_info["DESCRIPTION_DEFAULT"]}"
 KEYWORDS_DEFAULT="{project_info["KEYWORDS_DEFAULT"]}"
 AUTHOR_DEFAULT="{project_info["AUTHOR_DEFAULT"]}"
+
+# ─── Docker / Deployment ────────────────────────────────────────
+# English: Used by docker-compose.yml to name containers and networks uniquely.
+#          Change PORT / DB_PORT if another project uses the same port on this server.
+# Español: Usado por docker-compose.yml para nombrar contenedores y redes de forma única.
+LILA_PROJECT_NAME={project_info["LILA_PROJECT_NAME"]}
+DB_NAME={project_info["DB_NAME"]}
+DB_USER={project_info["DB_USER"]}
+DB_PASSWORD={project_info["DB_PASSWORD"]}
+DB_PORT={project_info["DB_PORT"]}
 """
     env_path.write_text(env_content.lstrip(), encoding="utf-8")
+
+
+def _write_connections_file(connections_path: Path, project_info: dict) -> None:
+    """
+    English: Writes app/connections.py with the database configuration chosen during lila-init.
+    Español: Escribe app/connections.py con la configuración de base de datos elegida en lila-init.
+    """
+    if project_info["DB_TYPE"] == "mysql":
+        connections_content = f"""from lila.core.database import Database
+from sqlalchemy.orm import Session
+import os
+
+# ────────────────────────────────────────────────────────────────────────────
+# MySQL connection — configured during lila-init
+# Credentials are read from .env (so Docker Compose and local dev share them).
+# pool_size: max threads that can hit the DB simultaneously (for async routes)
+# max_overflow: extra threads allowed beyond pool_size under peak load
+# ────────────────────────────────────────────────────────────────────────────
+config = {{
+    "type": "mysql",
+    "host": os.getenv("DB_HOST", "{project_info['DB_HOST']}"),
+    "port": int(os.getenv("DB_PORT", "{project_info['DB_PORT']}")),
+    "user": os.getenv("DB_USER", "{project_info['DB_USER']}"),
+    "password": os.getenv("DB_PASSWORD", "{project_info['DB_PASSWORD']}"),
+    "database": os.getenv("DB_NAME", "{project_info['DB_NAME']}"),
+    "auto_commit": True,
+    "pool_size": 20,
+    "max_overflow": 40,
+}}
+connection = Database(config=config)
+connection.connect()
+
+# Example: ORM session usage
+# db_session = connection.get_session()
+
+# Example: async route (non-blocking, with query deduplication)
+# from lila.core.base_model import BaseModel
+# items = await MyModel.get_all_async(limit=100)
+"""
+    else:
+        connections_content = """from lila.core.database import Database
+from sqlalchemy.orm import Session
+
+# ────────────────────────────────────────────────────────────────────────────
+# SQLite connection (default — no setup required for development)
+# To switch to MySQL, update this config and set DB_* vars in .env
+# ────────────────────────────────────────────────────────────────────────────
+config = {"type": "sqlite", "database": "lila"}
+connection = Database(config=config)
+connection.connect()
+
+# To use MySQL instead, replace config above with:
+# import os
+# config = {
+#     "type": "mysql",
+#     "host": os.getenv("DB_HOST", "127.0.0.1"),
+#     "port": int(os.getenv("DB_PORT", "3306")),
+#     "user": os.getenv("DB_USER", "root"),
+#     "password": os.getenv("DB_PASSWORD", "root"),
+#     "database": os.getenv("DB_NAME", "lila_db"),
+#     "auto_commit": True,
+#     "pool_size": 20,
+#     "max_overflow": 40,
+# }
+
+# Example: async route (non-blocking, with query deduplication)
+# from lila.core.base_model import BaseModel
+# items = await MyModel.get_all_async(limit=100)
+"""
+    connections_path.write_text(connections_content.lstrip(), encoding="utf-8")
 
 
 def main():
@@ -173,6 +293,16 @@ def main():
             f"  ✨ .env generado con la configuración del proyecto. / "
             f".env generated with project configuration."
         )
+
+        # English: Overwrite app/connections.py with chosen database config.
+        # Español: Sobreescribir app/connections.py con la config de DB elegida.
+        connections_path = destination_base_path / "app" / "connections.py"
+        if connections_path.exists():
+            _write_connections_file(connections_path, project_info)
+            print(
+                f"  🔗 app/connections.py actualizado con la configuración de base de datos. / "
+                f"app/connections.py updated with database configuration."
+            )
 
         readme_content = f"""
 # {project_info["TITLE_PROJECT"]}
