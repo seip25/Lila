@@ -81,244 +81,171 @@ def get_model_columns(model_class) -> list:
         return []
 
 
-def generate_route_file(model_name: str, route_name: str, table_name: str, columns: list) -> str:
-    """Generate the route file content with CRUD endpoints"""
-    
-    # Filter sensitive fields
-    sensitive_fields = {"password", "token", "hash"}
-    display_columns = [col for col in columns if col not in sensitive_fields]
-    
-    # Generate Pydantic model fields
-    pydantic_fields = []
-    for col in columns:
-        if col not in {"id", "created_at", "updated_at"}:
-            pydantic_fields.append(f'#     {col}: str  # TODO: Adjust type as needed')
-    
-    pydantic_fields_str = "\n".join(pydantic_fields)
-    
-    route_content = f'''# English: Routes for {model_name} CRUD operations
-# Español: Rutas para operaciones CRUD de {model_name}
+def generate_web_route_file(model_name: str, route_name: str) -> str:
+    """Generate the web (HTML) route file — renders the template and pulls api routes in"""
+    return f'''# English: Web route for {model_name} — renders the HTML page
+# Español: Ruta web para {model_name} — renderiza la página HTML
 
 from lila.core.request import Request
 from lila.core.routing import Router
 from lila.core.templates import render
-from lila.core.responses import JSONResponse
-from app.connections import connection
-from app.models.{to_snake_case(model_name)} import {model_name}
-from pydantic import BaseModel, ValidationError
-from typing import Optional
+from app.routes.api.{route_name} import routes as api_{route_name}_routes
+import itertools
 
-# English: Creating router instance for {route_name}
-# Español: Creando instancia del router para {route_name}
 router = Router()
 
-# English: Pydantic model for validation (uncomment and adjust as needed)
-# Español: Modelo Pydantic para validación (descomentar y ajustar según necesidad)
-# class {model_name}Create(BaseModel):
-{pydantic_fields_str}
-# 
-# class {model_name}Update(BaseModel):
-{pydantic_fields_str}
 
-
-# English: HTML page with DataTable for {model_name}
-# Español: Página HTML con DataTable para {model_name}
 @router.get("/{route_name}")
 async def {route_name}_index(request: Request):
     """
     Render the main HTML page with DataTable for {model_name} management
     """
-    response = render(request=request, template="{route_name}/index")
-    return response
+    return render(request=request, template="{route_name}/index")
 
 
-# English: API endpoint to get all {model_name} records
-# Español: Endpoint API para obtener todos los registros de {model_name}
-@router.get("/api/{route_name}")
+# English: Merge api routes so main.py only needs to import this file
+# Español: Combinar rutas api para que main.py solo necesite importar este archivo
+routes = list(itertools.chain(router.get_routes(), api_{route_name}_routes))
+'''
+
+
+def generate_api_route_file(model_name: str, route_name: str, table_name: str, columns: list) -> str:
+    """Generate the API (JSON) route file with full CRUD endpoints using modern Pydantic pattern"""
+
+    # Filter sensitive fields
+    sensitive_fields = {"password", "token", "hash"}
+    display_columns = [col for col in columns if col not in sensitive_fields]
+
+    # Generate Pydantic model fields
+    pydantic_fields = []
+    for col in columns:
+        if col not in {"id", "created_at", "updated_at"}:
+            pydantic_fields.append(f'    {col}: str  # TODO: Adjust type as needed')
+
+    pydantic_create_fields = "\n".join(pydantic_fields) or "    pass"
+    pydantic_update_fields = "\n".join(
+        [f.replace("    ", "    ") for f in pydantic_fields]
+    ) or "    pass"
+
+    return f'''# English: API routes for {model_name} CRUD operations
+# Español: Rutas API para operaciones CRUD de {model_name}
+
+from lila.core.request import Request
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse
+from app.connections import connection
+from app.models.{to_snake_case(model_name)} import {model_name}
+from pydantic import BaseModel
+from typing import Optional
+
+router = Router(prefix="api/v1")
+
+
+# English: Pydantic models for validation — adjust field types as needed
+# Español: Modelos Pydantic para validación — ajustar tipos según necesidad
+class {model_name}Create(BaseModel):
+{pydantic_create_fields}
+
+
+class {model_name}Update(BaseModel):
+{pydantic_update_fields}
+
+
+# English: Get all {model_name} records
+# Español: Obtener todos los registros de {model_name}
+@router.get("/{route_name}")
 async def get_all_{route_name}(request: Request):
-    """
-    Get all active {model_name} records
-    
-    Returns:
-        JSON response with list of {model_name} records
-    """
+    """Get all active {model_name} records"""
     try:
-        # Get all active records
-        items = {model_name}.get_all(select="{','.join(display_columns)}", limit=1000)
+        items = await {model_name}.get_all_async(select="{','.join(display_columns)}", limit=1000)
         return JSONResponse(items)
     except Exception as e:
         print(str(e))
         return JSONResponse({{"success": False, "message": "Error fetching data"}}, status_code=500)
 
 
-# English: API endpoint to get a single {model_name} by ID
-# Español: Endpoint API para obtener un {model_name} por ID
-@router.get("/api/{route_name}/{{id}}")
+# English: Get a single {model_name} by ID
+# Español: Obtener un {model_name} por ID
+@router.get("/{route_name}/{{{{id}}}}")
 async def get_{route_name}_by_id(request: Request):
-    """
-    Get a single {model_name} record by ID
-    
-    Args:
-        id: {model_name} ID from path parameters
-        
-    Returns:
-        JSON response with {model_name} data or 404
-    """
+    """Get a single {model_name} record by ID"""
     try:
         id = int(request.path_params.get("id"))
-        db = connection.get_session()
-        
-        try:
-            item = {model_name}.get_by_id(db, id)
-            if item is None:
-                return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
-            
-            # Convert to dict
-            result = {{col: getattr(item, col) for col in {display_columns}}}
-            return JSONResponse(result)
-        finally:
-            db.close()
+        item = await {model_name}.get_by_id_async(id)
+        if item is None:
+            return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
+        result = {{col: getattr(item, col) for col in {display_columns}}}
+        return JSONResponse(result)
     except Exception as e:
         print(str(e))
         return JSONResponse({{"success": False, "message": "Error fetching data"}}, status_code=500)
 
 
-# English: API endpoint to create a new {model_name}
-# Español: Endpoint API para crear un nuevo {model_name}
-@router.post("/api/{route_name}")
+# English: Create a new {model_name}
+# Español: Crear un nuevo {model_name}
+@router.post("/{route_name}", model={model_name}Create)
 async def create_{route_name}(request: Request):
-    """
-    Create a new {model_name} record
-    
-    Request body should contain {model_name} data
-    
-    Returns:
-        JSON response with success status and new record ID
-    """
+    """Create a new {model_name} record"""
+    input = request.state.data
+    db = connection.get_session()
     try:
-        body = await request.json()
-        
-        # Uncomment to use Pydantic validation:
-        # try:
-        #     validated_data = {model_name}Create(**body)
-        #     body = validated_data.dict()
-        # except ValidationError as e:
-        #     errors = []
-        #     for err in e.errors():
-        #         field = err["loc"][0]
-        #         msg = err["msg"]
-        #         errors.append({{field: msg}})
-        #     return JSONResponse(
-        #         {{"success": False, "errors": errors}},
-        #         status_code=400
-        #     )
-        
-        db = connection.get_session()
-        try:
-            new_item = {model_name}.insert(db, body)
-            db.commit()
-            db.refresh(new_item)
-            
-            return JSONResponse(
-                {{"success": True, "id": new_item.id}},
-                status_code=201
-            )
-        finally:
-            db.close()
-            
+        new_item = {model_name}.insert(db, input.dict())
+        db.commit()
+        db.refresh(new_item)
+        return JSONResponse({{"success": True, "id": new_item.id}}, status_code=201)
     except Exception as e:
+        db.rollback()
         print(str(e))
         return JSONResponse({{"success": False, "message": "Error creating record"}}, status_code=500)
+    finally:
+        db.close()
 
 
-# English: API endpoint to update a {model_name}
-# Español: Endpoint API para actualizar un {model_name}
-@router.put("/api/{route_name}/{{id}}")
+# English: Update an existing {model_name}
+# Español: Actualizar un {model_name} existente
+@router.put("/{route_name}/{{{{id}}}}", model={model_name}Update)
 async def update_{route_name}(request: Request):
-    """
-    Update an existing {model_name} record
-    
-    Args:
-        id: {model_name} ID from path parameters
-        
-    Request body should contain fields to update
-    
-    Returns:
-        JSON response with success status
-    """
+    """Update an existing {model_name} record"""
+    id = int(request.path_params.get("id"))
+    input = request.state.data
+    db = connection.get_session()
     try:
-        id = int(request.path_params.get("id"))
-        body = await request.json()
-        
-        # Uncomment to use Pydantic validation:
-        # try:
-        #     validated_data = {model_name}Update(**body)
-        #     body = validated_data.dict(exclude_unset=True)
-        # except ValidationError as e:
-        #     errors = []
-        #     for err in e.errors():
-        #         field = err["loc"][0]
-        #         msg = err["msg"]
-        #         errors.append({{field: msg}})
-        #     return JSONResponse(
-        #         {{"success": False, "errors": errors}},
-        #         status_code=400
-        #     )
-        
-        db = connection.get_session()
-        try:
-            success = {model_name}.update(db, id, body)
-            if not success:
-                return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
-            
-            db.commit()
-            return JSONResponse({{"success": True}})
-        finally:
-            db.close()
-            
+        success = {model_name}.update(db, id, input.dict(exclude_unset=True))
+        if not success:
+            return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
+        db.commit()
+        return JSONResponse({{"success": True}})
     except Exception as e:
+        db.rollback()
         print(str(e))
         return JSONResponse({{"success": False, "message": "Error updating record"}}, status_code=500)
+    finally:
+        db.close()
 
 
-# English: API endpoint to delete a {model_name} (soft delete)
-# Español: Endpoint API para eliminar un {model_name} (borrado lógico)
-@router.delete("/api/{route_name}/{{id}}")
+# English: Soft-delete a {model_name} (sets active = 0)
+# Español: Borrado lógico de un {model_name} (pone active = 0)
+@router.delete("/{route_name}/{{{{id}}}}")
 async def delete_{route_name}(request: Request):
-    """
-    Soft delete a {model_name} record (sets active = 0)
-    
-    Args:
-        id: {model_name} ID from path parameters
-        
-    Returns:
-        JSON response with success status
-    """
+    """Soft delete a {model_name} record"""
     try:
         id = int(request.path_params.get("id"))
-        
         db = connection.get_session()
         try:
             success = {model_name}.delete(db, id)
             if not success:
                 return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
-            
             db.commit()
             return JSONResponse({{"success": True}})
         finally:
             db.close()
-            
     except Exception as e:
         print(str(e))
         return JSONResponse({{"success": False, "message": "Error deleting record"}}, status_code=500)
 
 
-# English: Get all defined routes
-# Español: Obtener todas las rutas definidas
 routes = router.get_routes()
 '''
-    
-    return route_content
 
 
 def generate_html_template(model_name: str, route_name: str, columns: list) -> str:
@@ -496,44 +423,44 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
 
 
 def add_route_import_to_main(route_name: str, model_name: str) -> bool:
-    """Add route import to main.py using marker system"""
+    """Add web route import to main.py using the api_marker system.
+    Only the web route needs to be imported — it internally merges the api routes."""
     main_file = os.path.join(project_root, "main.py")
-    
+
     if not os.path.exists(main_file):
         typer.echo("❌ main.py not found.")
         return False
-    
+
     with open(main_file, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    
-    import_statement = f"from app.routes.{route_name} import routes as {route_name}_routes"
-    
+
+    import_statement = f"from app.routes.web.{route_name} import routes as {route_name}_routes"
+
     # Check if already imported
     if any(import_statement in line for line in lines):
         typer.echo(f"⚠️ Routes for {route_name} already imported in main.py")
         return True
-    
-    # Find all_routes line and marker
+
+    # Find all_routes line and api_marker
     all_routes_idx = -1
     marker_idx = -1
-    
+
     for i, line in enumerate(lines):
         if "all_routes = list(itertools.chain(" in line:
             all_routes_idx = i
         if "# api_marker" in line:
             marker_idx = i
-    
+
     if marker_idx == -1:
-        typer.echo(f"⚠️ Marker '# api_marker' not found in main.py. Please add routes manually.")
+        typer.echo("⚠️ Marker '# api_marker' not found in main.py. Please add routes manually.")
         return False
-    
+
     # Add import before marker
     lines.insert(marker_idx, f"{import_statement}\n")
-    
-    # Update all_routes line (now at all_routes_idx since we inserted before)
+
+    # Update all_routes line (index shifted by 1 after insert)
     if all_routes_idx != -1:
         old_line = lines[all_routes_idx]
-        # Extract existing routes from the chain
         import re
         match = re.search(r"all_routes = list\(itertools\.chain\((.*?)\)\)", old_line)
         if match:
@@ -541,11 +468,11 @@ def add_route_import_to_main(route_name: str, model_name: str) -> bool:
             if route_name not in existing_routes:
                 new_routes = f"{existing_routes}, {route_name}_routes"
                 lines[all_routes_idx] = f"all_routes = list(itertools.chain({new_routes}))\n"
-    
+
     with open(main_file, "w", encoding="utf-8") as f:
         f.writelines(lines)
-    
-    typer.echo(f"✅ Routes imported in main.py")
+
+    typer.echo("✅ Routes imported in main.py")
     return True
 
 
@@ -593,47 +520,65 @@ def main(
         raise typer.Exit(code=1)
     
     typer.echo(f"✅ Model '{model_name}' found")
-    
+
     # Get model columns
     columns = get_model_columns(model_class)
     if not columns:
         typer.echo("⚠️ Warning: Could not extract columns from model. Using default columns.")
         columns = ["id", "name", "active", "created_at"]
-    
+
     table_name = model_class.__tablename__ if hasattr(model_class, '__tablename__') else route_name
-    
+
     typer.echo(f"📋 Columns: {', '.join(columns)}")
     typer.echo(f"🗄️  Table: {table_name}")
-    
-    # Generate route file
-    typer.echo(f"\n📝 Generating route file...")
-    route_content = generate_route_file(model_name, route_name, table_name, columns)
-    
-    routes_dir = Path("app/routes")
-    routes_dir.mkdir(parents=True, exist_ok=True)
-    
-    route_file = routes_dir / f"{route_name}.py"
-    
-    if route_file.exists():
-        overwrite = typer.confirm(f"Route file {route_name}.py already exists. Overwrite?")
+
+    # Generate web route file
+    typer.echo(f"\n📝 Generating web route file...")
+    web_route_content = generate_web_route_file(model_name, route_name)
+
+    web_routes_dir = Path("app/routes/web")
+    web_routes_dir.mkdir(parents=True, exist_ok=True)
+
+    web_route_file = web_routes_dir / f"{route_name}.py"
+    if web_route_file.exists():
+        overwrite = typer.confirm(f"Web route file web/{route_name}.py already exists. Overwrite?")
         if not overwrite:
             typer.echo("Operation cancelled.")
             raise typer.Exit()
-    
-    with open(route_file, 'w', encoding='utf-8') as f:
-        f.write(route_content)
-    
-    typer.echo(f"✅ Route file created: app/routes/{route_name}.py")
-    
+
+    with open(web_route_file, 'w', encoding='utf-8') as f:
+        f.write(web_route_content)
+    typer.echo(f"✅ Web route file created: app/routes/web/{route_name}.py")
+
+    # Generate api route file
+    typer.echo(f"\n📝 Generating api route file...")
+    api_route_content = generate_api_route_file(model_name, route_name, table_name, columns)
+
+    api_routes_dir = Path("app/routes/api")
+    api_routes_dir.mkdir(parents=True, exist_ok=True)
+
+    api_route_file = api_routes_dir / f"{route_name}.py"
+    if api_route_file.exists():
+        overwrite = typer.confirm(f"API route file api/{route_name}.py already exists. Overwrite?")
+        if not overwrite:
+            typer.echo("Skipping API route generation.")
+        else:
+            with open(api_route_file, 'w', encoding='utf-8') as f:
+                f.write(api_route_content)
+            typer.echo(f"✅ API route file created: app/routes/api/{route_name}.py")
+    else:
+        with open(api_route_file, 'w', encoding='utf-8') as f:
+            f.write(api_route_content)
+        typer.echo(f"✅ API route file created: app/routes/api/{route_name}.py")
+
     # Generate HTML template
     typer.echo(f"\n🎨 Generating HTML template...")
     template_content = generate_html_template(model_name, route_name, columns)
-    
+
     template_dir = Path(f"resources/html/{route_name}")
     template_dir.mkdir(parents=True, exist_ok=True)
-    
+
     template_file = template_dir / "index.jinja"
-    
     if template_file.exists():
         overwrite = typer.confirm(f"Template {route_name}/index.jinja already exists. Overwrite?")
         if not overwrite:
@@ -646,22 +591,22 @@ def main(
         with open(template_file, 'w', encoding='utf-8') as f:
             f.write(template_content)
         typer.echo(f"✅ Template created: resources/html/{route_name}/index.jinja")
-    
-    # Add import to main.py
+
+    # Add web route import to main.py (api routes come along automatically)
     typer.echo(f"\n🔗 Adding routes to main.py...")
     add_route_import_to_main(route_name, model_name)
-    
+
     typer.echo(f"\n🎉 Scaffold created successfully!")
     typer.echo(f"\n📍 Routes available:")
-    typer.echo(f"   • GET  /{route_name}           - HTML page with DataTable")
-    typer.echo(f"   • GET  /api/{route_name}       - Get all records (JSON)")
-    typer.echo(f"   • GET  /api/{route_name}/{{id}} - Get by ID (JSON)")
-    typer.echo(f"   • POST /api/{route_name}       - Create new record")
-    typer.echo(f"   • PUT  /api/{route_name}/{{id}} - Update record")
-    typer.echo(f"   • DELETE /api/{route_name}/{{id}} - Delete record (soft delete)")
+    typer.echo(f"   • GET    /{route_name}                  - HTML page with DataTable")
+    typer.echo(f"   • GET    /api/v1/{route_name}            - Get all records (JSON)")
+    typer.echo(f"   • GET    /api/v1/{route_name}/{{id}}     - Get by ID (JSON)")
+    typer.echo(f"   • POST   /api/v1/{route_name}            - Create new record")
+    typer.echo(f"   • PUT    /api/v1/{route_name}/{{id}}     - Update record")
+    typer.echo(f"   • DELETE /api/v1/{route_name}/{{id}}     - Delete record (soft delete)")
     typer.echo(f"\n💡 Next steps:")
-    typer.echo(f"   1. Review and customize app/routes/{route_name}.py")
-    typer.echo(f"   2. Uncomment Pydantic validation if needed")
+    typer.echo(f"   1. Review app/routes/web/{route_name}.py and app/routes/api/{route_name}.py")
+    typer.echo(f"   2. Adjust Pydantic field types in the Create/Update models")
     typer.echo(f"   3. Customize the HTML template if needed")
     typer.echo(f"   4. Restart your server to see the changes")
 

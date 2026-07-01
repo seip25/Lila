@@ -83,7 +83,7 @@ def update_main_routes():
     main_file = os.path.join(project_root, "main.py")
     marker = "admin_marker"
     replace_text = """
-from app.routes.admin import Admin
+from app.routes.admin.index import Admin
 from app.models.user import User
 admin_routes = Admin(models=[User])
 all_routes = list(itertools.chain(all_routes, admin_routes))

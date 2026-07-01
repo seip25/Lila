@@ -1,6 +1,7 @@
 from lila.core.app import App
-from app.routes.routes import routes
-from app.routes.api import routes as api_routes
+from app.routes.web.index import routes
+from app.routes.api.index import routes as api_routes 
+from app.routes.api.example import routes as example_api_routes
 from app.config import DEBUG, JIT, HOST, PORT
 from lila.core.middleware import (
     Middleware,
@@ -15,12 +16,12 @@ import itertools
 import uvicorn
 import os
 
-# English: Combining application and API routes into a single list.
-# Español: Combinando las rutas de la aplicación y la API en una única lista.
-all_routes = list(itertools.chain(routes, api_routes))
+# English: Combining web and API routes into a single list.
+# Español: Combinando las rutas web y de la API en una única lista.
+all_routes = list(itertools.chain(routes, api_routes, example_api_routes))
 
-#English : Marker for the api routes in main.py (also used by scaffold generator)
-#Español: Marcardor para añadir automaticamente rutas api en main.py (también usado por generador de scaffold)
+# English: Marker for auto-importing scaffold CRUD routes (used by lila-crud generator)
+# Español: Marcador para importar automáticamente rutas CRUD del scaffold (usado por el generador lila-crud)
 # api_marker
 
 #English : Marker for the auth routes in main.py
