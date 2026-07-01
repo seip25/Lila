@@ -337,23 +337,6 @@ except ValidationError as e:
                 within the request state to minimize session decryption overhead.
             </p>
 
-            <h2>Client-Side Instant Translation</h2>
-            <p>To provide a completely instantaneous user experience when switching languages, Lila's SPA navigation engine (<code>spa.js</code>) features an optimistic translation layer. When a user requests a language switch via a query parameter (e.g., <code>?lang=es</code>), the engine intercepts it and instantly translates the page on the client side before the network request completes.</p>
-            
-            <h3>How it works:</h3>
-            <ul class="list-disc pl-6 space-y-2 my-4">
-                <li><strong>Initial Bootstrapping:</strong> The backend serializes the current language's active translations dictionary and boots the client with <code>window.LILA_TRANSLATIONS</code> (defined inside <code>base.html</code>).</li>
-                <li><strong>Languages History:</strong> As the user navigates, the client-side SPA cache maintains a dictionary of translations (<code>langsHistory</code>) for each language loaded from the server responses.</li>
-                <li><strong>DOM Translation:</strong> When switching language, Lila traverses the visible text nodes in the DOM, finds the translation key in the current language's dictionary, and replaces it with the target language's translation instantly (within 0-2ms).</li>
-                <li><strong>Server Sync:</strong> In the background, the SPA engine performs a fetch to synchronize with the server, updating the local cache and ensuring the page has the latest backend state.</li>
-            </ul>
-
-            <div class="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 p-4 rounded-r-xl my-6">
-                <p class="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                    <strong>Note:</strong> Since translations occur instantly on the client, the user experiences zero lag or layout shifts during language switches, even on slow or latent connections.
-                </p>
-            </div>
-
             <h2>Usage in Templates</h2>
             <p>Translations are automatically available in the <code>translate</code> context variable:</p>
 
