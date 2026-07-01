@@ -21,9 +21,14 @@ class User(BaseModel):
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     @classmethod
-    def get_all(cls, select: str = "id,email,name", limit: int = 1000, **filters):
+    def get_all(cls, select: str = "id,email,name,active", limit: int = 1000, **filters):
         """Retrieves all users with default safe fields."""
         return super().get_all(select=select, limit=limit, **filters)
+        
+    @classmethod
+    def get_all_async(cls, select: str = "id,email,name,active", limit: int = 1000, **filters):
+        """Retrieves all users with default safe fields."""
+        return super().get_all_async(select=select, limit=limit, **filters)
 
     @classmethod
     def get_by_email(cls, db: Session, email: str, active: int = 1):

@@ -49,6 +49,10 @@ class LoginAttempt(BaseModel):
     def get_all(cls, select: str = "id,email,attempts,locked_at", limit: int = 1000, **filters):
         return super().get_all(select=select, limit=limit, **filters)
 
+    @classmethod
+    def get_all_async(cls, select: str = "id,email,attempts,locked_at", limit: int = 1000, **filters):
+        return super().get_all_async(select=select, limit=limit, **filters)
+
 
 class LoginAttemptHistory(BaseModel):
     __tablename__ = "login_attemp_history"
@@ -111,3 +115,7 @@ class PasswordResetToken(BaseModel):
     @classmethod
     def get_all(cls, select: str = "id,user_id,token,expires_at,created_at", limit: int = 1000, **filters):
         return super().get_all(select=select, limit=limit, **filters)
+
+    @classmethod
+    def get_all_async(cls, select: str = "id,user_id,token,expires_at,created_at", limit: int = 1000, **filters):
+        return super().get_all_async(select=select, limit=limit, **filters)
