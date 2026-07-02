@@ -64,13 +64,10 @@ class CSRF:
         try:
             return _serializer.loads(signed_token, max_age=CSRF_MAX_AGE)
         except SignatureExpired:
-            Logger.warning("CSRF token expired.")
             return None
         except BadSignature:
-            Logger.warning("CSRF token has invalid signature.")
             return None
-        except Exception as e:
-            Logger.error(f"CSRF unsign error: {e}")
+        except Exception:
             return None
 
     @staticmethod
