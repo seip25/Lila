@@ -226,7 +226,7 @@ class Router:
                         )
 
                 if request.query_params and Security.check_xss(str(request.query_params)):
-                    return JSONResponse({"success": False, "msg": "Potential XSS detected in query parameters"}, status_code=400)
+                    return JSONResponse({"success": False,"message": "Potential XSS detected in query parameters", "msg": "Potential XSS detected in query parameters"}, status_code=400)
 
                 target_model = body_model_class or model
                 validated_data = None
@@ -236,7 +236,7 @@ class Router:
                         sanitized_body = Security.sanitize_data(body)
                         
                         if Security.check_xss(str(sanitized_body)):
-                             return JSONResponse({"success": False, "msg": "Potential XSS detected in body"}, status_code=400)
+                             return JSONResponse({"success": False,"message":"Potential XSS detected in body", "msg": "Potential XSS detected in body"}, status_code=400)
 
                         validated_data = target_model(**sanitized_body)
                         request.state.data = validated_data
@@ -246,7 +246,7 @@ class Router:
                         msg = "Invalid JSON Body" if current_lang == "en" else "JSON inválido"
                         if DEBUG:
                             print(f"Routing Error: {e}")
-                        return JSONResponse({"success": False, "msg": msg}, status_code=400)
+                        return JSONResponse({"success": False, "message": msg, "msg": msg}, status_code=400)
                 
                 kwargs = {}
                 if body_param_name and validated_data is not None:
@@ -321,6 +321,7 @@ class Router:
             {
                 "success": False, 
                 "errors": errors_list, 
+                "message": " . ".join(msg_parts),
                 "msg": " . ".join(msg_parts)
             },
             status_code=400,
@@ -679,7 +680,7 @@ class Router:
             except Exception as e:
                 Logger.warning(f"Error rest_crud_generate - POST: {str(e)}")
                 return JSONResponse(
-                    {"success": False, "msg": "Error general"}, status_code=500
+                    {"success": False, "message": "Error general", "msg": "Error general"}, status_code=500
                 )
             columns_ = (
                 " , ".join(columns)
