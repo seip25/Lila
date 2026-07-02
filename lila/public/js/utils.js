@@ -221,7 +221,7 @@ class ResponsiveDataTable {
       card.appendChild(summary);
       const details = document.createElement("dl");
       details.className =
-        "grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs pb-2 border-b border-slate-200 dark:border-slate-800 mb-2";
+        "grid grid-cols-1 gap-x-4 gap-y-2.5 text-xs pb-2 border-b border-slate-200 dark:border-slate-800 mb-2";
       this.options.columns.forEach((column) => {
         if (this.options.summaryFields.includes(column.key)) return;
         const dt = document.createElement("dt");
