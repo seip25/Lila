@@ -375,7 +375,27 @@ lila-model create MyModel</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">5. Multi-Project VPS Reverse Proxy (Nginx)</h4>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">5. Connect to MySQL Terminal</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Connect directly to the interactive MySQL shell using credentials from <code>.env</code>:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash"># Conectar a MySQL usando las credenciales y BD del .env del proyecto
+lila-docker mysql
+
+# o usando el alias corto:
+lila-docker db
+
+# Conectar como usuario root usando el password root del .env
+lila-docker mysql --root
+
+# Especificar/sobrescribir usuario, contraseña o BD si es necesario
+lila-docker mysql -u root -p mi_password -d mi_base_de_datos</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">6. Multi-Project VPS Reverse Proxy (Nginx)</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
         Configure a different <code>PORT</code> and <code>DB_PORT</code> in the <code>.env</code> file for each project. Nginx can then reverse-proxy traffic to each container:
       </p>
