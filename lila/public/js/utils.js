@@ -47,7 +47,7 @@ async function Http(
   const response = await fetch(url, options);
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || "Error fetch");
+    throw new Error(error.message || error.msg || error.mensaje || "Error fetch");
   }
   const resp = await response.json();
   return resp;
@@ -99,11 +99,10 @@ class ResponsiveDataTable {
   renderContainer() {
     this.container.innerHTML = `
       <section class="w-full">
-        ${
-          this.options.search
-            ? `<div class="mb-6 flex items-center justify-between"><input type="search" class="datatable-search-input w-full max-w-xs px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all text-slate-800 dark:text-slate-100" placeholder="${lang() ? "Buscar..." : "Search..."}" aria-label="Search"/></div>`
-            : ""
-        }
+        ${this.options.search
+        ? `<div class="mb-6 flex items-center justify-between"><input type="search" class="datatable-search-input w-full max-w-xs px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all text-slate-800 dark:text-slate-100" placeholder="${lang() ? "Buscar..." : "Search..."}" aria-label="Search"/></div>`
+        : ""
+      }
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80">
           <table class="datatable-table min-w-full divide-y divide-slate-100 dark:divide-slate-850 text-sm hidden"></table>
