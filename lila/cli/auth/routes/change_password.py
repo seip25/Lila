@@ -3,6 +3,7 @@ from lila.core.responses import JSONResponse
 from lila.core.request import Request
 from lila.core.templates import render
 from lila.core.translate import Translate
+from lila.core.middleware import csrf
 from app.models.user import User
 from app.connections import connection
 
@@ -16,11 +17,12 @@ async def change_password_page(request: Request):
     try:
         if not PasswordResetToken.validate_token(db, token):
             return render(request=request, template="auth/invalid-token")
-        return render(request=request, template="auth/change-password", context={"token": token})
+        return render(request=request, template="auth/change-password", context={"token": token}, csrf=True)
     finally:
         db.close()
 
 @router.post("/change-password")
+@csrf
 async def change_password(request: Request):
     from app.models.auth import PasswordResetToken
     body = await request.json()

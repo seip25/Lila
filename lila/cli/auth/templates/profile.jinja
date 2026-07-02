@@ -51,6 +51,8 @@
     </aside>
 
     <!-- Main Content -->
+    {{ csrf_input(request) | safe }}
+
     <main class="md:col-span-3 flex flex-col gap-6">
       <article class="card p-8 flex flex-col gap-6">
         <div>
@@ -145,13 +147,8 @@
       const formData = new FormData(form);
       const message = document.getElementById("message");
       try {
-        const response = await fetch("/profile", {
-          method: "POST",
-          body: JSON.stringify(Object.fromEntries(formData)),
-          headers: { "Content-Type": "application/json" },
-        });
-        const result = await response.json();
-        if (response.ok && result.success) {
+        const result = await Http("/profile", "POST", Object.fromEntries(formData));
+        if (result.success) {
           message.className = "text-green-500 font-semibold text-sm";
           message.textContent = result.msg;
           document.getElementById("password").value = "";
@@ -162,7 +159,7 @@
         }
       } catch (error) {
         message.className = "text-red-500 font-semibold text-sm";
-        message.textContent = "Failed to connect to the server.";
+        message.textContent = error.message || "Failed to connect to the server.";
       }
     });
 
@@ -186,13 +183,8 @@
         return;
       }
       try {
-        const response = await fetch("/delete-account", {
-          method: "POST",
-          body: JSON.stringify({ password }),
-          headers: { "Content-Type": "application/json" },
-        });
-        const result = await response.json();
-        if (response.ok && result.success) {
+        const result = await Http("/delete-account", "POST", { password });
+        if (result.success) {
           window.location.replace("/register");
         } else {
           message.className = "text-red-500 font-semibold text-sm";
@@ -200,7 +192,7 @@
         }
       } catch (error) {
         message.className = "text-red-500 font-semibold text-sm";
-        message.textContent = "Failed to connect to the server.";
+        message.textContent = error.message || "Failed to connect to the server.";
       }
     });
 

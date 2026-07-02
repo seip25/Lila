@@ -3,7 +3,7 @@ from lila.core.responses import JSONResponse
 from lila.core.request import Request
 from lila.core.templates import render
 from lila.core.translate import Translate
-from lila.core.middleware import session_active
+from lila.core.middleware import session_active, csrf
 from app.models.user import User
 from app.connections import connection
 from app.config import DEBUG, HOST, PORT
@@ -13,9 +13,10 @@ router = Router()
 @router.get("/forgot-password")
 @session_active
 async def forgot_password_page(request: Request):
-    return render(request=request, template="auth/forgot-password")
+    return render(request=request, template="auth/forgot-password", csrf=True)
 
 @router.post("/forgot-password")
+@csrf
 async def forgot_password(request: Request):
     try:
         body = await request.json()

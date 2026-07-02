@@ -3,10 +3,12 @@ from lila.core.responses import JSONResponse, RedirectResponse
 from lila.core.request import Request
 from lila.core.session import Session
 from lila.core.translate import Translate
+from lila.core.middleware import csrf
 
 router = Router()
 
 @router.post("/logout")
+@csrf
 async def logout(request: Request):
     response = JSONResponse({"success": True, "msg": Translate.t(key="Logged out successfully", request=request)})
     await Session.delete(response, key="auth")

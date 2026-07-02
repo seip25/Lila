@@ -4,7 +4,7 @@ from lila.core.request import Request
 from lila.core.templates import render
 from lila.core.session import Session
 from lila.core.translate import Translate
-from lila.core.middleware import login_required
+from lila.core.middleware import login_required, csrf
 from app.models.user import User
 from app.connections import connection
 from pydantic import BaseModel, Field
@@ -26,10 +26,11 @@ class DeleteAccountModel(BaseModel):
 async def profile_page(request: Request):
     session_data = await Session.get(request, "auth")
     context = {"user": session_data}
-    return render(request=request, template="authenticated/profile", context=context)
+    return render(request=request, template="authenticated/profile", context=context, csrf=True)
 
 
 @router.post("/profile", model=UpdateProfileModel)
+@csrf
 async def update_profile(request: Request):
     input = request.state.data
 
@@ -61,6 +62,7 @@ async def update_profile(request: Request):
 
 
 @router.post("/delete-account", model=DeleteAccountModel)
+@csrf
 async def delete_account(request: Request):
     input = request.state.data
 

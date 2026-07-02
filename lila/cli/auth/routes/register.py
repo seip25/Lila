@@ -5,7 +5,7 @@ from lila.core.templates import render
 from lila.core.session import Session
 from lila.core.translate import Translate
 from app.models.user import User
-from lila.core.middleware import session_active
+from lila.core.middleware import session_active, csrf
 from pydantic import BaseModel, EmailStr, Field
 import traceback
 from app.config import DEBUG
@@ -27,9 +27,10 @@ router = Router()
 @router.get("/register")
 @session_active
 async def register_page(request: Request):
-    return render(request=request, template="auth/register")
+    return render(request=request, template="auth/register", csrf=True)
 
 @router.post("/register", model=RegisterModel)
+@csrf
 async def register(request: Request):
     input = request.state.data
     valid_pass = input.validate_passwords(request)
