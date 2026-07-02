@@ -370,9 +370,9 @@ def get_base_context(request, files_translate=[], lang_default=None):
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start mb-4">
-          <strong>csrf_input(request):</strong>
+          <strong>csrf_input:</strong>
           <p class="ml-2">
-            Jinja2 global helper. Renders <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">&lt;input type="hidden" name="csrf" id="csrf" value="TOKEN" /&gt;</code>. Use with the <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">| safe</code> filter.
+            Jinja2 context variable injected by <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">render(csrf=True)</code>. Renders <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">&lt;input type="hidden" name="csrf" id="csrf" value="TOKEN" /&gt;</code>. Use with the <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">| safe</code> filter. The <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">request</code> object is never exposed to the template.
           </p>
         </li>
       </ul>
@@ -415,7 +415,7 @@ async def contact_submit(request: Request):
         <div class="editor-content bg-gray-900 dark:bg-black">
           <pre><code class="language-html">
 &lt;form method="POST" action="/contact"&gt;
-  {{ csrf_input(request) | safe }}
+  {{ csrf_input | safe }}
   &lt;input type="text" name="name" /&gt;
   &lt;button type="submit"&gt;Send&lt;/button&gt;
 &lt;/form&gt;

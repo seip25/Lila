@@ -6,6 +6,7 @@ from lila.core.translate import Translate
 from lila.core.request import Request
 from lila.core.responses import HTMLResponse, JSONResponse
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
+from lila.core.csrf import CSRF
 from lila.core.logger import Logger
 import markdown
 import os
@@ -632,22 +633,6 @@ def get_flashes(request: Request) -> list[dict]:
 
 jinja_env.globals['get_flashes'] = get_flashes
 
-
-def csrf_input(request: Request) -> str:
-    """
-    English: Jinja2 global helper that generates the CSRF hidden input field.
-    Returns an HTML string with the current CSRF token value.
-
-    Español: Helper global de Jinja2 que genera el campo de input oculto CSRF.
-    Retorna un string HTML con el valor del token CSRF actual.
-    """
-    from lila.core.csrf import CSRF
-    token = CSRF.generate(request)
-    return f'<input type="hidden" name="csrf" id="csrf" value="{token}" />'
-
-
-jinja_env.globals['csrf_input'] = csrf_input
-
 templates = Jinja2Templates(env=jinja_env)
 markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
 def get_base_context(request: Request, files_translate: list[str] = None, lang_default: str = None) -> dict:
@@ -699,16 +684,14 @@ def render(request: Request, template: str, context: dict = None, files_translat
         full_context = get_base_context(request, files_translate, lang_default)
         full_context.update(context)
         if csrf:
-            from lila.core.csrf import CSRF
-            token = CSRF.generate(request)
-            full_context["csrf_token"] = token
-            full_context["csrf_input"] = lambda: csrf_input(request)
+            csrfToken = CSRF.generate(request)
+            full_context["csrf_input"] = f"<input type='hidden' name='csrf' id='csrf' value='{csrfToken}' />"
+
         template_obj = jinja_env.get_template(f"{template}.{extension}")
         body = template_obj.render(full_context)
         response = HTMLResponse(content=body)
-        if csrf:
-            from lila.core.csrf import CSRF
-            CSRF.set_cookie(response, full_context["csrf_token"])
+        if csrf and csrfToken:
+            CSRF.set_cookie(response, csrfToken)
         return response
     except Exception as e:
         return handle_render_error(template, e)

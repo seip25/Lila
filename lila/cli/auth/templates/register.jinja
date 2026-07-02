@@ -10,7 +10,7 @@
         </h3>
 
         <form id="register-form" class="space-y-5">
-            {{ csrf_input(request) | safe }}
+            {{ csrf_input | safe }}
             <div>
                 <label for="name"
                     class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{translate['name']}}</label>

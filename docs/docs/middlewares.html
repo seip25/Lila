@@ -279,7 +279,7 @@ async def contact_submit(request: Request):
                 </div>
             </div>
 
-            <p>In your Jinja2 template, use the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_input(request)</code> global helper to render the hidden field:</p>
+            <p>In your Jinja2 template, use the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_input</code> global helper to render the hidden field:</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -293,7 +293,7 @@ async def contact_submit(request: Request):
                 <div class="editor-content">
                     <pre><code class="language-html">
 &lt;form method="POST" action="/contact"&gt;
-  {{ csrf_input(request) | safe }}
+  {{ csrf_input | safe }}
   &lt;input type="text" name="name" /&gt;
   &lt;button type="submit"&gt;Send&lt;/button&gt;
 &lt;/form&gt;

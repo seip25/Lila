@@ -121,7 +121,7 @@ async def login(request: Request):
 
 - `render(request, template, context, files_translate, lang_default, csrf)`: Render Jinja2 HTML. When `csrf=True`, generates a CSRF token, injects it as `csrf_token` in context, and sets the signed `_csrf` cookie on the response.
 - `renderMarkdown(request, file, css_files, js_files)`: Render Markdown files as HTML pages.
-- `csrf_input(request)`: Jinja2 global helper. Returns `<input type="hidden" name="csrf" id="csrf" value="TOKEN" />`.
+- `csrf_input`: Jinja2 global helper. Returns `<input type="hidden" name="csrf" id="csrf" value="TOKEN" />`.
 - Templates auto-inject: `title`, `version`, `lang`, `translate`, `description`, `keywords`, `author`.
 
 ### CDN & Style Delivery
@@ -405,7 +405,7 @@ lila-seo robots --domain https://yourdomain.com
 - Render the hidden input in your Jinja2 template:
   ```html
   <form method="POST" action="/contact">
-    {{ csrf_input(request) | safe }}
+    {{ csrf_input | safe }}
     <input type="text" name="name" />
     <button type="submit">Send</button>
   </form>
