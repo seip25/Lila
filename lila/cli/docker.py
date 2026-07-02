@@ -205,6 +205,85 @@ def exec(
         raise typer.Exit(code=1)
 
 
+def _get_env_vars():
+    env_vars = dict(os.environ)
+    env_file = ".env"
+    if os.path.exists(env_file):
+        try:
+            from dotenv import dotenv_values
+            file_vars = dotenv_values(env_file)
+            for k, v in file_vars.items():
+                if v is not None:
+                    env_vars[k] = str(v)
+        except Exception:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        env_vars[k.strip()] = v.strip().strip("'\"")
+    return env_vars
+
+
+@app.command("mysql")
+def mysql(
+    user: str = typer.Option(None, "--user", "-u", help="MySQL user (defaults to DB_USER / MYSQL_USER from .env)"),
+    password: str = typer.Option(None, "--password", "-p", help="MySQL password (defaults to DB_PASSWORD / MYSQL_ROOT_PASSWORD from .env)"),
+    database: str = typer.Option(None, "--db", "-d", help="Database name (defaults to DB_NAME / MYSQL_DATABASE from .env)"),
+    root: bool = typer.Option(False, "--root", help="Connect as root user"),
+):
+    """
+    Open interactive MySQL terminal inside Docker container using credentials from .env.
+
+    \b
+    lila-docker mysql         → connects to MySQL using .env credentials
+    lila-docker mysql --root  → connects as root user using root password from .env
+    lila-docker db            → alias for lila-docker mysql
+    """
+    _check_compose_file()
+    env = _get_env_vars()
+
+    if root:
+        db_user = "root"
+        db_pass = env.get("MYSQL_ROOT_PASSWORD") or env.get("DB_PASSWORD") or "root"
+    else:
+        db_user = user or env.get("DB_USER") or env.get("MYSQL_USER") or "root"
+        db_pass = password or env.get("DB_PASSWORD") or env.get("MYSQL_ROOT_PASSWORD") or env.get("MYSQL_PASSWORD") or "root"
+
+    db_name = database or env.get("DB_NAME") or env.get("MYSQL_DATABASE") or ""
+
+    cmd = ["docker", "compose", "exec", "mysql", "mysql", f"-u{db_user}"]
+    if db_pass:
+        cmd.append(f"-p{db_pass}")
+    if db_name:
+        cmd.append(db_name)
+
+    target_db = f" (database: {db_name})" if db_name else ""
+    print(f"🔌 Connecting to MySQL shell in container as '{db_user}'{target_db}...")
+
+    try:
+        subprocess.run(cmd, check=True)
+    except KeyboardInterrupt:
+        pass
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error connecting to MySQL: {e}")
+        print("💡 Make sure the MySQL container is running: lila-docker start mysql")
+        raise typer.Exit(code=1)
+
+
+@app.command("db")
+def db(
+    user: str = typer.Option(None, "--user", "-u", help="MySQL user (defaults to DB_USER / MYSQL_USER from .env)"),
+    password: str = typer.Option(None, "--password", "-p", help="MySQL password (defaults to DB_PASSWORD / MYSQL_ROOT_PASSWORD from .env)"),
+    database: str = typer.Option(None, "--db", "-d", help="Database name (defaults to DB_NAME / MYSQL_DATABASE from .env)"),
+    root: bool = typer.Option(False, "--root", help="Connect as root user"),
+):
+    """
+    Alias for 'lila-docker mysql'.
+    """
+    mysql(user=user, password=password, database=database, root=root)
+
+
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
@@ -213,3 +292,4 @@ def main(ctx: typer.Context):
 
 if __name__ == "__main__":
     app()
+

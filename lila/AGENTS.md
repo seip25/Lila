@@ -359,6 +359,8 @@ lila-minify
 lila-docker start [mysql|postgres|all]
 lila-docker stop [mysql|postgres|all]
 lila-docker ps   # Shows status of database containers (also runs by default on "lila-docker")
+lila-docker mysql # Connect to MySQL shell using .env credentials
+lila-docker db    # Alias for lila-docker mysql
 ```
 
 #### Run development server (starts local uvicorn on main.py)
@@ -555,6 +557,22 @@ lila-docker logs --no-follow  # print last 100 lines
 
 # 4. Stop everything
 lila-docker stop
+```
+
+### Connecting to MySQL Terminal
+
+```bash
+# Conectar a MySQL usando las credenciales y BD del .env del proyecto
+lila-docker mysql
+
+# o usando el alias corto:
+lila-docker db
+
+# Conectar como usuario root usando el password root del .env
+lila-docker mysql --root
+
+# Especificar/sobrescribir usuario, contraseña o BD si es necesario
+lila-docker mysql -u root -p mi_password -d mi_base_de_datos
 ```
 
 ### Running CLI Commands in Production Containers

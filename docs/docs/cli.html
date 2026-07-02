@@ -451,6 +451,18 @@ lila-docker stop all
 lila-docker ps
 # or
 lila-docker
+
+# Conectar a MySQL usando las credenciales y BD del .env del proyecto
+lila-docker mysql
+
+# o usando el alias corto:
+lila-docker db
+
+# Conectar como usuario root usando el password root del .env
+lila-docker mysql --root
+
+# Especificar/sobrescribir usuario, contraseña o BD si es necesario
+lila-docker mysql -u root -p mi_password -d mi_base_de_datos
 </code>
 </pre>
                 </div>
