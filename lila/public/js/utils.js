@@ -231,7 +231,7 @@ class ResponsiveDataTable {
           this.options.headerTitles[column.key] || column.title || column.key;
         const dd = document.createElement("dd");
         dd.className =
-          "text-slate-700 dark:text-slate-300 font-semibold text-right break-all";
+          "text-slate-700 dark:text-slate-300 font-semibold text-left break-all";
         const cellValue = item[column.key];
         if (
           cellValue &&
