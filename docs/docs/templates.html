@@ -357,6 +357,76 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
       </div>
 
+      <h3 class="mt-8 text-2xl font-semibold">CSRF Protection in Templates</h3>
+      <p>
+        When rendering a form that requires CSRF protection, pass <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf=True</code> to the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render()</code> function. This generates a signed token, sets the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie, and injects <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_token</code> into the template context.
+      </p>
+
+      <ul class="rounded bg-surface py-4 px-4">
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>render(request, template, csrf=True):</strong>
+          <p class="ml-2">
+            Generates a CSRF token, injects it as <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">csrf_token</code> in the context, and sets the signed <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">_csrf</code> cookie on the response.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>csrf_input(request):</strong>
+          <p class="ml-2">
+            Jinja2 global helper. Renders <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">&lt;input type="hidden" name="csrf" id="csrf" value="TOKEN" /&gt;</code>. Use with the <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">| safe</code> filter.
+          </p>
+        </li>
+      </ul>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">Route (Python)</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">
+from lila.core.templates import render
+from lila.core.middleware import csrf
+
+@router.get('/contact')
+async def contact_page(request: Request):
+    return render(request, 'contact', csrf=True)
+
+@router.post('/contact')
+@csrf
+async def contact_submit(request: Request):
+    return JSONResponse({"success": True})
+</code></pre>
+        </div>
+      </div>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">Template (Jinja2)</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">
+&lt;form method="POST" action="/contact"&gt;
+  {{ csrf_input(request) | safe }}
+  &lt;input type="text" name="name" /&gt;
+  &lt;button type="submit"&gt;Send&lt;/button&gt;
+&lt;/form&gt;
+</code></pre>
+        </div>
+      </div>
+
+      <p>
+        The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Http()</code> helper in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js/utils.js</code> automatically reads <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">document.getElementById('csrf')</code> and sends the value as the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header on every fetch. No additional client-side code is needed.
+      </p>
+
       <h3 class="mt-8 text-2xl font-semibold">Lila Premium CSS Utility Components</h3>
       <p>
         To accelerate your UI development and enable rapid, professional prototyping, Lila packages a set of pre-configured, high-performance styling utility classes loaded automatically by the <code>asset('css/tailwind.css')</code> CDN helper. All of them natively support Dark Mode:

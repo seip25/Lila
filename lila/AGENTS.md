@@ -17,13 +17,14 @@ lila/
 │   ├── session.py           # Signed cookie sessions + async get/set/delete helpers
 │   ├── auth.py              # JWT tokens (generate, verify), password hashing
 │   ├── security.py          # XSS detection and data sanitization utilities
+│   ├── csrf.py              # CSRF token generation and verification
 │   ├── files.py             # File upload and image optimization utilities
 │   ├── responses.py         # JSONResponse (auto-serialize) + validation_error helper
 │   ├── admin.py             # Admin panel (dashboard, metrics, model CRUD, log viewer)
 │   ├── logger.py            # File-based Logger (error, warning, info) + request logging
 │   ├── debug.py             # Debug middleware (RAM, CPU, execution time per request)
 │   ├── translate.py         # Translate class (i18n loading, language detection, Pydantic error translation)
-│   ├── middleware.py        # Re-export of Starlette Middleware
+│   ├── middleware.py        # Route decorators and global HTTP middlewares
 │   ├── controller.py        # RequestParser (body/query validation via Pydantic)
 │   ├── request.py           # Re-export of Starlette Request
 │   ├── utils.py             # General utilities (date conversion, etc.)
@@ -118,8 +119,9 @@ async def login(request: Request):
 
 ### Templates (`core/templates.py`)
 
-- `render(request, template, context, files_translate, lang_default)`: Render Jinja2 HTML.
+- `render(request, template, context, files_translate, lang_default, csrf)`: Render Jinja2 HTML. When `csrf=True`, generates a CSRF token, injects it as `csrf_token` in context, and sets the signed `_csrf` cookie on the response.
 - `renderMarkdown(request, file, css_files, js_files)`: Render Markdown files as HTML pages.
+- `csrf_input(request)`: Jinja2 global helper. Returns `<input type="hidden" name="csrf" id="csrf" value="TOKEN" />`.
 - Templates auto-inject: `title`, `version`, `lang`, `translate`, `description`, `keywords`, `author`.
 
 ### CDN & Style Delivery
@@ -155,13 +157,14 @@ async def login(request: Request):
 - `HTMLResponse`, `RedirectResponse`, `PlainTextResponse`, `StreamingResponse`.
 - **Automatic Headers**: All responses include `Powered-By: Lila Framework`.
 
-### Security (`core/security.py` & `core/auth.py`)
+### Security (`core/security.py` & `core/auth.py` & `core/csrf.py`)
 
 - **Data Sanitization**: `Security.sanitize_data(data)` recursively cleans strings, dicts, and lists from XSS patterns.
 - **XSS Detection**: `Security.check_xss(text)` identifies potential malicious scripts.
 - **JWT Tokens**: `generate_token(name, value, minutes)`, `get_token(token)`, `get_user_id_by_token(request, key)`.
 - **Password Hashing**: argon2 via `PasswordHasher`.
 - **Automatic Protection**: `@router.route` automatically sanitizes incoming JSON bodies and checks query parameters for XSS.
+- **CSRF Protection**: `CSRF.generate(request)` creates a random signed token stored in cookie `_csrf`. `CSRF.verify(request)` reads the token from `X-CSRF-Token` header or body field `csrf` and compares against the signed cookie. `@csrf` route decorator enforces verification on POST/PUT/PATCH/DELETE.
 
 ### i18n (`lila/core/translate.py`)
 
@@ -383,6 +386,31 @@ lila-seo robots --domain https://yourdomain.com
     <div class="alert alert-{{ item.category }}">{{ item.message }}</div>
   {% endfor %}
   ```
+
+#### 2. CSRF Protection
+- Enable CSRF on a form route:
+  ```python
+  from lila.core.templates import render
+  from lila.core.middleware import csrf
+
+  @router.get('/contact')
+  async def contact_page(request: Request):
+      return render(request, 'contact', csrf=True)
+
+  @router.post('/contact')
+  @csrf
+  async def contact_submit(request: Request):
+      return JSONResponse({"success": True})
+  ```
+- Render the hidden input in your Jinja2 template:
+  ```html
+  <form method="POST" action="/contact">
+    {{ csrf_input(request) | safe }}
+    <input type="text" name="name" />
+    <button type="submit">Send</button>
+  </form>
+  ```
+- `Http()` in `public/js/utils.js` automatically detects `document.getElementById('csrf')` and sends `X-CSRF-Token` on every request. No additional client-side code required.
 
 #### 2. DB Transactions Context Manager
 - Safely run queries/updates using automatic commits and rollbacks:

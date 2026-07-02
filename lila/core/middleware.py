@@ -285,10 +285,30 @@ class Middleware(StarletteMiddleware):
             return response
         return True
 
+    @staticmethod
+    @create_decorator
+    async def csrf(request: Request):
+        """
+        English: Route decorator that verifies the CSRF token on unsafe HTTP methods (POST, PUT, PATCH, DELETE).
+        Safe methods (GET, HEAD, OPTIONS) are always allowed through.
+        The token is read from the X-CSRF-Token header or from the 'csrf' field in the request body.
+
+        Español: Decorador de ruta que verifica el token CSRF en metodos HTTP no seguros (POST, PUT, PATCH, DELETE).
+        Los metodos seguros (GET, HEAD, OPTIONS) siempre son permitidos.
+        El token se lee del header X-CSRF-Token o del campo 'csrf' del cuerpo del request.
+        """
+        if request.method in ("GET", "HEAD", "OPTIONS"):
+            return True
+        from lila.core.csrf import CSRF
+        if not CSRF.verify(request):
+            return JSONResponse({"success": False, "message": "Invalid or missing CSRF token"}, status_code=403)
+        return True
+
 # --- Aliases for convenience ---
 login_required = Middleware.login_required
 session_active = Middleware.session_active
 validate_token = Middleware.validate_token
+csrf = Middleware.csrf
 
 
 class FlashMiddleware(BaseHTTPMiddleware):

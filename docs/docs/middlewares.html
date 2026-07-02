@@ -241,6 +241,70 @@ async def user_details(request: Request):
                 </div>
             </div>
 
+            <h2>CSRF Protection Middleware</h2>
+            <p>
+                Lila includes a built-in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@csrf</code> decorator that protects routes against Cross-Site Request Forgery attacks. It verifies the CSRF token on all unsafe HTTP methods (<code class="text-blue-600">POST</code>, <code class="text-blue-600">PUT</code>, <code class="text-blue-600">PATCH</code>, <code class="text-blue-600">DELETE</code>). Safe methods (<code class="text-blue-600">GET</code>, <code class="text-blue-600">HEAD</code>, <code class="text-blue-600">OPTIONS</code>) are always allowed through.
+            </p>
+            <p>
+                The token is read from the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header first, then from the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf</code> field in the request body, and compared against the signed <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie set by <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render(csrf=True)</code>.
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">CSRF usage example</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-python">
+from lila.core.templates import render
+from lila.core.middleware import csrf
+from lila.core.responses import JSONResponse
+from lila.core.request import Request
+
+# GET: render the form with CSRF token injected automatically
+@router.get('/contact')
+async def contact_page(request: Request):
+    return render(request, 'contact', csrf=True)
+
+# POST: verify token before processing the form
+@router.post('/contact')
+@csrf
+async def contact_submit(request: Request):
+    return JSONResponse({"success": True})
+                    </code></pre>
+                </div>
+            </div>
+
+            <p>In your Jinja2 template, use the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_input(request)</code> global helper to render the hidden field:</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">Template (Jinja2)</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <pre><code class="language-html">
+&lt;form method="POST" action="/contact"&gt;
+  {{ csrf_input(request) | safe }}
+  &lt;input type="text" name="name" /&gt;
+  &lt;button type="submit"&gt;Send&lt;/button&gt;
+&lt;/form&gt;
+                    </code></pre>
+                </div>
+            </div>
+
+            <p>
+                The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Http()</code> function in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js/utils.js</code> automatically detects <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">document.getElementById('csrf')</code> and sends the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header on every fetch request. No additional client-side code is required.
+            </p>
+
             <h2>Global Security Middlewares</h2>
             <p>
                 Lila includes a set of global HTTP middlewares for application-wide protection. These are configured in

@@ -22,9 +22,28 @@ async function Http(
   bodyForm = false,
   headers = {},
 ) {
-  const options = { method: method, headers: headers, credentials: "include" };
-  if (body) options["body"] = JSON.stringify(body);
-  if (bodyForm) options["body"] = bodyForm;
+  const csrfEl = document.getElementById("csrf");
+  const csrfToken = csrfEl ? csrfEl.value : null;
+
+  const mergedHeaders = { ...headers };
+  if (csrfToken) {
+    mergedHeaders["X-CSRF-Token"] = csrfToken;
+  }
+
+  const options = { method: method, headers: mergedHeaders, credentials: "include" };
+
+  if (body) {
+    const payload = csrfToken ? { ...body, csrf: csrfToken } : body;
+    options["body"] = JSON.stringify(payload);
+  }
+
+  if (bodyForm) {
+    if (csrfToken && bodyForm instanceof FormData) {
+      bodyForm.append("csrf", csrfToken);
+    }
+    options["body"] = bodyForm;
+  }
+
   const response = await fetch(url, options);
   if (!response.ok) {
     const error = await response.json();
