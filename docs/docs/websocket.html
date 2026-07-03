@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - WebSocket (Real-Time)</title>
+  <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
+  <meta name="description"
+    content="Lila Framework WebSocket engine: Socket.io style client, connection tracking, rooms, JSON event broadcasting, auto-reconnection, and heartbeat." />
+  <meta name="keywords" content="Python, Web Framework, WebSocket, Real-Time, Socket.io, Starlette, Lila Framework" />
+  <meta name="author" content="Lila Framework Team" />
+  <meta property="og:title" content="Lila Framework - WebSocket (Real-Time)" />
+  <meta property="og:description"
+    content="Lila Framework WebSocket engine: Socket.io style client, connection tracking, rooms, JSON event broadcasting, auto-reconnection, and heartbeat." />
+  <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta property="og:url" content="https://seip25.github.io/Lila/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lila Framework - WebSocket (Real-Time)" />
+  <meta name="twitter:description"
+    content="Lila Framework WebSocket engine: Socket.io style client, connection tracking, rooms, JSON event broadcasting, auto-reconnection, and heartbeat." />
+  <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+  <meta name="language" content="en" />
+  <meta http-equiv="Content-Language" content="en" />
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+  <!-- Google Fonts for Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemini: {
+              blue: '#1a73e8',
+              blueBg: '#f0f4f9',
+              blueHover: '#e1ecf8',
+              indigo: '#4f46e5',
+              purple: '#8b5cf6',
+              accent: '#4285f4',
+              darkBg: '#090d16',
+              darkCard: '#131b2e',
+              darkBorder: '#1e293b',
+              darkHover: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body
+  class="bg-slate-50 dark:bg-gemini-darkBg text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
+  <!-- Navbar -->
+  <header
+    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-3 group">
+          <div
+            class="w-10 h-10 rounded-xl gemini-gradient-bg flex items-center justify-center text-white font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
+            L
+          </div>
+          <div>
+            <span class="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-heading block">Lila
+              Framework</span>
+            <span
+              class="text-[10px] text-slate-500 font-semibold tracking-widest uppercase block -mt-1">Documentation</span>
+          </div>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <aside
+      class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+      <h4>Menu</h4>
+      <a href="install.html">Installation</a>
+      <a href="routes.html">Routes</a>
+      <a href="static.html">Static</a>
+      <a href="templates.html">Templates</a>
+      <a href="session.html">Session</a>
+      <a href="upload.html">Uploads Files</a>
+      <a href="markdown.html">Markdown/HTML</a>
+      <a href="locales.html">Internationalization</a>
+      <a href="models.html">Models</a>
+      <a href="middlewares.html">Middlewares</a>
+      <a href="cli.html">CLI Commands</a>
+      <a href="connections.html">Connections</a>
+      <a href="migrations.html">Migrations</a>
+      <a href="auth.html">Auth Cli </a>
+      <a href="scaffold.html">Scaffold CRUD</a>
+      <a href="rest_api.html">API Rest CRUD</a>
+      <a href="admin.html">Admin Panel</a>
+      <a href="minify.html">Minify</a>
+      <a href="production.html">Production</a>
+    </aside>
+    <article>
+
+
+      <div class="mb-8">
+        <span class="text-xs font-bold text-gemini-blue uppercase tracking-widest mb-2 block font-mono">REAL-TIME
+          ENGINE</span>
+        <h1 class="text-4xl font-black text-slate-900 dark:text-white font-heading tracking-tight mb-4">WebSocket System
+        </h1>
+        <p class="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+          Lila Framework includes a Socket.io-style WebSocket engine built on top of Starlette with zero external
+          dependencies. It provides room management, event broadcasting, fast <code
+            class="font-mono text-xs bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">orjson</code> serialization,
+          auto-reconnection, and client-side queuing.
+        </p>
+      </div>
+
+      <!-- FEATURES GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        <div
+          class="p-5 rounded-2xl bg-white dark:bg-gemini-darkCard border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h3 class="text-md font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            <span>⚡</span> High-Performance Backend
+          </h3>
+          <p class="text-sm text-slate-600 dark:text-slate-400">
+            Uses <code class="font-mono text-xs">WebSocketManager</code> with binary <code
+              class="font-mono text-xs">orjson</code> serialization, room channels, and automatic dead socket cleanup.
+          </p>
+        </div>
+        <div
+          class="p-5 rounded-2xl bg-white dark:bg-gemini-darkCard border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h3 class="text-md font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            <span>🔌</span> Smart Client (<code class="font-mono text-xs">public/js/ws.js</code>)
+          </h3>
+          <p class="text-sm text-slate-600 dark:text-slate-400">
+            Zero-dependency Socket.io-style client (<code class="font-mono text-xs">&lt; 2 KB</code>) with automatic
+            exponential backoff reconnection and offline message queuing.
+          </p>
+        </div>
+      </div>
+
+      <!-- BACKEND EXAMPLE -->
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white font-heading mb-4">1. Backend Setup (<code
+          class="font-mono text-sm">lila/core/websocket.py</code>)</h2>
+      <p class="text-slate-600 dark:text-slate-300 mb-4">
+        Register WebSocket endpoints using <code class="font-mono text-sm">@router.websocket("/ws")</code> and manage
+        events with <code class="font-mono text-sm">WebSocketManager</code>:
+      </p>
+
+      <div class="bg-gray-900 rounded-2xl shadow-xl font-mono text-sm overflow-hidden mb-8 border border-gray-800">
+        <div class="p-4 bg-gray-800/80 border-b border-gray-700/80 flex items-center justify-between">
+          <span class="text-gray-300 font-semibold text-xs">app/routes/web/chat.py</span>
+        </div>
+        <div class="p-5 overflow-x-auto text-gray-100">
+          <pre><code class="language-python">from lila.core.routing import Router
+from lila.core.websocket import WebSocketManager, WebSocket
+
+router = Router()
+ws_manager = WebSocketManager()
+
+# Register custom event handler
+@ws_manager.on("chat_message")
+async def handle_chat(websocket: WebSocket, data: dict):
+    # Broadcast to all connected clients
+    await ws_manager.broadcast("chat_message", {
+        "user": data.get("user", "Anonymous"),
+        "text": data.get("text", "")
+    })
+
+# Register WebSocket endpoint
+@router.websocket("/ws")
+async def chat_socket(websocket: WebSocket):
+    await ws_manager.handle_connection(websocket)
+
+routes = router.get_routes()</code></pre>
+        </div>
+      </div>
+
+      <!-- FRONTEND EXAMPLE -->
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white font-heading mb-4">2. Client-Side Usage (<code
+          class="font-mono text-sm">public/js/ws.js</code>)</h2>
+      <p class="text-slate-600 dark:text-slate-300 mb-4">
+        Include the built-in Lila WebSocket client script in your HTML template using <code
+          class="font-mono text-sm">{{ public('js/ws.js') }}</code>:
+      </p>
+
+      <div class="bg-gray-900 rounded-2xl shadow-xl font-mono text-sm overflow-hidden mb-8 border border-gray-800">
+        <div class="p-4 bg-gray-800/80 border-b border-gray-700/80 flex items-center justify-between">
+          <span class="text-gray-300 font-semibold text-xs">resources/html/index.jinja</span>
+        </div>
+        <div class="p-5 overflow-x-auto text-gray-100">
+          <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Lila Real-Time Chat&lt;/title&gt;
+  &lt;script src="{{ public('js/ws.js') }}"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;script&gt;
+    // Connect to WebSocket endpoint
+    const ws = lilaWS('ws://' + location.host + '/ws');
+
+    ws.on('connect', () => {
+      console.log('Connected to Lila WebSocket!');
+      ws.join('room-general'); // Join a room channel
+    });
+
+    ws.on('chat_message', (data) => {
+      console.log('New message:', data.user, data.text);
+    });
+
+    // Send an event to the server
+    function sendMessage(text) {
+      ws.emit('chat_message', { user: 'Alice', text: text });
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </div>
+      </div>
+
+      <!-- ROOMS & BROADCASTING -->
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white font-heading mb-4">3. Rooms & Channels API Reference
+      </h2>
+      <div
+        class="p-6 rounded-2xl bg-white dark:bg-gemini-darkCard border border-slate-200 dark:border-slate-800 shadow-sm mb-8">
+        <ul class="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+          <li class="flex flex-col">
+            <code
+              class="font-mono text-blue-600 dark:text-blue-400 font-bold">ws_manager.join_room(websocket, "room_name")</code>
+            <span class="text-xs text-slate-500 mt-0.5">Subscribes a client connection to a specific
+              channel/room.</span>
+          </li>
+          <li class="flex flex-col">
+            <code
+              class="font-mono text-blue-600 dark:text-blue-400 font-bold">await ws_manager.broadcast_to_room("room_name", "event", data)</code>
+            <span class="text-xs text-slate-500 mt-0.5">Sends a JSON event exclusively to clients in that room.</span>
+          </li>
+          <li class="flex flex-col">
+            <code
+              class="font-mono text-blue-600 dark:text-blue-400 font-bold">await ws_manager.emit_to(websocket, "event", data)</code>
+            <span class="text-xs text-slate-500 mt-0.5">Sends a JSON event to a single client socket.</span>
+          </li>
+        </ul>
+      </div>
+    </article>
+  </main>
+  </div>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+    fetch('partials/aside.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('aside-container').innerHTML = html;
+      });
+  </script>
+</body>
+
+</html>

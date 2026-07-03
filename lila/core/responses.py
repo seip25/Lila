@@ -5,6 +5,7 @@ from starlette.responses import (
     RedirectResponse as StarletteRedirectResponse,
     PlainTextResponse as StarlettePlainTextResponse,
     StreamingResponse as StarletteStreamingResponse,
+    FileResponse as StarletteFileResponse,
 )
 from decimal import Decimal
 from pydantic import BaseModel
@@ -29,6 +30,9 @@ class PlainTextResponse(LilaResponseMixin, StarlettePlainTextResponse):
     pass
 
 class StreamingResponse(LilaResponseMixin, StarletteStreamingResponse):
+    pass
+
+class FileResponse(LilaResponseMixin, StarletteFileResponse):
     pass
 
 

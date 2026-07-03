@@ -19,7 +19,8 @@ lila/
 │   ├── security.py          # XSS detection and data sanitization utilities
 │   ├── csrf.py              # CSRF token generation and verification
 │   ├── files.py             # File upload and image optimization utilities
-│   ├── responses.py         # JSONResponse (auto-serialize) + validation_error helper
+│   ├── responses.py         # JSONResponse, FileResponse, HTMLResponse, RedirectResponse, PlainTextResponse, StreamingResponse
+│   ├── websocket.py         # WebSocketManager (connection tracking, rooms, JSON events, broadcast, heartbeat)
 │   ├── admin.py             # Admin panel (dashboard, metrics, model CRUD, log viewer)
 │   ├── logger.py            # File-based Logger (error, warning, info) + request logging
 │   ├── debug.py             # Debug middleware (RAM, CPU, execution time per request)
@@ -154,8 +155,24 @@ async def login(request: Request):
 ### Responses (`core/responses.py`)
 
 - `JSONResponse(content, status_code, serialize, headers)`: Auto-serializes Decimal, datetime, Pydantic models.
-- `HTMLResponse`, `RedirectResponse`, `PlainTextResponse`, `StreamingResponse`.
+- `FileResponse`, `HTMLResponse`, `RedirectResponse`, `PlainTextResponse`, `StreamingResponse`.
 - **Automatic Headers**: All responses include `Powered-By: Lila Framework`.
+
+### WebSocket (`core/websocket.py` & `public/js/ws.js`)
+
+- `WebSocketManager`: High-performance manager for WebSocket connections, rooms, JSON events, and heartbeat ping/pong.
+- Backend methods:
+  - `ws_manager.connect(websocket, room=None)`: Register active connection.
+  - `ws_manager.disconnect(websocket)`: Cleanup socket from active set & rooms.
+  - `ws_manager.join_room(websocket, room)` / `ws_manager.leave_room(websocket, room)`.
+  - `await ws_manager.emit_to(websocket, event, data)`.
+  - `await ws_manager.broadcast(event, data, exclude=None)`.
+  - `await ws_manager.broadcast_to_room(room, event, data, exclude=None)`.
+  - `@ws_manager.on("event_name")`: Register async event handler.
+  - `await ws_manager.handle_connection(websocket)`: Auto lifecycle & ping/pong loop.
+- Client JS (`public/js/ws.js`):
+  - `const ws = lilaWS(url)`: Lightweight zero-dependency Socket.io-style WebSocket client.
+  - Auto reconnection (exponential backoff), message queueing, `.on()`, `.off()`, `.emit()`, `.join('room')`, `.leave('room')`.
 
 ### Security (`core/security.py` & `core/auth.py` & `core/csrf.py`)
 
