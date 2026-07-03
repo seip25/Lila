@@ -88,10 +88,17 @@ def _load_assets_manifest():
                     Logger.warning(f"Error loading assets_manifest.json: {e}")
         _assets_manifest_loaded = True
 
+_PUBLIC_CACHE: dict[tuple[str, bool], str] = {}
+
 def public(path: str, force_static: bool = False) -> str:
     """
     Resolves the public URL for a given static asset.
+    Cached in RAM for O(1) instant resolution.
     """
+    cache_key = (path, force_static)
+    if cache_key in _PUBLIC_CACHE:
+        return _PUBLIC_CACHE[cache_key]
+
     clean_path = path.lstrip('/')
     resolved_path = f"/{clean_path}"
     
@@ -100,9 +107,13 @@ def public(path: str, force_static: bool = False) -> str:
         path_val = ASSETS_MANIFEST[clean_path]
         resolved_path = path_val if path_val.startswith('/') else f"/{path_val}"
     
-    if not DEBUG and APP_URL:
-        return f"{APP_URL.rstrip('/')}{resolved_path}"
-    return resolved_path
+    if not DEBUG and APP_URL and not force_static:
+        res = f"{APP_URL.rstrip('/')}{resolved_path}"
+    else:
+        res = resolved_path
+
+    _PUBLIC_CACHE[cache_key] = res
+    return res
 
 jinja_env.globals['public'] = public
 
@@ -272,11 +283,7 @@ def renderMarkdown(request: Request, file: str, css_files: list = None, js_files
 
 def stylesDefaultTailwind() -> str:
     return """
-<!-- Google Fonts for Outfit and Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+ 
   <!-- Tailwind CSS Play CDN / Browser script -->
   <script src="/js/tailwind.js"></script>
 
