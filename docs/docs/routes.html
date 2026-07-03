@@ -357,16 +357,17 @@ async def get_profile(request: Request):
             <h3>️ Creating Custom Route Middlewares</h3>
 
             <p>
-                Creating a custom route middleware in Lila is exceptionally simple. A route middleware is a standard
-                Python decorator that intercepts the request, runs custom logic, and then either returns an early
-                response (like a redirect or an error code) or lets the execution continue by calling and returning the
-                output of the next function.
+                Creating custom route middlewares in Lila is clean and effortless thanks to the built-in <code class="code-inline">create_decorator</code> helper from <code class="code-inline">lila.core.middleware</code>.
+                Instead of writing boilerplate decorator wrappers manually with <code class="code-inline">functools.wraps</code>, you simply define an async logic function decorated with <code class="code-inline">@create_decorator</code>.
+            </p>
+            <p>
+                If your logic function returns a response (like a <code class="code-inline">JSONResponse</code> or redirect), Lila breaks the chain early and returns that response. If it returns <code class="code-inline">True</code> or <code class="code-inline">None</code>, execution continues to the route handler. It automatically supports both unparenthesized usage (<code class="code-inline">@check_admin</code>) and parameterized usage (<code class="code-inline">@check_admin(role="superadmin")</code>).
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">
-                        <i class="fas fa-file-code mr-2"></i>Creating a Custom Middleware
+                        <i class="fas fa-file-code mr-2"></i>Creating a Custom Middleware with create_decorator
                     </span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -376,27 +377,31 @@ async def get_profile(request: Request):
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
-from functools import wraps
+from lila.core.middleware import create_decorator
 from lila.core.request import Request
 from lila.core.responses import JSONResponse
 
-def require_premium_role(func):
-    """
-    Route middleware to enforce that the user has a premium subscription.
-    """
-    @wraps(func)
-    async def wrapper(request: Request, *args, **kwargs):
-        # Read a session variable or header
-        is_premium = request.session.get("is_premium", False)
-        
-        if not is_premium:
-            # Short-circuit the request and return an early response
-            return JSONResponse({"error": "Forbidden", "message": "Premium role required"}, status_code=403)
-            
-        # Continue with the execution of the next middleware or route handler
-        return await func(request, *args, **kwargs)
-        
-    return wrapper
+@create_decorator
+async def check_admin(request: Request, role="admin"):
+    # If the logic returns a response, it breaks the chain and returns it.
+    # If it returns True or None, execution continues to the route handler.
+    user = getattr(request.state, "user", {})
+    if user.get("role") != role:
+        return JSONResponse({"error": "Unauthorized", "message": f"{role} role required"}, status_code=403)
+    return True
+
+# Usage in routes:
+# @check_admin                       -> uses default role="admin"
+# @check_admin(role="superadmin")    -> uses custom role
+@router.get("/admin-panel")
+@check_admin
+async def admin_panel(request: Request):
+    return JSONResponse({"status": "welcome admin"})
+
+@router.get("/superadmin-panel")
+@check_admin(role="superadmin")
+async def superadmin_panel(request: Request):
+    return JSONResponse({"status": "welcome superadmin"})
             </code></pre>
                 </div>
             </div>
