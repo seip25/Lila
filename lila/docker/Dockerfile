@@ -1,8 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Lila Framework — Production Dockerfile
-# Python 3.13-slim for maximum compatibility and performance
+# Python 3.14-slim for maximum compatibility and performance
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
