@@ -36,7 +36,7 @@ jinja_env = Environment(
 MANIFEST_BUILD: dict[str, str] = {}
 
 _VITE_PROJECT_EXISTS: bool = None
-STYLES_DEFAULT_TAILWIND: str = stylesDefaultTailwind()
+STYLES_DEFAULT_TAILWIND: str = None
 
 def hot_reload() -> str:
     return ""
@@ -110,7 +110,10 @@ def asset(path: str, force_static: bool = False) -> str:
     clean_path = path.lstrip('/')
     
     if clean_path == 'css/tailwind.css':
-        return  STYLES_DEFAULT_TAILWIND
+        global STYLES_DEFAULT_TAILWIND
+        if STYLES_DEFAULT_TAILWIND is None:
+            STYLES_DEFAULT_TAILWIND = stylesDefaultTailwind()
+        return STYLES_DEFAULT_TAILWIND
         
     resolved = public(clean_path, force_static=force_static)
     if clean_path.endswith('.css'):

@@ -92,7 +92,7 @@ def locales(languages: list[str]) -> Any:
 
 
 class Router:
-    def __init__(self, prefix: str = "", default_cache_ttl: int = 30, cache_cookie_keys: list[str] = None, middlewares: list = None) -> None:
+    def __init__(self, prefix: str = "", default_cache_ttl: int = 0, cache_cookie_keys: list[str] = None, middlewares: list = None) -> None:
         """
         English: Initializes the router with a prefix, default cache TTL, custom cache cookie keys, and optional router-level middlewares.
         Español: Inicializa el router con un prefijo, un TTL de caché por defecto, claves de cookie personalizadas y middlewares opcionales a nivel de router.

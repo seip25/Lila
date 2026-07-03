@@ -141,7 +141,7 @@ async def login(request: Request):
 - `Cache.get(key)`: Retrieve a cached object. Returns `None` if expired or not found.
 - `Cache.delete(key)`: Remove a specific key from the cache.
 - `Cache.clear()`: Clear all cached items.
-- **Automatic Route Caching**: By default, `GET` routes are cached for 30 seconds.
+- **Route Caching**: By default, route caching is disabled (`cache_ttl=0`). Caching can be enabled globally per router (`Router(default_cache_ttl=30)`) or per route (`@router.get("/data", cache_ttl=60)`).
 - Internally used to optimize OpenAPI docs, templates, asset definitions, and translations.
 
 ### App (`core/app.py`)

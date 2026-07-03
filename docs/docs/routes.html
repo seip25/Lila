@@ -509,8 +509,7 @@ routes = router.get_routes()  # Retrieves all defined app.routes.
 
             <p>
                 Lila includes a built-in caching system for <code class="code-inline">GET</code> requests to improve
-                performance. By default, all routes are cached for <b>30 seconds</b>, but you can customize this
-                globally or per route.
+                performance. By default, route caching is <b>disabled</b> (<code class="code-inline">cache_ttl = 0</code>) to ensure real-time dynamic responses. You can easily activate caching globally per router or on specific routes.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -526,20 +525,19 @@ routes = router.get_routes()  # Retrieves all defined app.routes.
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
-# Global configuration (default is 30s)
-# By default, it isolates cache by user checking "session", "auth", "auth_admin" cookies.
-# You can customize the cookies to check using cache_cookie_keys.
-router = Router(default_cache_ttl=60, cache_cookie_keys=["my_custom_session"]) 
+# Global router caching (e.g., cache all routes in this router for 60s)
+# Isolates cache by user using session/auth cookies automatically.
+router = Router(default_cache_ttl=60, cache_cookie_keys=["session", "auth"]) 
 
-# Disable caching for a specific route
-@router.get("/live-data", cache_ttl=0)
-async def live(request: Request):
-    return JSONResponse({"time": time.time()})
+# Route-specific caching (e.g., cache heavy endpoint for 5 minutes)
+@router.get("/heavy-catalog", cache_ttl=300) # 5 minutes
+async def catalog(request: Request):
+    return JSONResponse({"data": "catalog items"})
 
-# Set a custom TTL for a specific route
-@router.get("/slow-data", cache_ttl=300) # 5 minutes
-async def slow(request: Request):
-    return JSONResponse({"data": "long-lived"})
+# Standard route without cache_ttl remains uncached (real-time execution)
+@router.get("/realtime-feed")
+async def feed(request: Request):
+    return JSONResponse({"status": "live"})
             </code></pre>
                 </div>
             </div>
