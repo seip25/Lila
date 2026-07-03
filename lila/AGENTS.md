@@ -661,3 +661,82 @@ config = {
     "database": "lila_db",
 }
 ```
+
+---
+
+## Core Utilities (OAuth, 2FA, Mailer, Exporter)
+
+### 1. OAuth 2.0 Helpers (`lila/core/oauth.py`)
+
+Lightweight 2-line helpers for Google and GitHub social authentication. Credentials are loaded automatically from `.env` / `ENV_CONFIG` (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`).
+
+```python
+from lila.core.oauth import GoogleAuth, GitHubAuth
+
+# 1. Generate authorization URL
+@router.get("/auth/google")
+async def google_login(request: Request):
+    auth_url = GoogleAuth.get_auth_url(redirect_uri="http://localhost:8001/auth/google/callback")
+    return RedirectResponse(url=auth_url)
+
+# 2. Exchange authorization code for user profile
+@router.get("/auth/google/callback")
+async def google_callback(request: Request):
+    code = request.query_params.get("code")
+    user_info = await GoogleAuth.get_user_info(code, redirect_uri="http://localhost:8001/auth/google/callback")
+    # user_info dict: {"id": "...", "email": "...", "name": "...", "picture": "..."}
+    return JSONResponse(user_info or {"error": "Authentication failed"})
+```
+
+### 2. Two-Factor Authentication (`lila/core/two_factor.py`)
+
+Pure-Python RFC 6238 TOTP engine for 2FA verification and zero-dependency SVG QR Code rendering.
+
+```python
+from lila.core.two_factor import TwoFactor
+
+# Generate a new secret key for a user
+secret = TwoFactor.generate_secret()
+
+# Generate SVG QR Code string for Jinja templates
+otpauth_url = TwoFactor.get_otpauth_url(secret, user_label="user@example.com", issuer="MyLilaApp")
+qr_svg = TwoFactor.generate_qr_svg(otpauth_url)
+
+# Verify 6-digit TOTP code
+is_valid = TwoFactor.verify_code(secret, code="123456")
+```
+
+### 3. Async Mailer (`lila/core/mailer.py`)
+
+Async SMTP mail engine supporting Jinja2 HTML templates and Starlette BackgroundTasks.
+
+```python
+from lila.core.mailer import Mailer
+
+# Non-blocking async send
+await Mailer.send_email(
+    to="client@example.com",
+    subject="Welcome to Lila",
+    body_html="<h1>Welcome!</h1><p>Your account has been activated.</p>"
+)
+
+# Deferred background send after HTTP response
+@router.post("/register")
+async def register(request: Request):
+    bg_task = Mailer.send_background("user@test.com", "Welcome", "<h1>Hello</h1>")
+    return JSONResponse({"status": "success"}, background=bg_task)
+```
+
+### 4. Data Exporter (`lila/core/exporter.py`)
+
+Convert Pydantic models, SQLAlchemy ORM queries, or dict lists directly to downloadable CSV HTTP responses without external dependencies.
+
+```python
+from lila.core.exporter import Exporter
+
+@router.get("/export/users")
+async def export_users(request: Request):
+    users = User.get_all() # Returns active user records
+    # Generates a downloadable CSV response with Content-Disposition headers
+    return Exporter.to_csv_response(users, filename="users_export.csv")
+```
