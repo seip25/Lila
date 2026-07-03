@@ -21,6 +21,10 @@ lila/
 │   ├── files.py             # File upload and image optimization utilities
 │   ├── responses.py         # JSONResponse, FileResponse, HTMLResponse, RedirectResponse, PlainTextResponse, StreamingResponse
 │   ├── websocket.py         # WebSocketManager (connection tracking, rooms, JSON events, broadcast, heartbeat)
+│   ├── oauth.py             # GoogleAuth and GitHubAuth helpers (auth URL, token exchange, user profile)
+│   ├── two_factor.py        # TwoFactor engine (TOTP RFC 6238, secret generation, 6-digit verification, SVG QR code)
+│   ├── mailer.py            # Mailer engine (async SMTP, HTML templates, BackgroundTask execution)
+│   ├── exporter.py          # Exporter & CSVResponse (convert dicts, Pydantic, ORM models to CSV download)
 │   ├── admin.py             # Admin panel (dashboard, metrics, model CRUD, log viewer)
 │   ├── logger.py            # File-based Logger (error, warning, info) + request logging
 │   ├── debug.py             # Debug middleware (RAM, CPU, execution time per request)
