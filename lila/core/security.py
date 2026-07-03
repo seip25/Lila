@@ -3,34 +3,29 @@ from typing import Any, Dict, List, Union
 
 class Security:
     """
-    Core security utilities for Lila Framework.
+    Core security utilities for Lila Framework with pre-compiled XSS regex.
     """
-    
-    # XSS patterns to detect or remove
-    XSS_PATTERNS = [
-        (r"<script.*?>.*?</script>", ""),
-        (r"on\w+\s*=", ""),  # HTML event handlers like onclick, onload
-        (r"javascript:", ""),
-        (r"<iframe.*?>.*?</iframe>", ""),
-        (r"<object.*?>.*?</object>", ""),
-        (r"expression\s*\(", ""), # CSS expressions
+    _COMPILED_XSS_PATTERNS = [
+        (re.compile(r"<script.*?>.*?</script>", flags=re.IGNORECASE | re.DOTALL), ""),
+        (re.compile(r"on\w+\s*=", flags=re.IGNORECASE | re.DOTALL), ""),
+        (re.compile(r"javascript:", flags=re.IGNORECASE | re.DOTALL), ""),
+        (re.compile(r"<iframe.*?>.*?</iframe>", flags=re.IGNORECASE | re.DOTALL), ""),
+        (re.compile(r"<object.*?>.*?</object>", flags=re.IGNORECASE | re.DOTALL), ""),
+        (re.compile(r"expression\s*\(", flags=re.IGNORECASE | re.DOTALL), ""),
     ]
 
     @staticmethod
     def sanitize_string(value: str) -> str:
         """
-        Removes potentially dangerous HTML/JS patterns from a string.
+        Removes potentially dangerous HTML/JS patterns from a string using pre-compiled regex.
         """
         if not isinstance(value, str):
             return value
         
         sanitized = value
-        for pattern, replacement in Security.XSS_PATTERNS:
-            sanitized = re.sub(pattern, replacement, sanitized, flags=re.IGNORECASE | re.DOTALL)
+        for pattern, replacement in Security._COMPILED_XSS_PATTERNS:
+            sanitized = pattern.sub(replacement, sanitized)
         
-        # Basic escape for special characters if needed, 
-        # but usually we want to keep some HTML for templates.
-        # This is a safe middle ground.
         return sanitized
 
     @staticmethod
@@ -49,10 +44,12 @@ class Security:
     @staticmethod
     def check_xss(text: str) -> bool:
         """
-        Checks if a string contains potential XSS patterns.
+        Checks if a string contains potential XSS patterns using pre-compiled regex.
         Returns True if potential XSS is found.
         """
-        for pattern, _ in Security.XSS_PATTERNS:
-            if re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL):
+        if not text:
+            return False
+        for pattern, _ in Security._COMPILED_XSS_PATTERNS:
+            if pattern.search(text):
                 return True
         return False

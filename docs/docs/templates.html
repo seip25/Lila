@@ -341,8 +341,8 @@ def get_base_context(request, files_translate=[], lang_default=None):
 &lt;html&gt;
 &lt;head&gt;
   &lt;title&gt;{{ title }}&lt;/title&gt;
-  &lt;!-- Load Tailwind CSS dynamically via Lila CDN --&gt;
-  {{ asset('css/tailwind.css') | safe }}
+  &lt;!-- Load Tailwind CSS v4 browser runtime and theme variables --&gt;
+  {{ asset('js/tailwind.js') | safe }}
 &lt;/head&gt;
 &lt;body&gt;
   &lt;h1&gt;Welcome to Lila!&lt;/h1&gt;

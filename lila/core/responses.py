@@ -12,9 +12,11 @@ from typing import Any, Union
 
 class LilaResponseMixin:
     def __init__(self, *args, **kwargs):
-        if "headers" not in kwargs or kwargs["headers"] is None:
-            kwargs["headers"] = {}
-        kwargs["headers"]["Powered-By"] = "Lila Framework"
+        headers = kwargs.get("headers")
+        if not headers:
+            kwargs["headers"] = {"Powered-By": "Lila Framework"}
+        elif "Powered-By" not in headers:
+            headers["Powered-By"] = "Lila Framework"
         super().__init__(*args, **kwargs)
 
 class HTMLResponse(LilaResponseMixin, StarletteHTMLResponse):
@@ -66,9 +68,10 @@ class JSONResponse(Response):
         headers: dict = None,
         media_type: str = None,
     ) -> None:
-        if headers is None:
-            headers = {}
-        headers["Powered-By"] = "Lila Framework"
+        if not headers:
+            headers = {"Powered-By": "Lila Framework"}
+        elif "Powered-By" not in headers:
+            headers["Powered-By"] = "Lila Framework"
         super().__init__(content, status_code, headers, media_type)
 
     def render(self, content: Any) -> bytes:

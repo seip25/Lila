@@ -102,27 +102,36 @@ def public(path: str, force_static: bool = False) -> str:
 
 jinja_env.globals['public'] = public
 
+_ASSET_CACHE: dict[tuple[str, bool], str] = {}
+
 def asset(path: str, force_static: bool = False) -> str:
     """
     Returns the complete HTML tag for a CSS or JS asset, or a simple URL string for other assets.
-    If the path is 'css/tailwind.css', it returns the Tailwind CDN and Google Fonts configuration.
+    Cached in memory for O(1) instant lookup.
     """
+    cache_key = (path, force_static)
+    if cache_key in _ASSET_CACHE:
+        return _ASSET_CACHE[cache_key]
+
     clean_path = path.lstrip('/')
     
-    if clean_path == 'css/tailwind.css':
+    if clean_path in ('css/tailwind.css', 'js/tailwind.js'):
         global STYLES_DEFAULT_TAILWIND
         if STYLES_DEFAULT_TAILWIND is None:
             STYLES_DEFAULT_TAILWIND = stylesDefaultTailwind()
+        _ASSET_CACHE[cache_key] = STYLES_DEFAULT_TAILWIND
         return STYLES_DEFAULT_TAILWIND
         
     resolved = public(clean_path, force_static=force_static)
     if clean_path.endswith('.css'):
-        return f'<link rel="stylesheet" href="{resolved}" />'
-        
-    if clean_path.endswith('.js'):
-        return f'<script src="{resolved}"></script>'
-        
-    return resolved
+        tag = f'<link rel="stylesheet" href="{resolved}" />'
+    elif clean_path.endswith('.js'):
+        tag = f'<script src="{resolved}"></script>'
+    else:
+        tag = resolved
+
+    _ASSET_CACHE[cache_key] = tag
+    return tag
 
 jinja_env.globals['asset'] = asset
 
@@ -264,54 +273,45 @@ def stylesDefaultTailwind() -> str:
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS Play CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: 'var(--primary, #1a73e8)',
-            'primary-dark': 'var(--primary-dark, #1557b0)',
-            secondary: 'var(--secondary, #e91e63)',
-            'secondary-dark': 'var(--secondary-dark, #c2185b)',
-            accent: 'var(--accent, #ffc107)',
-            surface: 'var(--surface, #ffffff)',
-            'surface-dark': 'var(--surface-dark, #1e293b)',
-            'bg-body': 'var(--bg-body, #f0f4f9)',
-            'bg-body-dark': 'var(--bg-body-dark, #0f172a)',
-            'lila-bg': 'var(--lila-bg, #f0f4f9)',
-            'lila-surface': 'var(--lila-surface, #ffffff)',
-            'lila-primary': 'var(--lila-primary, #1a73e8)',
-            'lila-primary-hover': 'var(--lila-primary-hover, #1557b0)',
-            'lila-sidebar': 'var(--lila-sidebar, #e9eef6)',
-            'ai-blue': '#1A73E8',
-            'ai-purple': '#A062FC',
-            'ai-orange': '#FF6E6E',
-            gemini: {
-              blue: '#1a73e8',
-              blueBg: '#f0f4f9',
-              blueHover: '#e1ecf8',
-              indigo: '#4f46e5',
-              purple: '#8b5cf6',
-              accent: '#4285f4',
-              darkBg: '#090d16',
-              darkCard: '#131b2e',
-              darkBorder: '#1e293b',
-              darkHover: '#1e293b'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            heading: ['Outfit', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  
+  <!-- Tailwind CSS Play CDN / Browser script -->
+  <script src="/js/tailwind.js"></script>
+
   <style type="text/tailwindcss">
+    @theme {
+      --font-sans: 'Inter', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+
+      --color-primary: var(--primary, #1a73e8);
+      --color-primary-dark: var(--primary-dark, #1557b0);
+      --color-secondary: var(--secondary, #e91e63);
+      --color-secondary-dark: var(--secondary-dark, #c2185b);
+      --color-accent: var(--accent, #ffc107);
+      --color-surface: var(--surface, #ffffff);
+      --color-surface-dark: var(--surface-dark, #1e293b);
+      --color-bg-body: var(--bg-body, #f0f4f9);
+      --color-bg-body-dark: var(--bg-body-dark, #0f172a);
+
+      --color-lila-bg: var(--lila-bg, #f0f4f9);
+      --color-lila-surface: var(--lila-surface, #ffffff);
+      --color-lila-primary: var(--lila-primary, #1a73e8);
+      --color-lila-primary-hover: var(--lila-primary-hover, #1557b0);
+      --color-lila-sidebar: var(--lila-sidebar, #e9eef6);
+      --color-ai-blue: #1A73E8;
+      --color-ai-purple: #A062FC;
+      --color-ai-orange: #FF6E6E;
+
+      --color-gemini-blue: #1a73e8;
+      --color-gemini-blue-bg: #f0f4f9;
+      --color-gemini-blue-hover: #e1ecf8;
+      --color-gemini-indigo: #4f46e5;
+      --color-gemini-purple: #8b5cf6;
+      --color-gemini-accent: #4285f4;
+      --color-gemini-dark-bg: #090d16;
+      --color-gemini-dark-card: #131b2e;
+      --color-gemini-dark-border: #1e293b;
+      --color-gemini-dark-hover: #1e293b;
+    }
+
     :root {
       --primary: #1a73e8;
       --primary-dark: #1557b0;
