@@ -36,7 +36,7 @@ jinja_env = Environment(
 MANIFEST_BUILD: dict[str, str] = {}
 
 _VITE_PROJECT_EXISTS: bool = None
-STYLES_DEFAULT_TAILWIND: str = None
+STYLES_DEFAULT_TAILWIND: str = stylesDefaultTailwind()
 
 def hot_reload() -> str:
     return ""
@@ -110,8 +110,153 @@ def asset(path: str, force_static: bool = False) -> str:
     clean_path = path.lstrip('/')
     
     if clean_path == 'css/tailwind.css':
-        return """
-  <!-- Google Fonts for Outfit and Inter -->
+        return  STYLES_DEFAULT_TAILWIND
+        
+    resolved = public(clean_path, force_static=force_static)
+    if clean_path.endswith('.css'):
+        return f'<link rel="stylesheet" href="{resolved}" />'
+        
+    if clean_path.endswith('.js'):
+        return f'<script src="{resolved}"></script>'
+        
+    return resolved
+
+jinja_env.globals['asset'] = asset
+
+def get_flashes(request: Request) -> list[dict]:
+    """
+    English: Returns queued flash messages and clears them so they aren't shown again.
+    Español: Retorna los mensajes flash en cola y los limpia para que no se muestren de nuevo.
+    """
+    flashes = []
+    if hasattr(request.state, "_flash_messages"):
+        flashes.extend(request.state._flash_messages)
+        request.state._flash_messages = []
+    if hasattr(request.state, "_new_flashes"):
+        flashes.extend(request.state._new_flashes)
+        request.state._new_flashes = []
+    return flashes
+
+
+jinja_env.globals['get_flashes'] = get_flashes
+
+templates = Jinja2Templates(env=jinja_env)
+markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
+def get_base_context(request: Request, files_translate: list[str] = None, lang_default: str = None) -> dict:
+    """
+    Constructs the standard context dictionary for all template renders.
+    """
+    if files_translate is None:
+        files_translate = []
+
+    current_lang = lang_default if lang_default else Translate.lang(request)
+    translations = Translate.get_translations("translations", request, lang_default=lang_default)
+
+    for file_name in files_translate:
+        translations.update(Translate.get_translations(file_name, request, lang_default=lang_default))
+
+    seo_data = getattr(request.state, "seo", {})
+
+    return {
+        "title": seo_data.get("title", TITLE_PROJECT),
+        "description": seo_data.get("description", DESCRIPTION_DEFAULT),
+        "keywords": seo_data.get("keywords", KEYWORDS_DEFAULT),
+        "seo": seo_data,
+        "version": VERSION_PROJECT,
+        "lang": current_lang,
+        "translate": translations,
+        "author": seo_data.get("author", AUTHOR_DEFAULT),
+        "app_url": APP_URL or f"http://{HOST}:{PORT}",
+        "debug": DEBUG,
+        "debug_html": getattr(request.app, "debug_html", False),
+        "get_flashes": lambda: get_flashes(request),
+    }
+
+
+def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None, extension: str = "jinja", csrf: bool = False):
+    """
+    English: Renders an HTML template with unified context and error handling.
+    When csrf=True, generates a CSRF token and injects it into the template context as 'csrf_token'.
+    The signed token is also set as a cookie on the response.
+
+    Español: Renderiza una plantilla HTML con contexto unificado y manejo de errores.
+    Cuando csrf=True, genera un token CSRF y lo inyecta en el contexto de la plantilla como 'csrf_token'.
+    El token firmado tambien se establece como cookie en la respuesta.
+    """
+    if context is None:
+        context = {}
+    if files_translate is None:
+        files_translate = []
+    try:
+        full_context = get_base_context(request, files_translate, lang_default)
+        full_context.update(context)
+        if csrf:
+            csrfToken = CSRF.generate(request)
+            full_context["csrf_input"] = f"<input type='hidden' name='csrf' id='csrf' value='{csrfToken}' />"
+
+        template_obj = jinja_env.get_template(f"{template}.{extension}")
+        body = template_obj.render(full_context)
+        response = HTMLResponse(content=body)
+        if csrf and csrfToken:
+            CSRF.set_cookie(response, csrfToken)
+        return response
+    except Exception as e:
+        return handle_render_error(template, e)
+
+def handle_render_error(template: str, e: Exception):
+    """
+    Logs and formats template rendering errors based on the debug environment.
+    """
+    exc_type, _, exc_tb = sys.exc_info()
+    tb_str = traceback.format_exc()
+    error_name = exc_type.__name__ if exc_type else "Error"
+    
+    Logger.error(f"Render error in {template}: {str(e)}")
+    print(f"\n{'='*20} TEMPLATE ERROR: {template} {'='*20}\n{tb_str}")
+
+    if DEBUG:
+        return HTMLResponse(content=f"<h1>{error_name}</h1><pre>{tb_str}</pre>", status_code=500)
+    return JSONResponse({"success": False, "message": "Internal server error"}, status_code=500)
+
+def renderMarkdown(request: Request, file: str, css_files: list = None, js_files: list = None, lang_default: str = None, translate_files: list[str] = None):
+    """
+    Converts a markdown file to HTML and wraps it in a layout template.
+    """
+    if css_files is None:
+        css_files = []
+    if js_files is None:
+        js_files = []
+    if translate_files is None:
+        translate_files = []
+    file_path = os.path.join(PATH_TEMPLATES_MARKDOWN, f"{file}.md")
+    if not os.path.exists(file_path):
+        return HTMLResponse("<h5>404</h5><p>Not found</p>", status_code=404)
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        md_content = f.read()
+
+    context = get_base_context(request, translate_files, lang_default)
+     
+    import re
+    def replace_translate(match):
+        key = match.group(1)
+        return str(context["translate"].get(key, match.group(0)))
+    
+    md_content = re.sub(r'\{\{\s*translate\["([^"]+)"\]\s*\}\}', replace_translate, md_content)
+
+    html_content = markdown.markdown(md_content)
+    context.update({
+        "request": request,
+        "content": html_content,
+        "css_files": css_files,
+        "js_files": js_files,
+    })
+
+    return markdown_templates.TemplateResponse(request, "layout.jinja", context)
+
+def stylesDefaultTailwind() -> str:
+    return """
+<!-- Google Fonts for Outfit and Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -604,145 +749,3 @@ def asset(path: str, force_static: bool = False) -> str:
     }
   </style>
         """
-        
-    resolved = public(clean_path, force_static=force_static)
-    if clean_path.endswith('.css'):
-        return f'<link rel="stylesheet" href="{resolved}" />'
-        
-    if clean_path.endswith('.js'):
-        return f'<script src="{resolved}"></script>'
-        
-    return resolved
-
-jinja_env.globals['asset'] = asset
-
-def get_flashes(request: Request) -> list[dict]:
-    """
-    English: Returns queued flash messages and clears them so they aren't shown again.
-    Español: Retorna los mensajes flash en cola y los limpia para que no se muestren de nuevo.
-    """
-    flashes = []
-    if hasattr(request.state, "_flash_messages"):
-        flashes.extend(request.state._flash_messages)
-        request.state._flash_messages = []
-    if hasattr(request.state, "_new_flashes"):
-        flashes.extend(request.state._new_flashes)
-        request.state._new_flashes = []
-    return flashes
-
-
-jinja_env.globals['get_flashes'] = get_flashes
-
-templates = Jinja2Templates(env=jinja_env)
-markdown_templates = Jinja2Templates(directory=PATH_TEMPLATES_MARKDOWN)
-def get_base_context(request: Request, files_translate: list[str] = None, lang_default: str = None) -> dict:
-    """
-    Constructs the standard context dictionary for all template renders.
-    """
-    if files_translate is None:
-        files_translate = []
-
-    current_lang = lang_default if lang_default else Translate.lang(request)
-    translations = Translate.get_translations("translations", request, lang_default=lang_default)
-
-    for file_name in files_translate:
-        translations.update(Translate.get_translations(file_name, request, lang_default=lang_default))
-
-    seo_data = getattr(request.state, "seo", {})
-
-    return {
-        "title": seo_data.get("title", TITLE_PROJECT),
-        "description": seo_data.get("description", DESCRIPTION_DEFAULT),
-        "keywords": seo_data.get("keywords", KEYWORDS_DEFAULT),
-        "seo": seo_data,
-        "version": VERSION_PROJECT,
-        "lang": current_lang,
-        "translate": translations,
-        "author": seo_data.get("author", AUTHOR_DEFAULT),
-        "app_url": APP_URL or f"http://{HOST}:{PORT}",
-        "debug": DEBUG,
-        "debug_html": getattr(request.app, "debug_html", False),
-        "get_flashes": lambda: get_flashes(request),
-    }
-
-
-def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None, extension: str = "jinja", csrf: bool = False):
-    """
-    English: Renders an HTML template with unified context and error handling.
-    When csrf=True, generates a CSRF token and injects it into the template context as 'csrf_token'.
-    The signed token is also set as a cookie on the response.
-
-    Español: Renderiza una plantilla HTML con contexto unificado y manejo de errores.
-    Cuando csrf=True, genera un token CSRF y lo inyecta en el contexto de la plantilla como 'csrf_token'.
-    El token firmado tambien se establece como cookie en la respuesta.
-    """
-    if context is None:
-        context = {}
-    if files_translate is None:
-        files_translate = []
-    try:
-        full_context = get_base_context(request, files_translate, lang_default)
-        full_context.update(context)
-        if csrf:
-            csrfToken = CSRF.generate(request)
-            full_context["csrf_input"] = f"<input type='hidden' name='csrf' id='csrf' value='{csrfToken}' />"
-
-        template_obj = jinja_env.get_template(f"{template}.{extension}")
-        body = template_obj.render(full_context)
-        response = HTMLResponse(content=body)
-        if csrf and csrfToken:
-            CSRF.set_cookie(response, csrfToken)
-        return response
-    except Exception as e:
-        return handle_render_error(template, e)
-
-def handle_render_error(template: str, e: Exception):
-    """
-    Logs and formats template rendering errors based on the debug environment.
-    """
-    exc_type, _, exc_tb = sys.exc_info()
-    tb_str = traceback.format_exc()
-    error_name = exc_type.__name__ if exc_type else "Error"
-    
-    Logger.error(f"Render error in {template}: {str(e)}")
-    print(f"\n{'='*20} TEMPLATE ERROR: {template} {'='*20}\n{tb_str}")
-
-    if DEBUG:
-        return HTMLResponse(content=f"<h1>{error_name}</h1><pre>{tb_str}</pre>", status_code=500)
-    return JSONResponse({"success": False, "message": "Internal server error"}, status_code=500)
-
-def renderMarkdown(request: Request, file: str, css_files: list = None, js_files: list = None, lang_default: str = None, translate_files: list[str] = None):
-    """
-    Converts a markdown file to HTML and wraps it in a layout template.
-    """
-    if css_files is None:
-        css_files = []
-    if js_files is None:
-        js_files = []
-    if translate_files is None:
-        translate_files = []
-    file_path = os.path.join(PATH_TEMPLATES_MARKDOWN, f"{file}.md")
-    if not os.path.exists(file_path):
-        return HTMLResponse("<h5>404</h5><p>Not found</p>", status_code=404)
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        md_content = f.read()
-
-    context = get_base_context(request, translate_files, lang_default)
-     
-    import re
-    def replace_translate(match):
-        key = match.group(1)
-        return str(context["translate"].get(key, match.group(0)))
-    
-    md_content = re.sub(r'\{\{\s*translate\["([^"]+)"\]\s*\}\}', replace_translate, md_content)
-
-    html_content = markdown.markdown(md_content)
-    context.update({
-        "request": request,
-        "content": html_content,
-        "css_files": css_files,
-        "js_files": js_files,
-    })
-
-    return markdown_templates.TemplateResponse(request, "layout.jinja", context)
