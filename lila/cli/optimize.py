@@ -21,7 +21,7 @@ def main():
         public_folder = os.path.join(project_root, "public")
         app_folder = os.path.join(project_root, "app")
         cache_folder = os.path.join(app_folder, "cache")
-        manifest_path = os.path.join(app_folder, "assets_manifest.json")
+        manifest_path = os.path.join(cache_folder, "assets_manifest.json")
         manifest_py_path = os.path.join(cache_folder, "manifest_cache.py")
         
         if not os.path.exists(public_folder):
