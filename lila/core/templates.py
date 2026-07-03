@@ -70,18 +70,22 @@ def _load_vite_manifest():
 
 def _load_assets_manifest():
     """
-    English: Loads the classic static assets manifest.
-    Español: Carga el manifiesto clásico de recursos estáticos.
+    English: Loads the static assets manifest via fast Python import or JSON fallback.
+    Español: Carga el manifiesto de recursos estáticos via import de Python o fallback a JSON.
     """
     global ASSETS_MANIFEST, _assets_manifest_loaded
     if not _assets_manifest_loaded:
-        manifest_path = os.path.join(PROJECT_ROOT, "app", "assets_manifest.json")
-        if os.path.exists(manifest_path):
-            try:
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    ASSETS_MANIFEST = json.load(f)
-            except Exception as e:
-                Logger.warning(f"Error loading assets_manifest.json: {e}")
+        try:
+            from app.cache.manifest_cache import ASSET_MANIFEST as cache_manifest
+            ASSETS_MANIFEST = cache_manifest
+        except ImportError:
+            manifest_path = os.path.join(PROJECT_ROOT, "app", "assets_manifest.json")
+            if os.path.exists(manifest_path):
+                try:
+                    with open(manifest_path, "r", encoding="utf-8") as f:
+                        ASSETS_MANIFEST = json.load(f)
+                except Exception as e:
+                    Logger.warning(f"Error loading assets_manifest.json: {e}")
         _assets_manifest_loaded = True
 
 def public(path: str, force_static: bool = False) -> str:

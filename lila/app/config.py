@@ -15,7 +15,7 @@ import os
 from os import path
 from lila.core.config import ConfigLoader, ENV_CONFIG
 
-_cfg = ConfigLoader.load(cache_dir=path.dirname(__file__))
+_cfg = ConfigLoader.load()
 globals().update(_cfg)
 
 # English: Project-specific paths (not loaded from .env).

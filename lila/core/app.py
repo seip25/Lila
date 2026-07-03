@@ -251,22 +251,16 @@ class App(Starlette):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 Internal Server Error</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {{
-            theme: {{
-                extend: {{
-                    colors: {{
-                        primary: '#1a73e8',
-                        secondary: '#e91e63',
-                        error: '#d32f2f',
-                        surface: '#1e293b',
-                        'bg-body': '#0f172a'
-                    }}
-                }}
-            }}
-        }}
-    </script>
+    <script src="/js/tailwind.js"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-primary: #1a73e8;
+            --color-secondary: #e91e63;
+            --color-error: #d32f2f;
+            --color-surface: #1e293b;
+            --color-bg-body: #0f172a;
+        }
+    </style>
 </head>
 <body class="bg-[#0f172a] text-slate-200 min-h-screen p-4 md:p-8 flex items-center justify-center font-sans transition-colors duration-300">
     <div class="w-full max-w-5xl bg-[#1e293b] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">

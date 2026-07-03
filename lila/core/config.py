@@ -86,9 +86,10 @@ class ConfigLoader:
             return dict(cls._data)
 
         if cache_dir is None:
-            cache_dir = os.path.join(os.getcwd(), "app")
+            cache_dir = os.path.join(os.getcwd(), "app", "cache")
 
         cache_py_path = path.join(cache_dir, "config_cache.py")
+        legacy_cache_py_path = path.join(os.getcwd(), "app", "config_cache.py")
         env_path = path.join(os.getcwd(), ".env")
 
         # English: If DEBUG is set in the OS environment, skip cache entirely.
@@ -101,10 +102,11 @@ class ConfigLoader:
 
         # English: Try loading from production cache if it exists and .env hasn't changed.
         # Español: Intentar cargar desde el caché de producción si existe y .env no cambió.
-        if path.exists(cache_py_path):
-            env_modified = path.exists(env_path) and os.path.getmtime(env_path) > os.path.getmtime(cache_py_path)
+        target_cache = cache_py_path if path.exists(cache_py_path) else (legacy_cache_py_path if path.exists(legacy_cache_py_path) else None)
+        if target_cache:
+            env_modified = path.exists(env_path) and os.path.getmtime(env_path) > os.path.getmtime(target_cache)
             if not env_modified:
-                cached = cls._read_from_cache(cache_py_path)
+                cached = cls._read_from_cache(target_cache)
                 if cached is not None:
                     cls._data = cached
                     cls._loaded = True
@@ -190,12 +192,17 @@ class ConfigLoader:
     @classmethod
     def _write_cache(cls, cache_py_path: str, data: dict) -> None:
         """
-        English: Writes configuration cache as a Python file for fast production loading.
-                 Auto-generated from the schema — no manual field listing needed.
-        Español: Escribe el caché de configuración como archivo Python para carga rápida.
-                 Auto-generado desde el schema — sin necesidad de listar campos manualmente.
+        English: Writes configuration cache as a Python file in app/cache/ for fast production loading.
+        Español: Escribe el caché de configuración como archivo Python en app/cache/ para carga rápida.
         """
         try:
+            parent_dir = os.path.dirname(cache_py_path)
+            os.makedirs(parent_dir, exist_ok=True)
+            init_file = os.path.join(parent_dir, "__init__.py")
+            if not os.path.exists(init_file):
+                with open(init_file, "w", encoding="utf-8") as f:
+                    f.write("# Lila app cache package\n")
+                    
             with open(cache_py_path, "w", encoding="utf-8") as f:
                 for key, _, _ in FRAMEWORK_SCHEMA:
                     f.write(f"{key} = {repr(data[key])}\n")

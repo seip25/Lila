@@ -141,6 +141,9 @@ class Router:
             for m in reversed(self.middlewares):
                 current_func = m(current_func)
 
+            # Boot-time inspection of route metadata
+            is_async_func = asyncio.iscoroutinefunction(current_func)
+            
             # Inspect signature to auto-detect Pydantic validation parameters
             body_param_name = None
             body_model_class = None
@@ -154,18 +157,23 @@ class Router:
             except Exception:
                 pass
 
-            if hasattr(func, "_seo"):
+            target_model = body_model_class or model
+            locales_list = getattr(func, "_locales", None)
+            has_seo = hasattr(func, "_seo")
+
+            if has_seo:
                 current_seo = self.seo_data.get(real_path, {})
                 for k, v in func._seo.items():
                     if k not in current_seo or DEBUG:
                         current_seo[k] = v
                 self.seo_data[real_path] = current_seo
 
+            raw_seo_meta = self.seo_data.get(real_path, {})
+
             @wraps(func)
             async def validation_wrapper(request: Request):
                 """
-                English: Validation wrapper for route handlers that dynamically matches and sets the active language from the route path or query parameters.
-                Español: Wrapper de validación para manejadores de ruta que coincide y establece dinámicamente el idioma activo desde la ruta o parámetros de consulta.
+                Pre-compiled validation wrapper for fast route handling.
                 """
                 lang_param = None
                 if request.query_params:
@@ -188,10 +196,10 @@ class Router:
                     return response
 
                 matched_lang = None
-                locales_list = getattr(func, "_locales", None)
                 if locales_list:
+                    req_path = request.url.path
                     for lang in locales_list:
-                        if request.url.path == f"/{lang}" or request.url.path.startswith(f"/{lang}/"):
+                        if req_path == f"/{lang}" or req_path.startswith(f"/{lang}/"):
                             matched_lang = lang
                             break
                 
@@ -200,12 +208,13 @@ class Router:
 
                 current_lang = Translate.lang(request=request)
                 
-                seo_meta = self.seo_data.get(real_path, {})
-                if DEBUG and hasattr(func, "_seo"):
+                seo_meta = raw_seo_meta
+                if DEBUG and has_seo:
                     seo_meta = {**seo_meta, **func._seo}
 
                 request.state.seo = self._process_seo_metadata(seo_meta, current_lang, request)
 
+                cache_key = None
                 if ttl > 0 and request.method == "GET" and not DEBUG:
                     session_cookie = ""
                     for key in cookie_keys:
@@ -228,9 +237,8 @@ class Router:
                 if request.query_params and Security.check_xss(str(request.query_params)):
                     return JSONResponse({"success": False,"message": "Potential XSS detected in query parameters", "msg": "Potential XSS detected in query parameters"}, status_code=400)
 
-                target_model = body_model_class or model
                 validated_data = None
-                if target_model and request.method in ["POST", "PUT", "PATCH"]:
+                if target_model and request.method in ("POST", "PUT", "PATCH"):
                     try:
                         body = await request.json()
                         sanitized_body = Security.sanitize_data(body)
@@ -252,7 +260,7 @@ class Router:
                 if body_param_name and validated_data is not None:
                     kwargs[body_param_name] = validated_data
 
-                if asyncio.iscoroutinefunction(current_func):
+                if is_async_func:
                     response = await current_func(request, **kwargs)
                 else:
                     response = current_func(request, **kwargs)
