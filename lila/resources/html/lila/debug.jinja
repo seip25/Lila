@@ -7,7 +7,7 @@
   <title>Lila Engine - Debug Dashboard</title>
   <link rel="icon" type="image/x-icon" href="/img/lila.png" />
   {{ asset('js/utils.js', force_static=True) | safe }}
- {{ public('js/tailwind.js') | safe }}
+  {% include "lila/tailwind.jinja" %}
 </head>
 
 <body class="bg-bg-body dark:bg-bg-body-dark text-slate-850 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
