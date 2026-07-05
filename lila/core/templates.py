@@ -27,11 +27,23 @@ if MINIFY_HTML:
 else:
     loader = FileSystemLoader(PATH_TEMPLATES_HTML)
 
-cache_dir = os.path.join(PROJECT_ROOT, "app", "cache", "jinja")
-if not DEBUG and not os.path.exists(cache_dir):
-    os.makedirs(cache_dir, exist_ok=True)
+class LilaBytecodeCache(FileSystemBytecodeCache):
+    def dump_bytecode(self, bucket):
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory, exist_ok=True)
+        super().dump_bytecode(bucket)
 
-bccache = FileSystemBytecodeCache(cache_dir, "%s.cache") if not DEBUG else None
+    def load_bytecode(self, bucket):
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory, exist_ok=True)
+        super().load_bytecode(bucket)
+
+cache_dir = os.path.join(PROJECT_ROOT, "app", "cache", "jinja")
+if not DEBUG:
+    os.makedirs(cache_dir, exist_ok=True)
+    bccache = LilaBytecodeCache(cache_dir, "%s.cache")
+else:
+    bccache = None
 
 jinja_env = Environment(
     loader=loader,
@@ -42,6 +54,7 @@ jinja_env = Environment(
     trim_blocks=True,
     lstrip_blocks=True,
 )
+
 
 
 MANIFEST_BUILD: dict[str, str] = {}
