@@ -227,10 +227,12 @@ class Router:
                     cached_data = Cache.get(cache_key)
                     if cached_data:
                         from starlette.responses import Response
+                        response_headers = dict(cached_data.get("headers", {}))
+                        response_headers["X-Lila-Cache"] = "HIT"
                         return Response(
                             content=cached_data["body"],
                             status_code=cached_data["status_code"],
-                            headers=cached_data["headers"],
+                            headers=response_headers,
                             media_type=cached_data["media_type"]
                         )
 
@@ -275,6 +277,8 @@ class Router:
                                 "media_type": getattr(response, "media_type", None)
                             }
                             Cache.set(cache_key, cache_data, ttl=ttl)
+                        if hasattr(response, "headers"):
+                            response.headers["X-Lila-Cache"] = "MISS"
                 
                 return response
 
