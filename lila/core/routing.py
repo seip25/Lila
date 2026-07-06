@@ -229,6 +229,8 @@ class Router:
                         from starlette.responses import Response
                         response_headers = dict(cached_data.get("headers", {}))
                         response_headers["X-Lila-Cache"] = "HIT"
+                        if "Cache-Control" not in response_headers and "cache-control" not in response_headers:
+                            response_headers["Cache-Control"] = f"private, max-age={ttl}"
                         return Response(
                             content=cached_data["body"],
                             status_code=cached_data["status_code"],
@@ -279,6 +281,8 @@ class Router:
                             Cache.set(cache_key, cache_data, ttl=ttl)
                         if hasattr(response, "headers"):
                             response.headers["X-Lila-Cache"] = "MISS"
+                            if "Cache-Control" not in response.headers and "cache-control" not in response.headers:
+                                response.headers["Cache-Control"] = f"private, max-age={ttl}"
                 
                 return response
 
