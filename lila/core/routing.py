@@ -124,7 +124,7 @@ class Router:
         except Exception:
             pass
 
-    def route(self, path: str, methods: list[str] = None, model: Type[BaseModel] = None, cache_ttl: Optional[int] = None, cache_cookie_keys: Optional[list[str]] = None) -> None:
+    def route(self, path: str, methods: list[str] = None, model: Type[BaseModel] = None, cache_ttl: Optional[int] = None, cache_cookie_keys: Optional[list[str]] = None,cache_max_age: Optional[int] = None) -> None:
         if methods is None:
             methods = ["GET"]
         
@@ -229,8 +229,11 @@ class Router:
                         from starlette.responses import Response
                         response_headers = dict(cached_data.get("headers", {}))
                         response_headers["X-Lila-Cache"] = "HIT"
-                        if "Cache-Control" not in response_headers and "cache-control" not in response_headers:
+                        if "Cache-Control" not in response_headers and "cache-control" not in response_headers and cache_max_age is not None:
+                            response_headers["Cache-Control"] = f"private, max-age={cache_max_age}"
+                        elif "Cache-Control" not in response_headers and "cache-control" not in response_headers and cache_max_age is None:
                             response_headers["Cache-Control"] = f"private, max-age={ttl}"
+
                         return Response(
                             content=cached_data["body"],
                             status_code=cached_data["status_code"],
