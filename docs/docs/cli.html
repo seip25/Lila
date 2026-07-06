@@ -463,6 +463,18 @@ lila-docker mysql --root
 
 # Especificar/sobrescribir usuario, contraseña o BD si es necesario
 lila-docker mysql -u root -p mi_password -d mi_base_de_datos
+
+# Mostrar uso de disco de Docker (imágenes, volúmenes, caché)
+lila-docker df
+# o alias corto:
+lila-docker disk
+
+# Limpiar volúmenes huérfanos, imágenes dangling y caché de BuildKit
+lila-docker prune
+# o alias corto:
+lila-docker clean
+# Sin confirmación (ideal para scripts de despliegue):
+lila-docker clean -f
 </code>
 </pre>
                 </div>

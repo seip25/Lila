@@ -1,0 +1,32 @@
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+
+# Environment secrets
+.env
+.env.*
+!.env_example
+
+# Git & IDEs
+.git/
+.gitignore
+.dockerignore
+.vscode/
+.idea/
+.gemini/
+
+# App temporary files & logs
+app/cache/*
+app/logs/*
+!app/cache/.gitkeep
+!app/logs/.gitkeep
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

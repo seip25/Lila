@@ -410,7 +410,24 @@ lila-docker mysql -u root -p mi_password -d mi_base_de_datos</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">6. Multi-Project VPS Reverse Proxy (Nginx)
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">6. VPS Disk Maintenance & Cleanup</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        To prevent unused images, dangling volumes, and BuildKit cache from filling up your VPS disk space, use the maintenance commands built into <code>lila-docker</code>:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash"># Check current Docker disk space usage across containers, images, volumes, and build cache
+lila-docker df
+
+# Clean up orphaned volumes, dangling images, and BuildKit build cache
+lila-docker prune
+
+# Alias for prune (can use -f for non-interactive automated maintenance scripts):
+lila-docker clean -f</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">7. Multi-Project VPS Reverse Proxy (Nginx)
       </h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
         Configure a different <code>PORT</code> and <code>DB_PORT</code> in the <code>.env</code> file for each project.

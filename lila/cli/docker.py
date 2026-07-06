@@ -112,22 +112,101 @@ def stop(
 
 
 @app.command()
-def build():
+def build(
+    no_cache: bool = typer.Option(
+        False, "--no-cache", "-n", help="Force rebuild without using Docker layer cache"
+    )
+):
     """
     Build the Python app Docker image.
     Run this after installing new packages or modifying requirements.txt.
+    By default, uses Docker layer cache for fast builds.
     """
     _check_compose_file()
     print("🔨 Building Lila app Docker image...")
+    cmd = ["docker", "compose", "--profile", "prod", "build"]
+    if no_cache:
+        cmd.append("--no-cache")
+    cmd.append("app")
+
     try:
-        subprocess.run(
-            ["docker", "compose", "--profile", "prod", "build", "--no-cache", "app"],
-            check=True
-        )
+        subprocess.run(cmd, check=True)
         print("✅ Image built successfully. Start with: lila-docker start prod")
     except subprocess.CalledProcessError as e:
         print(f"❌ Build error: {e}")
         raise typer.Exit(code=1)
+
+
+@app.command("df")
+def df():
+    """
+    Display Docker disk space usage (images, containers, volumes, build cache).
+    """
+    print("📊 Docker Disk Usage:")
+    try:
+        subprocess.run(["docker", "system", "df"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error fetching Docker disk usage: {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command("disk")
+def disk():
+    """
+    Alias for 'lila-docker df'.
+    """
+    df()
+
+
+@app.command("prune")
+def prune(
+    all_resources: bool = typer.Option(
+        False, "--all", "-a", help="Remove all unused images, not just dangling ones"
+    ),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Do not prompt for confirmation"
+    ),
+):
+    """
+    Clean up unused Docker resources (dangling volumes, images, and BuildKit cache).
+    Frees up disk space on your VPS.
+    """
+    if not force:
+        confirm = typer.confirm("⚠️ Clean unused volumes, dangling images, and BuildKit cache?")
+        if not confirm:
+            print("Operation cancelled.")
+            raise typer.Exit()
+
+    print("🧹 1/3 Cleaning orphaned Docker volumes...")
+    subprocess.run(["docker", "volume", "prune", "-f"])
+
+    print("🧹 2/3 Cleaning unused Docker images...")
+    img_cmd = ["docker", "image", "prune"]
+    if all_resources:
+        img_cmd.append("-a")
+    img_cmd.append("-f")
+    subprocess.run(img_cmd)
+
+    print("🧹 3/3 Cleaning BuildKit build cache...")
+    subprocess.run(["docker", "builder", "prune", "-a", "-f"])
+
+    print("\n✨ Docker cleanup completed successfully! Current disk usage:")
+    subprocess.run(["docker", "system", "df"])
+
+
+@app.command("clean")
+def clean(
+    all_resources: bool = typer.Option(
+        False, "--all", "-a", help="Remove all unused images, not just dangling ones"
+    ),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Do not prompt for confirmation"
+    ),
+):
+    """
+    Alias for 'lila-docker prune'.
+    """
+    prune(all_resources=all_resources, force=force)
 
 
 @app.command()

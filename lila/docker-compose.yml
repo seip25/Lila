@@ -29,6 +29,8 @@ services:
       - "${PORT:-8000}:8000"
     volumes:
       - .:/app
+      # Note: Anonymous volumes below prevent host venv/__pycache__ from leaking into container.
+      # Run 'lila-docker prune' periodically on your VPS to clean unused orphaned volumes.
       - /app/__pycache__
       - /app/venv
     env_file:

@@ -375,13 +375,16 @@ lila-migrations
 lila-minify
 ```
 
-#### Run database containers with Docker (MySQL/PostgreSQL)
+#### Run database & app containers with Docker (MySQL/PostgreSQL/App)
 ```bash
-lila-docker start [mysql|postgres|all]
-lila-docker stop [mysql|postgres|all]
-lila-docker ps   # Shows status of database containers (also runs by default on "lila-docker")
-lila-docker mysql # Connect to MySQL shell using .env credentials
-lila-docker db    # Alias for lila-docker mysql
+lila-docker start [mysql|postgres|prod]
+lila-docker stop [mysql|postgres|app|all]
+lila-docker build [--no-cache] # Build production image (uses layer cache by default)
+lila-docker ps      # Shows status of active containers (default action)
+lila-docker logs    # Tail container logs (app or mysql)
+lila-docker mysql   # Connect to MySQL shell using .env credentials (alias: lila-docker db)
+lila-docker df      # Show Docker disk space usage (containers, images, volumes, build cache) (alias: lila-docker disk)
+lila-docker prune   # Clean up orphaned volumes, dangling images & BuildKit cache (alias: lila-docker clean)
 ```
 
 #### Run development server (starts local uvicorn on main.py)

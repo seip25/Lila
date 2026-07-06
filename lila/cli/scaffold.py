@@ -15,6 +15,7 @@ SCAFFOLD_ITEMS = {
     "public": "public",
     "resources": "resources",
     ".gitignore": ".gitignore",
+    ".dockerignore": ".dockerignore",
     ".env": ".env",
     "AGENTS.md": "AGENTS.md",
     "docker-compose.yml": "docker-compose.yml",
