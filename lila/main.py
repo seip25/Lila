@@ -71,7 +71,7 @@ def main():
     if DEBUG:
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False,log_level="warning")
+        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False,log_level="warning",workers=3) #workers (2 * 2num_cpu) + 1
 
 if __name__ == "__main__":
     try:
