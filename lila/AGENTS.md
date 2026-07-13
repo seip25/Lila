@@ -33,7 +33,7 @@ lila/
 │   ├── controller.py        # RequestParser (body/query validation via Pydantic)
 │   ├── request.py           # Re-export of Starlette Request
 │   ├── utils.py             # General utilities (date conversion, etc.)
-│   └── background.py        # Re-export of Starlette BackgroundTask
+│   └── background.py        # Hybrid BackgroundTask (Starlette + Redis Queue)
 ├── app/
 │   ├── config.py            # Environment config (.env): DEBUG, SECRET_KEY, paths, project meta
 │   ├── connections.py       # Database connection instances
@@ -41,13 +41,14 @@ lila/
 │   ├── middlewares/         # Custom middleware (security, logging, rate-limit)
 │   ├── models/              # SQLAlchemy models
 │   └── routes/              # Route definitions (routes.py, api.py, admin.py)
-├── cli/                     # CLI tools (scaffold, model gen, migrations, auth, admin, React, minify)
+├── cli/                     # CLI tools (scaffold, model gen, migrations, auth, admin,  minify, worker)
 │   ├── scaffold.py          # Create a new Lila project structure
 │   ├── model.py             # Generate SQLAlchemy models from database tables
 │   ├── migrations.py        # Manage database migrations (Alembic-based)
 │   ├── auth.py              # Create database admin
 │   ├── admin.py             # Create admin panel
-│   └── minify.py            # Minify CSS/JS using rjsmin/rcssmin + HTML minify
+│   ├── minify.py            # Minify CSS/JS using rjsmin/rcssmin + HTML minify
+│   └── worker.py            # Background task worker runner
 ├── resources/               # Frontend resources and Jinja2 templates (Unified)
 │   ├── js/                  # JavaScript source files (e.g. main.js)
 │   ├── html/                # HTML templates
@@ -67,9 +68,11 @@ lila/
 - Path parameters: `/{id}` with type conversion.
 
 ### Pydantic (`app/routes/api.py`)
-- Example data model using Pydantic. 
+
+- Example data model using Pydantic.
 - Defines an "api/example" route, using ExampleModel for input validation, with automatic documentation passing the "model" parameter ("model=ExampleModel").
 - Get request input in request.state.data
+
 ```python
 from pydantic import BaseModel, EmailStr
 from lila.core.routing import Router
@@ -80,13 +83,13 @@ router = Router()
 
 class ExampleModel(BaseModel):
     email: EmailStr   .
-    password: str  
+    password: str
 
- 
+
 @router.post(path="/example", model=ExampleModel)
 async def login(request: Request):
     """Example function get request json form"""
-    input =request.state.data 
+    input =request.state.data
 
     email = input.email
     password = input.password
@@ -130,22 +133,25 @@ async def login(request: Request):
 - Templates auto-inject: `title`, `version`, `lang`, `translate`, `description`, `keywords`, `author`.
 
 ### CDN & Style Delivery
+
 - **CDN Styles Delivery**: By default, `asset('css/tailwind.css')` injects Outfit & Inter Google Fonts, Tailwind Play CDN browser-side compiler, theme config colors, and the Lila design system components stylesheet layer.
 - **Dynamic Theme Switcher**: Dark and light themes are toggleable out-of-the-box using the custom styling component class layer which handles browser local storage preference state mapping.
 
 ### Session (`core/session.py`)
 
-- `Session.setSession(new_val, response, name_cookie, max_age, ...)`: Create signed cookie.
-- `Session.unsign(key, request, max_age)`: Read and verify signed cookie.
+- `Session.setSession(new_val, response, name_cookie, max_age, ...)`: Create signed cookie or server-side Redis session data key (`lila:session:{session_id}`) if Redis is online.
+- `Session.unsign(key, request, max_age)`: Read and verify signed cookie or retrieve session dict from Redis database using signed session ID (`sid:{session_id}`).
 - `Session.getSessionValue(request, key, max_age)`: Convenience wrapper for unsign.
-- `Session.deleteSession(response, name_cookie)`: Remove session cookie.
+- `Session.deleteSession(response, name_cookie, request)`: Remove session cookie and cleanly delete the key in Redis (if `request` is passed).
+- **Dual-mode Fallback**: Session storage dynamically falls back to fully encrypted client cookies if the Redis client is offline or disabled.
 
-### Memory Cache (`core/cache.py`)
+### Cache (`core/cache.py`)
 
-- `Cache.set(key, value, ttl)`: Store a Python object in memory for `ttl` seconds.
-- `Cache.get(key)`: Retrieve a cached object. Returns `None` if expired or not found.
+- `Cache.set(key, value, ttl)`: Store a Python object in Redis database (via `pickle`) or local memory dictionary (`_DATA`) if Redis is offline.
+- `Cache.get(key)`: Retrieve cached object. Returns `None` if expired or not found.
 - `Cache.delete(key)`: Remove a specific key from the cache.
 - `Cache.clear()`: Clear all cached items.
+- **Dynamic Connection**: Automatically detects if `redis-py` is installed and connects to `REDIS_HOST`/`REDIS_PORT` dynamically. If it fails, falls back silently to memory cache.
 - **Route Caching**: By default, route caching is disabled (`cache_ttl=0`). Caching can be enabled globally per router (`Router(default_cache_ttl=30)`) or per route (`@router.get("/data", cache_ttl=60)`).
 - Internally used to optimize OpenAPI docs, templates, asset definitions, and translations.
 
@@ -165,8 +171,9 @@ async def login(request: Request):
 ### WebSocket (`core/websocket.py` & `public/js/ws.js`)
 
 - `WebSocketManager`: High-performance manager for WebSocket connections, rooms, JSON events, and heartbeat ping/pong.
+- **Distributed Sync (Redis Pub/Sub)**: In multi-worker or multi-server environments, broadcasts (`broadcast` / `broadcast_to_room`) are dynamically published to a Redis pubsub channel (`lila:ws:pubsub`). A background daemon listener thread on each running instance receives the message and pushes it to local sockets. Falls back to single-instance memory mode seamlessly if Redis is offline.
 - Backend methods:
-  - `ws_manager.connect(websocket, room=None)`: Register active connection.
+  - `ws_manager.connect(websocket, room=None)`: Register active connection and captures the ASGI loop.
   - `ws_manager.disconnect(websocket)`: Cleanup socket from active set & rooms.
   - `ws_manager.join_room(websocket, room)` / `ws_manager.leave_room(websocket, room)`.
   - `await ws_manager.emit_to(websocket, event, data)`.
@@ -239,6 +246,7 @@ item = connection.query("SELECT * FROM items WHERE id = :id", params={"id": 1}, 
 ### ORM & BaseModel operations
 
 Using the built-in ActiveRecord-style methods on `BaseModel` subclasses:
+
 ```python
 # Assuming Item inherits from BaseModel
 session = connection.get_session()
@@ -272,6 +280,7 @@ posts = user.get_related_many(Post)   # One-to-Many
 ```
 
 Direct database connection ORM queries:
+
 ```python
 session = connection.get_session()
 new_id = connection.query_orm(model=Item, operation="insert", instance=Item(name="x"), session=session)
@@ -313,7 +322,9 @@ LANG_DEFAULT=en
 ```
 
 ## Programmatic Configuration in App
+
 Lila allows configuring these parameters directly when initializing the `App` class:
+
 - `translate` (bool, default `True`): If `False`, validation translations and defaults are loaded, but the user's local `locales/translations.json` is ignored.
 - `debug_html` (bool, default `False`): If `True`, registers the `/debug` dashboard panel at runtime.
 - Overrides for settings (can bypass `.env` / `app/config.py` definitions):
@@ -328,17 +339,18 @@ Lila allows configuring these parameters directly when initializing the `App` cl
 - `delete_old_logs(days=30)` runs on startup via `on_startup` lifecycle event.
 - Production: set `DEBUG=False`, enable `trusted_hosts`, configure CORS properly.
 
-
 ---
 
 ### CLI commands (newly added)
 
 #### Initialize project structure
+
 ```bash
 lila-init
 ```
 
 #### Generate SQLAlchemy models (scaffold & list)
+
 ```bash
 # Start interactive BaseModel wizard (prompts for table, primary keys, soft delete, custom columns)
 lila-model create
@@ -351,31 +363,37 @@ lila-model list-models
 ```
 
 #### Generate CRUD REST API + HTML interface
+
 ```bash
 lila-scaffold_crud
 ```
 
 #### Create authentication system
+
 ```bash
 lila-auth
 ```
 
 #### Create admin panel
+
 ```bash
 lila-admin
 ```
 
 #### Run database migrations
+
 ```bash
 lila-migrations
 ```
 
 #### Minify CSS/JS and HTML
+
 ```bash
 lila-minify
 ```
 
 #### Run database & app containers with Docker (MySQL/PostgreSQL/App)
+
 ```bash
 lila-docker start [mysql|postgres|prod]
 lila-docker stop [mysql|postgres|app|all]
@@ -383,16 +401,33 @@ lila-docker build [--no-cache] # Build production image (uses layer cache by def
 lila-docker ps      # Shows status of active containers (default action)
 lila-docker logs    # Tail container logs (app or mysql)
 lila-docker mysql   # Connect to MySQL shell using .env credentials (alias: lila-docker db)
+lila-docker redis   # Connect to Redis CLI inside Docker container (alias: lila-docker redis-cli)
 lila-docker df      # Show Docker disk space usage (containers, images, volumes, build cache) (alias: lila-docker disk)
 lila-docker prune   # Clean up orphaned volumes, dangling images & BuildKit cache (alias: lila-docker clean)
 ```
 
-#### Run development server (starts local uvicorn on main.py)
+#### Run development server (starts local uvicorn and spins up MySQL & Redis dev containers)
+
 ```bash
+# Starts development server with both MySQL and Redis containers
 lila-dev
+
+# Starts development server but skips starting MySQL container
+lila-dev --no-mysql # or --without-mysql
+
+# Starts development server but skips starting Redis container
+lila-dev --no-redis # or --without-redis
+```
+
+#### Run background task worker
+
+```bash
+# Start background task worker process
+lila-worker start
 ```
 
 #### Generate SEO Sitemap & Robots
+
 ```bash
 lila-seo sitemap --domain https://yourdomain.com
 lila-seo robots --domain https://yourdomain.com
@@ -401,6 +436,7 @@ lila-seo robots --domain https://yourdomain.com
 ### Core Enhancements Reference
 
 #### 1. Flash Messages
+
 - Queue a flash message in views:
   ```python
   from lila.core.session import flash
@@ -409,12 +445,14 @@ lila-seo robots --domain https://yourdomain.com
 - Render flashes in templates:
   ```html
   {% for item in get_flashes() %}
-    <div class="alert alert-{{ item.category }}">{{ item.message }}</div>
+  <div class="alert alert-{{ item.category }}">{{ item.message }}</div>
   {% endfor %}
   ```
 
 #### 2. CSRF Protection
+
 - Enable CSRF on a form route:
+
   ```python
   from lila.core.templates import render
   from lila.core.middleware import csrf
@@ -428,6 +466,7 @@ lila-seo robots --domain https://yourdomain.com
   async def contact_submit(request: Request):
       return JSONResponse({"success": True})
   ```
+
 - Render the hidden input in your Jinja2 template:
   ```html
   <form method="POST" action="/contact">
@@ -439,6 +478,7 @@ lila-seo robots --domain https://yourdomain.com
 - `Http()` in `public/js/utils.js` automatically detects `document.getElementById('csrf')` and sends `X-CSRF-Token` on every request. No additional client-side code required.
 
 #### 2. DB Transactions Context Manager
+
 - Safely run queries/updates using automatic commits and rollbacks:
   ```python
   with connection.transaction() as db:
@@ -446,6 +486,7 @@ lila-seo robots --domain https://yourdomain.com
   ```
 
 #### 3. Automatic Pydantic Validation on API Routes
+
 - Type-annotate Pydantic model directly on your route handler function:
   ```python
   @router.post("/items")
@@ -455,6 +496,7 @@ lila-seo robots --domain https://yourdomain.com
   ```
 
 #### 4. Extended @seo Decorator
+
 - Passes canonical links, robots controls, author fields, or any custom meta:
   ```python
   @seo(title="Title", author="Me", canonical="https://...", custom_field="val")
@@ -499,6 +541,7 @@ async def create_product(request: Request):
 `Database` defaults to `pool_size=20, max_overflow=40` for MySQL/PostgreSQL. These values align with `run_in_executor`'s thread pool to prevent threads queuing for a DB connection.
 
 Adjust in `app/connections.py`:
+
 ```python
 config = {
     "type": "mysql",
@@ -531,10 +574,12 @@ class Producto:
 Lila uses `uvicorn[standard]` which automatically activates `uvloop` (faster event loop) and `httptools` (faster HTTP parser) on Linux/macOS. No configuration needed — performance is improved automatically.
 
 For even higher throughput, **Granian** is a Rust-based ASGI server compatible with Starlette. It offers ~30-50% more throughput and lower memory overhead than uvicorn in benchmarks. It is a drop-in replacement:
+
 ```bash
 pip install granian
 granian --interface asgi main:app --port 8000
 ```
+
 Granian does not support Windows. Evaluate it for production VPS deployments where maximum performance is required.
 
 ---
@@ -544,6 +589,7 @@ Granian does not support Windows. Evaluate it for production VPS deployments whe
 ### Architecture
 
 Each Lila project gets its own isolated Docker environment:
+
 - **MySQL container**: always running, named `{LILA_PROJECT_NAME}-mysql`
 - **Python app container** (prod only): named `{LILA_PROJECT_NAME}-app`
 - **Private network**: named `{LILA_PROJECT_NAME}_network` — containers on different projects cannot communicate
@@ -634,26 +680,28 @@ server {
 
 ### .env Docker Variables Reference
 
-| Variable | Default | Description |
-|---|---|---|
-| `LILA_PROJECT_NAME` | `lila` | Unique project name — used for container and network naming |
-| `PORT` | `8000` | Port exposed by the Python app container |
-| `DB_NAME` | `lila_db` | MySQL database name |
-| `DB_USER` | `root` | MySQL user |
-| `DB_PASSWORD` | `root` | MySQL root password |
-| `DB_PORT` | `3306` | Host port mapped to MySQL container |
+| Variable            | Default   | Description                                                 |
+| ------------------- | --------- | ----------------------------------------------------------- |
+| `LILA_PROJECT_NAME` | `lila`    | Unique project name — used for container and network naming |
+| `PORT`              | `8000`    | Port exposed by the Python app container                    |
+| `DB_NAME`           | `lila_db` | MySQL database name                                         |
+| `DB_USER`           | `root`    | MySQL user                                                  |
+| `DB_PASSWORD`       | `root`    | MySQL root password                                         |
+| `DB_PORT`           | `3306`    | Host port mapped to MySQL container                         |
 
 > **Security note**: Change `DB_PASSWORD` in `.env` before deploying to production. The `.env` file is already in `.gitignore`.
 
 ### PostgreSQL (Optional)
 
 PostgreSQL support requires the psycopg driver, installed separately:
+
 ```bash
 pip install lila-framework[psycopg]
 # or: pip install psycopg==3.2.10
 ```
 
 Uncomment the `postgres` service in `docker-compose.yml` and update `app/connections.py`:
+
 ```python
 config = {
     "type": "postgresql",

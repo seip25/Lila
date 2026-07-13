@@ -130,6 +130,14 @@
         class provides a set of static methods to handle session data.
       </p>
 
+      <h3>Redis-backed Sessions</h3>
+      <p>
+        Lila supports hybrid session engines. If Redis is configured, sessions are stored securely on the server under the key namespace <code class="code-inline">lila:session:{session_id}</code> with a TTL. In this mode, only a cryptographically signed session ID prefixed with <code class="code-inline">sid:</code> is written to the client's cookie.
+      </p>
+      <p>
+        If Redis is down or not configured, Lila automatically falls back to client-side signed cookie sessions (entire session dict is serialized and encrypted inside the cookie). This guarantees zero configuration setup for local development.
+      </p>
+
       <h2>Setting Session Data</h2>
       <p>
         The

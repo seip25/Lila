@@ -262,7 +262,21 @@ async def chat_endpoint(websocket: WebSocket):
         </div>
       </div>
 
-      <h3>3. API Reference Summary</h3>
+      <h3>3. Distributed Sync (Redis Pub/Sub)</h3>
+      <p>
+        In multi-worker (e.g. multiple Uvicorn worker processes) or load-balanced environments, WebSocket connections are split across different servers/workers. To ensure messages are successfully broadcasted to everyone, Lila integrates Redis Pub/Sub directly inside <code class="code-inline">WebSocketManager</code>.
+      </p>
+      <p>
+        When you call <code class="code-inline">broadcast()</code> or <code class="code-inline">broadcast_to_room()</code>:
+      </p>
+      <ul class="list-disc pl-6 space-y-2 mt-2 mb-6">
+        <li>The event is sent locally to all sockets connected to the current process.</li>
+        <li>The manager automatically publishes the message payload to a shared Redis channel (<code class="code-inline">lila:ws:pubsub</code>).</li>
+        <li>A background daemon listener thread on each scaling instance receives the message and pushes it to local sockets in that process.</li>
+        <li>If Redis is down or not configured, it seamlessly falls back to local memory single-instance mode.</li>
+      </ul>
+
+      <h3>4. API Reference Summary</h3>
       <p>
         Below are the primary methods for backend and client WebSocket management:
       </p>

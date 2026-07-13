@@ -28,6 +28,9 @@ https://pypi.org/project/lila-framework/
 - **Compatibility**: Can be used with frameworks like Next.js, Remix, and others.
 - **Easy Migrations**: Quick and straightforward database configuration.
 - **Jinja2 and HTML Sessions**: Ready-to-use with dynamic templates and session handling, while remaining compatible with React, Angular, Vue, and other frontend frameworks.
+- **Redis Cache & Sessions**: Distributed session tracking and cache support with automatic local memory fallback.
+- **Background Task Worker**: A hybrid queue mechanism for processing heavy background tasks via `lila-worker` or Starlette fallbacks.
+- **Distributed WebSockets**: Scale WebSockets across multiple processes/nodes effortlessly using Redis Pub/Sub.
 - **SQLAlchemy** :For the ORM or you can also use the connectors directly (mysql.connector, sqlite3, etc...)
 - **JWT** :It comes integrated with helpers to generate tokens and the middleware already has a function that validates it.
 - **Admin Panel**: Includes a built-in admin panel for easy management of your application's data and settings.
@@ -47,6 +50,9 @@ https://pypi.org/project/lila-framework/
 - **Compatibilidad**: Puede ser utilizado con frameworks como Next.js, Remix js, entre otros.
 - **Migraciones sencillas**: Configuración rápida y fácil para bases de datos.
 - **Jinja2 y sesiones HTML**: Listo para usar con plantillas dinámicas y manejo de sesiones, pero compatible con React, Angular, Vue, entre otros frameworks frontend.
+- **Caché y Sesiones con Redis**: Soporte para caché distribuida y manejo de sesiones en servidor Redis con fallback automático a memoria local.
+- **Worker de Tareas en Segundo Plano**: Mecanismo de cola híbrido para procesar tareas pesadas en segundo plano vía `lila-worker` o fallback local.
+- **WebSockets Distribuidos**: Escala conexiones WebSocket entre múltiples procesos/nodos sin esfuerzo usando Redis Pub/Sub.
 - **SQLAlchemy** :Para la ORM o también se puede utilizar los connectores directamente(mysql.connector,sqlite3,etc...)
 - **JWT** :Viene integrado con helpers para generar token y en el middleware ya viene una función que válida el mismo.
 - **Panel de Administración**: Incluye un panel de administración integrado para gestionar fácilmente los datos y configuraciones de tu aplicación.
