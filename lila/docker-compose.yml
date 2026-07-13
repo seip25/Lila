@@ -18,38 +18,71 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
-  # ── Python App (Production only) ──────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: ${LILA_PROJECT_NAME:-lila}-nginx
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - public_data:/usr/share/nginx/html/public:ro
+    depends_on:
+      - app
+    networks:
+      - lila_net
+    profiles:
+      - prod
+
   app:
     build:
       context: .
       dockerfile: docker/Dockerfile
     container_name: ${LILA_PROJECT_NAME:-lila}-app
     restart: unless-stopped
-    ports:
-      - "${PORT:-8000}:8000"
+    expose:
+      - "8000"
     volumes:
       - .:/app
-      # Note: Anonymous volumes below prevent host venv/__pycache__ from leaking into container.
-      # Run 'lila-docker prune' periodically on your VPS to clean unused orphaned volumes.
       - /app/__pycache__
       - /app/venv
+      - public_data:/app/public
     env_file:
       - .env
     environment:
       - DEBUG=${DEBUG:-False}
       - DB_HOST=mysql
       - DB_PORT=3306
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - HOST=0.0.0.0
       - PORT=8000
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - lila_net
     profiles:
       - prod
 
-  # ── MySQL Database ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: ${LILA_PROJECT_NAME:-lila}-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT_HOST:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lila_net
+
   mysql:
     image: mysql:8.0
     container_name: ${LILA_PROJECT_NAME:-lila}-mysql
@@ -70,7 +103,6 @@ services:
     networks:
       - lila_net
 
-  # ── PostgreSQL (Optional — uncomment to use) ───────────────────────────────
   # postgres:
   #   image: postgres:16
   #   container_name: ${LILA_PROJECT_NAME:-lila}-postgres
@@ -90,10 +122,11 @@ services:
   #     retries: 5
   #   networks:
   #     - lila_net
-  # Note: install psycopg driver: pip install lila-framework[psycopg]
 
 volumes:
   mysql_data:
+  redis_data:
+  public_data:
   # postgres_data:
 
 networks:

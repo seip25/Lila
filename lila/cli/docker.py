@@ -19,31 +19,48 @@ def _check_compose_file():
 @app.command()
 def start(
     service: str = typer.Argument(
-        "mysql",
-        help="Service to start: 'mysql' (dev, default), 'prod' (mysql + app), 'postgres'"
+        "dev",
+        help="Service to start: 'dev' (mysql + redis, default), 'mysql', 'redis', 'prod' (complete production stack), 'postgres'"
     )
 ):
     """
     Start Docker containers.
 
     \b
-    DEV  (default): lila-docker start       → starts MySQL only
-    PROD          : lila-docker start prod  → starts MySQL + Python app container
+    DEV  (default): lila-docker start       → starts MySQL and Redis containers
+    PROD          : lila-docker start prod  → starts complete production stack
     """
     _check_compose_file()
 
-    if service in ("mysql", "dev"):
-        print("🚀 Starting MySQL container (dev mode)...")
+    if service == "dev":
+        print("🚀 Starting MySQL and Redis containers (dev mode)...")
+        try:
+            subprocess.run(["docker", "compose", "up", "-d", "mysql", "redis"], check=True)
+            print("✅ MySQL and Redis started. Run your app locally with: lila-dev")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Error starting dev containers: {e}")
+            raise typer.Exit(code=1)
+
+    elif service == "mysql":
+        print("🚀 Starting MySQL container...")
         try:
             subprocess.run(["docker", "compose", "up", "-d", "mysql"], check=True)
-            print("✅ MySQL started. Run your app locally with: python main.py")
-            print("   ℹ️  To also run the app in Docker (production), use: lila-docker start prod")
+            print("✅ MySQL started.")
         except subprocess.CalledProcessError as e:
             print(f"❌ Error starting MySQL: {e}")
             raise typer.Exit(code=1)
 
+    elif service == "redis":
+        print("🚀 Starting Redis container...")
+        try:
+            subprocess.run(["docker", "compose", "up", "-d", "redis"], check=True)
+            print("✅ Redis started.")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Error starting Redis: {e}")
+            raise typer.Exit(code=1)
+
     elif service == "prod":
-        print("🚀 Starting production stack (MySQL + Python app)...")
+        print("🚀 Starting production stack (MySQL, Redis, App, Nginx)...")
         try:
             subprocess.run(["docker", "compose", "--profile", "prod", "up", "-d"], check=True)
             print("✅ Production stack started.")
@@ -62,7 +79,7 @@ def start(
             raise typer.Exit(code=1)
 
     else:
-        print(f"❌ Unknown service '{service}'. Use: mysql (default), prod, postgres")
+        print(f"❌ Unknown service '{service}'. Use: dev (default), mysql, redis, prod, postgres")
         raise typer.Exit(code=1)
 
 
@@ -70,7 +87,7 @@ def start(
 def stop(
     service: str = typer.Argument(
         "all",
-        help="Service to stop: 'all' (default), 'mysql', 'app', 'postgres'"
+        help="Service to stop: 'all' (default), 'mysql', 'redis', 'app', 'postgres'"
     )
 ):
     """
@@ -90,6 +107,12 @@ def stop(
             subprocess.run(["docker", "compose", "rm", "-f", "mysql"], check=True)
             print("✅ MySQL stopped.")
 
+        elif service == "redis":
+            print("🛑 Stopping Redis...")
+            subprocess.run(["docker", "compose", "stop", "redis"], check=True)
+            subprocess.run(["docker", "compose", "rm", "-f", "redis"], check=True)
+            print("✅ Redis stopped.")
+
         elif service == "app":
             print("🛑 Stopping Python app container...")
             subprocess.run(["docker", "compose", "--profile", "prod", "stop", "app"], check=True)
@@ -103,7 +126,7 @@ def stop(
             print("✅ PostgreSQL stopped.")
 
         else:
-            print(f"❌ Unknown service '{service}'. Use: all, mysql, app, postgres")
+            print(f"❌ Unknown service '{service}'. Use: all, mysql, redis, app, postgres")
             raise typer.Exit(code=1)
 
     except subprocess.CalledProcessError as e:
@@ -211,7 +234,7 @@ def clean(
 
 @app.command()
 def logs(
-    service: str = typer.Argument("app", help="Service to tail logs for: 'app', 'mysql'"),
+    service: str = typer.Argument("app", help="Service to tail logs for: 'app', 'nginx', 'mysql', 'redis'"),
     follow: bool = typer.Option(True, "--follow/--no-follow", "-f", help="Follow log output"),
     tail: int = typer.Option(100, "--tail", "-n", help="Number of lines to show from the end"),
 ):
@@ -225,7 +248,7 @@ def logs(
     """
     _check_compose_file()
     cmd = ["docker", "compose"]
-    if service == "app":
+    if service in ("app", "nginx"):
         cmd += ["--profile", "prod"]
     cmd += ["logs", f"--tail={tail}"]
     if follow:
@@ -257,7 +280,7 @@ def show():
 
 @app.command()
 def exec(
-    service: str = typer.Argument("app", help="Container to exec into: 'app', 'mysql'"),
+    service: str = typer.Argument("app", help="Container to exec into: 'app', 'nginx', 'mysql', 'redis'"),
     command: str = typer.Argument("bash", help="Command to run inside the container"),
 ):
     """
@@ -274,7 +297,7 @@ def exec(
     """
     _check_compose_file()
     cmd = ["docker", "compose"]
-    if service == "app":
+    if service in ("app", "nginx"):
         cmd += ["--profile", "prod"]
     cmd += ["exec", service, command]
     try:
@@ -361,6 +384,35 @@ def db(
     Alias for 'lila-docker mysql'.
     """
     mysql(user=user, password=password, database=database, root=root)
+
+
+@app.command("redis")
+def redis():
+    """
+    Open interactive Redis CLI terminal inside Docker container.
+
+    \b
+    lila-docker redis  → connects to redis-cli in the running Redis container
+    """
+    _check_compose_file()
+    cmd = ["docker", "compose", "exec", "redis", "redis-cli"]
+    print("🔌 Connecting to Redis CLI...")
+    try:
+        subprocess.run(cmd, check=True)
+    except KeyboardInterrupt:
+        pass
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error connecting to Redis: {e}")
+        print("💡 Make sure the Redis container is running: lila-docker start redis")
+        raise typer.Exit(code=1)
+
+
+@app.command("redis-cli")
+def redis_cli():
+    """
+    Alias for 'lila-docker redis'.
+    """
+    redis()
 
 
 @app.callback(invoke_without_command=True)

@@ -11,13 +11,13 @@ router = Router()
 @csrf
 async def logout(request: Request):
     response = JSONResponse({"success": True, "msg": Translate.t(key="Logged out successfully", request=request)})
-    await Session.delete(response, key="auth")
+    await Session.delete(response, key="auth", request=request)
     return response
 
 @router.get("/logout")
 async def logout_get(request: Request):
     response = RedirectResponse("/login")
-    await Session.delete(response, key="auth")
+    await Session.delete(response, key="auth", request=request)
     return response
 
 routes = router.get_routes()

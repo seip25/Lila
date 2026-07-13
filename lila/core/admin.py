@@ -233,7 +233,7 @@ def admin_routes(models: list, router: Router,default_route: str = "admin") -> R
     async def admin_logout(request: Request):
         """Handle admin logout requests."""
         response = RedirectResponse(url=f"/{default_route}/login")
-        response.delete_cookie("auth_admin")
+        await Session.delete(response=response, key="auth_admin", request=request)
         return response
 
     @router.route(path=f"/{default_route}/login", methods=["GET", "POST"], cache_ttl=0)
