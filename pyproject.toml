@@ -69,6 +69,7 @@ lila-secret-key = "lila.cli.secret_key:app"
 lila-seo = "lila.cli.seo:app"
 lila-docker = "lila.cli.docker:app"
 lila-dev = "lila.cli.dev:main"
+lila-worker = "lila.cli.worker:main"
 
 [tool.setuptools.package-data]
 lila = [

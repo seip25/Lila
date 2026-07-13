@@ -7,23 +7,63 @@ Español: Motor de gestión WebSocket de alto rendimiento para Lila Framework.
          heartbeat ping/pong y consumo mínimo de RAM/CPU.
 """
 
-import asyncio
-from typing import Any, Dict, Set, Optional, Callable
+from typing import Set, Dict, Callable, Optional, Any
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
-from lila.core.responses import orjson_dumps, orjson_loads
 from lila.core.logger import Logger
+from orjson import dumps as orjson_dumps, loads as orjson_loads
+import asyncio
+import uuid
+import threading
+from lila.core.cache import _REDIS_CLIENT
 
 
 class WebSocketManager:
     """
     English: Core WebSocket Connection & Room Manager for Lila Framework.
-    Español: Gestor central de conexiones y salas WebSocket para Lila Framework.
     """
-
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
         self.rooms: Dict[str, Set[WebSocket]] = {}
         self.event_handlers: Dict[str, Callable] = {}
+        self.id = str(uuid.uuid4())
+        self.loop = None
+        self._start_pubsub_listener()
+
+    def _start_pubsub_listener(self) -> None:
+        if _REDIS_CLIENT is None:
+            return
+
+        def listener():
+            try:
+                pubsub = _REDIS_CLIENT.pubsub()
+                pubsub.subscribe("lila:ws:pubsub")
+                for message in pubsub.listen():
+                    if message["type"] == "message":
+                        try:
+                            payload = orjson_loads(message["data"])
+                            if payload.get("worker_id") != self.id:
+                                if hasattr(self, "loop") and self.loop and self.loop.is_running():
+                                    asyncio.run_coroutine_threadsafe(
+                                        self._handle_pubsub_message(payload),
+                                        self.loop
+                                    )
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+        thread = threading.Thread(target=listener, daemon=True)
+        thread.start()
+
+    async def _handle_pubsub_message(self, payload: dict) -> None:
+        event = payload.get("event")
+        data = payload.get("data")
+        room = payload.get("room")
+
+        if room:
+            await self._local_broadcast_to_room(room, event, data)
+        else:
+            await self._local_broadcast(event, data)
 
     async def connect(self, websocket: WebSocket, room: Optional[str] = None) -> None:
         """
@@ -31,6 +71,13 @@ class WebSocketManager:
         """
         await websocket.accept()
         self.active_connections.add(websocket)
+
+        if not hasattr(self, "loop") or self.loop is None:
+            try:
+                self.loop = asyncio.get_running_loop()
+            except RuntimeError:
+                pass
+
         if room:
             self.join_room(websocket, room)
 
@@ -82,11 +129,7 @@ class WebSocketManager:
                 self.disconnect(websocket)
         return False
 
-    async def broadcast(self, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
-        """
-        Broadcasts a JSON event to all connected clients.
-        Returns the number of successful deliveries.
-        """
+    async def _local_broadcast(self, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
         if not self.active_connections:
             return 0
 
@@ -109,10 +152,28 @@ class WebSocketManager:
 
         return sent_count
 
-    async def broadcast_to_room(self, room: str, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
+    async def broadcast(self, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
         """
-        Broadcasts a JSON event to all clients subscribed to a specific room.
+        Broadcasts a JSON event to all connected clients.
+        Returns the number of successful deliveries.
         """
+        sent_count = await self._local_broadcast(event, data, exclude)
+
+        if _REDIS_CLIENT is not None:
+            try:
+                payload = {
+                    "worker_id": self.id,
+                    "event": event,
+                    "data": data,
+                    "room": None
+                }
+                _REDIS_CLIENT.publish("lila:ws:pubsub", orjson_dumps(payload))
+            except Exception:
+                pass
+
+        return sent_count
+
+    async def _local_broadcast_to_room(self, room: str, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
         clients = self.rooms.get(room)
         if not clients:
             return 0
@@ -133,6 +194,26 @@ class WebSocketManager:
 
         for ws in dead_sockets:
             self.disconnect(ws)
+
+        return sent_count
+
+    async def broadcast_to_room(self, room: str, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
+        """
+        Broadcasts a JSON event to all clients subscribed to a specific room.
+        """
+        sent_count = await self._local_broadcast_to_room(room, event, data, exclude)
+
+        if _REDIS_CLIENT is not None:
+            try:
+                payload = {
+                    "worker_id": self.id,
+                    "event": event,
+                    "data": data,
+                    "room": room
+                }
+                _REDIS_CLIENT.publish("lila:ws:pubsub", orjson_dumps(payload))
+            except Exception:
+                pass
 
         return sent_count
 
@@ -159,10 +240,6 @@ class WebSocketManager:
     def on(self, event_name: str):
         """
         Decorator to register an event handler.
-        Usage:
-            @ws_manager.on("chat_message")
-            async def handle_chat(websocket, data):
-                await ws_manager.broadcast("chat_message", data)
         """
         def decorator(func: Callable):
             self.event_handlers[event_name] = func
