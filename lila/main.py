@@ -72,7 +72,8 @@ def main():
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
         uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False,log_level="warning",workers=3) #workers (2 * 2num_cpu) + 1
-
+        print(f"Run app in {HOST}:{PORT} with {workers} workers")
+        
 if __name__ == "__main__":
     try:
         if JIT:
