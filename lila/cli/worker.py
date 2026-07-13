@@ -43,6 +43,8 @@ def start():
             print("\n🛑 Worker stopped.")
             break
         except Exception as e:
+            if "Timeout reading from socket" in str(e):
+                continue
             print(f"⚠️ Worker error: {e}")
             time.sleep(1)
 
