@@ -19,9 +19,19 @@ class LoginAttempt(BaseModel):
         return datetime.datetime.utcnow() < self.locked_at + datetime.timedelta(minutes=5)
 
     @classmethod
-    def record_attempt(cls, db, email: str, ip: str, success: bool):
+    async def record_attempt(cls, db, email: str, ip: str, success: bool):
         """Records a login attempt and handles locking logic."""
-        attempt = db.query(cls).filter_by(email=email).first()
+        if getattr(db, "is_async", False) or hasattr(db, "execute"):
+            # Check if it's an AsyncSession
+            from sqlalchemy.ext.asyncio import AsyncSession
+            if isinstance(db, AsyncSession):
+                from sqlalchemy import select
+                result = await db.execute(select(cls).filter_by(email=email))
+                attempt = result.scalars().first()
+            else:
+                attempt = db.query(cls).filter_by(email=email).first()
+        else:
+            attempt = db.query(cls).filter_by(email=email).first()
         if not attempt:
             attempt = cls(email=email, attempts=0)
             db.add(attempt)
@@ -102,9 +112,18 @@ class PasswordResetToken(BaseModel):
         return token
 
     @classmethod
-    def validate_token(cls, db, token: str) -> int | None:
+    async def validate_token(cls, db, token: str) -> int | None:
         """Validates a token and returns the associated user_id if valid."""
-        reset_token = db.query(cls).filter_by(token=token).first()
+        if getattr(db, "is_async", False) or hasattr(db, "execute"):
+            from sqlalchemy.ext.asyncio import AsyncSession
+            if isinstance(db, AsyncSession):
+                from sqlalchemy import select
+                result = await db.execute(select(cls).filter_by(token=token))
+                reset_token = result.scalars().first()
+            else:
+                reset_token = db.query(cls).filter_by(token=token).first()
+        else:
+            reset_token = db.query(cls).filter_by(token=token).first()
         if not reset_token:
             return None
         if datetime.datetime.utcnow() > reset_token.expires_at:

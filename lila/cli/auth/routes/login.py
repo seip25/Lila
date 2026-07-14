@@ -33,10 +33,16 @@ async def login(request: Request):
         db = connection.get_session()
         try:
             client_ip = request.client.host if request.client else "unknown"
-            LoginAttempt.record_attempt(db, input.email, client_ip, False)
-            db.commit()
+            await LoginAttempt.record_attempt(db, input.email, client_ip, False)
+            if connection.is_async:
+                await db.commit()
+            else:
+                db.commit()
         finally:
-            db.close()
+            if connection.is_async:
+                await db.close()
+            else:
+                db.close()
         msg = Translate.t(key="Invalid email or password", request=request)
         return JSONResponse({"success": False, "msg": msg})
 
@@ -47,17 +53,27 @@ async def login(request: Request):
     db = connection.get_session()
     try:
         client_ip = request.client.host if request.client else "unknown"
-        LoginAttempt.record_attempt(db, input.email, client_ip, True)
+        await LoginAttempt.record_attempt(db, input.email, client_ip, True)
 
         response = JSONResponse({"success": True, "msg": Translate.t(key="Login successful", request=request)})
         await Session.set(request, response, data={"user_id": user.id, "email": user.email, "name": user.name}, key="auth")
-        db.commit()
+        if connection.is_async:
+            await db.commit()
+        else:
+            db.commit()
         return response
     except Exception as e:
+        if connection.is_async:
+            await db.rollback()
+        else:
+            db.rollback()
         if DEBUG:
             traceback.print_exc()
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
     finally:
-        db.close()
+        if connection.is_async:
+            await db.close()
+        else:
+            db.close()
 
 routes = router.get_routes()

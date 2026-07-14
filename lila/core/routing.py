@@ -224,7 +224,7 @@ class Router:
                             break
                     auth_header = request.headers.get("Authorization", "")
                     cache_key = f"route:{request.method}:{request.url.path}:{str(request.query_params)}:{current_lang}:{session_cookie}:{auth_header}"
-                    cached_data = Cache.get(cache_key)
+                    cached_data = await Cache.get_async(cache_key)
                     if cached_data:
                         from starlette.responses import Response
                         response_headers = dict(cached_data.get("headers", {}))
@@ -281,7 +281,7 @@ class Router:
                                 "headers": {k.decode('utf-8'): v.decode('utf-8') for k, v in response.raw_headers if k.lower() != b"content-length"},
                                 "media_type": getattr(response, "media_type", None)
                             }
-                            Cache.set(cache_key, cache_data, ttl=ttl)
+                            await Cache.set_async(cache_key, cache_data, ttl=ttl)
                         if hasattr(response, "headers"):
                             response.headers["X-Lila-Cache"] = "MISS"
                             if "Cache-Control" not in response.headers and "cache-control" not in response.headers:
@@ -440,11 +440,11 @@ class Router:
         if methods is None:
             methods = ["GET"]
 
-        def openapi_schema(request: Request):
+        async def openapi_schema(request: Request):
             # English: Cache handling for openapi schema.
             # Español: Manejo de caché para el esquema openapi.
             if not DEBUG:
-                cached_openapi = Cache.get("openapi_schema_json")
+                cached_openapi = await Cache.get_async("openapi_schema_json")
                 if cached_openapi:
                     return JSONResponse(cached_openapi)
 
@@ -566,7 +566,7 @@ class Router:
                     openapi_schema_data["paths"][route_path][m] = op
 
             if not DEBUG:
-                Cache.set("openapi_schema_json", openapi_schema_data, ttl=3600)
+                await Cache.set_async("openapi_schema_json", openapi_schema_data, ttl=3600)
 
             return JSONResponse(openapi_schema_data)
 
@@ -678,7 +678,7 @@ class Router:
                     params = None
 
                 query = f"SELECT {columns} FROM {model_sql.__tablename__} {filters}"
-                items = connection.query(query=query, params=params, return_rows=True)
+                items = await connection.query_async(query=query, params=params, return_rows=True)
                 return (
                     JSONResponse(items)
                     if jsonresponse_prefix == ""
@@ -761,8 +761,7 @@ class Router:
            
             try:
                 instance=model_sql(**params)
-                session = connection.get_session()
-                id =connection.query_orm(model=model_sql, operation="insert", instance=instance, session=session)
+                id = await connection.query_orm_async(model=model_sql, operation="insert", instance=instance)
                 result = True if id else False
                 status_code = 201 if result else 200
                 return JSONResponse(
@@ -773,7 +772,7 @@ class Router:
                 Logger.error(f"Error rest_crud_generate , POST: {str(e)}")
                 return JSONResponse({"success": False}, status_code=500)
             
-        def search_id(self) -> bool | dict:
+        async def search_id(self) -> bool | dict:
             columns_ = " , ".join(select) if select else "*"
             filters = "active = 1" if active else ""
             filters += " AND id = :id" if filters else "id = :id"
@@ -794,14 +793,14 @@ class Router:
                     filters += f" AND {user_id_session} = :{user_id_session}"
 
             query = f"SELECT {columns_} FROM {model_sql.__tablename__} WHERE {filters}"
-            results = connection.query(query=query, params=params, return_row=True)
+            results = await connection.query_async(query=query, params=params, return_row=True)
             return results
 
         async def get_id(self) -> dict:
             response = await execute_middleware(self, type="get_id")
             if isinstance(response, JSONResponse):
                 return response
-            item = search_id(self)
+            item = await search_id(self)
             if item is None:
                 return JSONResponse({}, status_code=404)
             return (
@@ -860,10 +859,9 @@ class Router:
                     orm_filters[user_id_session] = user_id
 
             try:
-                session = connection.get_session()
-                result = connection.query_orm(
+                result = await connection.query_orm_async(
                     model=model_sql, operation="update",
-                    session=session, filters=orm_filters, values=params
+                    filters=orm_filters, values=params
                 )
                 result_update = True if result else False
                 return JSONResponse({"success": result_update})
@@ -875,7 +873,7 @@ class Router:
             response = await execute_middleware(self, type="delete")
             if isinstance(response, JSONResponse):
                 return response
-            result = search_id(self)
+            result = await search_id(self)
             if result is None:
                 return JSONResponse({"success": False}, status_code=404)
 
@@ -895,7 +893,7 @@ class Router:
             else:
                 query = f"DELETE FROM {model_sql.__tablename__} WHERE id=:id {filters}"
 
-            result = connection.query(query=query, params=params)
+            result = await connection.query_async(query=query, params=params)
             result_delete = True if result else False
             return JSONResponse({"success": result_delete})
 

@@ -39,12 +39,20 @@ class User(BaseModel):
     async def get_by_email_async(cls, email: str, active: int = 1):
         """Retrieves a user by email asynchronously with query deduplication."""
         cache_key = f"{cls.__tablename__}:get_by_email:{email}:{active}"
-        def _fetch():
-            db = connection.get_session()
-            try:
-                return cls.get_by_email(db, email, active)
-            finally:
-                db.close()
+        async def _fetch():
+            if not connection.is_async:
+                db = connection.get_session()
+                try:
+                    return cls.get_by_email(db, email, active)
+                finally:
+                    db.close()
+
+            from sqlalchemy import select as sa_select
+            async with connection.transaction() as db:
+                stmt = sa_select(cls).where(cls.email == email).where(cls.active == active)
+                result = await db.execute(stmt)
+                return result.scalars().first()
+
         return await cls.run_async(cache_key, _fetch)
 
     def set_password(self, password: str):

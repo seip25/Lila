@@ -74,11 +74,20 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         now = datetime.now()
 
-        if client_ip in BLOCKED_IPS:
-            if now < BLOCKED_IPS[client_ip]:
-                return HTMLResponse(content="Access Denied", status_code=403)
-            else:
-                del BLOCKED_IPS[client_ip]
+        from lila.core.cache import _REDIS_CLIENT_ASYNC
+        if _REDIS_CLIENT_ASYNC is not None:
+            try:
+                blocked = await _REDIS_CLIENT_ASYNC.get(f"lila:blocked_ip:{client_ip}")
+                if blocked:
+                    return HTMLResponse(content="Access Denied", status_code=403)
+            except Exception:
+                pass
+        else:
+            if client_ip in BLOCKED_IPS:
+                if now < BLOCKED_IPS[client_ip]:
+                    return HTMLResponse(content="Access Denied", status_code=403)
+                else:
+                    del BLOCKED_IPS[client_ip]
 
         if len(BLOCKED_IPS) > 10000:
             expired_keys = [k for k, v in BLOCKED_IPS.items() if now > v]
@@ -87,7 +96,14 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
 
         url_path = request.url.path
         if BLOCKED_REGEX.search(url_path):
-            BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
+            if _REDIS_CLIENT_ASYNC is not None:
+                try:
+                    await _REDIS_CLIENT_ASYNC.setex(f"lila:blocked_ip:{client_ip}", 600, "1")
+                except Exception:
+                    BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
+            else:
+                BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
+
             Logger.warning(f"IP {client_ip} blocked for 10m. Malicious path: {url_path}")
             if DEBUG:
                 print(f"IP {client_ip} blocked for 10m. Malicious path: {url_path}")
@@ -99,6 +115,30 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         client_ip = request.client.host if request.client else "unknown"
         now = datetime.now()
+
+        from lila.core.cache import _REDIS_CLIENT_ASYNC
+        if _REDIS_CLIENT_ASYNC is not None:
+            try:
+                rate_limit_key = f"lila:rate_limit:{client_ip}"
+                async with _REDIS_CLIENT_ASYNC.pipeline() as pipe:
+                    pipe.incr(rate_limit_key)
+                    pipe.expire(rate_limit_key, 60, nx=True)
+                    res = await pipe.execute()
+                request_count = res[0]
+                
+                if request_count >= 300:
+                    await _REDIS_CLIENT_ASYNC.setex(f"lila:blocked_ip:{client_ip}", 60, "1")
+                    Logger.warning(f"IP {client_ip} rate limited for 1 minute (Redis). 300 requests in 1 minute.")
+                    if DEBUG:
+                        print(f"IP {client_ip} rate limited for 1 minute (Redis). 300 requests in 1 minute.")
+                    return JSONResponse(
+                        {"error": "Too many requests", "message": "Retry in 1 minute"}, 
+                        status_code=429
+                    )
+            except Exception:
+                pass
+            else:
+                return await call_next(request)
 
         if client_ip not in BLOCKED_RATELIMIT:
             BLOCKED_RATELIMIT[client_ip] = []
@@ -124,6 +164,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         BLOCKED_RATELIMIT[client_ip].append(now)
         return await call_next(request)
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -349,4 +390,50 @@ class FlashMiddleware(BaseHTTPMiddleware):
             response.delete_cookie("_flash", path="/")
 
         return response
+
+
+class CacheMiddleware(BaseHTTPMiddleware):
+    """Middleware to implement Read-Through Caching globally for GET requests."""
+
+    def __init__(self, app, default_ttl: int = 300, exclude_paths: list = None):
+        super().__init__(app)
+        self.default_ttl = default_ttl
+        self.exclude_paths = exclude_paths or ["/docs", "/openapi.json", "/static", "/public"]
+
+    async def dispatch(self, request: Request, call_next):
+        if request.method != "GET":
+            return await call_next(request)
+
+        path_ = request.url.path
+        if any(path_.startswith(p) for p in self.exclude_paths):
+            return await call_next(request)
+
+        from lila.core.cache import Cache
+        query_params = tuple(sorted(request.query_params.items()))
+        cache_key = f"middleware_cache:{path_}:{query_params}"
+
+        cached_data = await Cache.get_async(cache_key)
+        if cached_data is not None:
+            from starlette.responses import Response
+            return Response(
+                content=cached_data["body"],
+                status_code=cached_data["status_code"],
+                media_type=cached_data["media_type"],
+                headers=cached_data["headers"]
+            )
+
+        response = await call_next(request)
+
+        if response.status_code == 200:
+            if hasattr(response, "body") and not hasattr(response, "streaming_content"):
+                cache_payload = {
+                    "body": response.body,
+                    "status_code": response.status_code,
+                    "media_type": getattr(response, "media_type", "application/json"),
+                    "headers": dict(response.headers)
+                }
+                await Cache.set_async(cache_key, cache_payload, self.default_ttl)
+
+        return response
+
 

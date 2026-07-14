@@ -1,57 +1,36 @@
-"""
-English: Base Model class for all SQLAlchemy models in Lila Framework.
-         Provides common CRUD boilerplate methods, soft-delete configuration,
-         dynamic raw SQL execution fallbacks, and foreign-key relation helpers.
-Español: Clase BaseModel para todos los modelos SQLAlchemy en Lila Framework.
-         Provee boilerplate de CRUD común, configuración de borrado lógico,
-         fallbacks de ejecución SQL dinámicos y helpers para relaciones de clave foránea.
-"""
-
 from lila.core.database import Base
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func
 from sqlalchemy.orm import Session, load_only
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.connections import connection
 import asyncio
 import datetime
 from typing import Type, List, Dict, Any, Optional
+from lila.core.cache import Cache
 
-# ──────────────────────────────────────────────────────────────────────────────
-# English: Query deduplication registry for async SELECT methods.
-#          Maps a unique query fingerprint → asyncio.Future.
-#          When multiple concurrent async requests ask for the exact same query,
-#          only one thread executes against the DB; all others await the same
-#          Future. This prevents redundant DB round-trips and respects the
-#          connection pool_size configured in Database.
-#          Only used for SELECT operations — writes always execute immediately.
-# Español: Registro de deduplicación de queries para métodos async SELECT.
-#          Mapea una huella única de query → asyncio.Future.
-#          Cuando múltiples peticiones async concurrentes piden exactamente la
-#          misma query, solo un hilo ejecuta contra la DB; los demás esperan el
-#          mismo Future. Esto evita round-trips redundantes y respeta el
-#          pool_size del Database.
-#          Solo se usa para operaciones SELECT — las escrituras siempre ejecutan.
-# ──────────────────────────────────────────────────────────────────────────────
 _PENDING_QUERIES: Dict[str, asyncio.Future] = {}
 
 
 async def run_deduplicated(cache_key: Optional[str], sync_func, *args, **kwargs) -> Any:
-    """
-    English: Runs a synchronous function in an executor with asyncio.Future query deduplication.
-             Only deduplicates if a non-empty cache_key is provided.
-    Español: Corre una función síncrona en un executor con deduplicación de asyncio.Future.
-             Solo deduplica si se provee un cache_key no vacío.
-    """
-    import asyncio
-    loop = asyncio.get_running_loop()
-
+    """Run a function with query deduplication and Redis caching if available."""
     if cache_key:
+        cached_result = await Cache.get_async(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        loop = asyncio.get_running_loop()
         if cache_key in _PENDING_QUERIES:
             return await asyncio.shield(_PENDING_QUERIES[cache_key])
 
         future: asyncio.Future = loop.create_future()
         _PENDING_QUERIES[cache_key] = future
         try:
-            result = await loop.run_in_executor(None, lambda: sync_func(*args, **kwargs))
+            if asyncio.iscoroutinefunction(sync_func):
+                result = await sync_func(*args, **kwargs)
+            else:
+                result = await loop.run_in_executor(None, lambda: sync_func(*args, **kwargs))
+            
+            await Cache.set_async(cache_key, result, ttl=5)
             future.set_result(result)
             return result
         except Exception as exc:
@@ -60,36 +39,51 @@ async def run_deduplicated(cache_key: Optional[str], sync_func, *args, **kwargs)
         finally:
             _PENDING_QUERIES.pop(cache_key, None)
     else:
-        return await loop.run_in_executor(None, lambda: sync_func(*args, **kwargs))
+        loop = asyncio.get_running_loop()
+        if asyncio.iscoroutinefunction(sync_func):
+            return await sync_func(*args, **kwargs)
+        else:
+            return await loop.run_in_executor(None, lambda: sync_func(*args, **kwargs))
 
 
 class BaseModel(Base):
     __abstract__ = True
-    
-    # English: Configuration flags for CRUD and delete behavior.
-    #          Subclasses can override these if they don't want soft delete,
-    #          use a different active field (e.g. "is_active"), or a different primary key.
-    # Español: Flags de configuración para comportamiento CRUD y de borrado.
-    #          Las subclases pueden sobreescribir estos si no quieren borrado lógico,
-    #          usan un campo activo distinto (ej. "is_active") o una clave primaria distinta.
     _delete_logic = True
     _active_field = "active"
     _primary_key = "id"
 
     @classmethod
+    async def invalidate_cache_async(cls):
+        """Invalidate all cached queries for this model in Redis asynchronously."""
+        from lila.core.cache import _REDIS_CLIENT_ASYNC
+        if _REDIS_CLIENT_ASYNC is not None:
+            try:
+                keys = await _REDIS_CLIENT_ASYNC.keys(f"model:{cls.__tablename__}:*")
+                if keys:
+                    await _REDIS_CLIENT_ASYNC.delete(*keys)
+            except Exception:
+                pass
+
+    @classmethod
+    def invalidate_cache(cls):
+        """Invalidate all cached queries for this model in Redis synchronously."""
+        from lila.core.cache import _REDIS_CLIENT
+        if _REDIS_CLIENT is not None:
+            try:
+                keys = _REDIS_CLIENT.keys(f"model:{cls.__tablename__}:*")
+                if keys:
+                    _REDIS_CLIENT.delete(*keys)
+            except Exception:
+                pass
+
+    @classmethod
     async def run_async(cls, cache_key: Optional[str], sync_func, *args, **kwargs) -> Any:
-        """
-        English: Non-blocking execution helper with optional query deduplication.
-        Español: Helper de ejecución asíncrona no bloqueante con deduplicación de query opcional.
-        """
+        """Run a synchronous database operation in an executor."""
         return await run_deduplicated(cache_key, sync_func, *args, **kwargs)
 
     @classmethod
     def get_all(cls, select: str = None, limit: int = 1000, **filters) -> List[Dict[str, Any]]:
-        """
-        English: Get all records. Supports filtering by columns and selective loading.
-        Español: Obtiene todos los registros. Soporta filtrado por columnas y carga selectiva.
-        """
+        """Get all records synchronously."""
         db = connection.get_session()
         try:
             if select:
@@ -126,32 +120,47 @@ class BaseModel(Base):
         limit: int = 1000,
         **filters,
     ) -> List[Dict[str, Any]]:
-        """
-        English: Non-blocking version of get_all() for use in async Starlette route handlers.
-                 Uses asyncio.Future deduplication: if N concurrent requests arrive for the
-                 exact same query, only ONE thread hits the database. All other callers
-                 await the same Future and receive the result with zero extra DB round-trips.
-                 This is safe only for SELECT — use get_all() for write-after-read patterns.
-        Español: Versión no bloqueante de get_all() para usar en rutas async de Starlette.
-                 Usa deduplicación de asyncio.Future: si N peticiones concurrentes llegan
-                 para la misma query exacta, solo UN hilo toca la base de datos. Los demás
-                 esperan el mismo Future y reciben el resultado sin round-trips extra a la DB.
-        """
-        cache_key = f"{cls.__tablename__}:get_all:{select}:{limit}:{tuple(sorted(filters.items()))}"
-        return await run_deduplicated(
-            cache_key,
-            cls.get_all,
-            select=select,
-            limit=limit,
-            **filters
-        )
+        """Get all records asynchronously."""
+        cache_key = f"model:{cls.__tablename__}:get_all:{select}:{limit}:{tuple(sorted(filters.items()))}"
+
+        async def _fetch():
+            if not connection.is_async:
+                return cls.get_all(select=select, limit=limit, **filters)
+
+            from sqlalchemy import select as sa_select
+            async with connection.transaction() as db:
+                if select:
+                    column_names = [c.strip() for c in select.split(',')]
+                else:
+                    column_names = [col.key for col in cls.__table__.columns]
+
+                columns_to_load = [getattr(cls, c) for c in column_names if hasattr(cls, c)]
+
+                stmt = sa_select(cls)
+                if columns_to_load:
+                    stmt = stmt.options(load_only(*columns_to_load))
+
+                if cls._delete_logic and hasattr(cls, cls._active_field):
+                    stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+
+                for key, val in filters.items():
+                    if hasattr(cls, key):
+                        stmt = stmt.where(getattr(cls, key) == val)
+
+                stmt = stmt.limit(limit)
+                result = await db.execute(stmt)
+                rows = result.scalars().all()
+                items = [
+                    {col: getattr(row, col) for col in column_names if hasattr(row, col)}
+                    for row in rows
+                ]
+                return items
+
+        return await run_deduplicated(cache_key, _fetch)
 
     @classmethod
     def get_by_id(cls, db: Session, id: Any) -> Optional[Any]:
-        """
-        English: Get a record by its primary key ID.
-        Español: Obtiene un registro por su ID de clave primaria.
-        """
+        """Get a record by ID synchronously."""
         query = db.query(cls).filter(getattr(cls, cls._primary_key) == id)
         if cls._delete_logic and hasattr(cls, cls._active_field):
             query = query.filter(getattr(cls, cls._active_field) == 1)
@@ -159,31 +168,31 @@ class BaseModel(Base):
 
     @classmethod
     async def get_by_id_async(cls, id: Any) -> Optional[Any]:
-        """
-        English: Non-blocking version of get_by_id() for use in async Starlette route handlers.
-                 Uses asyncio.Future deduplication: concurrent requests for the same ID share
-                 a single DB round-trip. Opens its own session internally.
-        Español: Versión no bloqueante de get_by_id() para usar en rutas async de Starlette.
-                 Usa deduplicación de asyncio.Future: peticiones concurrentes del mismo ID
-                 comparten un único round-trip a la DB. Abre su propia sesión internamente.
-        """
-        cache_key = f"{cls.__tablename__}:get_by_id:{id}"
+        """Get a record by ID asynchronously."""
+        cache_key = f"model:{cls.__tablename__}:get_by_id:{id}"
 
-        def _fetch():
-            db = connection.get_session()
-            try:
-                return cls.get_by_id(db, id)
-            finally:
-                db.close()
+        async def _fetch():
+            if not connection.is_async:
+                db_sess = connection.get_session()
+                try:
+                    return cls.get_by_id(db_sess, id)
+                finally:
+                    db_sess.close()
+
+            from sqlalchemy import select as sa_select
+            async with connection.transaction() as db:
+                stmt = sa_select(cls).where(getattr(cls, cls._primary_key) == id)
+                if cls._delete_logic and hasattr(cls, cls._active_field):
+                    stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+                result = await db.execute(stmt)
+                return result.scalars().first()
 
         return await run_deduplicated(cache_key, _fetch)
 
     @classmethod
     def insert(cls, db: Session, params: Dict[str, Any]) -> Any:
-        """
-        English: Insert a new record into the database.
-        Español: Inserta un nuevo registro en la base de datos.
-        """
+        """Insert a record synchronously."""
+        cls.invalidate_cache()
         valid_params = {}
         for col in cls.__table__.columns:
             if col.name in params:
@@ -199,11 +208,27 @@ class BaseModel(Base):
         return instance
 
     @classmethod
+    async def insert_async(cls, db: AsyncSession, params: Dict[str, Any]) -> Any:
+        """Insert a record asynchronously."""
+        valid_params = {}
+        for col in cls.__table__.columns:
+            if col.name in params:
+                valid_params[col.name] = params[col.name]
+            elif col.name == cls._active_field and cls._delete_logic:
+                valid_params[col.name] = 1
+
+        if "created_at" in cls.__table__.columns and "created_at" not in valid_params:
+            valid_params["created_at"] = datetime.datetime.now()
+
+        instance = cls(**valid_params)
+        db.add(instance)
+        await db.flush()
+        await cls.invalidate_cache_async()
+        return instance
+
+    @classmethod
     def update(cls, db: Session, id: Any, data: Dict[str, Any]) -> bool:
-        """
-        English: Update a record by ID.
-        Español: Actualiza un registro por ID.
-        """
+        """Update a record synchronously."""
         record = cls.get_by_id(db, id)
         if not record:
             return False
@@ -212,14 +237,31 @@ class BaseModel(Base):
             if hasattr(record, key):
                 setattr(record, key, value)
         db.commit()
+        cls.invalidate_cache()
+        return True
+
+    @classmethod
+    async def update_async(cls, db: AsyncSession, id: Any, data: Dict[str, Any]) -> bool:
+        """Update a record asynchronously."""
+        from sqlalchemy import select as sa_select
+        stmt = sa_select(cls).where(getattr(cls, cls._primary_key) == id)
+        if cls._delete_logic and hasattr(cls, cls._active_field):
+            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+        result = await db.execute(stmt)
+        record = result.scalars().first()
+        if not record:
+            return False
+
+        for key, value in data.items():
+            if hasattr(record, key):
+                setattr(record, key, value)
+        await db.commit()
+        await cls.invalidate_cache_async()
         return True
 
     @classmethod
     def delete(cls, db: Session, id: Any) -> bool:
-        """
-        English: Delete a record by ID. Performs soft delete if enabled, hard delete otherwise.
-        Español: Elimina un registro por ID. Realiza borrado lógico si está habilitado, físico si no.
-        """
+        """Delete a record synchronously."""
         record = cls.get_by_id(db, id)
         if not record:
             return False
@@ -229,14 +271,32 @@ class BaseModel(Base):
         else:
             db.delete(record)
         db.commit()
+        cls.invalidate_cache()
+        return True
+
+    @classmethod
+    async def delete_async(cls, db: AsyncSession, id: Any) -> bool:
+        """Delete a record asynchronously."""
+        from sqlalchemy import select as sa_select
+        stmt = sa_select(cls).where(getattr(cls, cls._primary_key) == id)
+        if cls._delete_logic and hasattr(cls, cls._active_field):
+            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+        result = await db.execute(stmt)
+        record = result.scalars().first()
+        if not record:
+            return False
+
+        if cls._delete_logic and hasattr(record, cls._active_field):
+            setattr(record, cls._active_field, 0)
+        else:
+            await db.delete(record)
+        await db.commit()
+        await cls.invalidate_cache_async()
         return True
 
     @classmethod
     def get_all_without_orm(cls, select: str = None, limit: int = 1000, **filters) -> List[Dict[str, Any]]:
-        """
-        English: Fetch records using raw SQL query (without ORM).
-        Español: Obtiene registros usando query SQL pura (sin ORM).
-        """
+        """Get all records without ORM synchronously."""
         if not select:
             select = ", ".join([col.name for col in cls.__table__.columns])
             
@@ -258,11 +318,31 @@ class BaseModel(Base):
         return connection.query(query=query, params=params, return_rows=True)
 
     @classmethod
+    async def get_all_without_orm_async(cls, select: str = None, limit: int = 1000, **filters) -> List[Dict[str, Any]]:
+        """Get all records without ORM asynchronously."""
+        if not select:
+            select = ", ".join([col.name for col in cls.__table__.columns])
+            
+        query = f"SELECT {select} FROM {cls.__tablename__}"
+        where_clauses = []
+        params = {}
+        
+        if cls._delete_logic and hasattr(cls, cls._active_field):
+            where_clauses.append(f"{cls._active_field} = 1")
+            
+        for key, val in filters.items():
+            where_clauses.append(f"{key} = :{key}")
+            params[key] = val
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        query += f" LIMIT {limit}"
+        return await connection.query_async(query=query, params=params, return_rows=True)
+
+    @classmethod
     def get_by_id_without_orm(cls, id: Any, select: str = None) -> Optional[Dict[str, Any]]:
-        """
-        English: Fetch a record by ID using raw SQL query (without ORM).
-        Español: Obtiene un registro por ID usando query SQL pura (sin ORM).
-        """
+        """Get a record by ID without ORM synchronously."""
         if not select:
             select = ", ".join([col.name for col in cls.__table__.columns])
             
@@ -274,11 +354,22 @@ class BaseModel(Base):
         params = {"id": id}
         return connection.query(query=query, params=params, return_row=True)
 
+    @classmethod
+    async def get_by_id_without_orm_async(cls, id: Any, select: str = None) -> Optional[Dict[str, Any]]:
+        """Get a record by ID without ORM asynchronously."""
+        if not select:
+            select = ", ".join([col.name for col in cls.__table__.columns])
+            
+        query = f"SELECT {select} FROM {cls.__tablename__} WHERE {cls._primary_key} = :id"
+        if cls._delete_logic and hasattr(cls, cls._active_field):
+            query += f" AND {cls._active_field} = 1"
+        query += " LIMIT 1"
+        
+        params = {"id": id}
+        return await connection.query_async(query=query, params=params, return_row=True)
+
     def get_related(self, model_class: Type[Any], foreign_key_field: str = None) -> Optional[Any]:
-        """
-        English: Retrieve related model instance (one-to-one or many-to-one relationship).
-        Español: Obtiene la instancia del modelo relacionado (relación uno-a-uno o muchos-a-uno).
-        """
+        """Get a related model instance synchronously."""
         if not foreign_key_field:
             foreign_key_field = f"{model_class.__name__.lower()}_id"
             if not hasattr(self, foreign_key_field):
@@ -300,11 +391,30 @@ class BaseModel(Base):
         finally:
             db.close()
 
+    async def get_related_async(self, model_class: Type[Any], foreign_key_field: str = None) -> Optional[Any]:
+        """Get a related model instance asynchronously."""
+        if not foreign_key_field:
+            foreign_key_field = f"{model_class.__name__.lower()}_id"
+            if not hasattr(self, foreign_key_field):
+                foreign_key_field = f"id_{model_class.__name__.lower()}"
+
+        fk_val = getattr(self, foreign_key_field, None)
+        if fk_val is None:
+            return None
+
+        from sqlalchemy import select as sa_select
+        async with connection.transaction() as db:
+            stmt = sa_select(model_class).where(getattr(model_class, model_class._primary_key) == fk_val)
+            if model_class._delete_logic and hasattr(model_class, model_class._active_field):
+                stmt = stmt.where(getattr(model_class, model_class._active_field) == 1)
+            result = await db.execute(stmt)
+            related = result.scalars().first()
+            if related:
+                db.expunge(related)
+            return related
+
     def get_related_many(self, model_class: Type[Any], foreign_key_field: str = None, limit: int = 1000) -> List[Any]:
-        """
-        English: Retrieve related model instances (one-to-many relationship).
-        Español: Obtiene las instancias de los modelos relacionados (relación uno-a-muchos).
-        """
+        """Get related model instances synchronously."""
         if not foreign_key_field:
             foreign_key_field = f"{self.__class__.__name__.lower()}_id"
             if not hasattr(model_class, foreign_key_field):
@@ -325,3 +435,26 @@ class BaseModel(Base):
             return related_list
         finally:
             db.close()
+
+    async def get_related_many_async(self, model_class: Type[Any], foreign_key_field: str = None, limit: int = 1000) -> List[Any]:
+        """Get related model instances asynchronously."""
+        if not foreign_key_field:
+            foreign_key_field = f"{self.__class__.__name__.lower()}_id"
+            if not hasattr(model_class, foreign_key_field):
+                foreign_key_field = f"id_{self.__class__.__name__.lower()}"
+
+        pk_val = getattr(self, self._primary_key, None)
+        if pk_val is None:
+            return []
+
+        from sqlalchemy import select as sa_select
+        async with connection.transaction() as db:
+            stmt = sa_select(model_class).where(getattr(model_class, foreign_key_field) == pk_val)
+            if model_class._delete_logic and hasattr(model_class, model_class._active_field):
+                stmt = stmt.where(getattr(model_class, model_class._active_field) == 1)
+            stmt = stmt.limit(limit)
+            result = await db.execute(stmt)
+            related_list = result.scalars().all()
+            for obj in related_list:
+                db.expunge(obj)
+            return related_list

@@ -43,20 +43,30 @@ app = typer.Typer()
 #     Column('created_at', TIMESTAMP), 
 # )
 
-async def migrate_async(connection,refresh:bool=False)->bool:
-    
+async def migrate_async(connection, refresh: bool = False) -> bool:
     try:
         load_models()
         if refresh:
-            connection.metadata.drop_all(connection.engine)
-        # connection.prepare_migrate([table_users])#for tables
-        # connection.migrate() 
-        connection.migrate(use_base=True)#for models , always import models in the file
+            if hasattr(connection, "drop_all_async") and getattr(connection, "is_async", False):
+                await connection.drop_all_async(use_base=True)
+            elif hasattr(connection, "drop_all"):
+                connection.drop_all(use_base=True)
+            else:
+                connection.metadata.drop_all(connection.engine)
+        
+        if hasattr(connection, "migrate_async") and getattr(connection, "is_async", False):
+            await connection.migrate_async(use_base=True)
+        else:
+            connection.migrate(use_base=True)
         print("Migrations completed")
         
         return True
-    except RuntimeError as e:
+    except Exception as e:
         print(e)
+        return False
+    finally:
+        if connection and getattr(connection, "is_async", False) and connection.engine:
+            await connection.engine.dispose()
     
     
 @app.command()

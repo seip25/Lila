@@ -21,10 +21,10 @@ def admin_required(func):
 
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        session_data = Session.unsign(key="auth_admin", request=request)
+        session_data = await Session.get(request, "auth_admin")
         if not session_data:
             return RedirectResponse(url="/admin/login")
-        if session_data["id"] is None:
+        if session_data.get("id") is None:
             return RedirectResponse(url="/admin/login")
         return await func(request, *args, **kwargs)
 
@@ -61,7 +61,7 @@ def get_system_memory_usage() -> tuple:
     return used_memory, total_memory, cpu_usage
 
 
-def authenticate(username: str, password: str) -> dict:
+async def authenticate(username: str, password: str) -> dict:
     """Authenticate an admin user.
 
     Args:
@@ -73,7 +73,11 @@ def authenticate(username: str, password: str) -> dict:
     """
     query = "SELECT id, username, password FROM admins WHERE username = :username AND active = 1 LIMIT 1"
     params = {"username": username}
-    admin = connection.query(query=query, params=params, return_row=True)
+    if connection.is_async:
+        admin = await connection.query_async(query=query, params=params, return_row=True)
+    else:
+        admin = connection.query(query=query, params=params, return_row=True)
+
     if not admin or not admin.get("password"):
         return None
 
@@ -95,14 +99,14 @@ async def admin_login(request: Request):
             form_data = await request.json()
             username = form_data.get("user",None)
             password = form_data.get("password",None)
-            admin = authenticate(username=username, password=password)
+            admin = await authenticate(username=username, password=password)
             if admin:
                 response = JSONResponse(
                     {"success": True, "redirect": "/admin"} 
                 )
                 admin_val = {"id": admin["id"]}
-                Session.setSession(
-                    new_val=admin_val, response=response, name_cookie="auth_admin"
+                await Session.set(
+                    request=request, response=response, data=admin_val, key="auth_admin"
                 )
                 return response
             return JSONResponse(

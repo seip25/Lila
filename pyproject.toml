@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lila-framework"
-version = "1.2.7"
+version = "1.2.8"
 description = "Framework web Python"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -47,12 +47,14 @@ dependencies = [
     "starlette-compress==1.6.1",
     "pillow==11.3.0",
     "orjson==3.11.7",
-    "redis==5.0.8"
+    "redis==5.0.8",
+    "aiosqlite>=0.20.0",
+    "aiomysql>=0.3.2",
+    "cryptography"
 ]
 
 [project.optional-dependencies]
-# English: Install PostgreSQL support with: pip install lila-framework[psycopg]
-# Español: Instalar soporte PostgreSQL con: pip install lila-framework[psycopg]
+postgres = ["asyncpg>=0.29.0"]
 psycopg = ["psycopg==3.2.10"]
 
 [project.scripts]
