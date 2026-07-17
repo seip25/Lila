@@ -7,6 +7,7 @@ FROM python:3.14-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHON_JIT=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
@@ -21,8 +22,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies first (layer cache optimization)
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt* pyproject.toml* ./
+RUN if [ -f requirements.txt ]; then \
+        pip install --no-cache-dir -r requirements.txt; \
+    elif [ -f pyproject.toml ]; then \
+        pip install --no-cache-dir .; \
+    else \
+        pip install --no-cache-dir starlette jinja2 uvicorn[standard] pydantic pydantic[email] python-dotenv itsdangerous mysql-connector-python argon2-cffi markdown SQLAlchemy PyJWT psutil python-multipart typer rjsmin rcssmin jinja2-htmlmin starlette-compress pillow orjson redis psycopg uvloop httptools; \
+    fi
 
 # Copy project source
 COPY . .
