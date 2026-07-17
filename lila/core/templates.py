@@ -1,5 +1,5 @@
 from starlette.templating import Jinja2Templates
-from jinja2 import Environment, FileSystemLoader, FileSystemBytecodeCache
+from jinja2 import Environment, FileSystemLoader, BytecodeCache
 from jinja2_htmlmin import minify_loader
 from app.config import VERSION_PROJECT, TITLE_PROJECT, DEBUG, DESCRIPTION_DEFAULT, KEYWORDS_DEFAULT, AUTHOR_DEFAULT, LANG_DEFAULT, MINIFY_HTML, APP_URL, HOST, PORT
 from lila.core.translate import Translate
@@ -8,6 +8,8 @@ from lila.core.responses import HTMLResponse, JSONResponse
 from app.config import PATH_TEMPLATES_HTML, PATH_TEMPLATES_MARKDOWN
 from lila.core.csrf import CSRF
 from lila.core.logger import Logger
+from lila.core.cache import Cache
+from typing import Any
 import markdown
 import os
 import traceback
@@ -27,21 +29,40 @@ if MINIFY_HTML:
 else:
     loader = FileSystemLoader(PATH_TEMPLATES_HTML)
 
-class LilaBytecodeCache(FileSystemBytecodeCache):
-    def dump_bytecode(self, bucket):
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory, exist_ok=True)
-        super().dump_bytecode(bucket)
+class LilaBytecodeCache(BytecodeCache):
+    """
+    High-performance Dual-Tier Jinja Bytecode Cache (`Performance First`).
+    1. L1 Memory Cache (`_MEM_CACHE`): Keeps compiled Python AST code objects directly in RAM (`0 ms` overhead, zero deserialization).
+    2. L2 Distributed Cache (`Cache.set/get`): Stores marshaled bytecode in Redis or memory fallback across worker restarts.
+    """
+    _MEM_CACHE: dict[str, Any] = {}
 
-    def load_bytecode(self, bucket):
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory, exist_ok=True)
-        super().load_bytecode(bucket)
+    def load_bytecode(self, bucket) -> None:
+        code = self._MEM_CACHE.get(bucket.key)
+        if code is not None:
+            bucket.code = code
+            return
 
-cache_dir = os.path.join(PROJECT_ROOT, "app", "cache", "jinja")
+        cached_bytes = Cache.get(f"jinja_bc:{bucket.key}")
+        if cached_bytes is not None and isinstance(cached_bytes, bytes):
+            try:
+                bucket.bytecode_from_string(cached_bytes)
+                if bucket.code is not None:
+                    self._MEM_CACHE[bucket.key] = bucket.code
+            except Exception:
+                pass
+
+    def dump_bytecode(self, bucket) -> None:
+        if bucket.code is not None: 
+            self._MEM_CACHE[bucket.key] = bucket.code 
+            try:
+                data = bucket.bytecode_to_string()
+                Cache.set(f"jinja_bc:{bucket.key}", data, ttl=86400)
+            except Exception:
+                pass
+
 if not DEBUG:
-    os.makedirs(cache_dir, exist_ok=True)
-    bccache = LilaBytecodeCache(cache_dir, "%s.cache")
+    bccache = LilaBytecodeCache()
 else:
     bccache = None
 
