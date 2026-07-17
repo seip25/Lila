@@ -149,6 +149,7 @@ class ConfigLoader:
                         data[key] = _cast_value(env_val, type_name)
                     else:
                         data[key] = getattr(module, key, default)
+                cls._all_env = dict(os.environ)
                 return data
         except Exception:
             pass
@@ -223,7 +224,7 @@ class ConfigLoader:
             cls.load()
         if key in cls._data:
             return cls._data[key]
-        return cls._all_env.get(key, default)
+        return cls._all_env.get(key, os.environ.get(key, default))
 
 
 # ──────────────────────────────────────────────────────────────────────────────
