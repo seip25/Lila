@@ -513,7 +513,7 @@ Lila routes are `async def` (ASGI). Calling synchronous ORM methods from an asyn
 `BaseModel` provides async variants with **query deduplication**: when N concurrent requests trigger the exact same SELECT, only one DB round-trip happens. All other callers await the same `asyncio.Future` and receive the result automatically.
 
 ```python
-# ✅ Non-blocking (use in async routes for SELECT operations)
+# Non-blocking (use in async routes for SELECT operations)
 @router.get("/products")
 async def list_products(request: Request):
     items = await Product.get_all_async(limit=100)
@@ -524,7 +524,7 @@ async def get_product(request: Request):
     product = await Product.get_by_id_async(request.path_params["id"])
     return JSONResponse(product or {})
 
-# ✅ Synchronous (use in CLI, migrations, background tasks, write-after-read)
+# Synchronous (use in CLI, migrations, background tasks, write-after-read)
 @router.post("/products")
 async def create_product(request: Request):
     db = connection.get_session()

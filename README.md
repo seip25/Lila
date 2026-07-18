@@ -20,19 +20,20 @@ https://pypi.org/project/lila-framework/
 ## Key Features
 
 - **Simplicity**: Intuitive and minimalist design.
-- **Flexibility**: Support for multiple databases (MySQL, SQLite) and adaptation to various environments.
+- **Flexibility**: Support for multiple databases (MySQL, PostgreSQL, SQLite) and adaptation to various environments.
 - **Speed**: Built on Starlette, known for its high performance in asynchronous applications.
 - **Robust Validation**: Uses Pydantic to ensure consistent data.
 - **Editable and Configurable**: Ready to use but fully customizable.
 - **Multi-language Support**: Integrated support for multilingual applications.
 - **Compatibility**: Can be used with frameworks like Next.js, Remix, and others.
 - **Easy Migrations**: Quick and straightforward database configuration.
+- **Asynchronous Database**: Native async support for SQLite, MySQL, and PostgreSQL with automatic query deduplication to prevent event loop blocking.
+- **Redis Cache & Sessions**: Fully asynchronous distributed session tracking and cache support with automatic local memory fallback.
 - **Jinja2 and HTML Sessions**: Ready-to-use with dynamic templates and session handling, while remaining compatible with React, Angular, Vue, and other frontend frameworks.
-- **Redis Cache & Sessions**: Distributed session tracking and cache support with automatic local memory fallback.
 - **Background Task Worker**: A hybrid queue mechanism for processing heavy background tasks via `lila-worker` or Starlette fallbacks.
 - **Distributed WebSockets**: Scale WebSockets across multiple processes/nodes effortlessly using Redis Pub/Sub.
-- **SQLAlchemy** :For the ORM or you can also use the connectors directly (mysql.connector, sqlite3, etc...)
-- **JWT** :It comes integrated with helpers to generate tokens and the middleware already has a function that validates it.
+- **SQLAlchemy**: For the ORM or you can also use the connectors directly (mysql.connector, sqlite3, etc...)
+- **JWT**: It comes integrated with helpers to generate tokens and the middleware already has a function that validates it.
 - **Admin Panel**: Includes a built-in admin panel for easy management of your application's data and settings.
 - **Robust Security**: Features IP blocking, URL filtering, and request sanitization to prevent malicious attacks and suspicious requests.
 - **REST CRUD Generator**: Generate REST APIs with just a few lines of code. Includes field validations and middleware support.
@@ -42,19 +43,20 @@ https://pypi.org/project/lila-framework/
 ## Características principales
 
 - **Simplicidad**: Diseño intuitivo y minimalista.
-- **Flexibilidad**: Soporte para múltiples bases de datos (MySQL, SQLite) y adaptación a diversos entornos.
+- **Flexibilidad**: Soporte para múltiples bases de datos (MySQL, PostgreSQL, SQLite) y adaptación a diversos entornos.
 - **Rapidez**: Basado en Starlette, conocido por su alto rendimiento en aplicaciones asíncronas.
 - **Validación robusta**: Uso de Pydantic para garantizar datos consistentes.
 - **Editable y configurable**: Todo está listo para usar, pero también es completamente personalizable.
 - **Multi-idioma**: Soporte integrado para aplicaciones multilingües.
 - **Compatibilidad**: Puede ser utilizado con frameworks como Next.js, Remix js, entre otros.
 - **Migraciones sencillas**: Configuración rápida y fácil para bases de datos.
+- **Base de Datos Asíncrona**: Soporte nativo asíncrono para SQLite, MySQL y PostgreSQL con deduplicación automática de consultas para evitar bloqueos del bucle de eventos.
+- **Caché y Sesiones con Redis**: Soporte asíncrono para caché distribuido y manejo de sesiones en servidor Redis con fallback automático a memoria local.
 - **Jinja2 y sesiones HTML**: Listo para usar con plantillas dinámicas y manejo de sesiones, pero compatible con React, Angular, Vue, entre otros frameworks frontend.
-- **Caché y Sesiones con Redis**: Soporte para caché distribuida y manejo de sesiones en servidor Redis con fallback automático a memoria local.
 - **Worker de Tareas en Segundo Plano**: Mecanismo de cola híbrido para procesar tareas pesadas en segundo plano vía `lila-worker` o fallback local.
 - **WebSockets Distribuidos**: Escala conexiones WebSocket entre múltiples procesos/nodos sin esfuerzo usando Redis Pub/Sub.
-- **SQLAlchemy** :Para la ORM o también se puede utilizar los connectores directamente(mysql.connector,sqlite3,etc...)
-- **JWT** :Viene integrado con helpers para generar token y en el middleware ya viene una función que válida el mismo.
+- **SQLAlchemy**: Para la ORM o también se puede utilizar los connectores directamente(mysql.connector,sqlite3,etc...)
+- **JWT**: Viene integrado con helpers para generar token y en el middleware ya viene una función que válida el mismo.
 - **Panel de Administración**: Incluye un panel de administración integrado para gestionar fácilmente los datos y configuraciones de tu aplicación.
 - **Seguridad Robusta**: Cuenta con bloqueo de IPs, filtrado de URLs y sanitización de solicitudes para prevenir ataques maliciosos y solicitudes sospechosas.
 - **Generador de APIs REST**: Genera APIs REST con solo unas pocas líneas de código. Incluye validaciones de campos y soporte para middlewares.
