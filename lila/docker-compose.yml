@@ -45,8 +45,6 @@ services:
       - "8000"
     volumes:
       - .:/app
-      - /app/__pycache__
-      - /app/venv
       - public_data:/app/public
       - uds_data:/tmp/sockets
     env_file:
