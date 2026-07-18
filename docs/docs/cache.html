@@ -146,6 +146,39 @@ Cache.clear()
                 </div>
             </div>
 
+            <h3>Asynchronous Caching</h3>
+            <p>
+                Lila features fully non-blocking asynchronous cache methods that should be preferred inside async route handlers:
+            </p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">
+                        <i class="fas fa-bolt mr-2"></i>Using Async Cache in Route Handlers
+                    </span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="editor-content bg-gray-900 dark:bg-black">
+                    <pre><code class="language-python">from lila.core.cache import Cache
+
+# Store a value asynchronously for 5 minutes
+await Cache.set_async("my_key", {"data": "value"}, ttl=300)
+
+# Retrieve a value asynchronously
+data = await Cache.get_async("my_key")
+
+# Delete a value asynchronously
+await Cache.delete_async("my_key")
+
+# Clear cache database asynchronously
+await Cache.clear_async()</code></pre>
+                </div>
+            </div>
+
             <h3>Redis Caching Backend</h3>
             <p>
                 If the <code class="code-inline">redis</code> package is installed and your environment variables (<code class="code-inline">REDIS_HOST</code> and <code class="code-inline">REDIS_PORT</code>) are configured, Lila automatically connects and upgrades to a shared Redis caching backend.

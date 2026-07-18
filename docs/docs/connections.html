@@ -279,6 +279,35 @@ products = await connection.query_async(
         </div>
       </div>
 
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Hybrid Queue-Based Asynchronous Writes</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Under heavy concurrent load, or when explicitly requested, database write queries (INSERT, UPDATE, DELETE) can be routed automatically to a Redis task queue. This prevents connection pool starvation and database lock conflicts.
+      </p>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        The system executes writes synchronously if the queue size is 15 or less, and automatically enqueues writes once it passes the threshold. You can also bypass this routing logic using the <code>background</code> parameter:
+      </p>
+      <ul class="list-disc pl-6 mt-2 text-slate-600 dark:text-slate-300">
+        <li><code>background=True</code>: Force the query to execute asynchronously via the Redis queue. Returns a queue response payload immediately: <code>{"success": true, "queued": true, "job_id": "..."}</code>.</li>
+        <li><code>background=False</code>: Force the query to run synchronously against the database, bypassing the queue threshold entirely (useful for critical actions).</li>
+      </ul>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-python"># Force a raw SQL INSERT to run in the background
+result = await connection.query_async(
+    query="INSERT INTO products(name, price) VALUES(:name, :price)",
+    params={"name": "Gaming Chair", "price": 299.99},
+    background=True
+)
+
+# Force an ORM model insertion to run in the background
+result = await Product.insert_async(
+    db_session,
+    {"name": "Gaming Keyboard", "price": 89.99},
+    background=True
+)</code></pre>
+        </div>
+      </div>
+
     </article>
   </main>
   <script src="../js/highlight.min.js"></script>
