@@ -201,6 +201,9 @@ def _write_connections_file(connections_path: Path, project_info: dict) -> None:
         connections_content = f"""from lila.core.database import Database
 from sqlalchemy.orm import Session
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ────────────────────────────────────────────────────────────────────────────
 # MySQL connection — configured during lila-init
@@ -233,6 +236,9 @@ connection.connect()
     else:
         connections_content = """from lila.core.database import Database
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ────────────────────────────────────────────────────────────────────────────
 # SQLite connection (default — no setup required for development)

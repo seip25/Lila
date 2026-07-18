@@ -7,6 +7,7 @@ FROM python:3.14-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHON_JIT=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
@@ -20,11 +21,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies first (layer cache optimization)
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-
+RUN pip install lila-framework==1.3.0
 # Copy project source
+
 COPY . .
 
 # Create necessary directories

@@ -229,10 +229,9 @@ class Router:
                         from starlette.responses import Response
                         response_headers = dict(cached_data.get("headers", {}))
                         response_headers["X-Lila-Cache"] = "HIT"
-                        if "Cache-Control" not in response_headers and "cache-control" not in response_headers and cache_max_age is not None:
-                            response_headers["Cache-Control"] = f"private, max-age={cache_max_age}"
-                        elif "Cache-Control" not in response_headers and "cache-control" not in response_headers and cache_max_age is None:
-                            response_headers["Cache-Control"] = f"private, max-age={ttl}"
+                        target_max_age = cache_max_age if cache_max_age is not None else ttl
+                        if "Cache-Control" not in response_headers and "cache-control" not in response_headers:
+                            response_headers["Cache-Control"] = f"private, max-age={target_max_age}"
 
                         return Response(
                             content=cached_data["body"],
@@ -273,19 +272,25 @@ class Router:
                     response = current_func(request, **kwargs)
 
                 if ttl > 0 and request.method == "GET" and not DEBUG and cache_key:
-                    if hasattr(response, "status_code") and response.status_code == 200:
-                        if hasattr(response, "body"):
-                            cache_data = {
-                                "body": response.body,
-                                "status_code": response.status_code,
-                                "headers": {k.decode('utf-8'): v.decode('utf-8') for k, v in response.raw_headers if k.lower() != b"content-length"},
-                                "media_type": getattr(response, "media_type", None)
-                            }
-                            await Cache.set_async(cache_key, cache_data, ttl=ttl)
+                        target_max_age = cache_max_age if cache_max_age is not None else ttl
                         if hasattr(response, "headers"):
                             response.headers["X-Lila-Cache"] = "MISS"
                             if "Cache-Control" not in response.headers and "cache-control" not in response.headers:
-                                response.headers["Cache-Control"] = f"private, max-age={ttl}"
+                                response.headers["Cache-Control"] = f"private, max-age={target_max_age}"
+
+                        if hasattr(response, "body"):
+                            cache_headers = {
+                                k.decode('utf-8'): v.decode('utf-8') 
+                                for k, v in getattr(response, "raw_headers", []) 
+                                if k.lower() not in (b"content-length", b"x-lila-cache")
+                            }
+                            cache_data = {
+                                "body": response.body,
+                                "status_code": response.status_code,
+                                "headers": cache_headers,
+                                "media_type": getattr(response, "media_type", None)
+                            }
+                            await Cache.set_async(cache_key, cache_data, ttl=ttl)
                 
                 return response
 

@@ -71,9 +71,15 @@ def main():
     if DEBUG:
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False,log_level="warning",workers=3) #workers (2 * 2num_cpu) + 1
-        print(f"Run app in {HOST}:{PORT} with {workers} workers")
-        
+        workers = int(os.getenv("WEB_CONCURRENCY", (os.cpu_count() or 1) * 2 + 1))
+        uds_path = os.getenv("UDS_PATH")
+        if uds_path:
+            print(f"🚀 Running Lila in UDS mode: {uds_path} with {workers} workers (uvloop + httptools)")
+            uvicorn.run("main:app", uds=uds_path, reload=False, access_log=False, log_level="warning", workers=workers, loop="uvloop", http="httptools")
+        else:
+            print(f"🚀 Running Lila in TCP mode: {HOST}:{PORT} with {workers} workers (uvloop + httptools)")
+            uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False, log_level="warning", workers=workers, loop="uvloop", http="httptools")
+
 if __name__ == "__main__":
     try:
         if JIT:

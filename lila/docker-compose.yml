@@ -27,6 +27,7 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - public_data:/usr/share/nginx/html/public:ro
+      - uds_data:/tmp/sockets
     depends_on:
       - app
     networks:
@@ -44,9 +45,8 @@ services:
       - "8000"
     volumes:
       - .:/app
-      - /app/__pycache__
-      - /app/venv
       - public_data:/app/public
+      - uds_data:/tmp/sockets
     env_file:
       - .env
     environment:
@@ -57,6 +57,8 @@ services:
       - REDIS_PORT=6379
       - HOST=0.0.0.0
       - PORT=8000
+      - UDS_PATH=/tmp/sockets/lila.sock
+      - PYTHON_JIT=${PYTHON_JIT:-1}
     depends_on:
       mysql:
         condition: service_healthy
@@ -127,6 +129,7 @@ volumes:
   mysql_data:
   redis_data:
   public_data:
+  uds_data:
   # postgres_data:
 
 networks:
