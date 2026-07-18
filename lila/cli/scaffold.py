@@ -215,6 +215,7 @@ config = {{
     "user": os.getenv("DB_USER", "{project_info['DB_USER']}"),
     "password": os.getenv("DB_PASSWORD", "{project_info['DB_PASSWORD']}"),
     "database": os.getenv("DB_NAME", "{project_info['DB_NAME']}"),
+    "is_async": True,
     "auto_commit": False,
     "pool_size": 20,
     "max_overflow": 40,
@@ -237,7 +238,7 @@ from sqlalchemy.orm import Session
 # SQLite connection (default — no setup required for development)
 # To switch to MySQL, update this config and set DB_* vars in .env
 # ────────────────────────────────────────────────────────────────────────────
-config = {"type": "sqlite", "database": "lila"}
+config = {"type": "sqlite", "database": "lila", "is_async": True}
 connection = Database(config=config)
 connection.connect()
 
@@ -250,6 +251,7 @@ connection.connect()
 #     "user": os.getenv("DB_USER", "root"),
 #     "password": os.getenv("DB_PASSWORD", "root"),
 #     "database": os.getenv("DB_NAME", "lila_db"),
+#     "is_async": True,
 #     "auto_commit": False,
 #     "pool_size": 20,
 #     "max_overflow": 40,
