@@ -174,3 +174,65 @@ await Session.set(request, response, data={"user_id": 1}, key="auth")
 # Delete session data
 await Session.delete(response, key="auth", request=request)
 ```
+
+## Hybrid Queue-Based Asynchronous Writes
+
+Lila Framework features an automated hybrid queue-based database write system. During peak load, or when explicitly requested, database write queries (INSERT, UPDATE, DELETE) are enqueued to a Redis task list and executed asynchronously by the background worker. This protects the database from connection exhaustion and transaction deadlocks.
+
+### Write Queue Trigger Rules
+
+1. **Direct/Synchronous Write (Default under low load)**:
+   If the Redis task queue length is less than or equal to 15, writes are executed synchronously against the database, returning the normal execution result.
+
+2. **Asynchronous Write (Under high load)**:
+   If the Redis task queue length exceeds 15 enqueued tasks, subsequent writes are automatically enqueued. The method returns immediately with a queue status response: `{"success": True, "queued": True, "job_id": job_id}`.
+
+3. **Explicit Override (`background` parameter)**:
+   You can bypass the queue-length check by passing the `background` parameter explicitly:
+   - `background=True`: Force the write operation to be enqueued immediately regardless of the current queue length.
+   - `background=False`: Force the write operation to execute synchronously against the database (ideal for critical transactions like payment processing).
+
+### Code Examples
+
+#### Raw SQL Asynchronous Write
+
+```python
+# Automatically enqueued if database load is high
+result = await connection.query_async(
+    query="INSERT INTO items(name, active) VALUES(:name, 1)",
+    params={"name": "new_item"},
+    background=True
+)
+
+if isinstance(result, dict) and result.get("queued"):
+    # The write was enqueued, return status
+    return JSONResponse(result, 201)
+```
+
+#### ORM Asynchronous Write
+
+```python
+# Force ORM insert to run in the background
+result = await Product.insert_async(
+    db, 
+    {"name": "Smart TV", "price": 499.99}, 
+    background=True
+)
+
+if isinstance(result, dict) and result.get("queued"):
+    # Enqueued, job_id is returned
+    return JSONResponse(result, 201)
+```
+
+### Worker Daemon & Task Retries
+
+To process queued database writes, start the Lila worker process:
+
+```bash
+lila-worker
+```
+
+The background worker consumes the queue, executing each operation with the following policies:
+- **Async & Sync Support**: Automatically detects and executes both synchronous and asynchronous task methods.
+- **Automatic Retries**: If a write fails (e.g. database locks or connection timeouts), the worker retries the operation up to 3 times using an exponential backoff retry strategy.
+- **Failures Logging**: If the task fails after all retries, the error is written to `app/logs/error.log` and the job is moved to a failed tasks list in Redis for auditing.
