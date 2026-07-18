@@ -21,17 +21,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies first (layer cache optimization)
-COPY requirements.txt* pyproject.toml* ./
-RUN if [ -f requirements.txt ]; then \
-        pip install --no-cache-dir -r requirements.txt; \
-    elif [ -f pyproject.toml ]; then \
-        pip install --no-cache-dir .; \
-    else \
-        pip install --no-cache-dir starlette jinja2 uvicorn[standard] pydantic pydantic[email] python-dotenv itsdangerous mysql-connector-python argon2-cffi markdown SQLAlchemy PyJWT psutil python-multipart typer rjsmin rcssmin jinja2-htmlmin starlette-compress pillow orjson redis psycopg uvloop httptools; \
-    fi
-
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install lila-framework==1.2.9
 # Copy project source
+
 COPY . .
 
 # Create necessary directories
