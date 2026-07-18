@@ -30,12 +30,18 @@ async def forgot_password(request: Request):
             db = connection.get_session()
             try:
                 token = PasswordResetToken.create_token(db, user.id)
-                db.commit()
+                if connection.is_async:
+                    await db.commit()
+                else:
+                    db.commit()
                 if DEBUG:
                     url = f"http://{HOST}:{PORT}/change-password/{token}"
                     print(f"DEBUG {url}")
             finally:
-                db.close()
+                if connection.is_async:
+                    await db.close()
+                else:
+                    db.close()
 
         msg = Translate.t(key="If the email exists, a reset link has been sent", request=request)
         return JSONResponse({"success": True, "msg": msg})
@@ -43,6 +49,9 @@ async def forgot_password(request: Request):
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
     finally:
         if 'db' in locals():
-            db.close()
+            if connection.is_async:
+                await db.close()
+            else:
+                db.close()
 
 routes = router.get_routes()

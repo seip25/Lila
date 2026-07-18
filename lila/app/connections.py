@@ -1,26 +1,36 @@
 from lila.core.database import Database
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-#English : Example connection to a mysql database
-#Español: Ejemplo de conexión a la base de datos con mysql
-#config = {"type":"mysql","host":"127.0.0.1","user":"root","password":"password","database":"db_test","auto_commit":True}
-#connection = Database(config=config)
-#connection.connect()
-#mysql_connection = connection
+"""
+Database connection configurations.
 
-#English : Example connection to a psgr database
-#Español: Ejemplo de conexión a la base de datos con psgr
-# config = {"type":"postgresql","host":"localhost","port":5432,"user":"postgres","password":"root","database":"db_test","auto_commit":True}
-# connection = Database(config=config)
-# connection.connect()
-#psgr_connection = connection
+For PostgreSQL async configuration, use:
+config = {
+    "type": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "user": "postgres",
+    "password": "password",
+    "database": "my_db",
+    "is_async": True,
+    "pool_size": 20,
+    "max_overflow": 40
+}
 
-#English : Example connection to a sqlite database
-#Español: Ejemplo de conexión a la base de datos con sqlite
-config = {"type":"sqlite","database":"lila"} #lila.db
+For MySQL async configuration, use:
+config = {
+    "type": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "password",
+    "database": "my_db",
+    "is_async": True,
+    "pool_size": 20,
+    "max_overflow": 40
+}
+"""
+
+config = {"type": "sqlite", "database": "lila", "is_async": True}
 connection = Database(config=config)
 connection.connect()
-
-#English : Example use for orm sqlalchemy abstraction
-#Español : Ejemplo de uso para orm sqlalchemy 
-#db_session=connection.get_session()

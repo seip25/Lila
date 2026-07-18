@@ -32,7 +32,7 @@ class DebugModel(Base):
     created_at = Column(TIMESTAMP, default=func.now())
 
 
-db = Database(config={"type": "sqlite", "database": "app/cache/debug"})
+db = Database(config={"type": "sqlite", "database": "app/cache/debug", "is_async": False})
 db.connect()
 
 

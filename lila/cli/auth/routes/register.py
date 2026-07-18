@@ -49,17 +49,26 @@ async def register(request: Request):
         user = User(email=input.email, name=input.name)
         user.set_password(input.password)
         db.add(user)
-        db.commit()
+        if connection.is_async:
+            await db.commit()
+        else:
+            db.commit()
         msg = Translate.t(key="User registered successfully", request=request)
         response = JSONResponse({"success": True, "msg": msg})
         await Session.set(request=request, response=response, data={"user_id": user.id, "email": user.email, "name": user.name}, key="auth")
         return response
     except Exception as e:
-        db.rollback()
+        if connection.is_async:
+            await db.rollback()
+        else:
+            db.rollback()
         if DEBUG:
             traceback.print_exc()
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
     finally:
-        db.close()
+        if connection.is_async:
+            await db.close()
+        else:
+            db.close()
 
 routes = router.get_routes()

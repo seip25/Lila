@@ -20,7 +20,19 @@ project_root = os.getcwd()
 
 def ensure_connection_or_migrate():
     try:
-        connection.engine.connect()
+        if hasattr(connection, "check_connection"):
+            connected = connection.check_connection()
+        else:
+            connected = False
+            try:
+                with connection.engine.connect() as conn:
+                    connected = True
+            except Exception:
+                pass
+        
+        if not connected:
+            raise Exception("Connection failed")
+
         result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
         return True
     except Exception:
@@ -30,9 +42,13 @@ def ensure_connection_or_migrate():
 
 def check_and_create_table():
     db_type = connection.engine.url.drivername
-    if db_type == "sqlite":
+    is_sqlite = "sqlite" in db_type
+    is_mysql = "mysql" in db_type
+    is_postgres = "postgresql" in db_type or "postgres" in db_type or "asyncpg" in db_type
+
+    if is_sqlite:
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"
-    elif db_type in {"postgresql", "mysql", "mysql+mysqlconnector"}:
+    elif is_mysql or is_postgres:
         query = """
         SELECT EXISTS (
             SELECT 1
@@ -41,24 +57,24 @@ def check_and_create_table():
         ) AS table_exists
         """
     else:
-        typer.echo("Unsupported database type.")
+        typer.echo(f"Unsupported database type: {db_type}")
         raise typer.Exit(code=1)
 
     table_exists = connection.query(query=query, return_row=True)
-    if db_type == "sqlite":
+    if is_sqlite:
         table_exists = bool(table_exists)
     else:
-        table_exists = table_exists.get("table_exists", False)
+        table_exists = table_exists.get("table_exists", False) if table_exists else False
 
     if not table_exists:
-        if db_type == "sqlite":
+        if is_sqlite:
             column_definition = "id INTEGER PRIMARY KEY AUTOINCREMENT"
-        elif db_type.startswith("mysql"):
+        elif is_mysql:
             column_definition = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
-        elif db_type == "postgresql":
+        elif is_postgres:
             column_definition = "id SERIAL PRIMARY KEY"
         else:
-            typer.echo("Unsupported database type.")
+            typer.echo(f"Unsupported database type: {db_type}")
             raise typer.Exit(code=1)
 
         create_table_query = f"""
