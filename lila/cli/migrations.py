@@ -3,6 +3,9 @@ import os
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
 try:
     from app.connections import connection
