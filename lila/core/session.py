@@ -5,7 +5,7 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
 from lila.core.request import Request
 from typing import Union, Optional, Dict, List
 from lila.core.logger import Logger
-from lila.core.cache import _REDIS_CLIENT, _REDIS_CLIENT_ASYNC
+from lila.core.cache import _get_redis_client, _get_redis_client_async
 
 serializer = URLSafeTimedSerializer(SECRET_KEY)
 
@@ -32,9 +32,10 @@ class Session:
             else:
                 serialized_val = str(new_val)
 
-            if _REDIS_CLIENT is not None:
+            client = _get_redis_client()
+            if client is not None:
                 session_id = secrets.token_urlsafe(32)
-                _REDIS_CLIENT.setex(
+                client.setex(
                     name=f"lila:session:{session_id}",
                     time=max_age,
                     value=serialized_val
@@ -80,9 +81,10 @@ class Session:
             else:
                 serialized_val = str(new_val)
 
-            if _REDIS_CLIENT_ASYNC is not None:
+            client_async = await _get_redis_client_async()
+            if client_async is not None:
                 session_id = secrets.token_urlsafe(32)
-                await _REDIS_CLIENT_ASYNC.setex(
+                await client_async.setex(
                     name=f"lila:session:{session_id}",
                     time=max_age,
                     value=serialized_val
@@ -128,8 +130,9 @@ class Session:
 
             if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
                 session_id = unsigned_data[4:]
-                if _REDIS_CLIENT is not None:
-                    cached_val = _REDIS_CLIENT.get(f"lila:session:{session_id}")
+                client = _get_redis_client()
+                if client is not None:
+                    cached_val = client.get(f"lila:session:{session_id}")
                     if cached_val is not None:
                         decoded_val = cached_val.decode("utf-8")
                         try:
@@ -167,8 +170,9 @@ class Session:
 
             if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
                 session_id = unsigned_data[4:]
-                if _REDIS_CLIENT_ASYNC is not None:
-                    cached_val = await _REDIS_CLIENT_ASYNC.get(f"lila:session:{session_id}")
+                client_async = await _get_redis_client_async()
+                if client_async is not None:
+                    cached_val = await client_async.get(f"lila:session:{session_id}")
                     if cached_val is not None:
                         decoded_val = cached_val.decode("utf-8")
                         try:
@@ -196,16 +200,18 @@ class Session:
     def deleteSession(response, name_cookie: str, request: Optional[Request] = None) -> bool:
         """Delete session synchronously."""
         try:
-            if request and _REDIS_CLIENT is not None:
-                cookie_val = request.cookies.get(name_cookie)
-                if cookie_val:
-                    try:
-                        unsigned_data = serializer.loads(cookie_val)
-                        if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
-                            session_id = unsigned_data[4:]
-                            _REDIS_CLIENT.delete(f"lila:session:{session_id}")
-                    except Exception:
-                        pass
+            if request:
+                client = _get_redis_client()
+                if client is not None:
+                    cookie_val = request.cookies.get(name_cookie)
+                    if cookie_val:
+                        try:
+                            unsigned_data = serializer.loads(cookie_val)
+                            if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
+                                session_id = unsigned_data[4:]
+                                client.delete(f"lila:session:{session_id}")
+                        except Exception:
+                            pass
             response.delete_cookie(name_cookie)
             return True
         except Exception as e:
@@ -216,16 +222,18 @@ class Session:
     async def deleteSession_async(response, name_cookie: str, request: Optional[Request] = None) -> bool:
         """Delete session asynchronously."""
         try:
-            if request and _REDIS_CLIENT_ASYNC is not None:
-                cookie_val = request.cookies.get(name_cookie)
-                if cookie_val:
-                    try:
-                        unsigned_data = serializer.loads(cookie_val)
-                        if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
-                            session_id = unsigned_data[4:]
-                            await _REDIS_CLIENT_ASYNC.delete(f"lila:session:{session_id}")
-                    except Exception:
-                        pass
+            if request:
+                client_async = await _get_redis_client_async()
+                if client_async is not None:
+                    cookie_val = request.cookies.get(name_cookie)
+                    if cookie_val:
+                        try:
+                            unsigned_data = serializer.loads(cookie_val)
+                            if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
+                                session_id = unsigned_data[4:]
+                                await client_async.delete(f"lila:session:{session_id}")
+                        except Exception:
+                            pass
             response.delete_cookie(name_cookie)
             return True
         except Exception as e:
@@ -267,6 +275,3 @@ class Session:
 def flash(request: Request, message: str, category: str = "info") -> None:
     """Queue a flash message."""
     Session.flash(request, message, category)
-
-
-

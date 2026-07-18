@@ -74,10 +74,11 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         now = datetime.now()
 
-        from lila.core.cache import _REDIS_CLIENT_ASYNC
-        if _REDIS_CLIENT_ASYNC is not None:
+        from lila.core.cache import _get_redis_client_async
+        redis_client = await _get_redis_client_async()
+        if redis_client is not None:
             try:
-                blocked = await _REDIS_CLIENT_ASYNC.get(f"lila:blocked_ip:{client_ip}")
+                blocked = await redis_client.get(f"lila:blocked_ip:{client_ip}")
                 if blocked:
                     return HTMLResponse(content="Access Denied", status_code=403)
             except Exception:
@@ -96,9 +97,9 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
 
         url_path = request.url.path
         if BLOCKED_REGEX.search(url_path):
-            if _REDIS_CLIENT_ASYNC is not None:
+            if redis_client is not None:
                 try:
-                    await _REDIS_CLIENT_ASYNC.setex(f"lila:blocked_ip:{client_ip}", 600, "1")
+                    await redis_client.setex(f"lila:blocked_ip:{client_ip}", 600, "1")
                 except Exception:
                     BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
             else:
@@ -111,23 +112,25 @@ class SecurityShieldMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         client_ip = request.client.host if request.client else "unknown"
         now = datetime.now()
 
-        from lila.core.cache import _REDIS_CLIENT_ASYNC
-        if _REDIS_CLIENT_ASYNC is not None:
+        from lila.core.cache import _get_redis_client_async
+        redis_client = await _get_redis_client_async()
+        if redis_client is not None:
             try:
                 rate_limit_key = f"lila:rate_limit:{client_ip}"
-                async with _REDIS_CLIENT_ASYNC.pipeline() as pipe:
+                async with redis_client.pipeline() as pipe:
                     pipe.incr(rate_limit_key)
                     pipe.expire(rate_limit_key, 60, nx=True)
                     res = await pipe.execute()
                 request_count = res[0]
                 
                 if request_count >= 300:
-                    await _REDIS_CLIENT_ASYNC.setex(f"lila:blocked_ip:{client_ip}", 60, "1")
+                    await redis_client.setex(f"lila:blocked_ip:{client_ip}", 60, "1")
                     Logger.warning(f"IP {client_ip} rate limited for 1 minute (Redis). 300 requests in 1 minute.")
                     if DEBUG:
                         print(f"IP {client_ip} rate limited for 1 minute (Redis). 300 requests in 1 minute.")
