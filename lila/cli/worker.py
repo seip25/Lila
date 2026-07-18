@@ -1,9 +1,15 @@
 import sys
+import os
 import time
 import importlib
 import pickle
+import asyncio
+import inspect
 import typer
 from lila.core.cache import _get_redis_client
+
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
 
 app = typer.Typer(help="Lila Background Task Worker CLI.")
 
@@ -39,7 +45,14 @@ def start():
                     obj = getattr(obj, attr)
 
                 print(f"Running task: {func_path}")
-                obj(*args, **kwargs)
+                result = obj(*args, **kwargs)
+                if inspect.isawaitable(result):
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    loop.run_until_complete(result)
                 print(f"Completed task: {func_path}")
             except Exception as e:
                 print(f"Error executing task: {e}")

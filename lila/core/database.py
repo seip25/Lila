@@ -319,12 +319,33 @@ class Database:
         params: Optional[dict] = None,
         return_rows: bool = False,
         return_row: bool = False,
+        background: Optional[bool] = None,
     ) -> Any:
-        """Execute a raw SQL query asynchronously with query deduplication."""
+        """Execute a raw SQL query asynchronously with query deduplication and optional write queueing."""
         import asyncio
         from lila.core.base_model import _PENDING_QUERIES
+        from lila.core.background import BackgroundTask
+        from lila.core.cache import _get_redis_client
+        import uuid
 
         is_select = query.strip().upper().startswith("SELECT")
+
+        if not is_select and (background is True or background is None):
+            client = _get_redis_client()
+            queue_len = 0
+            if client is not None:
+                try:
+                    queue_len = client.llen("lila:tasks")
+                except Exception:
+                    pass
+
+            if background is True or (background is None and queue_len > 15):
+                job_id = str(uuid.uuid4())
+                task = BackgroundTask(_execute_queued_query, query, params)
+                if task._starlette_task is not None:
+                    await _execute_queued_query(query, params)
+                    return True
+                return {"success": True, "queued": True, "job_id": job_id}
 
         if is_select:
             params_tuple = tuple(sorted(params.items())) if params else ()
@@ -452,9 +473,59 @@ class Database:
         session: Optional[AsyncSession] = None,
         filters: Optional[Dict[str, Any]] = None,
         values: Optional[Dict[str, Any]] = None,
-        return_one: bool = False
+        return_one: bool = False,
+        background: Optional[bool] = None,
     ) -> Any:
-        """Execute ORM database operations asynchronously."""
+        """Execute ORM database operations asynchronously with optional write queueing."""
+        from lila.core.background import BackgroundTask
+        from lila.core.cache import _get_redis_client
+        import uuid
+
+        is_write = operation in ("insert", "update", "delete")
+
+        if is_write and (background is True or background is None):
+            client = _get_redis_client()
+            queue_len = 0
+            if client is not None:
+                try:
+                    queue_len = client.llen("lila:tasks")
+                except Exception:
+                    pass
+
+            if background is True or (background is None and queue_len > 15):
+                job_id = str(uuid.uuid4())
+                model_module = model.__module__
+                model_name = model.__name__
+
+                instance_dict = {}
+                if instance:
+                    for col in instance.__table__.columns:
+                        if hasattr(instance, col.name):
+                            instance_dict[col.name] = getattr(instance, col.name)
+
+                task = BackgroundTask(
+                    _execute_queued_orm,
+                    model_module,
+                    model_name,
+                    operation,
+                    instance_dict,
+                    filters,
+                    values,
+                    return_one
+                )
+                if task._starlette_task is not None:
+                    await _execute_queued_orm(
+                        model_module,
+                        model_name,
+                        operation,
+                        instance_dict,
+                        filters,
+                        values,
+                        return_one
+                    )
+                    return True
+                return {"success": True, "queued": True, "job_id": job_id}
+
         own_session = False
         if session is None:
             session = self.get_session()
@@ -611,3 +682,65 @@ class Database:
         finally:
             if own_session:
                 session.close()
+
+
+async def _execute_queued_query(query: str, params: Optional[dict] = None) -> None:
+    """Execute a database query from the background worker with retries."""
+    import asyncio
+    from app.connections import connection
+    from lila.core.logger import Logger
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            await connection.query_async(query, params, background=False)
+            return
+        except Exception as e:
+            if attempt == max_retries - 1:
+                Logger.error(f"Failed to execute queued query after {max_retries} attempts: {e}. Query: {query}, Params: {params}")
+                print(f"Error: Failed to execute queued query: {e}")
+                raise e
+            await asyncio.sleep(2 ** attempt)
+
+
+async def _execute_queued_orm(
+    model_module: str,
+    model_name: str,
+    operation: str,
+    instance_dict: Optional[dict] = None,
+    filters: Optional[dict] = None,
+    values: Optional[dict] = None,
+    return_one: bool = False
+) -> None:
+    """Execute an ORM database operation from the background worker with retries."""
+    import asyncio
+    import importlib
+    from app.connections import connection
+    from lila.core.logger import Logger
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            module = importlib.import_module(model_module)
+            model_class = getattr(module, model_name)
+
+            instance = None
+            if instance_dict:
+                instance = model_class(**instance_dict)
+
+            await connection.query_orm_async(
+                model=model_class,
+                operation=operation,
+                instance=instance,
+                filters=filters,
+                values=values,
+                return_one=return_one,
+                background=False
+            )
+            return
+        except Exception as e:
+            if attempt == max_retries - 1:
+                Logger.error(f"Failed to execute queued ORM after {max_retries} attempts: {e}. Operation: {operation}, Model: {model_name}")
+                print(f"Error: Failed to execute queued ORM: {e}")
+                raise e
+            await asyncio.sleep(2 ** attempt)

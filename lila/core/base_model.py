@@ -208,8 +208,13 @@ class BaseModel(Base):
         return instance
 
     @classmethod
-    async def insert_async(cls, db: AsyncSession, params: Dict[str, Any]) -> Any:
-        """Insert a record asynchronously."""
+    async def insert_async(
+        cls,
+        db: AsyncSession,
+        params: Dict[str, Any],
+        background: Optional[bool] = None
+    ) -> Any:
+        """Insert a record asynchronously with optional write queueing."""
         valid_params = {}
         for col in cls.__table__.columns:
             if col.name in params:
@@ -221,8 +226,18 @@ class BaseModel(Base):
             valid_params["created_at"] = datetime.datetime.now()
 
         instance = cls(**valid_params)
-        db.add(instance)
-        await db.flush()
+
+        from app.connections import connection
+        res = await connection.query_orm_async(
+            model=cls,
+            operation="insert",
+            instance=instance,
+            session=db,
+            background=background
+        )
+        if isinstance(res, dict) and res.get("queued"):
+            return res
+
         await cls.invalidate_cache_async()
         return instance
 
@@ -241,23 +256,32 @@ class BaseModel(Base):
         return True
 
     @classmethod
-    async def update_async(cls, db: AsyncSession, id: Any, data: Dict[str, Any]) -> bool:
-        """Update a record asynchronously."""
-        from sqlalchemy import select as sa_select
-        stmt = sa_select(cls).where(getattr(cls, cls._primary_key) == id)
+    async def update_async(
+        cls,
+        db: AsyncSession,
+        id: Any,
+        data: Dict[str, Any],
+        background: Optional[bool] = None
+    ) -> Any:
+        """Update a record asynchronously with optional write queueing."""
+        from app.connections import connection
+        filters = {cls._primary_key: id}
         if cls._delete_logic and hasattr(cls, cls._active_field):
-            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-        result = await db.execute(stmt)
-        record = result.scalars().first()
-        if not record:
-            return False
+            filters[cls._active_field] = 1
 
-        for key, value in data.items():
-            if hasattr(record, key):
-                setattr(record, key, value)
-        await db.commit()
+        res = await connection.query_orm_async(
+            model=cls,
+            operation="update",
+            session=db,
+            filters=filters,
+            values=data,
+            background=background
+        )
+        if isinstance(res, dict) and res.get("queued"):
+            return res
+
         await cls.invalidate_cache_async()
-        return True
+        return bool(res)
 
     @classmethod
     def delete(cls, db: Session, id: Any) -> bool:
@@ -275,24 +299,41 @@ class BaseModel(Base):
         return True
 
     @classmethod
-    async def delete_async(cls, db: AsyncSession, id: Any) -> bool:
-        """Delete a record asynchronously."""
-        from sqlalchemy import select as sa_select
-        stmt = sa_select(cls).where(getattr(cls, cls._primary_key) == id)
+    async def delete_async(
+        cls,
+        db: AsyncSession,
+        id: Any,
+        background: Optional[bool] = None
+    ) -> Any:
+        """Delete a record asynchronously with optional write queueing."""
+        from app.connections import connection
+        filters = {cls._primary_key: id}
         if cls._delete_logic and hasattr(cls, cls._active_field):
-            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-        result = await db.execute(stmt)
-        record = result.scalars().first()
-        if not record:
-            return False
+            filters[cls._active_field] = 1
 
-        if cls._delete_logic and hasattr(record, cls._active_field):
-            setattr(record, cls._active_field, 0)
+        if cls._delete_logic and hasattr(cls, cls._active_field):
+            res = await connection.query_orm_async(
+                model=cls,
+                operation="update",
+                session=db,
+                filters=filters,
+                values={cls._active_field: 0},
+                background=background
+            )
         else:
-            await db.delete(record)
-        await db.commit()
+            res = await connection.query_orm_async(
+                model=cls,
+                operation="delete",
+                session=db,
+                filters=filters,
+                background=background
+            )
+
+        if isinstance(res, dict) and res.get("queued"):
+            return res
+
         await cls.invalidate_cache_async()
-        return True
+        return bool(res)
 
     @classmethod
     def get_all_without_orm(cls, select: str = None, limit: int = 1000, **filters) -> List[Dict[str, Any]]:
