@@ -92,6 +92,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-lila_db}
+      MYSQL_USER: ${DB_USER:-lila_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
     ports:
       - "${DB_PORT:-3306}:3306"
     volumes:
