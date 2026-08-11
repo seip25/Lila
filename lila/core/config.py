@@ -31,7 +31,7 @@ FRAMEWORK_SCHEMA = [
     ("APP_URL",              "str",  ""),
     ("DEBUG",                "bool", True),
     ("JIT",                  "bool", False),
-    ("WORKERS",              "int",  1),
+    ("WORKERS",              "str",  "max"),
     ("MINIFY_HTML",          "bool", False),
     ("TITLE_PROJECT",        "str",  "Lila project"),
     ("VERSION_PROJECT",      "str",  "1"),

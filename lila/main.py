@@ -2,7 +2,7 @@ from lila.core.app import App
 from app.routes.web.index import routes
 from app.routes.api.index import routes as api_routes 
 from app.routes.api.example import routes as example_api_routes
-from app.config import DEBUG, JIT, HOST, PORT
+from app.config import DEBUG, JIT, HOST, PORT,WORKERS
 from lila.core.middleware import (
     Middleware,
     LoggingMiddleware,
@@ -71,7 +71,10 @@ def main():
     if DEBUG:
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
-        workers = int(os.getenv("WEB_CONCURRENCY", (os.cpu_count() or 1) * 2 + 1))
+        if WORKERS.lower() == "max":
+            workers = (os.cpu_count() or 1) * 2 + 1
+        else:
+            workers = int(WORKERS)
         uds_path = os.getenv("UDS_PATH")
         if uds_path:
             print(f"🚀 Running Lila in UDS mode: {uds_path} with {workers} workers (uvloop + httptools)")
