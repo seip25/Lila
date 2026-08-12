@@ -260,7 +260,9 @@ def cached(ttl: int = 300):
                 return await func(request, *args, **kwargs)
 
             query_params = tuple(sorted(request.query_params.items()))
-            cache_key = f"route_cache:{request.url.path}:{query_params}"
+            auth_cookie = request.cookies.get("auth", "") or request.cookies.get("session", "")
+            auth_header = request.headers.get("Authorization", "")
+            cache_key = f"route_cache:{request.url.path}:{query_params}:{auth_cookie}:{auth_header}"
 
             cached_data = await Cache.get_async(cache_key)
             if cached_data is not None:

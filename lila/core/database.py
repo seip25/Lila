@@ -72,6 +72,13 @@ class Database:
                             if not result.fetchone():
                                 await conn.execute(text(f"CREATE DATABASE {database}"))
                                 print(f"Database '{database}' created.")
+                    except Exception as e:
+                        Logger.error(f"FATAL: Database connection failed during startup check: {e}")
+                        import sys
+                        sys.stderr.write(f"\n FATAL ERROR: Database connection failed during startup check:\n{e}\nIs your database running and accessible?\n")
+                        sys.stderr.flush()
+                        import os
+                        os._exit(1)
                     finally:
                         await temp_engine.dispose()
 
@@ -87,7 +94,12 @@ class Database:
                     else:
                         loop.run_until_complete(_check_and_create_db())
                 except Exception as e:
-                    Logger.warning(f"Database creation check skipped: {e}")
+                    Logger.error(f"Database creation check scheduling failed: {e}")
+                    import sys
+                    sys.stderr.write(f"\n FATAL ERROR: Database creation check scheduling failed:\n{e}\n")
+                    sys.stderr.flush()
+                    import os
+                    os._exit(1)
             else:
                 temp_engine = create_engine(
                     f"{db_type}+{connector}://{user}:{password}@{host}:{port}/postgres"
@@ -143,11 +155,11 @@ class Database:
                         autocommit=False, autoflush=self.auto_flush, bind=self.engine
                     )
             except ImportError as e:
-                print(f"Database driver import error: {e}")
-                return False
+                Logger.error(f"Database driver import error: {e}")
+                raise ConnectionError(f"Database driver import error: {e}")
             except SQLAlchemyError as e:
-                print(f"Database connection error: {e}")
-                return False
+                Logger.error(f"Database connection error: {e}")
+                raise ConnectionError(f"Database connection error: {e}")
         else:
             database = self.config.get("database", "db")
             try:
@@ -162,9 +174,8 @@ class Database:
                         autocommit=False, autoflush=False, bind=self.engine
                     )
             except SQLAlchemyError as e:
-                print(f"Create database, error: {e}")
                 Logger.error(f"Create database, error: {e}")
-                return False
+                raise ConnectionError(f"Create database, error: {e}")
         return True
 
     def get_session(self) -> Union[Session, AsyncSession]:
@@ -325,27 +336,17 @@ class Database:
         import asyncio
         from lila.core.base_model import _PENDING_QUERIES
         from lila.core.background import BackgroundTask
-        from lila.core.cache import _get_redis_client
         import uuid
 
         is_select = query.strip().upper().startswith("SELECT")
 
-        if not is_select and (background is True or background is None):
-            client = _get_redis_client()
-            queue_len = 0
-            if client is not None:
-                try:
-                    queue_len = client.llen("lila:tasks")
-                except Exception:
-                    pass
-
-            if background is True or (background is None and queue_len > 15):
-                job_id = str(uuid.uuid4())
-                task = BackgroundTask(_execute_queued_query, query, params)
-                if task._starlette_task is not None:
-                    await _execute_queued_query(query, params)
-                    return True
-                return {"success": True, "queued": True, "job_id": job_id}
+        if not is_select and background is True:
+            job_id = str(uuid.uuid4())
+            task = BackgroundTask(_execute_queued_query, query, params)
+            if task._starlette_task is not None:
+                loop = asyncio.get_running_loop()
+                loop.create_task(_execute_queued_query(query, params))
+            return {"success": True, "queued": True, "job_id": job_id}
 
         if is_select:
             params_tuple = tuple(sorted(params.items())) if params else ()
