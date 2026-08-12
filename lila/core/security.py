@@ -7,7 +7,7 @@ class Security:
     """
     _COMPILED_XSS_PATTERNS = [
         (re.compile(r"<script.*?>.*?</script>", flags=re.IGNORECASE | re.DOTALL), ""),
-        (re.compile(r"on\w+\s*=", flags=re.IGNORECASE | re.DOTALL), ""),
+        (re.compile(r"\bon[a-z]+\s*=", flags=re.IGNORECASE | re.DOTALL), ""),
         (re.compile(r"javascript:", flags=re.IGNORECASE | re.DOTALL), ""),
         (re.compile(r"<iframe.*?>.*?</iframe>", flags=re.IGNORECASE | re.DOTALL), ""),
         (re.compile(r"<object.*?>.*?</object>", flags=re.IGNORECASE | re.DOTALL), ""),
