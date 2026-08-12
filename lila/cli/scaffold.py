@@ -156,10 +156,15 @@ def _write_env_file(env_path: Path, project_info: dict) -> None:
     env_content = f"""# ─── Server ────────────────────────────────────────────────
 SECRET_KEY='{secret_key}'
 DEBUG=True
-PORT=8000
+PORT=8000 
 HOST="127.0.0.1"
 JIT=False
-WORKERS="1"
+WORKERS="max"
+MINIFY_HTML=True
+
+# ─── Redis ─────────────────────────────────────────────
+REDIS_HOST="127.0.0.1"
+REDIS_PORT=6379
 
 # ─── Application URL ─────────────────────────────────────────
 # English: Production URL for sitemaps, robots.txt, and canonical links.
