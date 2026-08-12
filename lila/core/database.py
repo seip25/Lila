@@ -479,33 +479,35 @@ class Database:
     ) -> Any:
         """Execute ORM database operations asynchronously with optional write queueing."""
         from lila.core.background import BackgroundTask
-        from lila.core.cache import _get_redis_client
         import uuid
 
         is_write = operation in ("insert", "update", "delete")
 
-        if is_write and (background is True or background is None):
-            client = _get_redis_client()
-            queue_len = 0
-            if client is not None:
-                try:
-                    queue_len = client.llen("lila:tasks")
-                except Exception:
-                    pass
+        if is_write and background is True:
+            job_id = str(uuid.uuid4())
+            model_module = model.__module__
+            model_name = model.__name__
 
-            if background is True or (background is None and queue_len > 15):
-                job_id = str(uuid.uuid4())
-                model_module = model.__module__
-                model_name = model.__name__
+            instance_dict = {}
+            if instance:
+                for col in instance.__table__.columns:
+                    if hasattr(instance, col.name):
+                        instance_dict[col.name] = getattr(instance, col.name)
 
-                instance_dict = {}
-                if instance:
-                    for col in instance.__table__.columns:
-                        if hasattr(instance, col.name):
-                            instance_dict[col.name] = getattr(instance, col.name)
-
-                task = BackgroundTask(
-                    _execute_queued_orm,
+            task = BackgroundTask(
+                _execute_queued_orm,
+                model_module,
+                model_name,
+                operation,
+                instance_dict,
+                filters,
+                values,
+                return_one
+            )
+            if task._starlette_task is not None:
+                # If Redis is unavailable, fallback to native asyncio background execution without blocking
+                loop = asyncio.get_running_loop()
+                loop.create_task(_execute_queued_orm(
                     model_module,
                     model_name,
                     operation,
@@ -513,19 +515,8 @@ class Database:
                     filters,
                     values,
                     return_one
-                )
-                if task._starlette_task is not None:
-                    await _execute_queued_orm(
-                        model_module,
-                        model_name,
-                        operation,
-                        instance_dict,
-                        filters,
-                        values,
-                        return_one
-                    )
-                    return True
-                return {"success": True, "queued": True, "job_id": job_id}
+                ))
+            return {"success": True, "queued": True, "job_id": job_id}
 
         own_session = False
         if session is None:
