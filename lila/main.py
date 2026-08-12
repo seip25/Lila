@@ -71,7 +71,7 @@ def main():
     if DEBUG:
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
-        if WORKERS.lower() == "max":
+        if str(WORKERS).lower() == "max" or WORKERS == 0:
             workers = (os.cpu_count() or 1) * 2 + 1
         else:
             workers = int(WORKERS)
