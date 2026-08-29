@@ -72,11 +72,17 @@ def main():
         uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
     else:
         if str(WORKERS).lower() == "max" or WORKERS == 0:
-            workers = (os.cpu_count() or 1) * 2 + 1
+            workers = min((os.cpu_count() or 1) * 2 + 1, 8)
         else:
             workers = int(WORKERS)
         uds_path = os.getenv("UDS_PATH")
         if uds_path:
+            if os.path.exists(uds_path):
+                try:
+                    os.unlink(uds_path)
+                except Exception:
+                    pass
+            os.makedirs(os.path.dirname(uds_path), exist_ok=True)
             print(f"🚀 Running Lila in UDS mode: {uds_path} with {workers} workers (uvloop + httptools)")
             uvicorn.run("main:app", uds=uds_path, reload=False, access_log=False, log_level="warning", workers=workers, loop="uvloop", http="httptools")
         else:

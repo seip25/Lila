@@ -70,6 +70,7 @@ services:
       - REDIS_PORT=6379
       - HOST=0.0.0.0
       - PORT=8000
+      - WORKERS=${WORKERS:-2}
       - UDS_PATH=/tmp/sockets/lila.sock
       - PYTHON_JIT=${PYTHON_JIT:-1}
     depends_on:
@@ -78,7 +79,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/ || python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/')\" || exit 1"]
+      test: ["CMD-SHELL", "python -c \"import os, sys, urllib.request; uds = os.getenv('UDS_PATH'); (sys.exit(0) if (uds and os.path.exists(uds)) else None); urllib.request.urlopen('http://127.0.0.1:' + os.getenv('PORT', '8000') + '/')\" || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -132,6 +133,23 @@ services:
     image: mysql:8.0
     container_name: ${LILA_PROJECT_NAME:-lila}-mysql
     restart: unless-stopped
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --innodb-log-buffer-size=4M
+      - --innodb-redo-log-capacity=16M
+      - --max-connections=50
+      - --table-open-cache=64
+      - --table-definition-cache=128
+      - --key-buffer-size=16M
+      - --sort-buffer-size=256K
+      - --read-buffer-size=128K
+      - --read-rnd-buffer-size=256K
+      - --join-buffer-size=256K
+      - --binlog-cache-size=32K
+      - --skip-name-resolve
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-lila_db}
