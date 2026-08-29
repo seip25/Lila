@@ -427,58 +427,63 @@ lila-seo robots --domain https://mywebsite.com
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash"># Pre-flight diagnostic & port check
+lila-docker check
 
-# Start MySQL database container
+# Start dev stack (MySQL + Redis)
+lila-docker start
+
+# Start complete production stack (MySQL + Redis + App + Nginx)
+lila-docker start prod
+
+# Start specific containers
 lila-docker start mysql
-
-# Start PostgreSQL database container
+lila-docker start redis
 lila-docker start postgres
 
-# Start all database containers (MySQL and PostgreSQL)
-lila-docker start all
+# Live resource usage & memory monitoring (shows ~70MB MySQL RAM)
+lila-docker stats
 
-# Stop and remove MySQL database container
+# Zero-downtime automated VPS deploy (git pull, build, migrate, restart)
+lila-docker deploy
+
+# Restart containers
+lila-docker restart
+lila-docker restart app
+
+# Stop containers
+lila-docker stop
 lila-docker stop mysql
+lila-docker stop app
 
-# Stop and remove PostgreSQL database container
-lila-docker stop postgres
+# Full teardown (containers and networks)
+lila-docker down
 
-# Stop and tear down all database containers
-lila-docker stop all
-
-# List active database containers status (runs automatically when calling lila-docker with no subcommand)
+# List active containers status
 lila-docker ps
 # or
 lila-docker
 
-# Conectar a MySQL usando las credenciales y BD del .env del proyecto
+# Tail logs
+lila-docker logs
+lila-docker logs mysql
+lila-docker logs nginx
+
+# Connect to MySQL using credentials from .env
 lila-docker mysql
-
-# o usando el alias corto:
-lila-docker db
-
-# Conectar como usuario root usando el password root del .env
+lila-docker db # short alias
 lila-docker mysql --root
 
-# Especificar/sobrescribir usuario, contraseña o BD si es necesario
-lila-docker mysql -u root -p mi_password -d mi_base_de_datos
-
-# Conectar a la consola interactiva de Redis (redis-cli) en el contenedor
+# Connect to Redis CLI inside container
 lila-docker redis
-# o usando el alias corto:
 lila-docker redis-cli
 
-# Mostrar uso de disco de Docker (imágenes, volúmenes, caché)
+# Display Docker disk space usage
 lila-docker df
-# o alias corto:
 lila-docker disk
 
-# Limpiar volúmenes huérfanos, imágenes dangling y caché de BuildKit
+# Clean up orphaned volumes, dangling images, and BuildKit cache
 lila-docker prune
-# o alias corto:
-lila-docker clean
-# Sin confirmación (ideal para scripts de despliegue):
 lila-docker clean -f
 </code>
 </pre>

@@ -598,51 +598,72 @@ This allows multiple Lila projects to coexist on one VPS without port or name co
 
 ### Setup (lila-init)
 
-When running `lila-init`, the CLI asks for a project name and optional MySQL setup. The project name is sanitized (spaces → underscores, lowercase) and written to `.env` as `LILA_PROJECT_NAME`. This name is used by `docker-compose.yml` to namespace all resources.
+When running `lila-init`, the CLI asks for a project name and optional MySQL setup. The project name is sanitized (spaces → underscores, lowercase) and written to `.env` as `LILA_PROJECT_NAME`. This name is used by `docker-compose.yml` to namespace all resources (containers, networks, and volumes).
+
+### Low-Memory MySQL 8.0 (~70MB RAM)
+
+Lila ships with a custom, production-tested `docker/mysql/my.cnf` configuration that disables `performance_schema` (saving ~250-400MB RAM) and tunes InnoDB buffers, reducing MySQL 8 RAM footprint from ~550MB+ down to **~60MB - 90MB**. This enables hosting multiple Lila projects comfortably on a 1GB or 2GB RAM VPS.
 
 ### Development Workflow
 
 ```bash
-# Start only MySQL (run your Python app locally)
+# Start MySQL and Redis (run your Python app locally)
 lila-docker start
 # or: lila-docker start mysql
+# or: lila-docker start redis
 
 # Run app normally
-python main.py
-# or: lila-dev
+lila-dev
+# or: python main.py
 ```
 
-### Production Workflow
+### Production & VPS Deployment Workflow
 
 ```bash
-# 1. Build the Docker image (first time, or after requirements change)
+# Pre-flight check: verify Docker daemon, ports, and .env
+lila-docker check
+
+# 1. Build the Docker image (uses layer caching)
 lila-docker build
 
-# 2. Start full stack (MySQL + Python app)
+# 2. Start full production stack (MySQL + Redis + App + Nginx)
 lila-docker start prod
 
-# 3. View app logs
-lila-docker logs
-lila-docker logs --no-follow  # print last 100 lines
+# 3. View live resource usage (CPU & RAM per container)
+lila-docker stats
 
-# 4. Stop everything
+# 4. View app logs
+lila-docker logs
+lila-docker logs mysql
+lila-docker logs --no-follow
+
+# 5. Restart services
+lila-docker restart
+lila-docker restart app
+
+# 6. Zero-downtime VPS Deploy helper (pulls git, builds image, runs migrations, restarts stack)
+lila-docker deploy
+
+# 7. Stop stack
 lila-docker stop
+# or full teardown:
+lila-docker down
 ```
 
 ### Connecting to MySQL Terminal
 
 ```bash
-# Conectar a MySQL usando las credenciales y BD del .env del proyecto
+# Connect to MySQL using credentials and DB from project's .env
 lila-docker mysql
 
-# o usando el alias corto:
+# Short alias:
 lila-docker db
 
-# Conectar como usuario root usando el password root del .env
+# Connect as root user using root password from .env:
 lila-docker mysql --root
 
-# Especificar/sobrescribir usuario, contraseña o BD si es necesario
-lila-docker mysql -u root -p mi_password -d mi_base_de_datos
+# Connect to Redis CLI:
+lila-docker redis
 ```
 
 ### Running CLI Commands in Production Containers
@@ -658,10 +679,10 @@ lila-model create Product
 
 ### Multi-Project VPS with Nginx
 
-Each project configures its own `PORT` and `DB_PORT` in `.env`. Nginx routes traffic by domain to each container's port.
+Each project configures its own `PORT`, `DB_PORT`, `REDIS_PORT_HOST`, and `LILA_PROJECT_NAME` in `.env`. Nginx routes traffic by domain to each container's port.
 
-**Project A `.env`**: `PORT=8001`, `DB_PORT=3307`, `LILA_PROJECT_NAME=shop`
-**Project B `.env`**: `PORT=8002`, `DB_PORT=3308`, `LILA_PROJECT_NAME=blog`
+**Project A `.env`**: `PORT=8001`, `DB_PORT=3307`, `REDIS_PORT_HOST=6380`, `LILA_PROJECT_NAME=shop`
+**Project B `.env`**: `PORT=8002`, `DB_PORT=3308`, `REDIS_PORT_HOST=6381`, `LILA_PROJECT_NAME=blog`
 
 ```nginx
 # /etc/nginx/sites-available/shop.com
@@ -682,14 +703,15 @@ server {
 
 | Variable            | Default   | Description                                                 |
 | ------------------- | --------- | ----------------------------------------------------------- |
-| `LILA_PROJECT_NAME` | `lila`    | Unique project name — used for container and network naming |
-| `PORT`              | `8000`    | Port exposed by the Python app container                    |
+| `LILA_PROJECT_NAME` | `lila`    | Unique project name — used for container, volume & network isolation |
+| `PORT`              | `8000`    | Host port mapped to Nginx/App container                     |
 | `DB_NAME`           | `lila_db` | MySQL database name                                         |
 | `DB_USER`           | `root`    | MySQL user                                                  |
 | `DB_PASSWORD`       | `root`    | MySQL root password                                         |
 | `DB_PORT`           | `3306`    | Host port mapped to MySQL container                         |
+| `REDIS_PORT_HOST`   | `6379`    | Host port mapped to Redis container                         |
 
-> **Security note**: Change `DB_PASSWORD` in `.env` before deploying to production. The `.env` file is already in `.gitignore`.
+> **Security note**: Change `DB_PASSWORD` and `SECRET_KEY` in `.env` before deploying to production. The `.env` file is in `.dockerignore` and `.gitignore`.
 
 ### PostgreSQL (Optional)
 

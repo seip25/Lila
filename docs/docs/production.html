@@ -329,21 +329,31 @@ server {
         <li>Set the action to run your script.</li>
       </ol>
 
-      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Docker Deployment
-        Workflow</h3>
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Docker & VPS Deployment</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        Each Lila project comes preconfigured with a multi-container Docker structure that packages both the Python app
-        (with Python 3.14-slim) and a MySQL database into isolated containers.
+        Each Lila project includes a production-ready, highly optimized multi-container Docker stack (Python app, low-memory MySQL 8.0, Redis cache/sessions, and Nginx reverse proxy).
       </p>
-      <p class="mt-2 text-slate-600 dark:text-slate-300">
-        All container and network names are automatically prefixed with <code>LILA_PROJECT_NAME</code> (which you define
-        in your <code>.env</code> file at scaffolding). This keeps them fully isolated, allowing you to deploy multiple
-        distinct Lila projects on the same VPS without port or namespace conflicts.
-      </p>
+      
+      <div class="mt-4 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40">
+        <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-300">⚡ MySQL Low-Memory Tuning (~70MB RAM footprint)</h4>
+        <p class="text-xs text-blue-800/90 dark:text-blue-300/80 mt-1">
+          Default MySQL 8.0 consumes <strong>450MB - 800MB+ RAM</strong>. Lila ships with a custom <code>docker/mysql/my.cnf</code> that disables <code>performance_schema</code>, tunes InnoDB buffers, and reduces the memory footprint to just <strong>~60MB - 90MB</strong>. This makes it effortless to run multiple Lila applications on affordable 1GB or 2GB RAM VPS instances without hitting OOM crashes.
+        </p>
+      </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">1. Build the Production Image</h4>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-6">1. Pre-Flight Diagnostics & Port Check</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Run this to build the lightweight Python 3.14 production image, caching dependencies for faster rebuilds:
+        Verify that Docker is running and that your configured ports in <code>.env</code> are available:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash">lila-docker check</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">2. Build the Production Image</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Builds the secure, non-root Python 3.12 production image with layer caching:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
@@ -351,17 +361,38 @@ server {
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">2. Start the Stack (MySQL & App)</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        To start both the MySQL database and the Python app container in production mode (headless/daemon):
-      </p>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">3. Start the Stack (Dev or Prod)</h4>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-bash">lila-docker start prod</code></pre>
+          <pre><code class="language-bash"># Development: start MySQL + Redis only (run app locally via lila-dev)
+lila-docker start
+
+# Production: start full production stack (MySQL + Redis + App + Nginx)
+lila-docker start prod</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">3. View Container Logs & Status</h4>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">4. Live Resource & Memory Monitoring</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Monitor real-time CPU, RAM usage, and limits for all project containers:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash">lila-docker stats</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">5. Automated VPS Zero-Downtime Deploy</h4>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+        Pulls latest Git changes, rebuilds Docker images, runs migrations, and restarts services:
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-bash">lila-docker deploy</code></pre>
+        </div>
+      </div>
+
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">6. View Container Logs & Status</h4>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
           <pre><code class="language-bash"># Check container status
@@ -371,78 +402,69 @@ lila-docker ps
 lila-docker logs
 
 # Tail MySQL logs
-lila-docker logs mysql</code></pre>
+lila-docker logs mysql
+
+# Tail Nginx logs
+lila-docker logs nginx</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">4. Run CLI Commands inside Docker</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        To run migrations or scaffold models inside your running production container, use
-        <code>lila-docker exec</code>:
-      </p>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">7. Run CLI Commands inside Docker</h4>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
           <pre><code class="language-bash">lila-docker exec app bash
 
-# Inside the container shell:
-lila-migrations
+# Inside the container:
+lila-migrations migrate
 lila-model create MyModel</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">5. Connect to MySQL Terminal</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Connect directly to the interactive MySQL shell using credentials from <code>.env</code>:
-      </p>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">8. Connect to MySQL / Redis Terminals</h4>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-bash"># Conectar a MySQL usando las credenciales y BD del .env del proyecto
+          <pre><code class="language-bash"># Connect to MySQL shell using credentials from .env
 lila-docker mysql
+lila-docker db # alias
 
-# o usando el alias corto:
-lila-docker db
-
-# Conectar como usuario root usando el password root del .env
-lila-docker mysql --root
-
-# Especificar/sobrescribir usuario, contraseña o BD si es necesario
-lila-docker mysql -u root -p mi_password -d mi_base_de_datos</code></pre>
+# Connect to Redis CLI:
+lila-docker redis</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">6. VPS Disk Maintenance & Cleanup</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        To prevent unused images, dangling volumes, and BuildKit cache from filling up your VPS disk space, use the maintenance commands built into <code>lila-docker</code>:
-      </p>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">9. VPS Disk Maintenance & Cleanup</h4>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-bash"># Check current Docker disk space usage across containers, images, volumes, and build cache
+          <pre><code class="language-bash"># Check Docker disk space usage
 lila-docker df
 
-# Clean up orphaned volumes, dangling images, and BuildKit build cache
+# Clean up orphaned volumes, dangling images, and build cache
 lila-docker prune
-
-# Alias for prune (can use -f for non-interactive automated maintenance scripts):
 lila-docker clean -f</code></pre>
         </div>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">7. Multi-Project VPS Reverse Proxy (Nginx)
-      </h4>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">10. Multi-Project VPS Reverse Proxy (Host Nginx)</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Configure a different <code>PORT</code> and <code>DB_PORT</code> in the <code>.env</code> file for each project.
-        Nginx can then reverse-proxy traffic to each container:
+        Configure a different <code>PORT</code>, <code>DB_PORT</code>, and <code>LILA_PROJECT_NAME</code> in each project's <code>.env</code> file:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-ini"># Project A .env: PORT=8001, LILA_PROJECT_NAME=shop
-# Project B .env: PORT=8002, LILA_PROJECT_NAME=blog
+          <pre><code class="language-ini"># Project A (.env): PORT=8001, DB_PORT=3307, LILA_PROJECT_NAME=shop
+# Project B (.env): PORT=8002, DB_PORT=3308, LILA_PROJECT_NAME=blog
 
-# In Nginx configuration for Shop:
-location / {
-    proxy_pass http://127.0.0.1:8001;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
+# In Host Nginx configuration:
+server {
+    listen 80;
+    server_name shop.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }</code></pre>
         </div>
       </div>

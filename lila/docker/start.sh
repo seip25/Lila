@@ -1,30 +1,37 @@
 #!/bin/bash
 # Lila Framework — Docker start script
 # Usage:
-#   ./docker/start.sh          → Start MySQL only (dev)
-#   ./docker/start.sh mysql    → Start MySQL only (dev)
-#   ./docker/start.sh prod     → Start MySQL + Python app (production)
+#   ./docker/start.sh          → Start MySQL and Redis (dev mode)
+#   ./docker/start.sh dev      → Start MySQL and Redis (dev mode)
+#   ./docker/start.sh mysql    → Start MySQL only
+#   ./docker/start.sh redis    → Start Redis only
+#   ./docker/start.sh prod     → Start full production stack (MySQL + Redis + App + Nginx)
+#   ./docker/start.sh postgres → Start PostgreSQL container
 #
-SERVICE=${1:-mysql}
+SERVICE=${1:-dev}
 
-if [ "$SERVICE" = "mysql" ] || [ "$SERVICE" = "dev" ]; then
-  echo "🚀 Starting MySQL container (dev mode)..."
+if [ "$SERVICE" = "dev" ]; then
+  echo "🚀 Starting MySQL and Redis containers (dev mode)..."
+  docker compose up -d mysql redis
+  echo "✅ MySQL and Redis ready. Run your app locally with: lila-dev or python main.py"
+elif [ "$SERVICE" = "mysql" ]; then
+  echo "🚀 Starting MySQL container (low-memory mode)..."
   docker compose up -d mysql
-  echo "✅ MySQL ready. Run your app with: python main.py"
+  echo "✅ MySQL ready. Memory capped (~70MB RAM)."
+elif [ "$SERVICE" = "redis" ]; then
+  echo "🚀 Starting Redis container..."
+  docker compose up -d redis
+  echo "✅ Redis ready."
 elif [ "$SERVICE" = "prod" ]; then
-  echo "🚀 Starting full production stack (MySQL + App)..."
+  echo "🚀 Starting full production stack (MySQL + Redis + App + Nginx)..."
   docker compose --profile prod up -d
-  echo "✅ Production stack started."
+  echo "✅ Production stack started. View status with: lila-docker ps"
 elif [ "$SERVICE" = "postgres" ]; then
   echo "🚀 Starting PostgreSQL container..."
   docker compose up -d postgres
-  echo "✅ PostgreSQL ready. Run your app with: python main.py"
-elif [ "$SERVICE" = "all" ]; then
-  echo "🚀 Starting all services (dev mode — app excluded)..."
-  docker compose up -d mysql
-  echo "✅ Services started. Run your app with: python main.py"
+  echo "✅ PostgreSQL ready."
 else
   echo "❌ Error: Unknown service '$SERVICE'."
-  echo "   Use: mysql (default), prod, postgres"
+  echo "   Use: dev (default), mysql, redis, prod, postgres"
   exit 1
 fi

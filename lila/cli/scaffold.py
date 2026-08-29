@@ -1,5 +1,6 @@
 import sys
 import os
+import socket
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
@@ -76,6 +77,17 @@ def copy_item(
         )
 
 
+def _is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
+    """Test if a port is bound on the host."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            s.bind((host, port))
+            return False
+        except OSError:
+            return True
+
+
 def _prompt(label_en: str, label_es: str, default: str) -> str:
     """
     English: Prompts the user for input with a default value. Press Enter to accept the default.
@@ -100,8 +112,8 @@ def _to_docker_name(name: str) -> str:
 
 def _collect_project_info(project_dir_name: str) -> dict:
     """
-    English: Interactively collects project metadata and optional database config.
-    Español: Recolecta interactivamente los metadatos del proyecto y la config de DB opcional.
+    English: Interactively collects project metadata, database config, and checks port availability.
+    Español: Recolecta interactivamente los metadatos del proyecto, config de DB y verifica disponibilidad de puertos.
     """
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
     default_docker_name = _to_docker_name(project_dir_name)
@@ -112,8 +124,20 @@ def _collect_project_info(project_dir_name: str) -> dict:
     project_name_raw = _prompt("Project name (used for Docker containers)", "Nombre del proyecto (para Docker)", project_dir_name)
     docker_name = _to_docker_name(project_name_raw)
 
+    # Check default web port (8000)
+    suggested_port = "8000"
+    if _is_port_in_use(8000):
+        print("  ⚠️ Puerto 8000 ocupado en el host / Port 8000 is currently in use.")
+        for p in range(8001, 8020):
+            if not _is_port_in_use(p):
+                suggested_port = str(p)
+                break
+
+    app_port = _prompt("HTTP port for Docker/VPS", "Puerto HTTP para Docker/VPS", suggested_port)
+
     info = {
         "LILA_PROJECT_NAME": docker_name,
+        "PORT": app_port,
         "TITLE_PROJECT": _prompt("Project title", "Título del proyecto", default_title),
         "DESCRIPTION_PROJECT": _prompt("Description", "Descripción", ""),
         "AUTHOR_DEFAULT": _prompt("Author", "Autor", ""),
@@ -127,19 +151,28 @@ def _collect_project_info(project_dir_name: str) -> dict:
         "DB_NAME": docker_name,
         "DB_USER": "root",
         "DB_PASSWORD": "root",
+        "REDIS_PORT_HOST": "6379",
     }
 
     # ── MySQL setup ────────────────────────────────────────────────────────────
     print("\n🗄️  Configuración de base de datos / Database setup")
     setup_mysql = input("  ¿Quieres configurar MySQL ahora? / Configure MySQL now? [s/N]: ").strip().lower()
     if setup_mysql in ("s", "y", "si", "yes"):
+        suggested_db_port = "3306"
+        if _is_port_in_use(3306):
+            print("  ⚠️ Puerto MySQL 3306 ocupado en el host / Port 3306 is in use.")
+            for p in range(3307, 3320):
+                if not _is_port_in_use(p):
+                    suggested_db_port = str(p)
+                    break
+
         info["DB_TYPE"] = "mysql"
         info["DB_HOST"] = _prompt("MySQL host", "Host MySQL", "127.0.0.1")
-        info["DB_PORT"] = _prompt("MySQL port", "Puerto MySQL", "3306")
+        info["DB_PORT"] = _prompt("MySQL port (host)", "Puerto MySQL (host)", suggested_db_port)
         info["DB_NAME"] = _prompt("Database name", "Nombre de la base de datos", docker_name)
         info["DB_USER"] = _prompt("MySQL user", "Usuario MySQL", "root")
         info["DB_PASSWORD"] = _prompt("MySQL password", "Contraseña MySQL", "root")
-        print("  ✅ MySQL configurado. Las credenciales se guardarán en .env / MySQL configured. Credentials saved to .env")
+        print("  ✅ MySQL configurado con perfil low-memory (~70MB RAM). Credenciales guardadas en .env")
     else:
         print("  ℹ️  Usando SQLite por defecto / Using SQLite by default (app/connections.py)")
 
@@ -156,15 +189,16 @@ def _write_env_file(env_path: Path, project_info: dict) -> None:
     env_content = f"""# ─── Server ────────────────────────────────────────────────
 SECRET_KEY='{secret_key}'
 DEBUG=True
-PORT=8000 
+PORT={project_info.get("PORT", "8000")}
 HOST="127.0.0.1"
 JIT=False
 WORKERS="max"
 MINIFY_HTML=True
 
-# ─── Redis ─────────────────────────────────────────────
+# ─── Redis ─────────────────────────────────────────────────
 REDIS_HOST="127.0.0.1"
 REDIS_PORT=6379
+REDIS_PORT_HOST={project_info.get("REDIS_PORT_HOST", "6379")}
 
 # ─── Application URL ─────────────────────────────────────────
 # English: Production URL for sitemaps, robots.txt, and canonical links.
@@ -184,10 +218,10 @@ DESCRIPTION_DEFAULT="{project_info["DESCRIPTION_DEFAULT"]}"
 KEYWORDS_DEFAULT="{project_info["KEYWORDS_DEFAULT"]}"
 AUTHOR_DEFAULT="{project_info["AUTHOR_DEFAULT"]}"
 
-# ─── Docker / Deployment ────────────────────────────────────────
-# English: Used by docker-compose.yml to name containers and networks uniquely.
-#          Change PORT / DB_PORT if another project uses the same port on this server.
-# Español: Usado por docker-compose.yml para nombrar contenedores y redes de forma única.
+# ─── Docker / VPS Multi-Project Deployment ────────────────────
+# English: Used by docker-compose.yml to isolate containers, networks, and volumes.
+#          Change PORT / DB_PORT / REDIS_PORT_HOST if running multiple projects on one VPS.
+# Español: Usado por docker-compose.yml para aislar contenedores, redes y volúmenes.
 LILA_PROJECT_NAME={project_info["LILA_PROJECT_NAME"]}
 DB_NAME={project_info["DB_NAME"]}
 DB_USER={project_info["DB_USER"]}
@@ -213,8 +247,8 @@ load_dotenv()
 # ────────────────────────────────────────────────────────────────────────────
 # MySQL connection — configured during lila-init
 # Credentials are read from .env (so Docker Compose and local dev share them).
-# pool_size: max threads that can hit the DB simultaneously (for async routes)
-# max_overflow: extra threads allowed beyond pool_size under peak load
+# pool_size: max connections retained in pool (tuned for low-memory VPS)
+# max_overflow: extra connections allowed beyond pool_size under peak load
 # ────────────────────────────────────────────────────────────────────────────
 config = {{
     "type": "mysql",
@@ -225,8 +259,10 @@ config = {{
     "database": os.getenv("DB_NAME", "{project_info['DB_NAME']}"),
     "is_async": True,
     "auto_commit": False,
-    "pool_size": 20,
-    "max_overflow": 40,
+    "pool_size": 10,
+    "max_overflow": 20,
+    "pool_recycle": 1800,
+    "pool_timeout": 30,
 }}
 connection = Database(config=config)
 connection.connect()
@@ -264,8 +300,10 @@ connection.connect()
 #     "database": os.getenv("DB_NAME", "lila_db"),
 #     "is_async": True,
 #     "auto_commit": False,
-#     "pool_size": 20,
-#     "max_overflow": 40,
+#     "pool_size": 10,
+#     "max_overflow": 20,
+#     "pool_recycle": 1800,
+#     "pool_timeout": 30,
 # }
 
 # Example: async route (non-blocking, with query deduplication)

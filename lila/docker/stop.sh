@@ -3,7 +3,9 @@
 # Usage:
 #   ./docker/stop.sh           → Stop all containers for this project
 #   ./docker/stop.sh mysql     → Stop only MySQL
+#   ./docker/stop.sh redis     → Stop only Redis
 #   ./docker/stop.sh app       → Stop only the Python app container
+#   ./docker/stop.sh postgres  → Stop PostgreSQL container
 #
 SERVICE=${1:-all}
 
@@ -16,6 +18,11 @@ elif [ "$SERVICE" = "mysql" ]; then
   docker compose stop mysql
   docker compose rm -f mysql
   echo "✅ MySQL stopped."
+elif [ "$SERVICE" = "redis" ]; then
+  echo "🛑 Stopping Redis container..."
+  docker compose stop redis
+  docker compose rm -f redis
+  echo "✅ Redis stopped."
 elif [ "$SERVICE" = "app" ]; then
   echo "🛑 Stopping Python app container..."
   docker compose --profile prod stop app
@@ -28,6 +35,6 @@ elif [ "$SERVICE" = "postgres" ]; then
   echo "✅ PostgreSQL stopped."
 else
   echo "❌ Error: Unknown service '$SERVICE'."
-  echo "   Use: all (default), mysql, app, postgres"
+  echo "   Use: all (default), mysql, redis, app, postgres"
   exit 1
 fi
