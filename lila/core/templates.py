@@ -183,6 +183,27 @@ def get_jinja_env():
     return _JINJA_ENV
 
 
+class _TranslateProxy(dict):
+    """Proxy dictionary for Jinja templates to access translations with key fallback."""
+
+    def __init__(self, request: Request, lang_default: str = None):
+        super().__init__()
+        self.request = request
+        self.lang_default = lang_default
+
+    def __getitem__(self, key: str) -> str:
+        return Translate.t(key, self.request, default=key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return Translate.t(key, self.request, default=default if default is not None else key)
+
+    def __call__(self, key: str, default: Any = None) -> Any:
+        return Translate.t(key, self.request, default=default if default is not None else key)
+
+    def __contains__(self, key: object) -> bool:
+        return True
+
+
 def get_base_context(request: Request, files_translate: List[str] = None, lang_default: str = None) -> dict:
     """Constructs standard template context dictionary."""
     if files_translate is None:
@@ -190,6 +211,7 @@ def get_base_context(request: Request, files_translate: List[str] = None, lang_d
 
     current_lang = lang_default if lang_default else Translate.lang(request)
     seo_data = getattr(request.state, "seo", {}) if hasattr(request, "state") else {}
+    translate_proxy = _TranslateProxy(request, lang_default)
 
     return {
         "title": seo_data.get("title", TITLE_PROJECT),
@@ -198,9 +220,12 @@ def get_base_context(request: Request, files_translate: List[str] = None, lang_d
         "seo": seo_data,
         "version": VERSION_PROJECT,
         "lang": current_lang,
+        "translate": translate_proxy,
+        "t": translate_proxy,
         "author": seo_data.get("author", AUTHOR_DEFAULT),
         "app_url": APP_URL or f"http://{HOST}:{PORT}",
         "debug": DEBUG,
+        "debug_html": getattr(request.app, "debug_html", False) if hasattr(request, "app") else False,
         "get_flashes": lambda: get_flashes(request),
     }
 
