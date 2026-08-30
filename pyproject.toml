@@ -4,14 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lila-framework"
-version = "1.3.4"
-description = "Framework web Python"
+version = "1.3.5"
+description = "High-performance Python web framework"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
     { name = "Andrés Paiva Silveira", email = "andrespaivasilveiraa@gmail.com" }
 ]
- 
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -26,41 +25,32 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "starlette==1.0.0",
-    "jinja2==3.1.6",
-    "uvicorn[standard]==0.49.0",
-    "pydantic==2.12.5",
+    "starlette>=1.0.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.10.0",
     "pydantic[email]",
-    "python-dotenv==1.1.1",
-    "itsdangerous==2.2.0",
-    "mysql-connector-python==9.4.0",
-    "argon2-cffi==25.1.0",
-    "markdown==3.9",
-    "SQLAlchemy==2.0.48",
-    "PyJWT==2.10.1",
-    "psutil==7.1.0",
-    "python-multipart==0.0.20",
-    "typer==0.19.2",
-    "rjsmin==1.2.4",
-    "rcssmin==1.2.1",
-    "jinja2-htmlmin==1.0.1",
-    "starlette-compress==1.6.1",
-    "pillow==11.3.0",
-    "orjson==3.11.7",
-    "redis==5.0.8",
+    "python-dotenv>=1.0.0",
+    "SQLAlchemy>=2.0.0",
+    "PyJWT>=2.9.0",
+    "orjson>=3.10.0",
+    "redis>=5.0.0",
     "aiosqlite>=0.20.0",
-    "aiomysql>=0.3.2",
-    "cryptography"
+    "aiomysql>=0.3.0",
+    "pymysql>=1.1.0",
+    "cryptography>=43.0.0",
+    "typer>=0.12.0",
+    "python-multipart>=0.0.9",
+    "itsdangerous>=2.2.0",
 ]
 
 [project.optional-dependencies]
-postgres = ["asyncpg>=0.29.0"]
-psycopg = ["psycopg==3.2.10"]
+ssr = ["jinja2>=3.1.6", "markdown>=3.9"]
+images = ["pillow>=11.0.0"]
+postgres = ["asyncpg>=0.29.0", "psycopg>=3.2.0"]
+argon2 = ["argon2-cffi>=23.1.0"]
 
 [project.scripts]
 lila-init = "lila.cli.scaffold:main"
-lila-minify = "lila.cli.minify:main"
-lila-optimize = "lila.cli.optimize:main"
 lila-auth = "lila.cli.auth:app"
 lila-create-admin = "lila.cli.create_admin:app"
 lila-create-panel-admin = "lila.cli.create_panel_admin:app"

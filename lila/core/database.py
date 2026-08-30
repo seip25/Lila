@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from typing import Optional, Type, Dict, Any, Union
+from typing import Optional, Type, Dict, Any, Union, List
 from lila.core.logger import Logger
 import re
 from contextlib import contextmanager, asynccontextmanager
@@ -14,6 +14,11 @@ class Base(DeclarativeBase):
 
 
 class Database:
+    """
+    Core Database management engine for Lila Framework.
+    Supports asynchronous and synchronous connections with SQLite, MySQL (aiomysql/pymysql), and PostgreSQL (asyncpg/psycopg).
+    """
+
     def __init__(self, config: dict) -> None:
         """Initialize database configuration settings."""
         self.type = config.get("type", "sqlite")
@@ -40,7 +45,7 @@ class Database:
             if self.is_async:
                 connector = "asyncpg" if db_type == "postgresql" else "aiomysql"
             else:
-                connector = "psycopg" if db_type == "postgresql" else "mysqlconnector"
+                connector = "psycopg" if db_type == "postgresql" else "pymysql"
                 
             isolation_level = self.config.get("isolation_level", None)
             if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', database):
@@ -70,15 +75,10 @@ class Database:
                                     {"dbname": database}
                                 )
                             if not result.fetchone():
-                                await conn.execute(text(f"CREATE DATABASE {database}"))
-                                print(f"Database '{database}' created.")
+                                await conn.execute(text(f"CREATE DATABASE `{database}`" if db_type == "mysql" else f"CREATE DATABASE {database}"))
+                                Logger.info(f"Database '{database}' created successfully.")
                     except Exception as e:
-                        Logger.error(f"FATAL: Database connection failed during startup check: {e}")
-                        import sys
-                        sys.stderr.write(f"\n FATAL ERROR: Database connection failed during startup check:\n{e}\nIs your database running and accessible?\n")
-                        sys.stderr.flush()
-                        import os
-                        os._exit(1)
+                        Logger.warning(f"Database startup check note: {e}")
                     finally:
                         await temp_engine.dispose()
 
@@ -94,38 +94,36 @@ class Database:
                     else:
                         loop.run_until_complete(_check_and_create_db())
                 except Exception as e:
-                    Logger.error(f"Database creation check scheduling failed: {e}")
-                    import sys
-                    sys.stderr.write(f"\n FATAL ERROR: Database creation check scheduling failed:\n{e}\n")
-                    sys.stderr.flush()
-                    import os
-                    os._exit(1)
+                    Logger.warning(f"Database creation check scheduling note: {e}")
             else:
-                temp_engine = create_engine(
-                    f"{db_type}+{connector}://{user}:{password}@{host}:{port}/postgres"
-                    if db_type == "postgresql"
-                    else f"{db_type}+{connector}://{user}:{password}@{host}:{port}/mysql"
-                )
-                with temp_engine.connect() as conn:
-                    if db_type == "postgresql":
-                        conn = conn.execution_options(isolation_level="AUTOCOMMIT")
-                        result = conn.execute(
-                            text("SELECT 1 FROM pg_database WHERE datname = :dbname"),
-                            {"dbname": database}
-                        )
-                    else:
-                        result = conn.execute(
-                            text("SHOW DATABASES LIKE :dbname"),
-                            {"dbname": database}
-                        )
-                    if not result.fetchone():
-                        conn.execute(text(f"CREATE DATABASE {database}"))
-                        print(f"Database '{database}' created.")
-                temp_engine.dispose()
+                try:
+                    temp_engine = create_engine(
+                        f"{db_type}+{connector}://{user}:{password}@{host}:{port}/postgres"
+                        if db_type == "postgresql"
+                        else f"{db_type}+{connector}://{user}:{password}@{host}:{port}/mysql"
+                    )
+                    with temp_engine.connect() as conn:
+                        if db_type == "postgresql":
+                            conn = conn.execution_options(isolation_level="AUTOCOMMIT")
+                            result = conn.execute(
+                                text("SELECT 1 FROM pg_database WHERE datname = :dbname"),
+                                {"dbname": database}
+                            )
+                        else:
+                            result = conn.execute(
+                                text("SHOW DATABASES LIKE :dbname"),
+                                {"dbname": database}
+                            )
+                        if not result.fetchone():
+                            conn.execute(text(f"CREATE DATABASE `{database}`" if db_type == "mysql" else f"CREATE DATABASE {database}"))
+                            Logger.info(f"Database '{database}' created successfully.")
+                    temp_engine.dispose()
+                except Exception as e:
+                    Logger.warning(f"Sync database check note: {e}")
 
             try:
-                pool_size = self.config.get("pool_size", 20)
-                max_overflow = self.config.get("max_overflow", 40)
+                pool_size = self.config.get("pool_size", 5)
+                max_overflow = self.config.get("max_overflow", 10)
                 pool_recycle = self.config.get("pool_recycle", 1800)
                 pool_timeout = self.config.get("pool_timeout", 30)
                 
@@ -174,8 +172,8 @@ class Database:
                         autocommit=False, autoflush=False, bind=self.engine
                     )
             except SQLAlchemyError as e:
-                Logger.error(f"Create database, error: {e}")
-                raise ConnectionError(f"Create database, error: {e}")
+                Logger.error(f"Create SQLite database error: {e}")
+                raise ConnectionError(f"Create SQLite database error: {e}")
         return True
 
     def get_session(self) -> Union[Session, AsyncSession]:
@@ -186,7 +184,7 @@ class Database:
 
     @asynccontextmanager
     async def transaction(self) -> AsyncSession:
-        """Context manager to handle an async database session transaction with automatic commit/rollback."""
+        """Async context manager to handle database transactions with auto commit/rollback."""
         session = self.get_session()
         try:
             yield session
@@ -199,7 +197,7 @@ class Database:
 
     @contextmanager
     def transaction_sync(self) -> Session:
-        """Context manager to handle a sync database session transaction with automatic commit/rollback."""
+        """Sync context manager to handle database transactions with auto commit/rollback."""
         session = self.get_session()
         try:
             yield session
@@ -235,18 +233,15 @@ class Database:
             if loop.is_running():
                 raise RuntimeError("Cannot call synchronous migrate() in a running event loop. Use migrate_async() instead.")
             loop.run_until_complete(self.migrate_async(use_base))
-            print("success migrations")
         else:
             try:
                 if use_base:
                     Base.metadata.create_all(self.engine)
                 else:
                     self.metadata.create_all(self.engine)
-                print("success migrations")
             except SQLAlchemyError as e:
-                Logger.error(f"Error database.py: {e}")
-                print(e)
-
+                Logger.error(f"Migration error: {e}")
+                raise e
 
     def query(
         self,
@@ -254,74 +249,18 @@ class Database:
         params: Optional[dict] = None,
         return_rows: bool = False,
         return_row: bool = False,
-    ) -> Union[dict, bool, list, None]:
-        """Execute a raw SQL query synchronously."""
-        if self.is_async:
-            import asyncio
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            if loop.is_running():
-                raise RuntimeError("Cannot call synchronous query() in a running event loop. Use query_async() instead.")
-            return loop.run_until_complete(self._query_async_native(query, params, return_rows, return_row))
-
-        result = False
-        try:
-            with self.engine.connect() as connection:
-                result = connection.execute(text(query), params or ())
-                if (
-                    query.strip()
-                    .upper()
-                    .startswith(("CREATE", "INSERT", "UPDATE", "DELETE"))
-                ):
-                    connection.commit()
-                if return_rows:
-                    rows = result.fetchall()
-                    items = [dict(getattr(item, "_mapping", {})) for item in rows]
-                    return items
-                if return_row:
-                    row = result.fetchone()
-                    if row:
-                        return dict(getattr(row, "_mapping", {}))
-                    return None
-                if self.type in ["postgresql", "psgr"]:
-                    if query.strip().upper().startswith("INSERT"):
-                        if result:
-                            result.lastrowid = result.fetchone()[0]
-                        return result
-                return result
-        except SQLAlchemyError as e:
-            print(f"Query error: {e}")
-            Logger.error(f"Query error: {e}")
-        return result
-
-    async def _query_async_native(
-        self,
-        query: str,
-        params: Optional[dict] = None,
-        return_rows: bool = False,
-        return_row: bool = False,
     ) -> Any:
-        """Execute a raw SQL query asynchronously using the async engine."""
-        async with self.engine.connect() as connection:
-            result = await connection.execute(text(query), params or ())
-            if (
-                query.strip()
-                .upper()
-                .startswith(("CREATE", "INSERT", "UPDATE", "DELETE"))
-            ):
-                await connection.commit()
+        """Execute a raw SQL query synchronously."""
+        with self.engine.connect() as conn:
+            result = conn.execute(text(query), params or ())
+            if query.strip().upper().startswith(("CREATE", "INSERT", "UPDATE", "DELETE")):
+                conn.commit()
             if return_rows:
                 rows = result.fetchall()
-                items = [dict(getattr(item, "_mapping", {})) for item in rows]
-                return items
+                return [dict(getattr(item, "_mapping", {})) for item in rows]
             if return_row:
                 row = result.fetchone()
-                if row:
-                    return dict(getattr(row, "_mapping", {}))
-                return None
+                return dict(getattr(row, "_mapping", {})) if row else None
             return result
 
     async def query_async(
@@ -332,54 +271,25 @@ class Database:
         return_row: bool = False,
         background: Optional[bool] = None,
     ) -> Any:
-        """Execute a raw SQL query asynchronously with query deduplication and optional write queueing."""
-        import asyncio
-        from lila.core.base_model import _PENDING_QUERIES
-        from lila.core.background import BackgroundTask
-        import uuid
-
-        is_select = query.strip().upper().startswith("SELECT")
-
-        if not is_select and background is True:
-            job_id = str(uuid.uuid4())
-            task = BackgroundTask(_execute_queued_query, query, params)
-            if task._starlette_task is not None:
-                loop = asyncio.get_running_loop()
-                loop.create_task(_execute_queued_query(query, params))
-            return {"success": True, "queued": True, "job_id": job_id}
-
-        if is_select:
-            params_tuple = tuple(sorted(params.items())) if params else ()
-            cache_key = f"db_query:{query}:{params_tuple}:{return_rows}:{return_row}"
-
-            if cache_key in _PENDING_QUERIES:
-                return await asyncio.shield(_PENDING_QUERIES[cache_key])
-
+        """Execute a raw SQL query asynchronously."""
+        if not self.is_async:
+            import asyncio
             loop = asyncio.get_running_loop()
-            future: asyncio.Future = loop.create_future()
-            _PENDING_QUERIES[cache_key] = future
-            try:
-                if self.is_async:
-                    result = await self._query_async_native(query, params, return_rows, return_row)
-                else:
-                    result = await loop.run_in_executor(
-                        None, lambda: self.query(query, params, return_rows, return_row)
-                    )
-                future.set_result(result)
-                return result
-            except Exception as exc:
-                future.set_exception(exc)
-                raise
-            finally:
-                _PENDING_QUERIES.pop(cache_key, None)
-        else:
-            if self.is_async:
-                return await self._query_async_native(query, params, return_rows, return_row)
-            else:
-                loop = asyncio.get_running_loop()
-                return await loop.run_in_executor(
-                    None, lambda: self.query(query, params, return_rows, return_row)
-                )
+            return await loop.run_in_executor(
+                None, lambda: self.query(query, params, return_rows, return_row)
+            )
+
+        async with self.engine.connect() as conn:
+            result = await conn.execute(text(query), params or ())
+            if query.strip().upper().startswith(("CREATE", "INSERT", "UPDATE", "DELETE")):
+                await conn.commit()
+            if return_rows:
+                rows = result.fetchall()
+                return [dict(getattr(item, "_mapping", {})) for item in rows]
+            if return_row:
+                row = result.fetchone()
+                return dict(getattr(row, "_mapping", {})) if row else None
+            return result
 
     def commit(self) -> None:
         """Commit the current synchronous transaction."""
@@ -388,7 +298,6 @@ class Database:
                 self.connection.commit()
             except SQLAlchemyError as e:
                 Logger.error(f"Commit error: {e}")
-                print(f"Commit error: {e}")
 
     def close(self) -> None:
         """Close the current database connection."""
@@ -396,9 +305,8 @@ class Database:
             try:
                 self.connection.close()
                 self.connection = None
-                print("Connection closed.")
             except SQLAlchemyError as e:
-                print(f"Close connection error: {e}")
+                Logger.error(f"Close connection error: {e}")
 
     def check_connection(self) -> bool:
         """Check database connectivity."""
@@ -465,7 +373,6 @@ class Database:
                 if self.type == "mysql":
                     conn.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
 
-
     async def query_orm_async(
         self,
         model: Type[Any],
@@ -477,47 +384,7 @@ class Database:
         return_one: bool = False,
         background: Optional[bool] = None,
     ) -> Any:
-        """Execute ORM database operations asynchronously with optional write queueing."""
-        from lila.core.background import BackgroundTask
-        import uuid
-
-        is_write = operation in ("insert", "update", "delete")
-
-        if is_write and background is True:
-            job_id = str(uuid.uuid4())
-            model_module = model.__module__
-            model_name = model.__name__
-
-            instance_dict = {}
-            if instance:
-                for col in instance.__table__.columns:
-                    if hasattr(instance, col.name):
-                        instance_dict[col.name] = getattr(instance, col.name)
-
-            task = BackgroundTask(
-                _execute_queued_orm,
-                model_module,
-                model_name,
-                operation,
-                instance_dict,
-                filters,
-                values,
-                return_one
-            )
-            if task._starlette_task is not None:
-                # If Redis is unavailable, fallback to native asyncio background execution without blocking
-                loop = asyncio.get_running_loop()
-                loop.create_task(_execute_queued_orm(
-                    model_module,
-                    model_name,
-                    operation,
-                    instance_dict,
-                    filters,
-                    values,
-                    return_one
-                ))
-            return {"success": True, "queued": True, "job_id": job_id}
-
+        """Execute ORM database operations asynchronously."""
         own_session = False
         if session is None:
             session = self.get_session()
@@ -567,13 +434,11 @@ class Database:
 
         except IntegrityError as e:
             await session.rollback()
-            print(f"ORM Integrity error: {e}")
             Logger.warning(f"ORM Integrity error: {e}")
             return 0   
 
         except SQLAlchemyError as e:
             await session.rollback()
-            print(f"ORM general error: {e}")
             Logger.error(f"ORM general error: {e}")
             return 0
 
@@ -661,78 +526,14 @@ class Database:
 
         except IntegrityError as e:
             session.rollback()
-            print(f"ORM Integrity error: {e}")
             Logger.warning(f"ORM Integrity error: {e}")
             return 0   
 
         except SQLAlchemyError as e:
             session.rollback()
-            print(f"ORM general error: {e}")
             Logger.error(f"ORM general error: {e}")
             return 0
 
         finally:
             if own_session:
                 session.close()
-
-
-async def _execute_queued_query(query: str, params: Optional[dict] = None) -> None:
-    """Execute a database query from the background worker with retries."""
-    import asyncio
-    from app.connections import connection
-    from lila.core.logger import Logger
-
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            await connection.query_async(query, params, background=False)
-            return
-        except Exception as e:
-            if attempt == max_retries - 1:
-                Logger.error(f"Failed to execute queued query after {max_retries} attempts: {e}. Query: {query}, Params: {params}")
-                print(f"Error: Failed to execute queued query: {e}")
-                raise e
-            await asyncio.sleep(2 ** attempt)
-
-
-async def _execute_queued_orm(
-    model_module: str,
-    model_name: str,
-    operation: str,
-    instance_dict: Optional[dict] = None,
-    filters: Optional[dict] = None,
-    values: Optional[dict] = None,
-    return_one: bool = False
-) -> None:
-    """Execute an ORM database operation from the background worker with retries."""
-    import asyncio
-    import importlib
-    from app.connections import connection
-    from lila.core.logger import Logger
-
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            module = importlib.import_module(model_module)
-            model_class = getattr(module, model_name)
-
-            instance = None
-            if instance_dict:
-                instance = model_class(**instance_dict)
-
-            await connection.query_orm_async(
-                model=model_class,
-                operation=operation,
-                instance=instance,
-                filters=filters,
-                values=values,
-                return_one=return_one,
-                background=False
-            )
-            return
-        except Exception as e:
-            if attempt == max_retries - 1:
-                Logger.error(f"Failed to execute queued ORM after {max_retries} attempts: {e}. Operation: {operation}, Model: {model_name}")
-                print(f"Error: Failed to execute queued ORM: {e}")
-                raise e
-            await asyncio.sleep(2 ** attempt)

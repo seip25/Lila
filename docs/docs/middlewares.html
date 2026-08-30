@@ -312,17 +312,12 @@ async def contact_submit(request: Request):
                 class.
             </p>
             <ul>
-                <li><code class="text-blue-600">LoggingMiddleware</code>: Automatically logs requests (ignoring static
-                    files).</li>
-                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds security headers like
-                    X-XSS-Protection, X-Frame-Options, and the custom <strong>Powered-By: Lila Framework</strong>
-                    header. It also performs automatic XSS detection in query parameters using the <code>Security</code>
-                    class.</li>
-                <li><code class="text-blue-600">SecurityShieldMiddleware</code>: Blocks malicious paths and IPs.</li>
-                <li><code class="text-blue-600">RateLimitMiddleware</code>: Protects against brute force and DoS
-                    attacks.</li>
-                <li><code class="text-blue-600">ErrorHandlerMiddleware</code>: Gracefully handles exceptions and
-                    Pydantic validation errors.</li>
+                <li><code class="text-blue-600">LoggingMiddleware</code>: Pure ASGI logger for HTTP requests (skips static
+                    files for performance).</li>
+                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds essential security headers like
+                    X-Content-Type-Options, X-Frame-Options, and <strong>Powered-By: Lila Framework</strong>.</li>
+                <li><code class="text-blue-600">RateLimitMiddleware</code>: Redis-backed pure ASGI rate limiter protecting against brute-force attacks.</li>
+                <li><code class="text-blue-600">FlashMiddleware</code>: Pure ASGI signed cookie session flash messages handler.</li>
             </ul>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -340,17 +335,13 @@ from lila.core.middleware import (
     Middleware,
     LoggingMiddleware, 
     SecurityHeadersMiddleware,
-    SecurityShieldMiddleware,
     RateLimitMiddleware,
-    ErrorHandlerMiddleware,
+    FlashMiddleware,
 )
 
 middlewares = [
     Middleware(LoggingMiddleware),
-    Middleware(SecurityHeadersMiddleware),
-    Middleware(SecurityShieldMiddleware),
     Middleware(RateLimitMiddleware),
-    Middleware(ErrorHandlerMiddleware)
 ]
 
 app = App(..., middleware=middlewares)

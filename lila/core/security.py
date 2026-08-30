@@ -1,38 +1,48 @@
 import re
+import html
 from typing import Any, Dict, List, Union
+
 
 class Security:
     """
-    Core security utilities for Lila Framework with pre-compiled XSS regex.
+    Security utilities for Lila Framework.
+    Provides HTML sanitization and string escaping without breaking URL parameters.
     """
-    _COMPILED_XSS_PATTERNS = [
-        (re.compile(r"<script.*?>.*?</script>", flags=re.IGNORECASE | re.DOTALL), ""),
-        (re.compile(r"\bon[a-z]+\s*=", flags=re.IGNORECASE | re.DOTALL), ""),
-        (re.compile(r"javascript:", flags=re.IGNORECASE | re.DOTALL), ""),
-        (re.compile(r"<iframe.*?>.*?</iframe>", flags=re.IGNORECASE | re.DOTALL), ""),
-        (re.compile(r"<object.*?>.*?</object>", flags=re.IGNORECASE | re.DOTALL), ""),
-        (re.compile(r"expression\s*\(", flags=re.IGNORECASE | re.DOTALL), ""),
-    ]
+
+    _DANGEROUS_TAGS_PATTERN = re.compile(
+        r"<\s*(script|iframe|object|embed|applet|meta|link|style)[^>]*>.*?<\s*/\s*\1\s*>",
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    _DANGEROUS_SELF_CLOSING = re.compile(
+        r"<\s*(script|iframe|object|embed|applet|meta|link|style)[^>]*/>",
+        flags=re.IGNORECASE,
+    )
+    _JAVASCRIPT_URI = re.compile(r"javascript:\s*", flags=re.IGNORECASE)
+
+    @staticmethod
+    def escape_html(value: str) -> str:
+        """Escape HTML special characters to prevent XSS in rendered outputs."""
+        if not isinstance(value, str):
+            return value
+        return html.escape(value)
 
     @staticmethod
     def sanitize_string(value: str) -> str:
         """
-        Removes potentially dangerous HTML/JS patterns from a string using pre-compiled regex.
+        Removes dangerous executable HTML tags (<script>, <iframe>, etc.) and javascript: URIs.
+        Safe for text processing without false-positive blocking of valid URL query parameters.
         """
         if not isinstance(value, str):
             return value
-        
-        sanitized = value
-        for pattern, replacement in Security._COMPILED_XSS_PATTERNS:
-            sanitized = pattern.sub(replacement, sanitized)
-        
+
+        sanitized = Security._DANGEROUS_TAGS_PATTERN.sub("", value)
+        sanitized = Security._DANGEROUS_SELF_CLOSING.sub("", sanitized)
+        sanitized = Security._JAVASCRIPT_URI.sub("", sanitized)
         return sanitized
 
     @staticmethod
     def sanitize_data(data: Any) -> Any:
-        """
-        Recursively sanitizes dictionaries, lists, or strings.
-        """
+        """Recursively sanitizes dictionaries, lists, or strings."""
         if isinstance(data, str):
             return Security.sanitize_string(data)
         elif isinstance(data, dict):
@@ -40,16 +50,3 @@ class Security:
         elif isinstance(data, list):
             return [Security.sanitize_data(item) for item in data]
         return data
-
-    @staticmethod
-    def check_xss(text: str) -> bool:
-        """
-        Checks if a string contains potential XSS patterns using pre-compiled regex.
-        Returns True if potential XSS is found.
-        """
-        if not text:
-            return False
-        for pattern, _ in Security._COMPILED_XSS_PATTERNS:
-            if pattern.search(text):
-                return True
-        return False

@@ -2,70 +2,42 @@ from lila.core.app import App
 from app.routes.web.index import routes
 from app.routes.api.index import routes as api_routes 
 from app.routes.api.example import routes as example_api_routes
-from app.config import DEBUG, JIT, HOST, PORT,WORKERS
+from app.config import DEBUG, JIT, HOST, PORT, WORKERS
 from lila.core.middleware import (
     Middleware,
     LoggingMiddleware,
-    SecurityShieldMiddleware,
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
-    ErrorHandlerMiddleware,
+    FlashMiddleware,
 )
 from lila.core.logger import delete_old_logs
 import itertools
 import uvicorn
 import os
 
-# English: Combining web and API routes into a single list.
-# Español: Combinando las rutas web y de la API en una única lista.
+# Combine web and API routes into a single list
 all_routes = list(itertools.chain(routes, api_routes, example_api_routes))
 
-# English: Marker for auto-importing scaffold CRUD routes (used by lila-crud generator)
-# Español: Marcador para importar automáticamente rutas CRUD del scaffold (usado por el generador lila-crud)
+# Markers for CLI code generators
 # api_marker
+# auth_marker
+# admin_marker
 
-#English : Marker for the auth routes in main.py
-#Español: Marcardor para añadir automaticamente rutas auth en main.py
-# auth_marker 
-
-# English: Marker for the admin routes in main.py.
-# Español: Marcador para las rutas de administrador en main.py.
-# admin_marker 
-
-
-   
 cors = None
-
-# English: CORS usage example
-# Español : Ejemplo de utilización de CORS
-# cors={
+# Example CORS configuration:
+# cors = {
 #     "origin": ["*"],
-#     "allow_credentials" : True,
-#     "allow_methods":["*"],
-#     "allow_headers": ["*"]
+#     "allow_credentials": True,
+#     "allow_methods": ["*"],
+#     "allow_headers": ["*"],
 # }
-# app = App(debug=True, routes=all_routes,cors=cors)
 
+# Optional middlewares (SecurityHeadersMiddleware and FlashMiddleware are included by default in App)
+middlewares = []
 
-
-#English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
-#Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
-# middlewares = [
-#     Middleware(LoggingMiddleware),
-#     Middleware(SecurityHeadersMiddleware),
-#     Middleware(SecurityShieldMiddleware),
-#     Middleware(RateLimitMiddleware),
-#     Middleware(ErrorHandlerMiddleware)
-#      ]
-
-middlewares = [
-    Middleware(ErrorHandlerMiddleware),
-    Middleware(SecurityHeadersMiddleware)
-]
-
-# English: Initializing the application with debugging enabled and the combined routes.
-# Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
+# Initialize Lila application
 app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares)
+
 
 def main():
     if DEBUG:
@@ -88,6 +60,7 @@ def main():
         else:
             print(f"🚀 Running Lila in TCP mode: {HOST}:{PORT} with {workers} workers (uvloop + httptools)")
             uvicorn.run("main:app", host=HOST, port=PORT, reload=False, access_log=False, log_level="warning", workers=workers, loop="uvloop", http="httptools")
+
 
 if __name__ == "__main__":
     try:

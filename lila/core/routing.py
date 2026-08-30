@@ -11,7 +11,6 @@ from app.config import (
 )
 from typing import Any, Type, Optional, List
 from pydantic import BaseModel, ValidationError
-from argon2 import PasswordHasher
 from lila.core.auth import generate_token_value, get_user_id_by_token as get_user_by_token
 from lila.core.translate import Translate
 from lila.core.security import Security
@@ -23,31 +22,11 @@ import re
 import os
 from functools import wraps
 from pathlib import Path
-from lila.core.templates import render
 from app.config import DEBUG
 import asyncio
 import importlib.util
 import inspect
 import pydantic
-
-ph = PasswordHasher()
-
-class CachedStaticFiles(StaticFiles):
-    """
-    English: Custom StaticFiles that sets Cache-Control headers.
-    Español: StaticFiles personalizado que establece cabeceras Cache-Control.
-    """
-    def __init__(self, *args, cache_timeout: int = 31536000, **kwargs):
-        self.cache_timeout = cache_timeout
-        super().__init__(*args, **kwargs)
-
-    def file_response(self, *args, **kwargs):
-        response = super().file_response(*args, **kwargs)
-        if not DEBUG:
-            response.headers["Cache-Control"] = f"public, max-age={self.cache_timeout}, immutable"
-        else:
-            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        return response
 
 
 def seo(
@@ -240,18 +219,11 @@ class Router:
                             media_type=cached_data["media_type"]
                         )
 
-                if request.query_params and Security.check_xss(str(request.query_params)):
-                    return JSONResponse({"success": False,"message": "Potential XSS detected in query parameters", "msg": "Potential XSS detected in query parameters"}, status_code=400)
-
                 validated_data = None
                 if target_model and request.method in ("POST", "PUT", "PATCH"):
                     try:
                         body = await request.json()
                         sanitized_body = Security.sanitize_data(body)
-                        
-                        if Security.check_xss(str(sanitized_body)):
-                             return JSONResponse({"success": False,"message":"Potential XSS detected in body", "msg": "Potential XSS detected in body"}, status_code=400)
-
                         validated_data = target_model(**sanitized_body)
                         request.state.data = validated_data
                     except ValidationError as e:
@@ -372,10 +344,10 @@ class Router:
     ) -> None:
 
         try:
-            self.routes.append(Mount(path, CachedStaticFiles(directory=directory, cache_timeout=cache_timeout), name=name))
+            self.routes.append(Mount(path, StaticFiles(directory=directory), name=name))
         except RuntimeError as e:
-            Logger.error(f"Error : {str(e)}")
-            print(f"Error :{e}")
+            Logger.error(f"Error mounting static files: {str(e)}")
+            print(f"Error: {e}")
 
     def patch(self, path: str, **kwargs):
         return self.route(path, methods=["PATCH"], **kwargs)
