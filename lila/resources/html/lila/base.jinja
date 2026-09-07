@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="{{ description }}" />
+  <meta name="keywords" content="{{ keywords }}" />
+  <meta name="author" content="{{ author }}" />
+  <title>{% block title %}{{ title }}{% endblock %}</title>
+  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+  {% include "lila/tailwind.jinja" %}
+  {% block head %}{% endblock %}
+</head>
+
+<body
+  class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col">
+  {% block content %}{% endblock %}
+
+  <script src="{{public('js/utils.js')}}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>
