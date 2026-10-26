@@ -2,6 +2,7 @@ import sys
 import os
 from pathlib import Path
 import subprocess
+from typing import Optional, List, Dict, Any
 import typer
 
 if os.getcwd() not in sys.path:
@@ -46,6 +47,7 @@ def _create_templates():
         typer.echo(f"  📄 Template created: {file_path}")
 
 def _create_routes():
+    import re
     main_file = os.path.join(user_project_root, "main.py")
     marker = "auth_marker"
 
@@ -56,25 +58,36 @@ def _create_routes():
     with open(main_file, "r", encoding="utf-8") as file:
         content = file.read()
 
+    import_lines = (
+        "from app.routes.web.auth import routes as auth_routes\n"
+        "from app.routes.web.authenticated import routes as authenticated_routes"
+    )
+    include_lines = "app.include_router(auth_routes)\napp.include_router(authenticated_routes)"
+
     if "from app.routes.web.auth import routes as auth_routes" in content:
         typer.echo("ℹ️ Auth routes already present in main.py.")
         return
 
-    replace_text = f'''# {marker}
-from app.routes.web.auth import routes as auth_routes
-from app.routes.web.authenticated import routes as authenticated_routes
-app.include_router(auth_routes)
-app.include_router(authenticated_routes)'''
-
     if f"# {marker}" in content:
-        new_content = content.replace(f"# {marker}", replace_text)
+        content = content.replace(f"# {marker}", f"# {marker}\n{import_lines}")
+    elif "# api_marker" in content:
+        content = content.replace("# api_marker", f"# api_marker\n{import_lines}")
     else:
-        new_content = content + f"\n\n{replace_text}\n"
+        content = f"{import_lines}\n" + content
+
+    if "app.include_router(auth_routes)" not in content:
+        app_match = re.search(r"(app\s*=\s*App\s*\([^)]*\))", content, re.DOTALL)
+        if app_match:
+            end_pos = app_match.end()
+            content = content[:end_pos] + f"\n{include_lines}\n" + content[end_pos:]
+        else:
+            content += f"\n{include_lines}\n"
 
     with open(main_file, "w", encoding="utf-8") as file:
-        file.write(new_content)
+        file.write(content)
 
     typer.echo("  ✨ Auth routes linked in main.py.")
+
 
 def _create_auth_files():
     auth_dir = Path(os.path.join(user_project_root, "app/routes/web/auth"))
@@ -122,6 +135,17 @@ def _create_auth_model():
 
     subprocess.run([sys.executable, "-m", "lila.cli.migrations", "--refresh"], cwd=user_project_root)
     typer.echo("  🔐 LoginAttempt & PasswordResetToken models registered.")
+
+@app.callback(invoke_without_command=True)
+def default_auth(
+    ctx: typer.Context,
+    template: bool = typer.Option(True, "--templates/--no-templates", help="Generate Jinja2 auth templates"),
+    routes: bool = typer.Option(True, "--routes/--no-routes", help="Generate auth and dashboard routes"),
+):
+    """Scaffold authentication system with Better Auth OAuth, Argon2, and dashboard."""
+    if ctx.invoked_subcommand is None:
+        generate(template=template, routes=routes)
+
 
 @app.command()
 def generate(

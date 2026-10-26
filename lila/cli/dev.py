@@ -31,7 +31,13 @@ def start(
         "--port", str(bind_port)
     ]
     if reload:
-        cmd.append("--reload")
+        cmd.extend([
+            "--reload",
+            "--reload-dir", ".",
+            "--reload-include", "*.jinja",
+            "--reload-include", "*.html",
+            "--reload-include", "*.json",
+        ])
 
     try:
         subprocess.run(cmd)

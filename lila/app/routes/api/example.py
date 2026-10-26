@@ -2,7 +2,7 @@ from lila.core.request import Request
 from lila.core.routing import Router, EmailStr
 from pydantic import BaseModel
 
-router = Router(prefix="/api/v1")
+router = Router(prefix="/api")
 
 class ExampleModel(BaseModel):
     email: EmailStr

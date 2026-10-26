@@ -84,6 +84,19 @@ def launch_native_browser(url: str, width: int = 1200, height: int = 800) -> Opt
     ]
     return subprocess.Popen(cmd)
 
+@app.callback(invoke_without_command=True)
+def default_desktop(
+    ctx: typer.Context,
+    title: Optional[str] = typer.Option(None, "--title", "-t", help="Window title (default: TITLE_PROJECT from .env)"),
+    width: int = typer.Option(1200, "--width", "-w", help="Initial window width"),
+    height: int = typer.Option(800, "--height", "-h", help="Initial window height"),
+    port: int = typer.Option(0, "--port", "-p", help="Server port (0 = autodetect free port)"),
+):
+    """Runs Lila desktop app locally by default or supports build subcommand."""
+    if ctx.invoked_subcommand is None:
+        dev(title=title, width=width, height=height, port=port)
+
+
 @app.command("dev")
 @app.command("run")
 def dev(

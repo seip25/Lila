@@ -2,6 +2,7 @@ import sys
 import os
 import re
 from pathlib import Path
+from typing import Optional, List, Dict, Any
 import typer
 
 if os.getcwd() not in sys.path:
@@ -32,6 +33,18 @@ def capitalize_first(text: str) -> str:
 def to_snake_case(text: str) -> str:
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+@app.callback(invoke_without_command=True)
+def default_model(
+    ctx: typer.Context,
+    name: str = typer.Option(None, "--name", "-n", help="Name of the model (e.g., Product)"),
+    table: str = typer.Option(None, "--table", "-t", help="Table name (defaults to pluralized snake_case)"),
+    interactive: bool = typer.Option(False, "--interactive", "-i", help="Force interactive mode")
+):
+    """Create a new SQLAlchemy model file in app/models/."""
+    if ctx.invoked_subcommand is None:
+        create(name=name, table=table, interactive=interactive)
+
 
 @app.command()
 def create(

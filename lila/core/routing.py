@@ -88,10 +88,12 @@ class Router:
         prefix: str = "",
         tags: Optional[List[str]] = None,
         middlewares: Optional[List[Callable]] = None,
+        openapi: bool = True,
     ):
         self.prefix = prefix.rstrip("/")
         self.tags = tags or []
         self.middlewares = middlewares or []
+        self.openapi = openapi
         self.routes: List[Union[Route, WebSocketRoute]] = []
         self.openapi_routes: List[dict] = []
 
@@ -116,6 +118,7 @@ class Router:
         auth: bool = False,
         sanitize_xss: bool = False,
         summary: Optional[str] = None,
+        openapi: Optional[bool] = None,
     ) -> None:
         norm_path = self._normalize_path(path)
         inspector = RouteInspector(handler)
@@ -267,13 +270,15 @@ class Router:
         route_obj = Route(norm_path, endpoint=endpoint_wrapper, methods=methods, name=name)
         self.routes.append(route_obj)
 
-        self.openapi_routes.append({
-            "path": norm_path,
-            "methods": methods,
-            "summary": summary or handler.__name__.replace("_", " ").title(),
-            "inspector": inspector,
-            "tags": self.tags,
-        })
+        is_in_openapi = openapi if openapi is not None else self.openapi
+        if is_in_openapi:
+            self.openapi_routes.append({
+                "path": norm_path,
+                "methods": methods,
+                "summary": summary or handler.__name__.replace("_", " ").title(),
+                "inspector": inspector,
+                "tags": self.tags,
+            })
 
     # Method Decorators
     def get(self, path: str, **kwargs):

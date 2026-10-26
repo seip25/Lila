@@ -90,8 +90,79 @@ PYDANTIC_MESSAGES = {
 }
 
 
+class SafeTranslationDict(dict):
+    """Dictionary for template translation that never raises KeyError or UndefinedError in Jinja."""
+
+    def __init__(self, data: Optional[dict] = None, lang: str = "en") -> None:
+        super().__init__(data or {})
+        self.lang = lang
+
+    def __getitem__(self, key: str) -> Any:
+        val = super().get(key)
+        return val if val is not None else ""
+
+    def __missing__(self, key: str) -> str:
+        return ""
+
+    def get(self, key: str, default: Any = None) -> Any:
+        val = super().get(key)
+        if val is not None and val != "":
+            return val
+        return default if default is not None else ""
+
+
+_LOCALES_CACHE: dict[str, SafeTranslationDict] = {}
+
+
 class Translate:
-    """Fast, zero-overhead translator specialized in Pydantic v2 validation errors."""
+    """Fast, zero-overhead translator specialized in Pydantic v2 validation errors and UI locales."""
+
+    BUILTIN_LOCALES = {
+        "en": {
+            "login": "Welcome Back",
+            "register": "Create Account",
+            "email": "Email Address",
+            "password": "Password",
+            "confirm_password": "Confirm Password",
+            "forgot_password": "Forgot Password?",
+            "reset_password": "Reset Password",
+            "logout": "Log Out",
+            "dashboard": "Dashboard",
+            "profile": "Profile",
+            "welcome": "Welcome",
+            "save": "Save",
+            "cancel": "Cancel",
+            "submit": "Submit",
+            "delete": "Delete",
+            "edit": "Edit",
+            "create": "Create",
+            "search": "Search",
+            "back": "Go Back",
+            "not_found": "Page Not Found",
+        },
+        "es": {
+            "login": "Bienvenido de nuevo",
+            "register": "Crear Cuenta",
+            "email": "Correo Electrónico",
+            "password": "Contraseña",
+            "confirm_password": "Confirmar Contraseña",
+            "forgot_password": "¿Olvidaste tu contraseña?",
+            "reset_password": "Restablecer Contraseña",
+            "logout": "Cerrar Sesión",
+            "dashboard": "Panel de Control",
+            "profile": "Perfil",
+            "welcome": "Bienvenido",
+            "save": "Guardar",
+            "cancel": "Cancelar",
+            "submit": "Enviar",
+            "delete": "Eliminar",
+            "edit": "Editar",
+            "create": "Crear",
+            "search": "Buscar",
+            "back": "Volver",
+            "not_found": "Página no encontrada",
+        },
+    }
 
     @classmethod
     def lang(cls, request: Any = None) -> str:
@@ -122,22 +193,55 @@ class Translate:
                 pass
 
         # 4. Fallback from environment
-        return str(ENV_CONFIG.get("LANG_DEFAULT", "es"))[:2].lower()
+        return str(ENV_CONFIG.get("LANG_DEFAULT", "en"))[:2].lower()
+
+    @classmethod
+    def get_dict(cls, lang: Optional[str] = None) -> SafeTranslationDict:
+        """Returns in-memory dictionary for requested language, loading from app/locales/{lang}.json once."""
+        target_lang = (lang or cls.lang())[:2].lower()
+        if target_lang in _LOCALES_CACHE:
+            return _LOCALES_CACHE[target_lang]
+
+        merged = dict(cls.BUILTIN_LOCALES.get(target_lang, cls.BUILTIN_LOCALES.get("en", {})))
+
+        # Try loading custom project JSON
+        import os
+        import json
+        from lila.core.config import get_base_path
+
+        candidates = [
+            get_base_path("app", "locales", f"{target_lang}.json"),
+            os.path.join(os.path.dirname(__file__), "..", "app", "locales", f"{target_lang}.json"),
+        ]
+
+        for cand in candidates:
+            if os.path.isfile(cand):
+                try:
+                    with open(cand, "r", encoding="utf-8") as f:
+                        custom_dict = json.load(f)
+                        if isinstance(custom_dict, dict):
+                            merged.update(custom_dict)
+                    break
+                except Exception:
+                    pass
+
+        safe_dict = SafeTranslationDict(merged, lang=target_lang)
+        _LOCALES_CACHE[target_lang] = safe_dict
+        return safe_dict
 
     @classmethod
     def translate_pydantic_error(cls, error: dict, target_lang: str = "es") -> str:
         """Translates a single Pydantic v2 error dictionary to the target language."""
         lang_key = target_lang[:2].lower()
         if lang_key not in PYDANTIC_MESSAGES:
-            lang_key = "es"
+            lang_key = "en" if "en" in PYDANTIC_MESSAGES else "es"
 
-        catalog = PYDANTIC_MESSAGES[lang_key]
+        catalog = PYDANTIC_MESSAGES.get(lang_key, PYDANTIC_MESSAGES["es"])
         err_type = error.get("type", "")
         ctx = error.get("ctx", {}) or {}
 
         template = catalog.get(err_type)
         if not template:
-            # Check prefix match (e.g. string_too_short or value_error.email)
             for k, tmpl in catalog.items():
                 if err_type.startswith(k) or k.startswith(err_type):
                     template = tmpl
@@ -149,7 +253,6 @@ class Translate:
             except Exception:
                 return template
 
-        # Fallback to English original message
         return error.get("msg", "Invalid value")
 
     @classmethod
@@ -168,6 +271,12 @@ class Translate:
         return translated
 
     @classmethod
-    def t(cls, key: str, request: Any = None, default: Optional[str] = None) -> str:
-        """Lightweight passthrough translator for backward compatibility."""
+    def t(cls, key: str, lang: Optional[str] = None, request: Any = None, default: Optional[str] = None) -> str:
+        """Translates a key with fallback to default string or key itself."""
+        target_lang = lang or cls.lang(request)
+        dic = cls.get_dict(target_lang)
+        val = dic.get(key)
+        if val:
+            return val
         return default if default is not None else key
+

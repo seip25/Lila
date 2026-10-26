@@ -1,0 +1,22 @@
+{
+  "login": "Bienvenido de nuevo",
+  "register": "Crear Cuenta",
+  "email": "Correo Electrónico",
+  "password": "Contraseña",
+  "confirm_password": "Confirmar Contraseña",
+  "forgot_password": "¿Olvidaste tu contraseña?",
+  "reset_password": "Restablecer Contraseña",
+  "logout": "Cerrar Sesión",
+  "dashboard": "Panel de Control",
+  "profile": "Perfil",
+  "welcome": "Bienvenido",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "submit": "Enviar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "create": "Crear",
+  "search": "Buscar",
+  "back": "Volver",
+  "not_found": "Página no encontrada"
+}

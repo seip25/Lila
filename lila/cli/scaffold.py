@@ -40,8 +40,9 @@ def copy_item(source_package_name, item_name_in_package, destination_base_path, 
         if src_path.is_dir():
             if dest_path.exists():
                 shutil.rmtree(dest_path)
-            shutil.copytree(src_path, dest_path)
-            print(f"  📂 Directoy '{item_name_in_package}' -> '{dest_path}'.")
+            ignore_func = shutil.ignore_patterns("admin", "lila") if item_name_in_package == "resources" else None
+            shutil.copytree(src_path, dest_path, ignore=ignore_func)
+            print(f"  📂 Directory '{item_name_in_package}' -> '{dest_path}'.")
         else:
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src_path, dest_path)

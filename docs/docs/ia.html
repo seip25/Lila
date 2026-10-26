@@ -109,7 +109,7 @@ ai = IA(
     cache_ttl=3600              # Cache responses for 1 hour
 )
 
-@router.post("/api/v1/support/draft")
+@router.post("/api/support/draft")
 async def draft_response(request: Request):
     user_data = {
         "name": "Maria Garcia",

@@ -1,0 +1,22 @@
+{
+  "login": "Welcome Back",
+  "register": "Create Account",
+  "email": "Email Address",
+  "password": "Password",
+  "confirm_password": "Confirm Password",
+  "forgot_password": "Forgot Password?",
+  "reset_password": "Reset Password",
+  "logout": "Log Out",
+  "dashboard": "Dashboard",
+  "profile": "Profile",
+  "welcome": "Welcome",
+  "save": "Save",
+  "cancel": "Cancel",
+  "submit": "Submit",
+  "delete": "Delete",
+  "edit": "Edit",
+  "create": "Create",
+  "search": "Search",
+  "back": "Go Back",
+  "not_found": "Page Not Found"
+}

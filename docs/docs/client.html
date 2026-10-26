@@ -172,7 +172,7 @@ lila('command', { action: 'toggle' });</code></pre>
         <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
           <h4 class="text-base font-bold mb-2">5. Async HTTP Helper with CSRF</h4>
           <pre><code class="language-javascript">// Automatically extracts and attaches CSRF tokens and invalidates prefetch cache
-const res = await Http('/api/v1/users', 'POST', { name: 'Alex', email: 'alex@example.com' });
+const res = await Http('/api/users', 'POST', { name: 'Alex', email: 'alex@example.com' });
 if (res.success) {
   lila('toast', { title: 'Success', description: 'User created', type: 'success' });
 }</code></pre>

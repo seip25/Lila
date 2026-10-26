@@ -2,6 +2,7 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
+from typing import Optional, List, Dict, Any
 import typer
 
 if os.getcwd() not in sys.path:
@@ -22,6 +23,17 @@ def _get_base_url(domain: str = None) -> str:
         return f"http://{host}:{port}"
     except Exception:
         return "http://127.0.0.1:8000"
+
+@app.callback(invoke_without_command=True)
+def default_seo(
+    ctx: typer.Context,
+    domain: str = typer.Option(None, "--domain", "-d", help="Base production domain"),
+):
+    """Generate both sitemap.xml and robots.txt."""
+    if ctx.invoked_subcommand is None:
+        sitemap(domain=domain)
+        robots(domain=domain)
+
 
 @app.command()
 def sitemap(domain: str = typer.Option(None, "--domain", "-d", help="Base production domain")):

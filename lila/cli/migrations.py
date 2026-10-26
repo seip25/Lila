@@ -54,6 +54,16 @@ async def migrate_async(conn, refresh: bool = False) -> bool:
         if conn and getattr(conn, "is_async", False) and conn.engine:
             await conn.engine.dispose()
 
+@app.callback(invoke_without_command=True)
+def default_migrate(
+    ctx: typer.Context,
+    refresh: bool = typer.Option(False, "--refresh", "-r", help="Drop all tables before running migrations"),
+):
+    """Run database migrations to synchronize models with the database."""
+    if ctx.invoked_subcommand is None:
+        migrate(refresh=refresh)
+
+
 @app.command()
 def migrate(
     refresh: bool = typer.Option(False, "--refresh", "-r", help="Drop all tables before running migrations"),

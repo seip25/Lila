@@ -65,8 +65,14 @@ class BaseModel(Base):
         data = {}
         for col in self.__table__.columns:
             if col.name not in exclude:
-                val = getattr(self, col.name)
-                data[col.name] = val
+                # Check instance __dict__ first to avoid triggering lazy loading DetachedInstanceError
+                if col.name in self.__dict__:
+                    data[col.name] = self.__dict__[col.name]
+                else:
+                    try:
+                        data[col.name] = getattr(self, col.name, None)
+                    except Exception:
+                        data[col.name] = None
         return data
 
     @classmethod

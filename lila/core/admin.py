@@ -114,6 +114,8 @@ def render_admin_menu(models: list = None, request: Optional[Request] = None) ->
 def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any:
     """Mounts Admin 2.0 routes on the given router."""
     prefix = f"/{default_route.strip('/')}"
+    # Admin routes should never be registered in public Swagger/OpenAPI documentation
+    router.openapi = False
 
     # ──────────────────────────────────────────────────────────────────────────
     # Auth & Dashboard

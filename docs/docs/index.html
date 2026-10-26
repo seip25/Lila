@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -176,84 +176,41 @@
           <div class="editor-content bg-gray-900 dark:bg-black">
             <pre><code class="language-python">
  from lila.core.app import App
-from app.routes.routes import routes
-from app.routes.api import routes as api_routes
-from lila.core.middleware import Middleware
-from app.config import PORT, HOST, DEBUG,JIT
-from app.middlewares.security import (
-    LoggingMiddleware, 
-    SecurityHeadersMiddleware,
-    SecurityShieldMiddleware,
-    RateLimitMiddleware,
-    ErrorHandlerMiddleware,
-)
-from lila.core.logger import delete_old_logs
-import itertools
-import uvicorn
-import asyncio
+from app.config import DEBUG, HOST, PORT, JIT, WORKERS
+from app.routes.web.index import router as web_router
+from app.routes.api.index import router as api_router
+from app.routes.api.example import router as example_api_router
+from lila.core.app import App
 import os
+import uvicorn
 
-# English: Combining application and API routes into a single list.
-# Español: Combinando las rutas de la aplicación y la API en una única lista.
-all_routes = list(itertools.chain(routes, api_routes))
-
-#English : Marker for the api routes in main.py (also used by scaffold generator)
-#Español: Marcardor para añadir automaticamente rutas api en main.py (también usado por generador de scaffold)
 # api_marker
-
-#English : Marker for the auth routes in main.py
-#Español: Marcardor para añadir automaticamente rutas auth en main.py
-# auth_marker 
-
-# English: Marker for the admin routes in main.py.
-# Español: Marcador para las rutas de administrador en main.py.
+# auth_marker
 # admin_marker
 
-   
-cors = None
-
-# English: CORS usage example
-# Español : Ejemplo de utilización de CORS
-# cors={
-#     "origin": ["*"],
-#     "allow_credentials" : True,
-#     "allow_methods":["*"],
-#     "allow_headers": ["*"]
-# }
-# app = App(debug=True, routes=all_routes,cors=cors)
-
-
-#English : Example middlewares with logger,security,ip rate limit ,error handler,Xss
-#Español : Ejemplo de middlewares con logger, security,ip rate limit,error hanlder, Xss
-# middlewares = [
-#     Middleware(LoggingMiddleware),
-#     Middleware(SecurityHeadersMiddleware),
-#     Middleware(SecurityShieldMiddleware),
-#     Middleware(RateLimitMiddleware),
-#     Middleware(ErrorHandlerMiddleware)
-#      ]
-
-middlewares = [
-    Middleware(ErrorHandlerMiddleware)
-]
-
-# English: Initializing the application with debugging enabled and the combined routes.
-# Español: Inicializando la aplicación con la depuración activada y las rutas combinadas.
-app = App(debug=DEBUG, routes=all_routes, cors=cors, middleware=middlewares, on_startup=[delete_old_logs])
+# Initialize Lila application with optional batteries
+app = App(
+    routes=[web_router, api_router, example_api_router],
+    debug=DEBUG,
+    security=True,       # Security headers & path traversal shield
+    rate_limit=300,      # 300 req/min per IP (None to disable)
+    logging=False,       # True to log requests in app/logs/
+    cors=True,           # Enable CORS
+    openapi=True,        # Mount /openapi.json and Swagger UI at /docs
+)
 
 def main():
-    # English: Starting the Uvicorn server with the application instance.
-    # Español: Iniciando el servidor Uvicorn con la instancia de la aplicación.
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
+    if DEBUG:
+        uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+    else:
+        workers = min((os.cpu_count() or 1) * 2 + 1, 8) if (str(WORKERS).lower() == "max" or WORKERS == 0) else int(WORKERS)
+        print(f"🚀 Running Lila v2.0.0 on {HOST}:{PORT} with {workers} workers")
+        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, workers=workers)
 
 if __name__ == "__main__":
-    try:
-        if JIT:
-            os.environ["PYTHON_JIT"] = "1"
-        main()
-    except KeyboardInterrupt:
-        print("Shutting down the application...")
-        pass
+    if JIT:
+        os.environ["PYTHON_JIT"] = "1"
+    main()
             </code></pre>
           </div>
         </div>

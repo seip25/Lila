@@ -1,7 +1,7 @@
 from lila.core.request import Request
 from lila.core.routing import Router
 
-router = Router(prefix="/api/v1")
+router = Router(prefix="/api")
 
 @router.get("/")
 async def api_root(request: Request):

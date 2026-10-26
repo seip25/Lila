@@ -31,8 +31,10 @@ def process_js(file_path: str, new_file_path: str) -> bool:
         if rjsmin:
             minified = rjsmin.jsmin(content)
         else:
-            # Simple whitespace cleanup if rjsmin not installed
-            minified = re.sub(r'//.*', '', content)
+            # Safe comment removal that preserves URLs ('wss://', 'https://') and strings
+            minified = re.sub(r'/\*[\s\S]*?\*/', '', content)
+            minified = re.sub(r'^\s*//.*$', '', minified, flags=re.MULTILINE)
+            minified = re.sub(r'\n\s*\n+', '\n', minified).strip()
         with open(new_file_path, 'w', encoding='utf-8') as f:
             f.write(minified)
         return True

@@ -190,11 +190,25 @@ class App(Starlette):
         """SSE endpoint notifying lila-client.js of server bootId changes."""
         async def event_generator():
             yield f'data: {{"type": "connected", "bootId": "{BOOT_ID}"}}\n\n'
-            while True:
-                await asyncio.sleep(15)
-                yield f'data: {{"type": "ping"}}\n\n'
+            try:
+                while True:
+                    for _ in range(15):
+                        await asyncio.sleep(1)
+                        if await request.is_disconnected():
+                            return
+                    yield f'data: {{"type": "ping"}}\n\n'
+            except (asyncio.CancelledError, GeneratorExit):
+                return
 
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     async def _openapi_json_endpoint(self, request):
         """Generates OpenAPI 3.0 schema dynamically."""
@@ -202,6 +216,8 @@ class App(Starlette):
         tags = set()
 
         for router in self._routers:
+            if not getattr(router, "openapi", True):
+                continue
             for route_info in router.openapi_routes:
                 p = route_info["path"]
                 # Convert Starlette path parameters: /items/{id:int} -> /items/{id}

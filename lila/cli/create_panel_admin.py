@@ -2,6 +2,7 @@ import sys
 import os
 import secrets
 import subprocess
+from typing import Optional, List, Dict, Any
 import typer
 from sqlalchemy import text
 
@@ -64,7 +65,27 @@ def create_admin_user(conn, username: str, password: str) -> bool:
         typer.secho(f"  ❌ Error creating admin user: {e}", fg=typer.colors.RED)
         return False
 
+def copy_admin_files():
+    import shutil
+    dest_routes = os.path.join(os.getcwd(), "app", "routes", "admin")
+    if not os.path.exists(dest_routes):
+        os.makedirs(dest_routes, exist_ok=True)
+        src_routes = os.path.join(os.path.dirname(__file__), "..", "app", "routes", "admin")
+        if os.path.exists(src_routes):
+            shutil.copytree(src_routes, dest_routes, dirs_exist_ok=True)
+            typer.echo("  📁 Admin routes copied to app/routes/admin/")
+
+    dest_templates = os.path.join(os.getcwd(), "resources", "html", "admin")
+    if not os.path.exists(dest_templates):
+        os.makedirs(dest_templates, exist_ok=True)
+        src_templates = os.path.join(os.path.dirname(__file__), "..", "resources", "html", "admin")
+        if os.path.exists(src_templates):
+            shutil.copytree(src_templates, dest_templates, dirs_exist_ok=True)
+            typer.echo("  📄 Admin templates copied to resources/html/admin/")
+
+
 def update_main_routes():
+    import re
     main_file = "main.py"
     marker = "admin_marker"
     if not os.path.exists(main_file):
@@ -73,18 +94,40 @@ def update_main_routes():
     with open(main_file, "r", encoding="utf-8") as file:
         content = file.read()
 
-    if "from app.routes.admin.index import router as admin_router" in content or "from app.routes.admin.index import Admin" in content:
+    import_line = "from app.routes.admin.index import router as admin_router"
+    include_line = "app.include_router(admin_router)"
+
+    if import_line in content:
         return
 
-    replace_text = f'''# {marker}
-from app.routes.admin.index import router as admin_router
-app.include_router(admin_router)'''
-
     if f"# {marker}" in content:
-        new_content = content.replace(f"# {marker}", replace_text)
-        with open(main_file, "w", encoding="utf-8") as file:
-            file.write(new_content)
-        typer.echo("  ✨ Admin routes linked in main.py.")
+        content = content.replace(f"# {marker}", f"# {marker}\n{import_line}")
+    else:
+        content = f"{import_line}\n" + content
+
+    if include_line not in content and "admin_router" not in content.split("App(")[-1].split(")")[0]:
+        app_match = re.search(r"(app\s*=\s*App\s*\([^)]*\))", content, re.DOTALL)
+        if app_match:
+            end_pos = app_match.end()
+            content = content[:end_pos] + f"\n{include_line}\n" + content[end_pos:]
+        else:
+            content += f"\n{include_line}\n"
+
+    with open(main_file, "w", encoding="utf-8") as file:
+        file.write(content)
+    typer.echo("  ✨ Admin routes linked in main.py.")
+
+
+@app.callback(invoke_without_command=True)
+def default_admin(
+    ctx: typer.Context,
+    username: str = typer.Option("admin", "--user", "-u", help="Admin username"),
+    password: str = typer.Option(None, "--password", "-p", help="Admin password (generated if omitted)"),
+):
+    """Setup Admin Panel 2.0 tables and create a superuser."""
+    if ctx.invoked_subcommand is None:
+        create(username=username, password=password)
+
 
 @app.command("create")
 @app.command("setup")
@@ -107,6 +150,8 @@ def create(
     typer.echo("🛠️  Setting up Admin 2.0 tables...")
     check_and_create_admins_table(conn)
 
+    copy_admin_files()
+
     admin_pw = password or secrets.token_urlsafe(10)
     if create_admin_user(conn, username, admin_pw):
         typer.secho(f"✅ Administrator '{username}' created successfully!", fg=typer.colors.GREEN)
@@ -117,8 +162,11 @@ def create(
         typer.secho(f"❌ Failed to create admin user '{username}'.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
+
 def main():
     app()
 
+
 if __name__ == "__main__":
     main()
+

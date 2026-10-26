@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="{{ lang | default('en') }}">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 - {{ translate['not_found'] | default('Page Not Found') }} | Lila</title>
+  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+  {% include "lila/tailwind.jinja" %}
+</head>
+
+<body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="max-w-md w-full bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm text-center space-y-6">
+    <!-- Icon badge -->
+    <div class="w-20 h-20 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+      <span class="text-4xl">🔍</span>
+    </div>
+    
+    <!-- Title -->
+    <div class="space-y-1">
+      <h1 class="text-6xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent leading-none">404</h1>
+      <h2 class="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">{{ translate['not_found'] | default('Page Not Found') }}</h2>
+    </div>
+    
+    <!-- Description -->
+    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+      The page you are looking for might have been moved, deleted, or does not exist.
+    </p>
+    
+    <!-- Action button -->
+    <div class="pt-2">
+      <a href="/" class="btn btn-primary w-full shadow-md py-3 text-sm">
+        {{ translate['back'] | default('Go Back Home') }}
+      </a>
+    </div>
+  </div>
+
+  <script src="{{ public('js/lila-client.js') }}"></script>
+</body>
+
+</html>

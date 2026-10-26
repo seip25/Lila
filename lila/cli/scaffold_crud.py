@@ -3,6 +3,7 @@ import os
 import re
 from pathlib import Path
 import importlib.util
+from typing import Optional, List, Dict, Any
 import typer
 
 if os.getcwd() not in sys.path:
@@ -64,13 +65,18 @@ def generate_api_route_file(model_name: str, route_name: str, table_name: str, c
     sensitive_fields = {"password", "token", "hash"}
     display_columns = [col for col in columns if col not in sensitive_fields]
 
-    pydantic_fields = []
+    create_fields = []
+    update_fields = []
     for col in columns:
-        if col not in {"id", "created_at", "updated_at"}:
-            pydantic_fields.append(f'    {col}: str = ""')
+        if col not in {"id", "created_at", "updated_at", "active"}:
+            create_fields.append(f'    {col}: Optional[str] = ""')
+            update_fields.append(f'    {col}: Optional[Any] = None')
+        elif col == "active":
+            create_fields.append('    active: int = 1')
+            update_fields.append('    active: Optional[int] = None')
 
-    pydantic_create_fields = "\n".join(pydantic_fields) or "    pass"
-    pydantic_update_fields = "\n".join(pydantic_fields) or "    pass"
+    pydantic_create_fields = "\n".join(create_fields) or "    pass"
+    pydantic_update_fields = "\n".join(update_fields) or "    pass"
 
     return f'''from lila.core.request import Request
 from lila.core.routing import Router
@@ -78,9 +84,9 @@ from lila.core.responses import JSONResponse
 from app.connections import connection
 from app.models.{to_snake_case(model_name)} import {model_name}
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 
-router = Router(prefix="/api/v1")
+router = Router(prefix="/api")
 
 class {model_name}Create(BaseModel):
 {pydantic_create_fields}
@@ -193,7 +199,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
       <div id="datatable-container" class="overflow-x-auto"></div>
     </article>
 
-    <dialog id="crud-dialog" class="rounded-2xl p-6 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full backdrop:bg-slate-950/40">
+    <dialog id="crud-dialog" class="m-auto fixed inset-0 rounded-2xl p-6 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full backdrop:bg-slate-950/40">
       <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 id="modal-title" class="text-lg font-bold text-slate-900 dark:text-white">New {model_name}</h3>
         <button onclick="document.getElementById('crud-dialog').close()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
@@ -233,7 +239,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
 
     async function fetchData() {{
       try {{
-        const res = await Http('/api/v1/{route_name}');
+        const res = await Http('/api/{route_name}');
         renderTable(res);
       }} catch (err) {{
         console.error(err);
@@ -250,7 +256,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
     async function onEdit(item) {{
       const id = typeof item === 'object' ? item.id : item;
       try {{
-        const data = await Http(`/api/v1/{route_name}/${{id}}`);
+        const data = await Http(`/api/{route_name}/${{id}}`);
         document.getElementById('modal-title').textContent = `Edit {model_name} #${{id}}`;
         document.getElementById('recordId').value = id;
         for (const [key, val] of Object.entries(data)) {{
@@ -267,7 +273,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
       const id = typeof item === 'object' ? item.id : item;
       if (!confirm(`Are you sure you want to delete this {model_name}?`)) return;
       try {{
-        const res = await Http(`/api/v1/{route_name}/${{id}}`, 'DELETE');
+        const res = await Http(`/api/{route_name}/${{id}}`, 'DELETE');
         if (res.success) {{
           lila('toast', {{ title: 'Deleted', description: 'Record removed successfully', type: 'success' }});
           fetchData();
@@ -283,7 +289,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
       const id = formData.id;
       delete formData.id;
       try {{
-        const url = id ? `/api/v1/{route_name}/${{id}}` : '/api/v1/{route_name}';
+        const url = id ? `/api/{route_name}/${{id}}` : '/api/{route_name}';
         const method = id ? 'PUT' : 'POST';
         const res = await Http(url, method, formData);
         if (res.success) {{
@@ -310,20 +316,55 @@ def add_route_import_to_main(route_name: str, model_name: str) -> bool:
         content = f.read()
 
     import_stmt = f"from app.routes.web.{route_name} import routes as {route_name}_routes"
+    include_stmt = f"app.include_router({route_name}_routes)"
+
     if import_stmt in content:
         return True
 
-    replace_text = f'''# api_marker
-{import_stmt}
-app.include_router({route_name}_routes)'''
+    # 1. Insert import statement at marker or before app = App(
+    if "# api_imports_marker" in content:
+        content = content.replace("# api_imports_marker", f"# api_imports_marker\n{import_stmt}")
+    elif "# api_marker" in content:
+        content = content.replace("# api_marker", f"# api_marker\n{import_stmt}")
+    elif "app = App(" in content:
+        content = content.replace("app = App(", f"{import_stmt}\n\napp = App(")
+    else:
+        content = f"{import_stmt}\n{content}"
 
-    if "# api_marker" in content:
-        new_content = content.replace("# api_marker", replace_text)
-        with open(main_file, "w", encoding="utf-8") as f:
-            f.write(new_content)
-        typer.echo("  ✅ Routes linked in main.py")
-        return True
-    return False
+    # 2. Insert router inclusion AFTER app = App(...)
+    if "# api_routes_marker" in content:
+        content = content.replace("# api_routes_marker", f"# api_routes_marker\n{include_stmt}")
+    elif "# routes_marker" in content:
+        content = content.replace("# routes_marker", f"# routes_marker\n{include_stmt}")
+    elif "app = App(" in content:
+        app_pos = content.find("app = App(")
+        end_bracket = content.find(")", app_pos)
+        if end_bracket != -1:
+            content = content[:end_bracket + 1] + f"\n{include_stmt}" + content[end_bracket + 1:]
+        else:
+            content = content + f"\n{include_stmt}\n"
+    else:
+        content = content + f"\n{include_stmt}\n"
+
+    with open(main_file, "w", encoding="utf-8") as f:
+        f.write(content)
+    typer.echo("  ✅ Routes linked in main.py")
+    return True
+
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    model: Optional[str] = typer.Option(None, "--model", "-m", help="Model name (e.g. Product)"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Route slug (defaults to snake_case)"),
+):
+    """
+    Generate CRUD routes, Pydantic schemas, and HTML view with ResponsiveDataTable.
+    """
+    if ctx.invoked_subcommand is None:
+        if not model:
+            typer.echo(ctx.get_help())
+            raise typer.Exit(code=0)
+        generate(model=model, name=name)
 
 @app.command()
 def generate(
@@ -360,10 +401,7 @@ def generate(
     (tmpl_dir / "index.jinja").write_text(generate_html_template(model_name, route_name, columns), encoding="utf-8")
 
     add_route_import_to_main(route_name, model_name)
-    typer.secho(f"🎉 CRUD scaffold for {model_name} generated successfully at /{route_name} and /api/v1/{route_name}", fg=typer.colors.GREEN)
-
-def main():
-    app()
+    typer.secho(f"🎉 CRUD scaffold for {model_name} generated successfully at /{route_name} and /api/{route_name}", fg=typer.colors.GREEN)
 
 if __name__ == "__main__":
-    main()
+    app()

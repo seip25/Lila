@@ -84,10 +84,21 @@ def asset(asset_path: str) -> str:
     return url
 
 
+DEFAULT_LAYOUT: str = "lila/base.jinja"
+
+
+def set_default_layout(layout_name: str) -> None:
+    """Configures global default layout for template rendering."""
+    global DEFAULT_LAYOUT
+    DEFAULT_LAYOUT = layout_name
+
+
 jinja_env.globals["public"] = public
 jinja_env.globals["asset"] = asset
 jinja_env.globals["oauth_buttons"] = OAuth.render_buttons
-jinja_env.globals["lang"] = lambda: str(ENV_CONFIG.get("LANG_DEFAULT", "es"))
+jinja_env.globals["lang"] = lambda: str(ENV_CONFIG.get("LANG_DEFAULT", "en"))
+jinja_env.globals["translate"] = Translate.get_dict()
+jinja_env.globals["t"] = Translate.t
 
 
 def get_base_context(request: Request) -> Dict[str, Any]:
@@ -97,6 +108,7 @@ def get_base_context(request: Request) -> Dict[str, Any]:
         app_url = str(request.base_url).rstrip("/") if hasattr(request, "base_url") else "http://127.0.0.1:8000"
 
     current_lang = Translate.lang(request)
+    trans_dict = Translate.get_dict(current_lang)
 
     return {
         "request": request,
@@ -105,8 +117,11 @@ def get_base_context(request: Request) -> Dict[str, Any]:
         "keywords": ENV_CONFIG.get("KEYWORDS_DEFAULT", ""),
         "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
         "lang": current_lang,
+        "translate": trans_dict,
+        "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),
         "app_url": app_url,
         "debug": bool(ENV_CONFIG.get("DEBUG", True)),
+        "layout": DEFAULT_LAYOUT,
     }
 
 
@@ -118,12 +133,16 @@ def render(
     csrf: bool = False,
     status_code: int = 200,
     template: Optional[str] = None,
+    layout: Optional[str] = None,
 ) -> HTMLResponse:
     """Renders HTML template with unified context, CSRF handling, and SPA partial support."""
     target_template = template_name or template or "index"
     ctx = get_base_context(request)
+    if layout:
+        ctx["layout"] = layout
     if context:
         ctx.update(context)
+
 
     csrf_token = None
     if csrf:

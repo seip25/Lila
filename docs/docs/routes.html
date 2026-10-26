@@ -343,7 +343,7 @@ from lila.core.responses import JSONResponse
 
 # All routes registered on this router will require the login session first,
 # then they will validate the JWT token.
-auth_router = Router(prefix="api/v1", middlewares=[login_required, validate_token])
+auth_router = Router(prefix="/api", middlewares=[login_required, validate_token])
 
 # This route automatically inherits and executes both middlewares first!
 @auth_router.get("/profile")

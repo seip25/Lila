@@ -286,6 +286,10 @@
       executeScripts(currentOutlet);
       Lila.hydrate(currentOutlet);
     } else {
+      // Sync body attributes (classes, styles, layout) so standalone pages like admin login stay centered
+      for (const attr of Array.from(nextDoc.body.attributes)) {
+        document.body.setAttribute(attr.name, attr.value);
+      }
       document.body.innerHTML = nextDoc.body.innerHTML;
 
       for (const [key, activeEl] of currentPersistNodes.entries()) {
@@ -373,7 +377,19 @@
 
     try {
       const url = new URL(anchor.href, window.location.href);
-      return url.origin === window.location.origin;
+      if (url.origin !== window.location.origin) return false;
+      const path = url.pathname.toLowerCase();
+      // Exclude API, documentation, and system endpoints from SPA routing
+      if (
+        path.startsWith("/api") ||
+        path.startsWith("/docs") ||
+        path.startsWith("/openapi") ||
+        path.startsWith("/swagger") ||
+        path.startsWith("/_lila")
+      ) {
+        return false;
+      }
+      return true;
     } catch {
       return false;
     }
@@ -393,7 +409,11 @@
         pathname === "/logout" ||
         pathname.endsWith("/logout") ||
         pathname === "/signout" ||
-        pathname.endsWith("/signout")
+        pathname.endsWith("/signout") ||
+        pathname.startsWith("/api") ||
+        pathname.startsWith("/docs") ||
+        pathname.startsWith("/openapi") ||
+        pathname.startsWith("/swagger")
       ) {
         return false;
       }
@@ -486,11 +506,18 @@
     if (!isLocalhost) return;
 
     let initialBootId = null;
-    let connectedOnce = false;
-    let failedAttempts = 0;
     let es = null;
+    let retryTimer = null;
+
+    function cleanup() {
+      if (es) {
+        try { es.close(); } catch {}
+        es = null;
+      }
+    }
 
     function connect() {
+      cleanup();
       try {
         es = new EventSource("/_lila/dev-reload");
 
@@ -498,12 +525,11 @@
           try {
             const data = JSON.parse(event.data);
             if (data.type === "connected" && data.bootId) {
-              connectedOnce = true;
-              failedAttempts = 0;
               if (initialBootId === null) {
                 initialBootId = data.bootId;
               } else if (initialBootId !== data.bootId) {
                 console.log("[Lila] Server restart detected, reloading page...");
+                cleanup();
                 window.location.reload();
               }
             }
@@ -511,18 +537,17 @@
         };
 
         es.onerror = () => {
-          try { es.close(); } catch {}
-          if (!connectedOnce) {
-            failedAttempts++;
-            if (failedAttempts > 2) return;
-            setTimeout(connect, 1000);
-            return;
-          }
-          setTimeout(connect, 500);
+          cleanup();
+          clearTimeout(retryTimer);
+          retryTimer = setTimeout(connect, 400);
         };
-      } catch {}
+      } catch {
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(connect, 600);
+      }
     }
 
+    window.addEventListener("beforeunload", cleanup);
     connect();
   }
 

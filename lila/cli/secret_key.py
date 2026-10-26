@@ -10,6 +10,13 @@ if os.getcwd() not in sys.path:
 
 app = typer.Typer(help="Generate and rotate application SECRET_KEY in .env.")
 
+@app.callback(invoke_without_command=True)
+def default_secret_key(ctx: typer.Context):
+    """Generate a cryptographic SECRET_KEY and update .env."""
+    if ctx.invoked_subcommand is None:
+        create()
+
+
 @app.command()
 def create():
     """Generate a cryptographic SECRET_KEY and update .env"""
