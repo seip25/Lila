@@ -1,14 +1,12 @@
 import sys
 import os
+import shutil
 import socket
+from pathlib import Path
+from importlib import resources
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
-
-# lila/cli/scaffold.py
-import shutil
-import os
-from importlib import resources
-from pathlib import Path
 
 SCAFFOLD_ITEMS = {
     "main.py": "main.py",
@@ -16,41 +14,26 @@ SCAFFOLD_ITEMS = {
     "public": "public",
     "resources": "resources",
     ".gitignore": ".gitignore",
-    ".dockerignore": ".dockerignore",
-    ".env": ".env",
+    ".env_example": ".env_example",
     "AGENTS.md": "AGENTS.md",
-    "docker-compose.yml": "docker-compose.yml",
-    "docker": "docker",
 }
 
-def copy_item(
-    source_package_name, item_name_in_package, destination_base_path, item_name_in_dest
-):
+def copy_item(source_package_name, item_name_in_package, destination_base_path, item_name_in_dest):
     def _do_copy(src_path: Path):
         dest_path = Path(destination_base_path) / item_name_in_dest
         
         if src_path.resolve() == dest_path.resolve():
-            print(
-                f"  ℹ️ Omitiendo '{item_name_in_package}' porque origen y destino son iguales. / "
-                f"Skipping '{item_name_in_package}' because source and destination are the same."
-            )
             return
 
         if src_path.is_dir():
             if dest_path.exists():
                 shutil.rmtree(dest_path)
             shutil.copytree(src_path, dest_path)
-            print(
-                f"  📂 Directorio '{item_name_in_package}' copiado a '{dest_path}'. / "
-                f"Directory '{item_name_in_package}' copied to '{dest_path}'."
-            )
+            print(f"  📂 Directoy '{item_name_in_package}' -> '{dest_path}'.")
         else:
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src_path, dest_path)
-            print(
-                f"  📄 Archivo '{item_name_in_package}' copiado a '{dest_path}'. / "
-                f"File '{item_name_in_package}' copied to '{dest_path}'."
-            )
+            print(f"  📄 File '{item_name_in_package}' -> '{dest_path}'.")
 
     try:
         try:
@@ -66,19 +49,11 @@ def copy_item(
         if source_path.exists():
             _do_copy(source_path)
         else:
-            print(
-                f"  ⚠️ Advertencia: Recurso '{item_name_in_package}' no encontrado. Omitiendo. / "
-                f"Warning: Resource '{item_name_in_package}' not found. Skipping."
-            )
+            print(f"  ⚠️ Warning: Resource '{item_name_in_package}' not found. Skipping.")
     except Exception as e:
-        print(
-            f"  ❌ Error al copiar '{item_name_in_package}': {e}. / "
-            f"Error copying '{item_name_in_package}': {e}."
-        )
-
+        print(f"  ❌ Error copying '{item_name_in_package}': {e}")
 
 def _is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
-    """Test if a port is bound on the host."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
@@ -87,231 +62,117 @@ def _is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
         except OSError:
             return True
 
-
 def _prompt(label_en: str, label_es: str, default: str) -> str:
-    """
-    English: Prompts the user for input with a default value. Press Enter to accept the default.
-    Español: Solicita input al usuario con un valor por defecto. Presionar Enter para aceptar el default.
-    """
     value = input(f"  {label_es} / {label_en} [{default}]: ").strip()
     return value if value else default
 
-
-def _to_docker_name(name: str) -> str:
-    """
-    English: Sanitizes a project name for Docker container/network naming.
-             Replaces spaces and hyphens with underscores, lowercases everything.
-    Español: Sanitiza un nombre de proyecto para contenedores/redes Docker.
-    """
-    import re
-    name = name.strip().lower()
-    name = re.sub(r'[\s\-]+', '_', name)  # spaces and hyphens -> underscores
-    name = re.sub(r'[^a-z0-9_]', '', name)  # remove non-alphanumeric/underscore
-    return name or "lila_project"
-
-
 def _collect_project_info(project_dir_name: str) -> dict:
-    """
-    English: Interactively collects project metadata, database config, and checks port availability.
-    Español: Recolecta interactivamente los metadatos del proyecto, config de DB y verifica disponibilidad de puertos.
-    """
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
-    default_docker_name = _to_docker_name(project_dir_name)
 
-    print("\n📝 Configuración del proyecto / Project configuration")
-    print("   (Presiona Enter para usar el valor por defecto / Press Enter to use defaults)\n")
+    print("\n📝 Configuración del proyecto / Project configuration (Lila v2.0.0)")
+    print("   (Presiona Enter para usar los valores por defecto / Press Enter for defaults)\n")
 
-    project_name_raw = _prompt("Project name (used for Docker containers)", "Nombre del proyecto (para Docker)", project_dir_name)
-    docker_name = _to_docker_name(project_name_raw)
-
-    # Check default web port (8000)
     suggested_port = "8000"
     if _is_port_in_use(8000):
-        print("  ⚠️ Puerto 8000 ocupado en el host / Port 8000 is currently in use.")
         for p in range(8001, 8020):
             if not _is_port_in_use(p):
                 suggested_port = str(p)
                 break
 
-    app_port = _prompt("HTTP port for Docker/VPS", "Puerto HTTP para Docker/VPS", suggested_port)
+    app_port = _prompt("HTTP port", "Puerto HTTP", suggested_port)
 
     info = {
-        "LILA_PROJECT_NAME": docker_name,
         "PORT": app_port,
         "TITLE_PROJECT": _prompt("Project title", "Título del proyecto", default_title),
-        "DESCRIPTION_PROJECT": _prompt("Description", "Descripción", ""),
+        "DESCRIPTION_PROJECT": _prompt("Description", "Descripción", "Full-Stack Python Application"),
         "AUTHOR_DEFAULT": _prompt("Author", "Autor", ""),
         "LANG_DEFAULT": _prompt("Default language (en/es/...)", "Idioma por defecto (en/es/...)", "en"),
-        "DESCRIPTION_DEFAULT": _prompt("SEO meta description", "SEO meta descripción", "A Python web framework"),
-        "KEYWORDS_DEFAULT": _prompt("SEO keywords", "SEO palabras clave", "Python, web, framework"),
-        # DB defaults (SQLite unless user sets up MySQL)
+        "DESCRIPTION_DEFAULT": _prompt("SEO meta description", "SEO meta descripción", "Built with Lila Framework v2.0"),
+        "KEYWORDS_DEFAULT": _prompt("SEO keywords", "SEO palabras clave", "python, starlette, spa, web, framework"),
+        "CACHE_DRIVER": "memory",
         "DB_TYPE": "sqlite",
-        "DB_HOST": "127.0.0.1",
-        "DB_PORT": "3306",
-        "DB_NAME": docker_name,
-        "DB_USER": "root",
-        "DB_PASSWORD": "root",
-        "REDIS_PORT_HOST": "6379",
+        "DB_NAME": "lila",
     }
 
-    # ── MySQL setup ────────────────────────────────────────────────────────────
-    print("\n🗄️  Configuración de base de datos / Database setup")
-    setup_mysql = input("  ¿Quieres configurar MySQL ahora? / Configure MySQL now? [s/N]: ").strip().lower()
-    if setup_mysql in ("s", "y", "si", "yes"):
-        suggested_db_port = "3306"
-        if _is_port_in_use(3306):
-            print("  ⚠️ Puerto MySQL 3306 ocupado en el host / Port 3306 is in use.")
-            for p in range(3307, 3320):
-                if not _is_port_in_use(p):
-                    suggested_db_port = str(p)
-                    break
-
-        info["DB_TYPE"] = "mysql"
-        info["DB_HOST"] = _prompt("MySQL host", "Host MySQL", "127.0.0.1")
-        info["DB_PORT"] = _prompt("MySQL port (host)", "Puerto MySQL (host)", suggested_db_port)
-        info["DB_NAME"] = _prompt("Database name", "Nombre de la base de datos", docker_name)
-        info["DB_USER"] = _prompt("MySQL user", "Usuario MySQL", "root")
-        info["DB_PASSWORD"] = _prompt("MySQL password", "Contraseña MySQL", "root")
-        print("  ✅ MySQL configurado con perfil low-memory (~70MB RAM). Credenciales guardadas en .env")
+    # Database options
+    print("\n🗄️  Configuración de Base de Datos / Database Setup")
+    print("   Lila v2.0 incluye SQLite Async (WAL mode) con cero infraestructura.")
+    setup_db = input("   ¿Deseas usar MySQL o PostgreSQL en vez de SQLite? [s/N]: ").strip().lower()
+    if setup_db in ("s", "y", "si", "yes"):
+        db_choice = input("   Tipo de base de datos (mysql/postgresql) [mysql]: ").strip().lower() or "mysql"
+        info["DB_TYPE"] = db_choice
+        info["DB_HOST"] = _prompt("Database host", "Host de Base de Datos", "127.0.0.1")
+        info["DB_PORT"] = _prompt("Database port", "Puerto", "3306" if db_choice == "mysql" else "5432")
+        info["DB_NAME"] = _prompt("Database name", "Nombre de la base de datos", "lila_db")
+        info["DB_USER"] = _prompt("Database user", "Usuario", "root" if db_choice == "mysql" else "postgres")
+        info["DB_PASSWORD"] = _prompt("Database password", "Contraseña", "")
     else:
-        print("  ℹ️  Usando SQLite por defecto / Using SQLite by default (app/connections.py)")
+        print("  ✅ SQLite Async WAL mode configurado por defecto.")
 
     return info
 
-
 def _write_env_file(env_path: Path, project_info: dict) -> None:
-    """
-    English: Writes the .env file with project metadata, DB config, and Docker vars.
-    Español: Escribe el archivo .env con metadatos del proyecto, config DB y vars Docker.
-    """
     import secrets
     secret_key = secrets.token_hex(32)
-    env_content = f"""# ─── Server ────────────────────────────────────────────────
+    db_type = project_info.get("DB_TYPE", "sqlite")
+    
+    db_extra = ""
+    if db_type != "sqlite":
+        db_extra = f"""DB_HOST="{project_info.get('DB_HOST', '127.0.0.1')}"
+DB_PORT={project_info.get('DB_PORT', 3306)}
+DB_USER="{project_info.get('DB_USER', 'root')}"
+DB_PASSWORD="{project_info.get('DB_PASSWORD', '')}"
+"""
+
+    env_content = f"""# ─── Server Configuration ────────────────────────────────
 SECRET_KEY='{secret_key}'
 DEBUG=True
 PORT={project_info.get("PORT", "8000")}
 HOST="127.0.0.1"
 JIT=False
-WORKERS="max"
-MINIFY_HTML=True
+WORKERS="2"
 
-# ─── Redis ─────────────────────────────────────────────────
-REDIS_HOST="127.0.0.1"
-REDIS_PORT=6379
-REDIS_PORT_HOST={project_info.get("REDIS_PORT_HOST", "6379")}
-
-# ─── Application URL ─────────────────────────────────────────
-# English: Production URL for sitemaps, robots.txt, and canonical links.
-#          Leave empty in development — the framework uses http://HOST:PORT automatically.
-# Español: URL de producción para sitemaps, robots.txt y links canónicos.
-#          Example: APP_URL="https://my-lila-app.com"
+# ─── Application URL ────────────────────────────────────
 APP_URL=""
 
-# ─── Project Metadata ─────────────────────────────────────────
+# ─── Project Metadata ───────────────────────────────────
 TITLE_PROJECT='{project_info["TITLE_PROJECT"]}'
-VERSION_PROJECT='1'
+VERSION_PROJECT='2.0.0'
 DESCRIPTION_PROJECT='{project_info["DESCRIPTION_PROJECT"]}'
 LANG_DEFAULT='{project_info["LANG_DEFAULT"]}'
 
-# ─── SEO Defaults ───────────────────────────────────────────────
+# ─── SEO Defaults ───────────────────────────────────────
 DESCRIPTION_DEFAULT="{project_info["DESCRIPTION_DEFAULT"]}"
 KEYWORDS_DEFAULT="{project_info["KEYWORDS_DEFAULT"]}"
 AUTHOR_DEFAULT="{project_info["AUTHOR_DEFAULT"]}"
 
-# ─── Docker / VPS Multi-Project Deployment ────────────────────
-# English: Used by docker-compose.yml to isolate containers, networks, and volumes.
-#          Change PORT / DB_PORT / REDIS_PORT_HOST if running multiple projects on one VPS.
-# Español: Usado por docker-compose.yml para aislar contenedores, redes y volúmenes.
-LILA_PROJECT_NAME={project_info["LILA_PROJECT_NAME"]}
-DB_NAME={project_info["DB_NAME"]}
-DB_USER={project_info["DB_USER"]}
-DB_PASSWORD={project_info["DB_PASSWORD"]}
-DB_PORT={project_info["DB_PORT"]}
+# ─── Cache Driver (memory | redis) ───────────────────────
+CACHE_DRIVER="memory"
+
+# If CACHE_DRIVER="redis":
+REDIS_HOST="127.0.0.1"
+REDIS_PORT=6379
+REDIS_PASSWORD=""
+REDIS_URL=""
+
+# ─── Database Configuration ──────────────────────────────
+DB_TYPE="{db_type}"
+DB_NAME="{project_info.get('DB_NAME', 'lila')}"
+{db_extra}
+# ─── AI Integration (core/ia.py) ─────────────────────────
+OPENAI_API_KEY=""
+DEEPSEEK_API_KEY=""
+GEMINI_API_KEY=""
+
+# ─── Better Auth OAuth Providers ─────────────────────────
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
+DISCORD_CLIENT_ID=""
+DISCORD_CLIENT_SECRET=""
 """
     env_path.write_text(env_content.lstrip(), encoding="utf-8")
-
-
-def _write_connections_file(connections_path: Path, project_info: dict) -> None:
-    """
-    English: Writes app/connections.py with the database configuration chosen during lila-init.
-    Español: Escribe app/connections.py con la configuración de base de datos elegida en lila-init.
-    """
-    if project_info["DB_TYPE"] == "mysql":
-        connections_content = f"""from lila.core.database import Database
-from sqlalchemy.orm import Session
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# ────────────────────────────────────────────────────────────────────────────
-# MySQL connection — configured during lila-init
-# Credentials are read from .env (so Docker Compose and local dev share them).
-# pool_size: max connections retained in pool (tuned for low-memory VPS)
-# max_overflow: extra connections allowed beyond pool_size under peak load
-# ────────────────────────────────────────────────────────────────────────────
-config = {{
-    "type": "mysql",
-    "host": os.getenv("DB_HOST", "{project_info['DB_HOST']}"),
-    "port": int(os.getenv("DB_PORT", "{project_info['DB_PORT']}")),
-    "user": os.getenv("DB_USER", "{project_info['DB_USER']}"),
-    "password": os.getenv("DB_PASSWORD", "{project_info['DB_PASSWORD']}"),
-    "database": os.getenv("DB_NAME", "{project_info['DB_NAME']}"),
-    "is_async": True,
-    "auto_commit": False,
-    "pool_size": 10,
-    "max_overflow": 20,
-    "pool_recycle": 1800,
-    "pool_timeout": 30,
-}}
-connection = Database(config=config)
-connection.connect()
-
-# Example: ORM session usage
-# db_session = connection.get_session()
-
-# Example: async route (non-blocking, with query deduplication)
-# from lila.core.base_model import BaseModel
-# items = await MyModel.get_all_async(limit=100)
-"""
-    else:
-        connections_content = """from lila.core.database import Database
-from sqlalchemy.orm import Session
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# ────────────────────────────────────────────────────────────────────────────
-# SQLite connection (default — no setup required for development)
-# To switch to MySQL, update this config and set DB_* vars in .env
-# ────────────────────────────────────────────────────────────────────────────
-config = {"type": "sqlite", "database": "lila", "is_async": True}
-connection = Database(config=config)
-connection.connect()
-
-# To use MySQL instead, replace config above with:
-# import os
-# config = {
-#     "type": "mysql",
-#     "host": os.getenv("DB_HOST", "127.0.0.1"),
-#     "port": int(os.getenv("DB_PORT", "3306")),
-#     "user": os.getenv("DB_USER", "root"),
-#     "password": os.getenv("DB_PASSWORD", "root"),
-#     "database": os.getenv("DB_NAME", "lila_db"),
-#     "is_async": True,
-#     "auto_commit": False,
-#     "pool_size": 10,
-#     "max_overflow": 20,
-#     "pool_recycle": 1800,
-#     "pool_timeout": 30,
-# }
-
-# Example: async route (non-blocking, with query deduplication)
-# from lila.core.base_model import BaseModel
-# items = await MyModel.get_all_async(limit=100)
-"""
-    connections_path.write_text(connections_content.lstrip(), encoding="utf-8")
-
 
 def main():
     destination_base_path = Path(os.getcwd())
@@ -322,101 +183,55 @@ def main():
             "⚠️ Advertencia: El directorio actual no está vacío. Los archivos del proyecto Lila se copiarán aquí. / "
             "Warning: The current directory is not empty. Lila project files will be copied here."
         )
-        input("Presiona Enter para continuar o Ctrl+C para cancelar. / Press Enter to continue or Ctrl+C to cancel...")
+        input("Presiona Enter para continuar o Ctrl+C para cancelar... / Press Enter to continue...")
 
     try:
-        # English: Collect project info from user BEFORE copying files.
-        # Español: Recolectar info del proyecto del usuario ANTES de copiar archivos.
         project_info = _collect_project_info(project_dir_name)
 
-        print(
-            f"\n🛠️  Construyendo el esqueleto del proyecto en el directorio actual usando Lila Framework... / "
-            f"Scaffolding project in the current directory using Lila Framework..."
-        )
+        print("\n🛠️  Scaffolding project with Lila Framework v2.0.0...")
 
         for item_pkg_name, item_dest_name in SCAFFOLD_ITEMS.items():
             copy_item("lila", item_pkg_name, destination_base_path, item_dest_name)
 
-        # English: Overwrite the scaffolded .env with user-customized values.
-        # Español: Sobreescribir el .env scaffolded con los valores personalizados del usuario.
         env_path = destination_base_path / ".env"
         _write_env_file(env_path, project_info)
-        print(
-            f"  ✨ .env generado con la configuración del proyecto. / "
-            f".env generated with project configuration."
-        )
+        print("  ✨ .env generated successfully.")
 
-        # English: Overwrite app/connections.py with chosen database config.
-        # Español: Sobreescribir app/connections.py con la config de DB elegida.
-        connections_path = destination_base_path / "app" / "connections.py"
-        if connections_path.exists():
-            _write_connections_file(connections_path, project_info)
-            print(
-                f"  🔗 app/connections.py actualizado con la configuración de base de datos. / "
-                f"app/connections.py updated with database configuration."
-            )
-
-        # English: Generate requirements.txt if it does not exist.
-        # Español: Generar requirements.txt si no existe.
         req_path = destination_base_path / "requirements.txt"
         if not req_path.exists():
-            req_path.write_text("lila-framework\n", encoding="utf-8")
-            print(
-                f"Archivo 'requirements.txt' generado. / "
-                f"File 'requirements.txt' generated."
-            )
+            req_path.write_text("lila-framework>=2.0.0\n", encoding="utf-8")
+            print("  📄 requirements.txt generated.")
 
-        readme_content = f"""
-# {project_info["TITLE_PROJECT"]}
+        readme_content = f"""# {project_info["TITLE_PROJECT"]}
 
 {project_info["DESCRIPTION_PROJECT"]}
 
-# Learning Lila
-https://seip25.github.io/Lila 
+Built with **Lila Framework v2.0.0** — Full-Stack Python SPA, SQLite WAL mode, and Desktop ready.
 
-# Documentación de Lila
+## Quick Start
+```bash
+# Run local dev server with auto-reload
+lila dev
+
+# Run as native desktop application
+lila desktop dev
+
+# Compile desktop executable
+lila desktop build
+```
+
+## Documentation
 https://seip25.github.io/Lila
-
-¡Feliz desarrollo! 🚀
 """
         with open(destination_base_path / "README.md", "w", encoding="utf-8") as f:
             f.write(readme_content)
-        print(
-            f"📄 README.md básico creado en el directorio actual. / "
-            f"Basic README.md created in the current directory."
-        )
+        print("  📄 README.md created.")
 
-        print(
-            "\n🎉 ¡Proyecto Lila inicializado exitosamente en el directorio actual! / "
-            "Lila project initialized successfully in the current directory!"
-        )
-        print(
-            "➡️  Ahora, revisa los archivos generados en este directorio. / "
-            "Now, review the generated files in this directory."
-        )
-        print(
-            "   Sigue las instrucciones en el README.md generado. / "
-            "Follow the instructions in the generated README.md."
-        )
+        print("\n🎉 ¡Proyecto Lila v2.0 inicializado con éxito! / Lila v2.0 project scaffolded successfully!")
+        print("➡️  Ejecuta 'lila dev' para arrancar el servidor con hot-reload.")
 
     except Exception as e:
-        print(
-            f"\n❌ Ocurrió un error durante la creación del proyecto: {e}. / "
-            f"An error occurred during project creation: {e}."
-        )
-        if destination_base_path.exists() and not any(destination_base_path.iterdir()):
-            try:
-                destination_base_path.rmdir()
-                print(
-                    f"🧹 Directorio del proyecto incompleto eliminado: {destination_base_path}. / "
-                    f"Incomplete project directory deleted: {destination_base_path}."
-                )
-            except Exception as cleanup_e:
-                print(
-                    f"⚠️ No se pudo eliminar automáticamente el directorio '{destination_base_path}': {cleanup_e}. Por favor, elimínalo manualmente. / "
-                    f"Could not automatically delete directory '{destination_base_path}': {cleanup_e}. Please delete it manually."
-                )
-
+        print(f"\n❌ Error during project creation: {e}")
 
 if __name__ == "__main__":
     main()

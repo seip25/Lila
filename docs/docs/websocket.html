@@ -139,53 +139,47 @@
           </div>
         </div>
         <div class="editor-content bg-gray-900 dark:bg-black">
-          <pre><code class="language-python">
-from lila.core.routing import Router
-from lila.core.websocket import WebSocketManager, WebSocket
-from lila.core.security import Security
+          <pre><code class="language-python">from lila.core.routing import Router
+from lila.core.websocket import ws # Global, pre-configured WebSocketHub
 import datetime
 
 router = Router()
-ws_manager = WebSocketManager()
+
+# Auto-mounts connection lifecycle, heartbeats, and room pub/sub in 1 line:
+router.ws_hub("/ws/chat", ws)
 
 # Event handler for joining a room
-@ws_manager.on("join_channel")
-async def handle_join(websocket: WebSocket, data: dict):
+@ws.on("join_channel")
+async def handle_join(websocket, data: dict):
     room = data.get("room", "general")
-    username = Security.sanitize_data(data.get("username", "Guest"))
+    username = data.get("username", "Guest")
     
-    ws_manager.join_room(websocket, room)
+    ws.join_room(websocket, room)
     
     # Broadcast join notice to room members
-    await ws_manager.broadcast_to_room(room, "user_joined", {
+    await ws.broadcast("user_joined", {
         "user": username,
         "room": room,
         "time": datetime.datetime.now().strftime("%H:%M")
-    })
+    }, room=room)
 
 # Event handler for sending chat messages
-@ws_manager.on("send_message")
-async def handle_message(websocket: WebSocket, data: dict):
+@ws.on("send_message")
+async def handle_message(websocket, data: dict):
     room = data.get("room", "general")
-    text = Security.sanitize_data(data.get("text", ""))
-    username = Security.sanitize_data(data.get("username", "Guest"))
+    text = data.get("text", "")
+    username = data.get("username", "Guest")
     
     if not text.strip():
         return
 
     # Broadcast message to room subscribers
-    await ws_manager.broadcast_to_room(room, "new_message", {
+    await ws.broadcast("new_message", {
         "user": username,
         "text": text,
         "room": room,
         "time": datetime.datetime.now().strftime("%H:%M")
-    })
-
-# Register WebSocket endpoint
-@router.websocket("/ws/chat")
-async def chat_endpoint(websocket: WebSocket):
-    await ws_manager.handle_connection(websocket)
-            </code></pre>
+    }, room=room)</code></pre>
         </div>
       </div>
 

@@ -1,10 +1,5 @@
-"""
-English: Async SMTP Mailer for Lila Framework.
-         Supports HTML templates, background execution via Starlette BackgroundTask,
-         and configuration via ENV_CONFIG (.env).
-Español: Motor de correo SMTP asíncrono para Lila Framework.
-         Soporta plantillas HTML, ejecución en segundo plano via Starlette BackgroundTask,
-         y configuración via ENV_CONFIG (.env).
+"""Lila Framework v2.0.0 Async Mailer.
+Sends HTML & plain text emails asynchronously or via background tasks.
 """
 
 import asyncio
@@ -18,10 +13,7 @@ from lila.core.logger import Logger
 
 
 class Mailer:
-    """
-    English: Core Mailer utility for sending HTML emails asynchronously.
-    Español: Utilidad Mailer central para enviar correos HTML de forma asíncrona.
-    """
+    """Core Mailer utility for asynchronous SMTP email sending."""
 
     @classmethod
     def get_config(cls) -> dict:
@@ -30,15 +22,19 @@ class Mailer:
             "port": int(ENV_CONFIG.get("SMTP_PORT", 587)),
             "user": ENV_CONFIG.get("SMTP_USER", ""),
             "password": ENV_CONFIG.get("SMTP_PASSWORD", ""),
-            "tls": ENV_CONFIG.get("SMTP_TLS", True),
+            "tls": str(ENV_CONFIG.get("SMTP_TLS", "true")).lower() in ("true", "1", "yes"),
             "from_email": ENV_CONFIG.get("SMTP_FROM", "noreply@lila.local"),
         }
 
     @classmethod
-    def _send_sync(cls, to: Union[str, List[str]], subject: str, body_html: str, body_text: Optional[str] = None, from_email: Optional[str] = None) -> bool:
-        """
-        Synchronous SMTP send implementation.
-        """
+    def _send_sync(
+        cls,
+        to: Union[str, List[str]],
+        subject: str,
+        body_html: str,
+        body_text: Optional[str] = None,
+        from_email: Optional[str] = None,
+    ) -> bool:
         cfg = cls.get_config()
         sender = from_email or cfg["from_email"]
         recipients = [to] if isinstance(to, str) else to
@@ -50,19 +46,14 @@ class Mailer:
 
         if body_text:
             msg.attach(MIMEText(body_text, "plain", "utf-8"))
-        
         msg.attach(MIMEText(body_html, "html", "utf-8"))
 
         try:
+            server = smtplib.SMTP(cfg["host"], cfg["port"], timeout=10)
             if cfg["tls"]:
-                server = smtplib.SMTP(cfg["host"], cfg["port"], timeout=10)
                 server.starttls()
-            else:
-                server = smtplib.SMTP(cfg["host"], cfg["port"], timeout=10)
-
             if cfg["user"] and cfg["password"]:
                 server.login(cfg["user"], cfg["password"])
-
             server.sendmail(sender, recipients, msg.as_string())
             server.quit()
             Logger.info(f"Email sent successfully to {recipients}")
@@ -72,17 +63,25 @@ class Mailer:
             return False
 
     @classmethod
-    async def send_email(cls, to: Union[str, List[str]], subject: str, body_html: str, body_text: Optional[str] = None, from_email: Optional[str] = None) -> bool:
-        """
-        Sends an HTML email asynchronously without blocking the event loop.
-        """
+    async def send_email(
+        cls,
+        to: Union[str, List[str]],
+        subject: str,
+        body_html: str,
+        body_text: Optional[str] = None,
+        from_email: Optional[str] = None,
+    ) -> bool:
+        """Sends an HTML email asynchronously without blocking the event loop."""
         return await asyncio.to_thread(cls._send_sync, to, subject, body_html, body_text, from_email)
 
     @classmethod
-    def send_background(cls, to: Union[str, List[str]], subject: str, body_html: str, body_text: Optional[str] = None, from_email: Optional[str] = None) -> BackgroundTask:
-        """
-        Returns a Starlette BackgroundTask to send the email in the background after the HTTP response is sent.
-        Usage:
-            return JSONResponse({"status": "sent"}, background=Mailer.send_background("user@test.com", "Subject", "<h1>Hello</h1>"))
-        """
+    def send_background(
+        cls,
+        to: Union[str, List[str]],
+        subject: str,
+        body_html: str,
+        body_text: Optional[str] = None,
+        from_email: Optional[str] = None,
+    ) -> BackgroundTask:
+        """Returns Starlette BackgroundTask for post-response execution."""
         return BackgroundTask(cls._send_sync, to, subject, body_html, body_text, from_email)

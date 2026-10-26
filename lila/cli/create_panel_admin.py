@@ -1,156 +1,124 @@
 import sys
 import os
+import secrets
+import subprocess
+import typer
+from sqlalchemy import text
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-import typer
-import os
-import subprocess
-try:
-    from app.connections import connection
-except ImportError:
-    connection = None
-from argon2 import PasswordHasher
-from lila.core.auth import generate_token_value
+from lila.core.auth import PasswordHasher
 
-app = typer.Typer()
-ph = PasswordHasher()
+app = typer.Typer(help="Setup Admin 2.0 and create administrator credentials.")
 
-project_root = os.getcwd()
-
-def ensure_connection_or_migrate():
+def get_connection():
     try:
-        if hasattr(connection, "check_connection"):
-            connected = connection.check_connection()
-        else:
-            connected = False
-            try:
-                with connection.engine.connect() as conn:
-                    connected = True
-            except Exception:
-                pass
-        
-        if not connected:
-            raise Exception("Connection failed")
-
-        result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
-        return True
+        from app.connections import connection
+        return connection
     except Exception:
-        typer.echo("Database connection failed. Running migrations...")
-        result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"])
-        return result.returncode == 0
+        return None
 
-def check_and_create_table():
-    db_type = connection.engine.url.drivername
-    is_sqlite = "sqlite" in db_type
-    is_mysql = "mysql" in db_type
-    is_postgres = "postgresql" in db_type or "postgres" in db_type or "asyncpg" in db_type
+def check_and_create_admins_table(conn) -> bool:
+    is_sqlite = "sqlite" in conn.config.get("type", "sqlite")
+    is_postgres = "postgres" in conn.config.get("type", "")
 
     if is_sqlite:
-        query = "SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"
-    elif is_mysql or is_postgres:
-        query = """
-        SELECT EXISTS (
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_name = 'admins'
-        ) AS table_exists
-        """
+        check_q = "SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"
     else:
-        typer.echo(f"Unsupported database type: {db_type}")
-        raise typer.Exit(code=1)
+        check_q = "SELECT table_name FROM information_schema.tables WHERE table_name = 'admins'"
 
-    table_exists = connection.query(query=query, return_row=True)
-    if is_sqlite:
-        table_exists = bool(table_exists)
-    else:
-        table_exists = table_exists.get("table_exists", False) if table_exists else False
+    try:
+        row = conn.query(query=check_q, return_row=True)
+        if not row:
+            if is_sqlite:
+                pk_def = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+            elif is_postgres:
+                pk_def = "id SERIAL PRIMARY KEY"
+            else:
+                pk_def = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
 
-    if not table_exists:
-        if is_sqlite:
-            column_definition = "id INTEGER PRIMARY KEY AUTOINCREMENT"
-        elif is_mysql:
-            column_definition = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
-        elif is_postgres:
-            column_definition = "id SERIAL PRIMARY KEY"
-        else:
-            typer.echo(f"Unsupported database type: {db_type}")
-            raise typer.Exit(code=1)
+            create_q = f"""
+            CREATE TABLE admins (
+                {pk_def},
+                username VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            conn.query(query=create_q)
+        return True
+    except Exception as e:
+        typer.echo(f"  ⚠️ Table check notice: {e}")
+        return False
 
-        create_table_query = f"""
-        CREATE TABLE admins (
-            {column_definition},
-            username VARCHAR(50) NOT NULL UNIQUE,
-            password VARCHAR(150) NOT NULL,
-            active INTEGER NOT NULL DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-        return connection.query(query=create_table_query)
-    return True
-
-def create_admin_user(username: str, password: str) -> bool:
-    hashed_password = ph.hash(password)
+def create_admin_user(conn, username: str, password: str) -> bool:
+    hashed_password = PasswordHasher.hash(password)
     query = "INSERT INTO admins (username, password, active) VALUES (:username, :password, 1)"
     params = {"username": username, "password": hashed_password}
-    return connection.query(query=query, params=params)
+    try:
+        conn.query(query=query, params=params)
+        return True
+    except Exception as e:
+        typer.secho(f"  ❌ Error creating admin user: {e}", fg=typer.colors.RED)
+        return False
 
 def update_main_routes():
-    main_file = os.path.join(project_root, "main.py")
+    main_file = "main.py"
     marker = "admin_marker"
-    replace_text = """
-from app.routes.admin.index import Admin
-from app.models.user import User
-admin_routes = Admin(models=[User])
-all_routes = list(itertools.chain(all_routes, admin_routes))
-"""
-
     if not os.path.exists(main_file):
-        typer.echo("main.py not found.")
-        raise typer.Exit(code=1)
+        return
 
     with open(main_file, "r", encoding="utf-8") as file:
         content = file.read()
 
-    if marker not in content:
-        typer.echo(f"Marker '{marker}' not found in main.py.")
-        raise typer.Exit(code=1)
-
-    if "admin_routes = Admin" in content:
-        typer.echo("Admin routes already added.")
+    if "from app.routes.admin.index import router as admin_router" in content or "from app.routes.admin.index import Admin" in content:
         return
 
-    new_content = content.replace(marker, f"{marker}{replace_text}")
+    replace_text = f'''# {marker}
+from app.routes.admin.index import router as admin_router
+app.include_router(admin_router)'''
 
-    with open(main_file, "w", encoding="utf-8") as file:
-        file.write(new_content)
+    if f"# {marker}" in content:
+        new_content = content.replace(f"# {marker}", replace_text)
+        with open(main_file, "w", encoding="utf-8") as file:
+            file.write(new_content)
+        typer.echo("  ✨ Admin routes linked in main.py.")
 
-    typer.echo("Admin routes added to main.py.")
-
-@app.command(name="create_panel_admin")
-def create_admin(username: str = "admin", password: str = None):
+@app.command("create")
+@app.command("setup")
+def create(
+    username: str = typer.Option("admin", "--user", "-u", help="Admin username"),
+    password: str = typer.Option(None, "--password", "-p", help="Admin password (generated if omitted)"),
+):
+    """
+    Setup Admin Panel 2.0 tables and create a superuser.
+    """
     if not os.path.exists("main.py") or not os.path.exists("app"):
-        typer.echo("❌ Error: This command must be run inside a Lila project root directory.")
+        typer.secho("❌ Error: Must run inside a Lila project root directory.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    if not ensure_connection_or_migrate():
-        typer.echo("Failed to initialize the database.")
+    conn = get_connection()
+    if conn is None:
+        typer.secho("❌ Could not connect to database via app.connections.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    if not check_and_create_table():
-        typer.echo("Failed to verify or create 'admins' table.")
-        raise typer.Exit(code=1)
+    typer.echo("🛠️  Setting up Admin 2.0 tables...")
+    check_and_create_admins_table(conn)
 
-    if not password:
-        password = generate_token_value(2)
-
-    if create_admin_user(username, password):
-        typer.echo(f"Admin user '{username}' created with password '{password}'.")
+    admin_pw = password or secrets.token_urlsafe(10)
+    if create_admin_user(conn, username, admin_pw):
+        typer.secho(f"✅ Administrator '{username}' created successfully!", fg=typer.colors.GREEN)
+        typer.echo(f"   🔑 Password: {admin_pw}")
+        typer.echo("   🌐 Login at: http://127.0.0.1:8000/admin")
         update_main_routes()
-        typer.echo("Create admin command executed successfully.")
     else:
-        typer.echo(f"Failed to create admin user '{username}'.")
+        typer.secho(f"❌ Failed to create admin user '{username}'.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+
+def main():
+    app()
 
 if __name__ == "__main__":
-    app()
+    main()

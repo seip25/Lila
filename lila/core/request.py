@@ -1,3 +1,7 @@
-from starlette.requests import Request as StartRequest
+"""Lila Request Object.
+Re-exports Starlette Request with Lila extensions.
+"""
 
-Request  = StartRequest
+from starlette.requests import Request as StarletteRequest
+
+Request = StarletteRequest

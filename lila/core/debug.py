@@ -1,116 +1,109 @@
-from starlette.middleware.base import BaseHTTPMiddleware
-from app.config import DEBUG
-from lila.core.database import Database, Base
-from sqlalchemy.orm import Session
-from sqlalchemy import Column, Integer, String, TIMESTAMP, func, inspect
-import psutil
-import time
-from lila.core.logger import Logger
-import os
+"""Lila Framework v2.0.0 In-Memory Diagnostic & Debug Engine.
+Tracks the last 100 requests in RAM (collections.deque) with zero disk I/O.
+"""
 
-ASSET_EXTENSIONS = frozenset({
-    ".css", ".js", ".jpg", ".jpeg", ".webp", ".png",
-    ".gif", ".ico", ".svg", ".woff", ".woff2",
-    ".ttf", ".eot", ".json",
+import time
+import os
+import datetime
+from collections import deque
+from typing import Optional, Dict, Any, List
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    psutil = None
+    HAS_PSUTIL = False
+
+DEBUG_HISTORY: deque = deque(maxlen=100)
+
+IGNORE_EXTENSIONS = frozenset({
+    ".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".ttf",
 })
 
 
-class DebugModel(Base):
-    __tablename__ = "debug"
-    id = Column(Integer, primary_key=True)
-    path = Column(String)
-    method = Column(String)
-    ip = Column(String)
-    ram_used = Column(String)
-    ram_total = Column(String)
-    ram_percent = Column(String)
-    ram = Column(String)
-    cpu = Column(String)
-    time_execution = Column(String)
-    status_code = Column(String)
-    user_agent = Column(String)
-    created_at = Column(TIMESTAMP, default=func.now())
+class DebugStore:
+    """Zero-IO In-Memory request inspector for debugging and metrics."""
+
+    @classmethod
+    def record(cls, entry: Dict[str, Any]) -> None:
+        DEBUG_HISTORY.appendleft(entry)
+
+    @classmethod
+    def get_all(cls) -> List[Dict[str, Any]]:
+        return list(DEBUG_HISTORY)
+
+    @classmethod
+    def clear(cls) -> None:
+        DEBUG_HISTORY.clear()
+
+    @classmethod
+    def get_system_metrics(cls) -> Dict[str, Any]:
+        """Returns RAM, CPU and process metrics safely without failing if psutil is absent."""
+        if HAS_PSUTIL and psutil is not None:
+            try:
+                proc = psutil.Process(os.getpid())
+                mem_info = proc.memory_info()
+                vmem = psutil.virtual_memory()
+                return {
+                    "process_ram_mb": round(mem_info.rss / (1024 * 1024), 2),
+                    "system_ram_total_mb": round(vmem.total / (1024 * 1024), 2),
+                    "system_ram_percent": vmem.percent,
+                    "cpu_percent": psutil.cpu_percent(interval=0),
+                    "threads": proc.num_threads(),
+                }
+            except Exception:
+                pass
+
+        return {
+            "process_ram_mb": 0.0,
+            "system_ram_total_mb": 0.0,
+            "system_ram_percent": 0.0,
+            "cpu_percent": 0.0,
+            "threads": 1,
+        }
 
 
-db = Database(config={"type": "sqlite", "database": "app/cache/debug", "is_async": False})
-db.connect()
+class PureASGIDebugMiddleware:
+    """Pure ASGI Middleware capturing timing & memory into DebugStore."""
 
-
-class DebugMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
-        super().__init__(app)
-        self.db = db
-        self.createTables()
+        self.app = app
 
-    def _get_session(self):
-        return self.db.get_session()
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-    async def dispatch(self, request, call_next):
-        if not DEBUG:
-            return await call_next(request)
+        path = scope.get("path", "")
+        if path.startswith(("/_lila", "/debug", "/favicon")):
+            await self.app(scope, receive, send)
+            return
 
-        path_ = request.url.path
-        if path_ in ("/debug", "/debug/"):
-            return await call_next(request)
+        if any(path.endswith(ext) for ext in IGNORE_EXTENSIONS):
+            await self.app(scope, receive, send)
+            return
 
-        if any(path_.endswith(ext) for ext in ASSET_EXTENSIONS):
-            return await call_next(request)
+        start_time = time.perf_counter()
+        status_code = [200]
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                status_code[0] = message.get("status", 200)
+            await send(message)
 
         try:
-            process = psutil.Process(os.getpid())
-            mem_before = process.memory_info().rss
-            cpu_times_before = process.cpu_times()
-            cpu_before = cpu_times_before.user + cpu_times_before.system
-            start_time = time.time()
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            client = scope.get("client")
+            client_ip = client[0] if client else "unknown"
 
-            response = await call_next(request)
-
-            end_time = time.time()
-            time_execution = f"{end_time - start_time:.6f}s"
-            ram = psutil.virtual_memory()
-            mem_after = process.memory_info().rss
-            mem_diff = mem_after - mem_before
-            mem_diff_mb = round(mem_diff / (1024 * 1024), 4)
-            ram_used = f"{mem_diff_mb}MB"
-            ram_total = f"{round(ram.total / (1024 * 1024), 2)}MB"
-            ram_percent = f"{round(ram.percent, 2)}%"
-            cpu_times_after = process.cpu_times()
-            cpu_after = cpu_times_after.user + cpu_times_after.system
-            cpu_diff = cpu_after - cpu_before
-            cpu_diff_ms = round(cpu_diff * 1000, 4)
-            cpu = f"{cpu_diff_ms} ms"
-            status_code = response.status_code
-            user_agent = request.headers.get("user-agent", "Unknown")
-            ip = request.client.host if request.client else "Unknown"
-
-            session = self._get_session()
-            try:
-                session.add(DebugModel(
-                    path=path_,
-                    method=request.method,
-                    ip=ip,
-                    ram=ram_used,
-                    ram_used=ram_used,
-                    ram_total=ram_total,
-                    ram_percent=ram_percent,
-                    cpu=cpu,
-                    time_execution=time_execution,
-                    status_code=str(status_code),
-                    user_agent=user_agent
-                ))
-                session.commit()
-            finally:
-                session.close()
-
-            return response
-
-        except Exception as e:
-            Logger.error(f"Error in DebugMiddleware: {str(e)}")
-            return await call_next(request)
-
-    def createTables(self):
-        if not DEBUG:
-            return
-        inspector = inspect(self.db.engine)
-        if not inspector.has_table("debug"):
-            self.db.migrate(use_base=True)
+            DebugStore.record({
+                "time": datetime.datetime.now().strftime("%H:%M:%S"),
+                "method": scope.get("method", "GET"),
+                "path": path,
+                "status": status_code[0],
+                "duration_ms": round(elapsed_ms, 2),
+                "ip": client_ip,
+            })

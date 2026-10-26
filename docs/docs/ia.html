@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - AI Helper & PII Masking (core/ia.py)</title>
+  <meta name="description"
+    content="Unified AI client for OpenAI, DeepSeek, and Gemini with sensitive data masking (PII), rate limiting, and prompt caching." />
+  <meta name="keywords" content="Python, AI, LLM, OpenAI, DeepSeek, Gemini, PII Masking, Rate Limit, Cache Hit" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+
+  <!-- Google Fonts for Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemini: {
+              blue: '#1a73e8',
+              blueBg: '#f0f4f9',
+              blueHover: '#e1ecf8',
+              indigo: '#4f46e5',
+              purple: '#8b5cf6',
+              accent: '#4285f4',
+              darkBg: '#090d16',
+              darkCard: '#131b2e',
+              darkBorder: '#1e293b',
+              darkHover: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans transition-all duration-300">
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+          L
+        </div>
+        <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          Home
+        </a>
+        <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+          GitHub
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 flex flex-col lg:flex-row gap-8 w-full">
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+      <!-- Dynamic partial sidebar -->
+    </aside>
+
+    <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h2 class="text-3xl font-black mb-4">Unified AI Helper (<code class="font-mono text-xl">lila.core.ia.IA</code>)</h2>
+
+      <p class="text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+        Lila v2.0 introduces a built-in AI client supporting <strong>OpenAI</strong>, <strong>DeepSeek</strong>, and <strong>Google Gemini</strong> without requiring heavy external SDK installations. It features automated <strong>PII Data Masking</strong>, prompt cache hits, and rate limiting out of the box.
+      </p>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">1. Environment Setup</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">Add your API keys to <code class="code-inline">.env</code>:</p>
+      <pre><code class="language-bash"># In .env:
+GEMINI_API_KEY="your-gemini-key"
+OPENAI_API_KEY="your-openai-key"
+DEEPSEEK_API_KEY="your-deepseek-key"</code></pre>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">2. Reversible Sensitive Data Masking (PII)</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Protect your users' personal information before it leaves your server. By passing <code class="code-inline">sensitive_keys</code>, Lila replaces personal values with anonymous tokens like <code class="code-inline">[email_01]</code>, sends the sanitized prompt to the model, and restores the original values when the response arrives:
+      </p>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6">
+        <div class="editor-content bg-gray-900 p-4">
+          <pre><code class="language-python">from lila.core.ia import IA
+from lila.core.request import Request
+
+ai = IA(
+    provider="gemini",          # "openai" | "deepseek" | "gemini"
+    rate_limit=15,              # Max 15 requests
+    rate_window=60,             # Per 60-second window
+    cache_ttl=3600              # Cache responses for 1 hour
+)
+
+@router.post("/api/v1/support/draft")
+async def draft_response(request: Request):
+    user_data = {
+        "name": "Maria Garcia",
+        "email": "maria@example.com",
+        "dni": "45123987",
+        "issue": "I would like to update my billing details"
+    }
+
+    result = await ai.ask(
+        prompt="Draft a courteous support reply for this user:",
+        data=user_data,
+        sensitive_keys=["name", "email", "dni"], # Masked before sending!
+        request=request # Automatic rate limiting per client IP
+    )
+
+    # The AI only saw [name_01] and [email_01].
+    # result["text"] is returned fully restored with 'Maria Garcia' and 'maria@example.com'!
+    return result</code></pre>
+        </div>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">3. Prompt Cache Hit (0ms Latency)</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Because cache hashes are computed against the <em>anonymized prompt</em> (with <code class="code-inline">[email_01]</code> instead of real emails), two users asking identical questions will trigger an immediate <strong>Cache Hit</strong> without making an external API request!
+      </p>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">4. Rate Limit Protection</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Prevent API credit depletion by setting <code class="code-inline">rate_limit</code> and <code class="code-inline">rate_window</code>. If the threshold is exceeded, Lila returns a clean error or HTTP 429 response:
+      </p>
+      <pre><code class="language-python">if not result["success"] and result.get("error") == "rate_limit_exceeded":
+    return JSONResponse(result, status_code=429)</code></pre>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="../js/partial.js"></script>
+</body>
+</html>

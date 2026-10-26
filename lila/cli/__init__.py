@@ -1,1 +1,3 @@
-# lila.cli package
+"""
+Lila Framework CLI Package.
+"""

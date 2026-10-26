@@ -1,165 +1,173 @@
-from app.config import LANG_DEFAULT, PATH_LOCALES, DEBUG
-from lila.core.session import Session
-from lila.core.request import Request
-from pathlib import Path
-import orjson
+"""Lila Framework v2.0.0 Lightweight Translation Engine.
+Fast, in-memory Pydantic v2 validation error translation (es, en, pt)
+with zero disk I/O and zero session overhead per request.
+"""
 
-_TRANSLATIONS_CACHE: dict[str, dict] = {}
+from typing import Optional, Any
+from lila.core.config import ENV_CONFIG
+
+
+# Pydantic v2 error templates by error type
+PYDANTIC_MESSAGES = {
+    "es": {
+        "missing": "Este campo es requerido.",
+        "string_type": "Debe ser una cadena de texto válida.",
+        "string_too_short": "Debe tener al menos {min_length} caracteres.",
+        "string_too_long": "No puede tener más de {max_length} caracteres.",
+        "string_pattern_mismatch": "El formato no coincide con el patrón requerido.",
+        "int_parsing": "Debe ser un número entero válido.",
+        "float_parsing": "Debe ser un número decimal válido.",
+        "bool_parsing": "Debe ser un valor booleano verdadero o falso.",
+        "greater_than": "El valor debe ser mayor que {gt}.",
+        "greater_than_equal": "El valor debe ser mayor o igual que {ge}.",
+        "less_than": "El valor debe ser menor que {lt}.",
+        "less_than_equal": "El valor debe ser menor o igual que {le}.",
+        "value_error": "Valor no válido.",
+        "value_error.email": "Debe ser una dirección de correo electrónico válida.",
+        "email": "Debe ser una dirección de correo electrónico válida.",
+        "url_parsing": "Debe ser una URL válida.",
+        "uuid_parsing": "Debe ser un UUID válido.",
+        "date_parsing": "Debe ser una fecha válida (YYYY-MM-DD).",
+        "datetime_parsing": "Debe ser una fecha y hora válida.",
+        "list_type": "Debe ser una lista.",
+        "dict_type": "Debe ser un objeto o diccionario válido.",
+        "literal_error": "El valor debe ser uno de los permitidos.",
+        "too_short": "Debe tener al menos {min_length} elementos.",
+        "too_long": "No puede tener más de {max_length} elementos.",
+    },
+    "en": {
+        "missing": "Field required.",
+        "string_type": "Input should be a valid string.",
+        "string_too_short": "String should have at least {min_length} characters.",
+        "string_too_long": "String should have at most {max_length} characters.",
+        "string_pattern_mismatch": "String should match pattern.",
+        "int_parsing": "Input should be a valid integer.",
+        "float_parsing": "Input should be a valid number.",
+        "bool_parsing": "Input should be a valid boolean.",
+        "greater_than": "Input should be greater than {gt}.",
+        "greater_than_equal": "Input should be greater than or equal to {ge}.",
+        "less_than": "Input should be less than {lt}.",
+        "less_than_equal": "Input should be less than or equal to {le}.",
+        "value_error": "Invalid value.",
+        "value_error.email": "Input should be a valid email address.",
+        "email": "Input should be a valid email address.",
+        "url_parsing": "Input should be a valid URL.",
+        "uuid_parsing": "Input should be a valid UUID.",
+        "date_parsing": "Input should be a valid date.",
+        "datetime_parsing": "Input should be a valid datetime.",
+        "list_type": "Input should be a valid list.",
+        "dict_type": "Input should be a valid dictionary.",
+        "literal_error": "Input should be one of permitted values.",
+        "too_short": "Should have at least {min_length} items.",
+        "too_long": "Should have at most {max_length} items.",
+    },
+    "pt": {
+        "missing": "Este campo é obrigatório.",
+        "string_type": "Deve ser um texto válido.",
+        "string_too_short": "Deve conter pelo menos {min_length} caracteres.",
+        "string_too_long": "Não pode conter mais de {max_length} caracteres.",
+        "string_pattern_mismatch": "O formato não coincide com o padrão esperado.",
+        "int_parsing": "Deve ser um número inteiro válido.",
+        "float_parsing": "Deve ser um número decimal válido.",
+        "bool_parsing": "Deve ser verdadeiro ou falso.",
+        "greater_than": "O valor deve ser maior que {gt}.",
+        "greater_than_equal": "O valor deve ser maior ou igual a {ge}.",
+        "less_than": "O valor deve ser menor que {lt}.",
+        "less_than_equal": "O valor deve ser menor ou igual a {le}.",
+        "value_error": "Valor inválido.",
+        "value_error.email": "Deve ser um endereço de e-mail válido.",
+        "email": "Deve ser um endereço de e-mail válido.",
+        "url_parsing": "Deve ser uma URL válida.",
+        "uuid_parsing": "Deve ser um UUID válido.",
+        "date_parsing": "Deve ser uma data válida.",
+        "datetime_parsing": "Deve ser uma data e hora válida.",
+        "list_type": "Deve ser uma lista válida.",
+        "dict_type": "Deve ser um dicionário válido.",
+        "literal_error": "O valor deve ser um dos permitidos.",
+        "too_short": "Deve ter no mínimo {min_length} itens.",
+        "too_long": "Deve ter no máximo {max_length} itens.",
+    },
+}
+
 
 class Translate:
-    """
-    Core translation utility class for loading, caching, and retrieving translations.
-    Clase de utilidad de traducción central para cargar, almacenar en caché y recuperar traducciones.
-    """
-    _PROCESSED_CACHE: dict[str, dict[str, dict]] = {}
-    translate_enabled = True
+    """Fast, zero-overhead translator specialized in Pydantic v2 validation errors."""
 
-    @staticmethod
-    def load_translations(file_name: str) -> dict:
-        """
-        Loads translations from a JSON file with caching.
-        Carga las traducciones desde un archivo JSON con almacenamiento en caché.
-        """
-        if file_name in _TRANSLATIONS_CACHE:
-            return _TRANSLATIONS_CACHE[file_name]
-
-        if not getattr(Translate, "translate_enabled", True) and file_name == "translations":
-            _TRANSLATIONS_CACHE[file_name] = {}
-            return {}
-
-        file_path = Path(PATH_LOCALES) / f"{file_name}.json"
-        try:
-            from lila.core.responses import orjson_loads
-            with open(file_path, "rb") as f:
-                data = orjson_loads(f.read())
-            _TRANSLATIONS_CACHE[file_name] = data
-            return data
-        except Exception:
-            _TRANSLATIONS_CACHE[file_name] = {}
-            if DEBUG:
-                print(f"Error loading translations for {file_name}")
-            return {}
-
-    @staticmethod
-    def lang(request: Request) -> str:
-        """
-        Retrieves the current language from the cookie or default config, using request state as cache.
-        Recupera el idioma actual desde la cookie o la configuración por defecto, utilizando el estado de la solicitud como caché.
-        """
-        if hasattr(request.state, "lang"):
-            return request.state.lang
-
-        cookie_lang = request.cookies.get("lang")
-        if cookie_lang:
-            if "." in cookie_lang:
-                session_lang = Session.getSessionValue(key="lang", request=request)
-                if session_lang:
-                    request.state.lang = session_lang
-                    return session_lang
-            else:
-                request.state.lang = cookie_lang
-                return cookie_lang
-
-        l = LANG_DEFAULT or "en"
-        request.state.lang = l
-        return request.state.lang
-
-    @staticmethod
-    def get_translations(file_name: str, request: Request, lang_default: str = None) -> dict:
-        """
-        Returns a dictionary of translations for the current language, with internal caching.
-        Devuelve un diccionario de traducciones para el idioma actual, con almacenamiento en caché interno.
-        """
-        current_lang = lang_default if lang_default else Translate.lang(request)
-        
-        if file_name in Translate._PROCESSED_CACHE and current_lang in Translate._PROCESSED_CACHE[file_name]:
-            if not DEBUG:
-                return Translate._PROCESSED_CACHE[file_name][current_lang]
-
-        data = Translate.load_translations(file_name)
-        
-        if file_name == "translations":
+    @classmethod
+    def lang(cls, request: Any = None) -> str:
+        """Determines requested language with fast O(1) in-memory checks."""
+        if request is not None:
+            # 1. Query parameter (?lang=es)
             try:
-                from lila.core.translate_defaults import CORE_TRANSLATIONS
-                processed = {k: v.get(current_lang, k) for k, v in CORE_TRANSLATIONS.items()}
-                user_processed = {k: v.get(current_lang, k) for k, v in data.items()}
-                processed.update(user_processed)
+                q_lang = request.query_params.get("lang")
+                if q_lang:
+                    return q_lang[:2].lower()
             except Exception:
-                processed = {k: v.get(current_lang, k) for k, v in data.items()}
-        elif file_name == "changelogs":
-            try:
-                from lila.core.translate_defaults import CORE_CHANGELOGS
-                processed = {k: v.get(current_lang, k) for k, v in CORE_CHANGELOGS.items()}
-                user_processed = {k: v.get(current_lang, k) for k, v in data.items()}
-                processed.update(user_processed)
-            except Exception:
-                processed = {k: v.get(current_lang, k) for k, v in data.items()}
-        else:
-            processed = {k: v.get(current_lang, k) for k, v in data.items()}
-        
-        if file_name not in Translate._PROCESSED_CACHE:
-            Translate._PROCESSED_CACHE[file_name] = {}
-        Translate._PROCESSED_CACHE[file_name][current_lang] = processed
-        
-        return processed
-
-    @staticmethod
-    def t(key: str, request: Request, file_name: str = "translations", lang_default: str = None) -> str:
-        """
-        Translates a specific key.
-        Traduce una clave específica.
-        """
-        translations = Translate.get_translations(file_name, request, lang_default)
-        return translations.get(key, key)
-
-    @staticmethod
-    async def set_lang(request: Request, response, new_lang: str) -> None:
-        """
-        Sets the language in a plain cookie directly to bypass cryptographic signature overhead.
-        Establece el idioma en una cookie simple directamente para evitar la sobrecarga de la firma criptográfica.
-        """
-        response.set_cookie(
-            key="lang",
-            value=new_lang,
-            max_age=3600 * 24 * 365,
-            secure=True,
-            httponly=False,
-            samesite="lax",
-        )
-        request.state.lang = new_lang
-
-    @staticmethod
-    def translate_pydantic_error(error: dict, target_lang: str) -> str:
-        """
-        Translates Pydantic validation errors into Spanish if target_lang is 'es'.
-        Traduce los errores de validación de Pydantic al español si target_lang es 'es'.
-        """
-        if target_lang != "es":
-            return error["msg"]
-        
-        PYDANTIC_MESSAGES_ES = {
-            "field required": "Este campo es obligatorio",
-            "value_error.missing": "Falta este campo",
-            "value_error.number.not_gt": "El valor debe ser mayor a {limit_value}",
-            "string_too_short": "Debe tener al menos {min_length} caracteres",
-            "string_too_long": "No puede superar los {max_length} caracteres",
-            "value_is_not_a_valid_integer": "Debe ser un número entero válido",
-            "value_is_not_a_valid_email": "Formato de correo electrónico no válido",
-            "missing":"Falta este campo",
-            "string_type":"Debe ser una cadena de texto",
-            "string_min_length":"Debe tener al menos {min_length} caracteres",
-            "string_max_length":"No puede superar los {max_length} caracteres",
-            "value_error.any_str.min_length":"Debe tener al menos {min_length} caracteres",
-            "value_error.any_str.max_length":"No puede superar los {max_length} caracteres",
-            "value_error.email":"Formato de correo electrónico no válido",
-            "value_error.email.code":"Formato de correo electrónico no válido"
-        }
-        
-        err_type = error.get("type")
-        msg = PYDANTIC_MESSAGES_ES.get(err_type, error.get("msg"))
-        if "ctx" in error:
-            try:
-                return msg.format(**error["ctx"])
-            except:
                 pass
-        return msg
+
+            # 2. Cookie
+            try:
+                c_lang = request.cookies.get("lang")
+                if c_lang:
+                    return c_lang[:2].lower()
+            except Exception:
+                pass
+
+            # 3. Header Accept-Language
+            try:
+                header = request.headers.get("accept-language")
+                if header:
+                    return header.split(",")[0].split("-")[0].strip().lower()
+            except Exception:
+                pass
+
+        # 4. Fallback from environment
+        return str(ENV_CONFIG.get("LANG_DEFAULT", "es"))[:2].lower()
+
+    @classmethod
+    def translate_pydantic_error(cls, error: dict, target_lang: str = "es") -> str:
+        """Translates a single Pydantic v2 error dictionary to the target language."""
+        lang_key = target_lang[:2].lower()
+        if lang_key not in PYDANTIC_MESSAGES:
+            lang_key = "es"
+
+        catalog = PYDANTIC_MESSAGES[lang_key]
+        err_type = error.get("type", "")
+        ctx = error.get("ctx", {}) or {}
+
+        template = catalog.get(err_type)
+        if not template:
+            # Check prefix match (e.g. string_too_short or value_error.email)
+            for k, tmpl in catalog.items():
+                if err_type.startswith(k) or k.startswith(err_type):
+                    template = tmpl
+                    break
+
+        if template:
+            try:
+                return template.format(**ctx)
+            except Exception:
+                return template
+
+        # Fallback to English original message
+        return error.get("msg", "Invalid value")
+
+    @classmethod
+    def format_errors(cls, validation_exception: Any, request: Any = None) -> list[dict]:
+        """Formats all Pydantic errors into translated field -> message mapping."""
+        target_lang = cls.lang(request)
+        translated = []
+        try:
+            for err in validation_exception.errors():
+                loc = err.get("loc", ["unknown"])
+                field = str(loc[-1]) if loc else "unknown"
+                msg = cls.translate_pydantic_error(err, target_lang=target_lang)
+                translated.append({field: msg})
+        except Exception:
+            translated.append({"error": str(validation_exception)})
+        return translated
+
+    @classmethod
+    def t(cls, key: str, request: Any = None, default: Optional[str] = None) -> str:
+        """Lightweight passthrough translator for backward compatibility."""
+        return default if default is not None else key

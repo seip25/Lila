@@ -205,19 +205,24 @@ python main.py</code></pre>
             </ul>
 
             <h2 class="mt-8 text-xl">️ CLI Commands</h2>
-            <p>All CLI commands follow the pattern <code
+            <p>All CLI commands can be invoked via the unified <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila &lt;command&gt;</code> or <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-{command}</code>:
             </p>
             <div class="bg-surface px-4 py-4 rounded-lg">
                 <ul>
-                    <li>🚀 <code>lila-init</code> — Initialize a new Lila project</li>
-                    <li>📦 <code>lila-model</code> — Generate SQLAlchemy models with CRUD methods</li>
-                    <li>🗄️ <code>lila-migrations</code> — Run database migrations</li>
-                    <li>🔐 <code>lila-auth</code> — Scaffold authentication (login, register, password reset)</li>
-                    <li>🏗️ <code>lila-scaffold-crud</code> — Generate complete CRUD from a model</li>
-                    <li>👤 <code>lila-create-panel-admin</code> — Create admin panel with dashboard</li>
-                    <li>🔑 <code>lila-create-admin</code> — Create an admin user</li>
-                    <li>🐳 <code>lila-docker</code> — Docker container and production VPS management</li>
+                    <li>🚀 <code>lila init</code> — Initialize a clean Lila project</li>
+                    <li>⚡ <code>lila dev</code> — Start dev server with hot reload and live browser sync</li>
+                    <li>🖥️ <code>lila desktop</code> — Run or package native desktop applications (pywebview/PyInstaller)</li>
+                    <li>📦 <code>lila model</code> — Generate SQLAlchemy models with ActiveRecord methods</li>
+                    <li>🗄️ <code>lila migrate</code> — Run database migrations</li>
+                    <li>🔐 <code>lila auth</code> — Scaffold Better Auth with Google/GitHub/Discord SVG buttons</li>
+                    <li>🏗️ <code>lila crud</code> — Generate complete CRUD with ResponsiveDataTable</li>
+                    <li>👤 <code>lila admin</code> — Setup Admin 2.0 with full CRUD and telemetry</li>
+                    <li>🧹 <code>lila optimize</code> — Minify CSS/JS assets and convert images to WebP</li>
+                    <li>🔑 <code>lila secret-key</code> — Generate and rotate secure secret keys</li>
+                    <li>🌐 <code>lila seo</code> — Auto-generate sitemap.xml and robots.txt</li>
+                    <li>⚙️ <code>lila worker</code> — Run async background task worker</li>
                 </ul>
             </div>
 

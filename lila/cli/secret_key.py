@@ -1,40 +1,36 @@
 import sys
 import os
+import re
+import secrets
+from pathlib import Path
+import typer
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-import typer 
-import os 
-from pathlib import Path
-from lila.core.auth import generate_token_value
-
-
-PATH_ENV= Path(".env")
-
-
-app = typer.Typer()
+app = typer.Typer(help="Generate and rotate application SECRET_KEY in .env.")
 
 @app.command()
 def create():
-    import re
-    new_key=generate_token_value()
-    content=None
-    try:
-        with open(PATH_ENV, "r", encoding="utf-8") as f:
-            content = f.read() 
-        # Match SECRET_KEY='...' or SECRET_KEY="..." or SECRET_KEY=...
-        content, count = re.subn(r"(SECRET_KEY\s*=\s*['\"])(.*?)(['\"])", rf"\g<1>{new_key}\g<3>", content)
-        if count == 0:
-            # Fallback if no quotes used
-            content, count = re.subn(r"(SECRET_KEY\s*=\s*)([^\s'\"#]+)", rf"\g<1>'{new_key}'", content)
-            
-        with open(PATH_ENV, "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f"key generated is SECRET_KEY='{new_key}'")
-    except Exception as e:
-        print(e)
+    """Generate a cryptographic SECRET_KEY and update .env"""
+    new_key = secrets.token_hex(32)
+    env_file = Path(".env")
+    if not env_file.exists():
+        typer.secho("❌ .env file not found in current directory.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-if __name__ == "__main__":
+    content = env_file.read_text(encoding="utf-8")
+    content, count = re.subn(r"(SECRET_KEY\s*=\s*['\"])(.*?)(['\"])", rf"\g<1>{new_key}\g<3>", content)
+    if count == 0:
+        content, count = re.subn(r"(SECRET_KEY\s*=\s*)([^\s'\"#]+)", rf"\g<1>'{new_key}'", content)
+    if count == 0:
+        content = f"SECRET_KEY='{new_key}'\n" + content
+
+    env_file.write_text(content, encoding="utf-8")
+    typer.secho(f"🔑 Generated new SECRET_KEY='{new_key}'", fg=typer.colors.GREEN)
+
+def main():
     app()
- 
+
+if __name__ == "__main__":
+    main()

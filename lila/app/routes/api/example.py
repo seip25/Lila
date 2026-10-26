@@ -1,29 +1,25 @@
 from lila.core.request import Request
-from lila.core.responses import JSONResponse
-from lila.core.routing import Router
-from pydantic import EmailStr, BaseModel
+from lila.core.routing import Router, EmailStr
+from pydantic import BaseModel
 
-# English: Use the same router prefix as index.py so all api/v1 routes share the same base.
-# Español: Usa el mismo prefijo que index.py para que todas las rutas api/v1 compartan la misma base.
-router = Router(prefix="api/v1")
+router = Router(prefix="/api/v1")
 
-
-# English: Example data model using Pydantic.
-# Español: Ejemplo de modelo de datos usando Pydantic.
 class ExampleModel(BaseModel):
-    email: EmailStr  # English: Ensures the email is valid. | Español: Garantiza que el email sea válido.
-    password: str    # English: A plain string for the password. | Español: Una cadena simple para la contraseña.
+    email: EmailStr
+    password: str
 
-
-# English: Defines an "api/v1/example" route, using ExampleModel for input validation,
-#          with automatic documentation via the "model" parameter.
-# Español: Define una ruta "api/v1/example", utilizando ExampleModel para la validación de entradas,
-#          con documentación automática pasando el parámetro "model".
-@router.post(path="/example", model=ExampleModel)
-async def example(request: Request):
-    """Example POST endpoint — shows how to use Pydantic validation with the router"""
-    input = request.state.data
-    return JSONResponse({"email": input.email, "password": input.password, "success": True})
-
+@router.post("/example", model=ExampleModel)
+async def example(request: Request, data: ExampleModel = None):
+    """
+    Example POST endpoint with Pydantic v2 validation.
+    In Lila v2.0, the validated model is available via dependency injection or request.state.data,
+    and dict responses are automatically wrapped into JSONResponse.
+    """
+    model_data = data or getattr(request.state, "data", None)
+    return {
+        "success": True,
+        "email": model_data.email if model_data else None,
+        "message": "Validated successfully with Pydantic v2"
+    }
 
 routes = router.get_routes()

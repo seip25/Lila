@@ -124,56 +124,37 @@
                 folder, making it easier to customize and extend.
             </p>
 
-            <h2>Key Features</h2>
-            <ul>
-                <li><strong>Authentication</strong>: Secure login and logout for administrators.</li>
-                <li><strong>Model Management</strong>: Automatically generates routes and views to
-                    manage your models.</li>
-                <li><strong>System Metrics</strong>: Monitors memory and CPU usage for both the
-                    application and the server.</li>
-                <li><strong>Password Management</strong>: Allows administrators to change their
-                    passwords.</li>
-                <li><strong>Logs</strong>: Enables administrators to view application <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Logs</code>.
-                </li>
+            <h2>Admin 2.0 Features</h2>
+            <ul class="list-disc ml-6 space-y-1">
+                <li><strong>Full Interactive CRUD</strong>: Modals for creating, editing, and deleting records directly from the UI.</li>
+                <li><strong>CSV Export</strong>: 1-click zero-dependency CSV download for any registered model.</li>
+                <li><strong>Persistent SPA Sidebar</strong>: Seamless View Transitions navigation without page reloads.</li>
+                <li><strong>Cache Management</strong>: Instant cache purge button for in-memory and Redis instances.</li>
+                <li><strong>Live Telemetry</strong>: Real-time process and system memory/CPU tracking.</li>
             </ul>
 
-            <h2>Basic Usage</h2>
+            <h2 class="text-xl mt-6">Basic Setup</h2>
             <p>
-                To use the admin panel, you need to import the <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Admin</code>
-                class from
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">admin.routes</code>
-                and pass it
-                an optional list of models you want to manage. Each model must implement a
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">get_all</code>
-                method to be displayed in the admin panel.
+                Register models in <code class="code-inline">app/routes/admin/index.py</code>:
             </p>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
-                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">main.py</span>
-                    <div class="flex space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                </div>
-                <div class="editor-content">
-                    <pre>
-                <code class="language-python">
-# English: Here we activate the admin panel with default settings.
-# Here we activate the admin panel with default settings.
-from app.routes.admin import Admin
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-3">
+                <div class="editor-content p-4">
+                    <pre><code class="language-python">from lila.core.admin import admin_routes
+from lila.core.routing import Router
 from app.models.user import User
-admin_routes=Admin(models=[User])
-all_routes = list(itertools.chain(routes, api_routes,admin_routes))
-                </code>
-            </pre>
+
+router = Router()
+admin_routes(models=[User], router=router, default_route="admin")
+
+routes = router.get_routes()</code></pre>
                 </div>
             </div>
+
+            <h2 class="text-xl mt-6">CLI Setup Command</h2>
+            <p>To initialize the admin tables and create your first administrator user:</p>
+            <pre><code class="language-bash"># Setup Admin 2.0 (or: lila-admin)
+lila admin --user admin --password secret</code></pre>
 
             <h2>️ Setup and Migrations</h2>
             <p>

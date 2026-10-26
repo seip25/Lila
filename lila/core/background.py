@@ -1,34 +1,39 @@
-from starlette.background import BackgroundTask as StarletteBackgroundTask
+"""Lila Framework v2.0.0 Background Tasks.
+Routes tasks to Redis queue if Redis is configured, or executes via Starlette BackgroundTasks.
+"""
+
 import pickle
-from lila.core.cache import _get_redis_client
+from starlette.background import BackgroundTask as StarletteBackgroundTask
+from starlette.background import BackgroundTasks
+from lila.core.cache import Cache
 
 
 class BackgroundTask:
-    """Custom BackgroundTask that routes tasks to Redis if available, or falls back to in-memory execution."""
+    """Dispatches background work to Redis worker or Starlette execution."""
 
     def __init__(self, func, *args, **kwargs):
-        """Initialize background task and route to Redis queue if online, otherwise fallback to Starlette."""
         self.func = func
         self.args = args
         self.kwargs = kwargs
         self._starlette_task = None
 
-        client = _get_redis_client()
-        if client is not None:
-            try:
-                func_path = f"{func.__module__}:{func.__qualname__}"
-                payload = {
-                    "func_path": func_path,
-                    "args": args,
-                    "kwargs": kwargs
-                }
-                client.lpush("lila:tasks", pickle.dumps(payload))
-            except Exception:
-                self._starlette_task = StarletteBackgroundTask(func, *args, **kwargs)
-        else:
-            self._starlette_task = StarletteBackgroundTask(func, *args, **kwargs)
+        if Cache._get_driver() == "redis":
+            client = Cache._get_redis_sync()
+            if client is not None:
+                try:
+                    func_path = f"{func.__module__}:{func.__qualname__}"
+                    payload = {
+                        "func_path": func_path,
+                        "args": args,
+                        "kwargs": kwargs,
+                    }
+                    client.lpush("lila:tasks", pickle.dumps(payload))
+                    return
+                except Exception:
+                    pass
+
+        self._starlette_task = StarletteBackgroundTask(func, *args, **kwargs)
 
     async def __call__(self) -> None:
-        """Execute the task if falling back to Starlette background execution."""
         if self._starlette_task is not None:
             await self._starlette_task()

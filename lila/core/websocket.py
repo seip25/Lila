@@ -1,288 +1,254 @@
-"""
-English: High-performance WebSocket management engine for Lila Framework.
-         Provides connection tracking, room subscriptions, JSON event broadcasting,
-         heartbeat ping/pong, and zero-overhead RAM/CPU usage.
-Español: Motor de gestión WebSocket de alto rendimiento para Lila Framework.
-         Provee seguimiento de conexiones, suscripción a salas (rooms), transmisión de eventos JSON,
-         heartbeat ping/pong y consumo mínimo de RAM/CPU.
+"""Lila Framework v2.0.0 Simplified WebSocket Engine.
+Event-driven WebSocketHub with declarative decorators, rooms, broadcast,
+and zero-overhead Redis Pub/Sub scaling.
 """
 
-from typing import Set, Dict, Callable, Optional, Any
-from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
-from lila.core.logger import Logger
-from orjson import dumps as orjson_dumps, loads as orjson_loads
 import asyncio
 import uuid
 import threading
-from lila.core.cache import _REDIS_CLIENT
+from typing import Set, Dict, Callable, Optional, Any
+from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
+from lila.core.logger import Logger
+from lila.core.responses import orjson_dumps, orjson_loads
+from lila.core.cache import Cache, HAS_REDIS_PKG
 
 
-class WebSocketManager:
-    """
-    English: Core WebSocket Connection & Room Manager for Lila Framework.
-    """
+class WebSocketHub:
+    """Core WebSocket Hub supporting declarative events and rooms."""
+
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
         self.rooms: Dict[str, Set[WebSocket]] = {}
+        self.client_rooms: Dict[WebSocket, Set[str]] = {}
         self.event_handlers: Dict[str, Callable] = {}
-        self.id = str(uuid.uuid4())
+        self.connect_handlers: list = []
+        self.disconnect_handlers: list = []
+        self.worker_id = uuid.uuid4().hex
         self.loop = None
-        self._start_pubsub_listener()
+        self._pubsub_started = False
+        self._check_and_start_pubsub()
 
-    def _start_pubsub_listener(self) -> None:
-        if _REDIS_CLIENT is None:
+    def _check_and_start_pubsub(self) -> None:
+        if self._pubsub_started or not HAS_REDIS_PKG:
+            return
+        if Cache._get_driver() != "redis":
             return
 
-        def listener():
+        def _listener():
+            r = Cache._get_redis_sync()
+            if not r:
+                return
             try:
-                pubsub = _REDIS_CLIENT.pubsub()
-                pubsub.subscribe("lila:ws:pubsub")
-                for message in pubsub.listen():
-                    if message["type"] == "message":
+                ps = r.pubsub()
+                ps.subscribe("lila:ws:pubsub")
+                for msg in ps.listen():
+                    if msg.get("type") == "message":
                         try:
-                            payload = orjson_loads(message["data"])
-                            if payload.get("worker_id") != self.id:
-                                if hasattr(self, "loop") and self.loop and self.loop.is_running():
-                                    asyncio.run_coroutine_threadsafe(
-                                        self._handle_pubsub_message(payload),
-                                        self.loop
-                                    )
+                            payload = orjson_loads(msg["data"])
+                            if payload.get("worker_id") != self.worker_id and self.loop and self.loop.is_running():
+                                asyncio.run_coroutine_threadsafe(
+                                    self._handle_pubsub_msg(payload), self.loop
+                                )
                         except Exception:
                             pass
             except Exception:
                 pass
 
-        thread = threading.Thread(target=listener, daemon=True)
-        thread.start()
+        self._pubsub_started = True
+        t = threading.Thread(target=_listener, daemon=True)
+        t.start()
 
-    async def _handle_pubsub_message(self, payload: dict) -> None:
+    async def _handle_pubsub_msg(self, payload: dict) -> None:
         event = payload.get("event")
         data = payload.get("data")
         room = payload.get("room")
+        await self._local_broadcast(event, data, room=room)
 
-        if room:
-            await self._local_broadcast_to_room(room, event, data)
-        else:
-            await self._local_broadcast(event, data)
+    def on(self, event_name: str):
+        """Decorator to register event handler: @ws.on('chat:message')"""
+        def decorator(fn: Callable):
+            self.event_handlers[event_name] = fn
+            return fn
+        return decorator
+
+    def on_connect(self, fn: Callable):
+        """Decorator for connect lifecycle hook."""
+        self.connect_handlers.append(fn)
+        return fn
+
+    def on_disconnect(self, fn: Callable):
+        """Decorator for disconnect lifecycle hook."""
+        self.disconnect_handlers.append(fn)
+        return fn
 
     async def connect(self, websocket: WebSocket, room: Optional[str] = None) -> None:
-        """
-        Accepts the WebSocket connection and registers it in the manager.
-        """
+        """Accepts connection and tracks in active set."""
         await websocket.accept()
         self.active_connections.add(websocket)
+        self.client_rooms[websocket] = set()
 
-        if not hasattr(self, "loop") or self.loop is None:
-            try:
-                self.loop = asyncio.get_running_loop()
-            except RuntimeError:
-                pass
+        try:
+            self.loop = asyncio.get_running_loop()
+        except RuntimeError:
+            pass
 
         if room:
             self.join_room(websocket, room)
 
+        for handler in self.connect_handlers:
+            try:
+                res = handler(websocket)
+                if asyncio.iscoroutine(res):
+                    await res
+            except Exception as e:
+                Logger.error(f"WebSocket on_connect handler error: {e}")
+
     def disconnect(self, websocket: WebSocket) -> None:
-        """
-        Removes the WebSocket from all active connections and rooms.
-        """
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-        
-        empty_rooms = []
-        for room_name, clients in self.rooms.items():
-            if websocket in clients:
-                clients.remove(websocket)
-                if not clients:
-                    empty_rooms.append(room_name)
-        
-        for empty in empty_rooms:
-            del self.rooms[empty]
+        """Removes websocket from active connections and rooms."""
+        self.active_connections.discard(websocket)
+        rooms_to_leave = set(self.client_rooms.pop(websocket, set()))
+        for r_name in rooms_to_leave:
+            self.leave_room(websocket, r_name)
+
+        for handler in self.disconnect_handlers:
+            try:
+                res = handler(websocket)
+                if asyncio.iscoroutine(res):
+                    # Schedule task if event loop is alive
+                    if self.loop and self.loop.is_running():
+                        self.loop.create_task(res)
+            except Exception as e:
+                Logger.error(f"WebSocket on_disconnect handler error: {e}")
 
     def join_room(self, websocket: WebSocket, room: str) -> None:
-        """
-        Adds a WebSocket client to a specific channel/room.
-        """
+        """Adds connection to specified room."""
         if room not in self.rooms:
             self.rooms[room] = set()
         self.rooms[room].add(websocket)
+        if websocket in self.client_rooms:
+            self.client_rooms[websocket].add(room)
 
     def leave_room(self, websocket: WebSocket, room: str) -> None:
-        """
-        Removes a WebSocket client from a specific channel/room.
-        """
-        if room in self.rooms and websocket in self.rooms[room]:
-            self.rooms[room].remove(websocket)
+        """Removes connection from room."""
+        if room in self.rooms:
+            self.rooms[room].discard(websocket)
             if not self.rooms[room]:
                 del self.rooms[room]
+        if websocket in self.client_rooms:
+            self.client_rooms[websocket].discard(room)
 
-    async def emit_to(self, websocket: WebSocket, event: str, data: Any = None) -> bool:
-        """
-        Sends a JSON-encoded event message to a specific client.
-        """
-        if websocket.client_state == WebSocketState.CONNECTED:
-            try:
-                payload = orjson_dumps({"event": event, "data": data})
-                await websocket.send_bytes(payload)
-                return True
-            except Exception as e:
-                Logger.warning(f"WebSocket emit_to error: {e}")
-                self.disconnect(websocket)
-        return False
-
-    async def _local_broadcast(self, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
-        if not self.active_connections:
-            return 0
-
-        payload = orjson_dumps({"event": event, "data": data})
-        sent_count = 0
-        dead_sockets = []
-
-        for ws in self.active_connections:
-            if ws == exclude:
-                continue
-            if ws.client_state == WebSocketState.CONNECTED:
-                try:
-                    await ws.send_bytes(payload)
-                    sent_count += 1
-                except Exception:
-                    dead_sockets.append(ws)
-
-        for ws in dead_sockets:
-            self.disconnect(ws)
-
-        return sent_count
-
-    async def broadcast(self, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
-        """
-        Broadcasts a JSON event to all connected clients.
-        Returns the number of successful deliveries.
-        """
-        sent_count = await self._local_broadcast(event, data, exclude)
-
-        if _REDIS_CLIENT is not None:
-            try:
-                payload = {
-                    "worker_id": self.id,
-                    "event": event,
-                    "data": data,
-                    "room": None
-                }
-                _REDIS_CLIENT.publish("lila:ws:pubsub", orjson_dumps(payload))
-            except Exception:
-                pass
-
-        return sent_count
-
-    async def _local_broadcast_to_room(self, room: str, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
-        clients = self.rooms.get(room)
-        if not clients:
-            return 0
-
-        payload = orjson_dumps({"event": event, "data": data})
-        sent_count = 0
-        dead_sockets = []
-
-        for ws in clients:
-            if ws == exclude:
-                continue
-            if ws.client_state == WebSocketState.CONNECTED:
-                try:
-                    await ws.send_bytes(payload)
-                    sent_count += 1
-                except Exception:
-                    dead_sockets.append(ws)
-
-        for ws in dead_sockets:
-            self.disconnect(ws)
-
-        return sent_count
-
-    async def broadcast_to_room(self, room: str, event: str, data: Any = None, exclude: Optional[WebSocket] = None) -> int:
-        """
-        Broadcasts a JSON event to all clients subscribed to a specific room.
-        """
-        sent_count = await self._local_broadcast_to_room(room, event, data, exclude)
-
-        if _REDIS_CLIENT is not None:
-            try:
-                payload = {
-                    "worker_id": self.id,
-                    "event": event,
-                    "data": data,
-                    "room": room
-                }
-                _REDIS_CLIENT.publish("lila:ws:pubsub", orjson_dumps(payload))
-            except Exception:
-                pass
-
-        return sent_count
-
-    async def receive_event(self, websocket: WebSocket) -> tuple[Optional[str], Any]:
-        """
-        Receives and decodes a JSON event message from a client.
-        Returns (event_name, payload_data).
-        """
+    async def emit(self, websocket: WebSocket, event: str, data: Any = None) -> bool:
+        """Sends an event packet to a specific websocket client."""
+        if websocket.client_state != WebSocketState.CONNECTED:
+            return False
         try:
-            message = await websocket.receive()
-            if "bytes" in message and message["bytes"]:
-                decoded = orjson_loads(message["bytes"])
-            elif "text" in message and message["text"]:
-                decoded = orjson_loads(message["text"])
-            else:
-                return None, None
-
-            if isinstance(decoded, dict):
-                return decoded.get("event"), decoded.get("data")
-            return "raw", decoded
+            payload = orjson_dumps({"event": event, "data": data}).decode("utf-8")
+            await websocket.send_text(payload)
+            return True
         except Exception:
-            return None, None
+            self.disconnect(websocket)
+            return False
 
-    def on(self, event_name: str):
-        """
-        Decorator to register an event handler.
-        """
-        def decorator(func: Callable):
-            self.event_handlers[event_name] = func
-            return func
-        return decorator
+    async def _local_broadcast(
+        self, event: str, data: Any = None, room: Optional[str] = None, exclude: Optional[WebSocket] = None
+    ) -> int:
+        targets = self.rooms.get(room, set()) if room else self.active_connections
+        if not targets:
+            return 0
 
-    async def handle_connection(self, websocket: WebSocket, room: Optional[str] = None) -> None:
-        """
-        Convenience lifecycle loop that handles connection, event dispatching,
-        heartbeat ping/pong, and automatic disconnection cleanup.
-        """
-        await self.connect(websocket, room=room)
+        payload = orjson_dumps({"event": event, "data": data, "room": room}).decode("utf-8")
+        dead_clients = []
+        sent_count = 0
+
+        for client in list(targets):
+            if client is exclude or client.client_state != WebSocketState.CONNECTED:
+                continue
+            try:
+                await client.send_text(payload)
+                sent_count += 1
+            except Exception:
+                dead_clients.append(client)
+
+        for dead in dead_clients:
+            self.disconnect(dead)
+
+        return sent_count
+
+    async def broadcast(
+        self, event: str, data: Any = None, room: Optional[str] = None, exclude: Optional[WebSocket] = None
+    ) -> int:
+        """Broadcasts event to a room or globally to all clients across workers."""
+        # 1. Broadcast locally
+        count = await self._local_broadcast(event, data, room=room, exclude=exclude)
+
+        # 2. Publish to Redis if available
+        if Cache._get_driver() == "redis":
+            r = await Cache._get_redis_async()
+            if r is not None:
+                try:
+                    pubsub_payload = orjson_dumps({
+                        "worker_id": self.worker_id,
+                        "event": event,
+                        "data": data,
+                        "room": room,
+                    })
+                    await r.publish("lila:ws:pubsub", pubsub_payload)
+                except Exception:
+                    pass
+
+        return count
+
+    # Alias for backward compatibility
+    emit_to = emit
+    broadcast_to_room = broadcast
+
+    async def handle_connection(self, websocket: WebSocket, default_room: Optional[str] = None) -> None:
+        """Automated connection loop handling ping/pong and event dispatch."""
+        await self.connect(websocket, room=default_room)
         try:
             while True:
-                event, data = await self.receive_event(websocket)
-                if event is None:
-                    break
-                
-                if event == "ping":
-                    await self.emit_to(websocket, "pong", {"timestamp": data})
-                    continue
-                elif event == "join":
-                    if isinstance(data, dict) and "room" in data:
-                        self.join_room(websocket, data["room"])
-                    elif isinstance(data, str):
-                        self.join_room(websocket, data)
-                    continue
-                elif event == "leave":
-                    if isinstance(data, dict) and "room" in data:
-                        self.leave_room(websocket, data["room"])
-                    elif isinstance(data, str):
-                        self.leave_room(websocket, data)
+                msg = await websocket.receive_text()
+                # Heartbeat ping check
+                if msg == "ping":
+                    await websocket.send_text("pong")
                     continue
 
-                handler = self.event_handlers.get(event)
-                if handler:
-                    if asyncio.iscoroutinefunction(handler):
-                        await handler(websocket, data)
-                    else:
-                        handler(websocket, data)
-        except WebSocketDisconnect:
+                try:
+                    parsed = orjson_loads(msg)
+                    if not isinstance(parsed, dict):
+                        continue
+                except Exception:
+                    continue
+
+                event = parsed.get("event")
+                data = parsed.get("data")
+
+                if event == "join":
+                    room_name = str(data or "")
+                    if room_name:
+                        self.join_room(websocket, room_name)
+                    continue
+
+                if event == "leave":
+                    room_name = str(data or "")
+                    if room_name:
+                        self.leave_room(websocket, room_name)
+                    continue
+
+                if event in self.event_handlers:
+                    handler = self.event_handlers[event]
+                    try:
+                        res = handler(websocket, data)
+                        if asyncio.iscoroutine(res):
+                            await res
+                    except Exception as err:
+                        Logger.error(f"WebSocket event '{event}' handler error: {err}")
+        except (WebSocketDisconnect, Exception):
             pass
-        except Exception as e:
-            Logger.warning(f"WebSocket connection error: {e}")
         finally:
             self.disconnect(websocket)
+
+
+# Global default hub instance
+ws = WebSocketHub()
+WebSocketManager = WebSocketHub

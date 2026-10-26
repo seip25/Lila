@@ -6,70 +6,59 @@ import pickle
 import asyncio
 import inspect
 import typer
-from lila.core.cache import _get_redis_client
+from lila.core.cache import Cache
 
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-app = typer.Typer(help="Lila Background Task Worker CLI.")
-
+app = typer.Typer(help="Lila Background Task Worker for Redis Queue.")
 
 @app.command()
 def start():
-    """Start the Lila background worker process."""
-    client = _get_redis_client()
+    """Start the Lila background worker process listening on 'lila:tasks'."""
+    client = Cache.get_redis_client()
     if client is None:
-        print("Error: Redis client is not configured or offline. Cannot start worker.")
-        sys.exit(1)
+        typer.secho("❌ Error: Redis is not configured or offline. Set CACHE_DRIVER=redis in .env.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
 
-    print("Lila Background Worker started. Listening on 'lila:tasks'...")
+    typer.secho("⚙️  Lila Background Worker active. Listening on 'lila:tasks'...", fg=typer.colors.CYAN)
     while True:
         try:
-            client = _get_redis_client()
+            client = Cache.get_redis_client()
             if client is None:
-                print("Warning: Redis offline, attempting reconnection...")
-                time.sleep(5)
+                time.sleep(3)
                 continue
-            _, task_data = client.brpop("lila:tasks")
+            item = client.brpop("lila:tasks", timeout=5)
+            if not item:
+                continue
+            _, task_data = item
             try:
                 payload = pickle.loads(task_data)
                 func_path = payload["func_path"]
-                args = payload["args"]
-                kwargs = payload["kwargs"]
+                args = payload.get("args", ())
+                kwargs = payload.get("kwargs", {})
 
                 module_name, qualname = func_path.split(":")
                 module = importlib.import_module(module_name)
-
                 obj = module
                 for attr in qualname.split("."):
                     obj = getattr(obj, attr)
 
-                print(f"Running task: {func_path}")
-                result = obj(*args, **kwargs)
-                if inspect.isawaitable(result):
-                    try:
-                        loop = asyncio.get_event_loop()
-                    except RuntimeError:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                    loop.run_until_complete(result)
-                print(f"Completed task: {func_path}")
-            except Exception as e:
-                print(f"Error executing task: {e}")
+                typer.echo(f"  ▶️ Executing: {func_path}")
+                res = obj(*args, **kwargs)
+                if inspect.isawaitable(res):
+                    asyncio.run(res)
+                typer.secho(f"  ✅ Finished: {func_path}", fg=typer.colors.GREEN)
+            except Exception as task_err:
+                typer.secho(f"  ❌ Task error: {task_err}", fg=typer.colors.RED)
         except KeyboardInterrupt:
-            print("\nWorker stopped.")
+            typer.echo("\n🛑 Worker stopped.")
             break
         except Exception as e:
-            if "Timeout reading from socket" in str(e):
-                continue
-            print(f"Worker error: {e}")
-            time.sleep(1)
-
+            time.sleep(2)
 
 def main():
-    """CLI entrypoint for Lila background worker."""
     app()
-
 
 if __name__ == "__main__":
     main()

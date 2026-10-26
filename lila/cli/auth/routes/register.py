@@ -1,4 +1,4 @@
-from lila.core.routing import Router
+from lila.core.routing import Router, EmailStr
 from lila.core.responses import JSONResponse
 from lila.core.request import Request
 from lila.core.templates import render
@@ -6,10 +6,11 @@ from lila.core.session import Session
 from lila.core.translate import Translate
 from app.models.user import User
 from lila.core.middleware import session_active, csrf
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 import traceback
 from app.config import DEBUG
 from app.connections import connection
+
 
 class RegisterModel(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
@@ -22,12 +23,15 @@ class RegisterModel(BaseModel):
         if self.password != self.password_2:
             return JSONResponse({"success": False, "msg": msg})
 
+
 router = Router()
+
 
 @router.get("/register")
 @session_active
 async def register_page(request: Request):
     return render(request=request, template="auth/register", csrf=True)
+
 
 @router.post("/register", model=RegisterModel)
 @csrf
@@ -55,7 +59,12 @@ async def register(request: Request):
             db.commit()
         msg = Translate.t(key="User registered successfully", request=request)
         response = JSONResponse({"success": True, "msg": msg})
-        await Session.set(request=request, response=response, data={"user_id": user.id, "email": user.email, "name": user.name}, key="auth")
+        await Session.set(
+            request=request,
+            response=response,
+            data={"user_id": user.id, "email": user.email, "name": user.name},
+            key="auth",
+        )
         return response
     except Exception as e:
         if connection.is_async:
@@ -70,5 +79,6 @@ async def register(request: Request):
             await db.close()
         else:
             db.close()
+
 
 routes = router.get_routes()

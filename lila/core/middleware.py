@@ -1,442 +1,295 @@
-from starlette.middleware import Middleware as StarletteMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from lila.core.responses import RedirectResponse, JSONResponse, HTMLResponse
+"""Lila Framework v2.0.0 High-Performance Pure ASGI Middlewares & Decorators.
+Zero BaseHTTPMiddleware streaming overhead.
+"""
+
+import time
+import re
+import asyncio
+from functools import wraps
+from typing import Optional, Callable, Any, Union
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
+from starlette.types import ASGIApp, Scope, Receive, Send
+
+from lila.core.config import ENV_CONFIG
+from lila.core.cache import Cache
+from lila.core.logger import Logger
 from lila.core.request import Request
 from lila.core.session import Session
-from lila.core.logger import Logger
-from app.config import DEBUG
-from lila.core.auth import get_token
-from lila.core.security import Security
-
-import re
-import traceback
-import sys
-from datetime import datetime, timedelta
-import pydantic
-from functools import wraps
-
-# --- Utility Functions ---
-
-async def check_session(request: Request, key: str = 'auth', return_JsonResponse: bool = True):
-    """
-    Checks if a session is active.
-    """
-    session_data = Session.unsign(key=key, request=request)
-    if not session_data:
-        if return_JsonResponse:
-            return JSONResponse({"session": False, "success": False}, status_code=401)
-        return None
-    return session_data
-
-async def check_token(request: Request):
-    """
-    Validates a JWT token from the Authorization header.
-    """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return JSONResponse(
-            {"session": False, "message": "Missing Authorization header"}, status_code=401
-        )
-    
-    if not auth_header.startswith("Bearer "):
-        return JSONResponse(
-            {"session": False, "message": "Invalid token format. Use Bearer <token>"}, status_code=401
-        )
-
-    token_str = auth_header.split(" ")[1]
-    token_data = get_token(token=token_str)
-    if isinstance(token_data, JSONResponse):
-        return token_data
-    
-    request.state.user = token_data
-    return True
-
-# --- Class-based Middlewares ---
-
-BLOCKED_PATHS = [
-    "/RDWeb/Pages/", "/Remote/", "/wp-content/plugins/wp-statistics/readme.txt",
-    "/goanywhere/lic/accept", "/etc/passwd", ".env", "wp-content", "docker/.env",
-    "owa/auth/logon.aspx", "containers/json", "models", "autodiscover/autodiscover.json",
-    "heapdump", "actuator/heapdump", "cgi-bin/vitogate.cgi", "CFIDE/wizards/common/utils.cfc",
-    "var/www/html/.env", "home/user/.muttrc", "usr/local/spool/mail/root",
-    "etc/postfix/master.cf", ".git", "scripts/.git/config", ".git/config",
-    "modules/utils/.git/config", "/.git/config", "cgi-bin/luci/;stok=/locale",
-    "//wp-includes/wlwmanifest.xml", "/wp-includes/wlwmanifest.xml", "/_profiler/phpinfo",
-    "/etc/", "/vicidial/help_documentation.txt", "/sito/wp-includes/wlwmanifest.xml",
-]
-
-BLOCKED_REGEX = re.compile("|".join(map(re.escape, BLOCKED_PATHS)), re.IGNORECASE)
-BLOCKED_IPS = {}
-BLOCKED_RATELIMIT = {}
-
-class SecurityShieldMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host if request.client else "unknown"
-        now = datetime.now()
-
-        from lila.core.cache import _get_redis_client_async
-        redis_client = await _get_redis_client_async()
-        if redis_client is not None:
-            try:
-                blocked = await redis_client.get(f"lila:blocked_ip:{client_ip}")
-                if blocked:
-                    return HTMLResponse(content="Access Denied", status_code=403)
-            except Exception:
-                pass
-        else:
-            if client_ip in BLOCKED_IPS:
-                if now < BLOCKED_IPS[client_ip]:
-                    return HTMLResponse(content="Access Denied", status_code=403)
-                else:
-                    del BLOCKED_IPS[client_ip]
-
-        if len(BLOCKED_IPS) > 10000:
-            expired_keys = [k for k, v in BLOCKED_IPS.items() if now > v]
-            for k in expired_keys:
-                del BLOCKED_IPS[k]
-
-        url_path = request.url.path
-        if BLOCKED_REGEX.search(url_path):
-            if redis_client is not None:
-                try:
-                    await redis_client.setex(f"lila:blocked_ip:{client_ip}", 600, "1")
-                except Exception:
-                    BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
-            else:
-                BLOCKED_IPS[client_ip] = now + timedelta(minutes=10)
-
-            Logger.warning(f"IP {client_ip} blocked for 10m. Malicious path: {url_path}")
-            if DEBUG:
-                print(f"IP {client_ip} blocked for 10m. Malicious path: {url_path}")
-            return HTMLResponse(content="Access Denied", status_code=403)
-
-        return await call_next(request)
+from lila.core.csrf import CSRF
+from lila.core.responses import JSONResponse, RedirectResponse, HTMLResponse
 
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host if request.client else "unknown"
-        now = datetime.now()
+BLOCKED_PATTERNS = re.compile(
+    r"(\.\./|\.env|\.git/|etc/passwd|wp-content|actuator/|heapdump|owa/auth)",
+    re.IGNORECASE,
+)
 
-        from lila.core.cache import _get_redis_client_async
-        redis_client = await _get_redis_client_async()
-        if redis_client is not None:
-            try:
-                rate_limit_key = f"lila:rate_limit:{client_ip}"
-                async with redis_client.pipeline() as pipe:
-                    pipe.incr(rate_limit_key)
-                    pipe.expire(rate_limit_key, 60, nx=True)
-                    res = await pipe.execute()
-                request_count = res[0]
-                
-                if request_count >= 300:
-                    await redis_client.setex(f"lila:blocked_ip:{client_ip}", 60, "1")
-                    Logger.warning(f"IP {client_ip} rate limited for 1 minute (Redis). 300 requests in 1 minute.")
-                    if DEBUG:
-                        print(f"IP {client_ip} rate limited for 1 minute (Redis). 300 requests in 1 minute.")
-                    return JSONResponse(
-                        {"error": "Too many requests", "message": "Retry in 1 minute"}, 
-                        status_code=429
-                    )
-            except Exception:
-                pass
-            else:
-                return await call_next(request)
 
-        if client_ip not in BLOCKED_RATELIMIT:
-            BLOCKED_RATELIMIT[client_ip] = []
+class PureASGISecurityHeadersMiddleware:
+    """Pure ASGI middleware injecting security headers and blocking directory traversal."""
 
-        BLOCKED_RATELIMIT[client_ip] = [
-            t for t in BLOCKED_RATELIMIT[client_ip] if now - t < timedelta(minutes=1)
-        ]
+    def __init__(self, app: ASGIApp, block_traversal: bool = True):
+        self.app = app
+        self.block_traversal = block_traversal
 
-        if len(BLOCKED_RATELIMIT) > 10000:
-            empty_keys = [k for k, v in BLOCKED_RATELIMIT.items() if not v or (now - v[-1] > timedelta(minutes=1))]
-            for k in empty_keys:
-                del BLOCKED_RATELIMIT[k]
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        if len(BLOCKED_RATELIMIT[client_ip]) >= 300:
-            BLOCKED_IPS[client_ip] = now + timedelta(minutes=1)
-            Logger.warning(f"IP {client_ip} rate limited for 1 minute. 300 requests in 1 minute.")
-            if DEBUG:
-                print(f"IP {client_ip} rate limited for 1 minute. 300 requests in 1 minute.")
-            return JSONResponse(
-                {"error": "Too many requests", "message": "Retry in 1 minute"}, 
-                status_code=429
+        path = scope.get("path", "")
+        if self.block_traversal and BLOCKED_PATTERNS.search(path):
+            response = HTMLResponse("Forbidden", status_code=403)
+            await response(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers.append((b"x-content-type-options", b"nosniff"))
+                headers.append((b"x-frame-options", b"DENY"))
+                headers.append((b"x-xss-protection", b"1; mode=block"))
+                headers.append((b"referrer-policy", b"strict-origin-when-cross-origin"))
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+class PureASGIRateLimitMiddleware:
+    """Pure ASGI rate limiter using Cache atomic increment."""
+
+    def __init__(self, app: ASGIApp, max_requests: int = 300, window_seconds: int = 60):
+        self.app = app
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http" or self.max_requests <= 0:
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+        if path.startswith(("/_lila", "/favicon")):
+            await self.app(scope, receive, send)
+            return
+
+        client = scope.get("client")
+        client_ip = client[0] if client else "unknown"
+
+        key = f"rl:global:{client_ip}"
+        count = await Cache.incr_async(key, ttl=self.window_seconds)
+
+        if count > self.max_requests:
+            resp = JSONResponse(
+                {"success": False, "error": "rate_limit_exceeded", "message": "Too many requests. Please slow down."},
+                status_code=429,
+                headers={"Retry-After": str(self.window_seconds)},
             )
+            await resp(scope, receive, send)
+            return
 
-        BLOCKED_RATELIMIT[client_ip].append(now)
-        return await call_next(request)
+        await self.app(scope, receive, send)
 
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        """Sets security headers for the response."""
-        response = await call_next(request)
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Powered-By"] = "Lila Framework"
-        return response
+class PureASGILoggingMiddleware:
+    """Pure ASGI request logger without consuming body streams."""
 
-class ErrorHandlerMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+        if path.startswith(("/_lila", "/favicon")):
+            await self.app(scope, receive, send)
+            return
+
+        start_time = time.perf_counter()
+        status_holder = [200]
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                status_holder[0] = message.get("status", 200)
+            await send(message)
+
         try:
-            response = await call_next(request)
-            return response
-        except Exception as e:
-            if isinstance(e, pydantic.ValidationError):
-                errors = [{err["loc"][0]: err["msg"]} for err in e.errors()]
-                msg_errors = " . ".join([f"{err['loc'][0]}: {err['msg']}" for err in e.errors()])
-                return JSONResponse(
-                    {"success": False, "errors": errors, "msg": msg_errors},
-                    status_code=400,
-                )
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            client = scope.get("client")
+            client_ip = client[0] if client else "unknown"
+            method = scope.get("method", "GET")
+            query = scope.get("query_string", b"").decode("utf-8")
 
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            error_info = {
-                "type": exc_type.__name__ if exc_type else "UnknownError",
-                "message": str(e),
-                "file": "unknown",
-                "line": 0,
-                "traceback": traceback.format_exc(),
-            }
+            # Extract user agent
+            user_agent = ""
+            for name, val in scope.get("headers", []):
+                if name.lower() == b"user-agent":
+                    user_agent = val.decode("utf-8", errors="ignore")
+                    break
 
-            if exc_tb:
-                tb = exc_tb
-                while tb.tb_next:
-                    tb = tb.tb_next
-                frame = tb.tb_frame
-                error_info["file"] = frame.f_code.co_filename
-                error_info["line"] = tb.tb_lineno
-                error_info["function"] = frame.f_code.co_name
-
-            Logger.error(f"Error: {error_info['type']} in {error_info['file']}:{error_info['line']}")
-            Logger.error(f"Message: {error_info['message']}")
-            Logger.error(f"Traceback:\n{error_info['traceback']}")
-
-            is_fetch = request.headers.get("x-fetch") == "true" 
-            msg = f"{error_info['type']} in {error_info['file']}:{error_info['line']}\nMessage: {error_info['message']}\nTraceback:\n{error_info['traceback']}"
-            
-            if is_fetch:
-                if DEBUG:
-                    return JSONResponse(
-                        {
-                            "error": msg, "success": False, "line": error_info["line"],
-                            "function": error_info.get("function", "unknown"), "file": error_info["file"],
-                            "type": error_info["type"], "message": str(e), "traceback": error_info["traceback"],
-                        },
-                        status_code=500,
-                    )
-                return JSONResponse({"error": "Internal Server Error", "success": False}, status_code=500)
-            
-            if DEBUG:
-                return HTMLResponse(
-                    content=f"<h1>Internal Server Error</h1><p>Something went wrong on our end.</p><pre>{msg}</pre>",
-                    status_code=500,
-                )
-            return HTMLResponse(
-                content="<h1>Internal Server Error</h1><p>Something went wrong on our end. Please try again later.</p>",
-                status_code=500,
+            Logger.log_request(
+                client_ip=client_ip,
+                method=method,
+                path=path,
+                query=query,
+                status_code=status_holder[0],
+                duration_ms=elapsed_ms,
+                user_agent=user_agent,
             )
 
-class LoggingMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, exclude_extensions=None, exclude_paths=None):
-        super().__init__(app)
-        self.exclude_extensions = exclude_extensions or {
-            ".js", ".css", ".jpg", ".jpeg", ".png", ".gif", ".ico", ".svg", ".woff", ".woff2", ".ttf", ".eot",
-        }
-        self.exclude_paths = exclude_paths or {"public", "static", "assets", "favicon.ico"}
 
-    async def should_log(self, path: str) -> bool:
-        path_lower = path.lower()
-        if any(path_lower.endswith(ext) for ext in self.exclude_extensions):
-            return False
-        if any(excluded in path_lower for excluded in self.exclude_paths):
-            return False
-        return True
+# ──────────────────────────────────────────────────────────────────────────────
+# Decorators for Route Handlers (usable with or without parentheses)
+# ──────────────────────────────────────────────────────────────────────────────
+def login_required(fn_or_redirect: Union[Callable, str] = "/login", session_key: str = "session"):
+    """Decorator ensuring request has active user session (@login_required or @login_required('/login'))."""
+    redirect_to = "/login" if callable(fn_or_redirect) else str(fn_or_redirect)
 
-    async def dispatch(self, request, call_next):
-        if await self.should_log(request.url.path):
-            Logger.info(await Logger.request(request=request))
-        return await call_next(request)
+    def decorator(fn: Callable):
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            req: Optional[Request] = kwargs.get("request")
+            if req is None:
+                for a in args:
+                    if isinstance(a, Request):
+                        req = a
+                        break
 
-# --- The Middleware Manager ---
+            if req is None:
+                return RedirectResponse(redirect_to)
 
-def create_decorator(logic_func):
-    """
-    Helper to create a route decorator from a logic function.
-    Supports both @decorator and @decorator(args).
-    """
-    @wraps(logic_func)
-    def decorator(func=None, **kwargs):
-        # Case: @decorator used without parens
-        if func is not None and callable(func):
-            @wraps(func)
-            async def wrapper(request: Request, *args, **f_kwargs):
-                response = await logic_func(request)
-                if response is not True and response is not None:
-                    return response
-                return await func(request, *args, **f_kwargs)
-            return wrapper
-        
-        # Case: @decorator(...) used with parens
-        def actual_decorator(f):
-            @wraps(f)
-            async def wrapper(request: Request, *args, **f_kwargs):
-                response = await logic_func(request, **kwargs)
-                if response is not True and response is not None:
-                    return response
-                return await f(request, *args, **f_kwargs)
-            return wrapper
-        return actual_decorator
+            user = await Session.get_async(req, cookie_name=session_key)
+            if not user:
+                if req.headers.get("accept", "").startswith("application/json") or req.url.path.startswith("/api/"):
+                    return JSONResponse({"success": False, "message": "Authentication required"}, status_code=401)
+                return RedirectResponse(redirect_to)
+
+            req.state.user = user
+            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+        return wrapper
+
+    if callable(fn_or_redirect):
+        return decorator(fn_or_redirect)
     return decorator
 
-class Middleware(StarletteMiddleware):
-    """
-    Lila Middleware Manager.
-    Inherits from Starlette's Middleware for compatibility.
-    """
 
-    @staticmethod
-    @create_decorator
-    async def login_required(request: Request, key: str = "auth", url_return="/login"):
-        session_data = await check_session(request=request, key=key, return_JsonResponse=False)
-        if not session_data:
-            if request.method != "GET":
-                from lila.core.translate import Translate
-                return JSONResponse({"success": False, "msg": Translate.t(key="Authentication required", request=request), "redirect": url_return}, status_code=401)
-            return RedirectResponse(url=url_return)
-        return True
+def session_active(fn_or_redirect: Union[Callable, str] = "/dashboard", session_key: str = "session"):
+    """Redirects authenticated users away from guest-only pages (like /login or /register)."""
+    redirect_to = "/dashboard" if callable(fn_or_redirect) else str(fn_or_redirect)
 
-    @staticmethod
-    @create_decorator
-    async def session_active(request: Request, key: str = "auth", url_return: str = "/dashboard"):
-        session_data = await check_session(request=request, key=key, return_JsonResponse=False)
-        if session_data:
-            if request.method != "GET":
-                from lila.core.translate import Translate
-                return JSONResponse({"success": False, "msg": Translate.t(key="Session already active", request=request), "redirect": url_return}, status_code=400)
-            return RedirectResponse(url=url_return)
-        return True
+    def decorator(fn: Callable):
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            req: Optional[Request] = kwargs.get("request")
+            if req is None:
+                for a in args:
+                    if isinstance(a, Request):
+                        req = a
+                        break
 
-    @staticmethod
-    @create_decorator
-    async def validate_token(request: Request):
-        response = await check_token(request=request)
-        if isinstance(response, JSONResponse):
-            return response
-        return True
+            if req is not None:
+                user = await Session.get_async(req, cookie_name=session_key)
+                if user:
+                    return RedirectResponse(redirect_to)
 
-    @staticmethod
-    @create_decorator
-    async def csrf(request: Request):
-        """
-        English: Route decorator that verifies the CSRF token on unsafe HTTP methods (POST, PUT, PATCH, DELETE).
-        Safe methods (GET, HEAD, OPTIONS) are always allowed through.
-        The token is read from the X-CSRF-Token header or from the 'csrf' field in the request body.
+            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+        return wrapper
 
-        Español: Decorador de ruta que verifica el token CSRF en metodos HTTP no seguros (POST, PUT, PATCH, DELETE).
-        Los metodos seguros (GET, HEAD, OPTIONS) siempre son permitidos.
-        El token se lee del header X-CSRF-Token o del campo 'csrf' del cuerpo del request.
-        """
-        if request.method in ("GET", "HEAD", "OPTIONS"):
-            return True
-        from lila.core.csrf import CSRF
-        if not CSRF.verify(request):
-            return JSONResponse({"success": False, "message": "Invalid or missing CSRF token"}, status_code=403)
-        return True
-
-# --- Aliases for convenience ---
-login_required = Middleware.login_required
-session_active = Middleware.session_active
-validate_token = Middleware.validate_token
-csrf = Middleware.csrf
+    if callable(fn_or_redirect):
+        return decorator(fn_or_redirect)
+    return decorator
 
 
-class FlashMiddleware(BaseHTTPMiddleware):
-    """
-    English: Middleware that processes and persists flash messages across requests.
-    Español: Middleware que procesa y persiste mensajes flash a través de las peticiones.
-    """
-    async def dispatch(self, request: Request, call_next):
-        import orjson
-        from lila.core.session import serializer
+def admin_required(fn_or_redirect: Union[Callable, str] = "/admin/login", redirect_to: Optional[str] = None):
+    """Decorator ensuring active user is an administrator."""
+    target_redirect = redirect_to or ("/admin/login" if callable(fn_or_redirect) else str(fn_or_redirect))
 
-        cookie_flashes = request.cookies.get("_flash")
-        flashes = []
-        if cookie_flashes:
-            try:
-                unsigned_data = serializer.loads(cookie_flashes, max_age=3600)
-                flashes = orjson.loads(unsigned_data)
-            except Exception:
-                pass
+    def decorator(fn: Callable):
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            req: Optional[Request] = kwargs.get("request")
+            if req is None:
+                for a in args:
+                    if isinstance(a, Request):
+                        req = a
+                        break
 
-        request.state._flash_messages = flashes
-        request.state._new_flashes = []
+            if req is None:
+                return RedirectResponse(target_redirect)
 
-        response = await call_next(request)
+            admin_user = await Session.get_async(req, cookie_name="admin_session")
+            if not admin_user:
+                if req.headers.get("accept", "").startswith("application/json") or req.url.path.startswith("/admin/api/"):
+                    return JSONResponse({"success": False, "message": "Admin authentication required"}, status_code=401)
+                return RedirectResponse(target_redirect)
 
-        if hasattr(request.state, "_new_flashes") and request.state._new_flashes:
-            new_signed = serializer.dumps(orjson.dumps(request.state._new_flashes).decode())
-            response.set_cookie(
-                key="_flash",
-                value=new_signed,
-                max_age=3600,
-                expires=3600,
-                httponly=True,
-                samesite="strict",
-                path="/"
-            )
-        elif cookie_flashes:
-            response.delete_cookie("_flash", path="/")
+            req.state.admin = admin_user
+            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+        return wrapper
 
-        return response
+    if callable(fn_or_redirect):
+        return decorator(fn_or_redirect)
+    return decorator
 
 
-class CacheMiddleware(BaseHTTPMiddleware):
-    """Middleware to implement Read-Through Caching globally for GET requests."""
+def rate_limit(max_requests: int = 60, window_seconds: int = 60):
+    """Decorator to rate-limit a specific route handler."""
+    def decorator(fn: Callable):
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            req: Optional[Request] = kwargs.get("request")
+            if req is None:
+                for a in args:
+                    if isinstance(a, Request):
+                        req = a
+                        break
 
-    def __init__(self, app, default_ttl: int = 300, exclude_paths: list = None):
-        super().__init__(app)
-        self.default_ttl = default_ttl
-        self.exclude_paths = exclude_paths or ["/docs", "/openapi.json", "/static", "/public"]
+            client_ip = getattr(req.client, "host", "unknown") if req else "unknown"
+            key = f"rl:route:{fn.__name__}:{client_ip}"
+            count = await Cache.incr_async(key, ttl=window_seconds)
 
-    async def dispatch(self, request: Request, call_next):
-        if request.method != "GET":
-            return await call_next(request)
+            if count > max_requests:
+                return JSONResponse(
+                    {"success": False, "error": "rate_limit_exceeded", "message": "Rate limit exceeded."},
+                    status_code=429,
+                    headers={"Retry-After": str(window_seconds)},
+                )
 
-        path_ = request.url.path
-        if any(path_.startswith(p) for p in self.exclude_paths):
-            return await call_next(request)
-
-        from lila.core.cache import Cache
-        query_params = tuple(sorted(request.query_params.items()))
-        cache_key = f"middleware_cache:{path_}:{query_params}"
-
-        cached_data = await Cache.get_async(cache_key)
-        if cached_data is not None:
-            from starlette.responses import Response
-            return Response(
-                content=cached_data["body"],
-                status_code=cached_data["status_code"],
-                media_type=cached_data["media_type"],
-                headers=cached_data["headers"]
-            )
-
-        response = await call_next(request)
-
-        if response.status_code == 200:
-            if hasattr(response, "body") and not hasattr(response, "streaming_content"):
-                cache_payload = {
-                    "body": response.body,
-                    "status_code": response.status_code,
-                    "media_type": getattr(response, "media_type", "application/json"),
-                    "headers": dict(response.headers)
-                }
-                await Cache.set_async(cache_key, cache_payload, self.default_ttl)
-
-        return response
+            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
+def csrf_protect(fn: Optional[Callable] = None):
+    """Decorator verifying CSRF token on mutating requests (@csrf or @csrf_protect)."""
+    def decorator(func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            req: Optional[Request] = kwargs.get("request")
+            if req is None:
+                for a in args:
+                    if isinstance(a, Request):
+                        req = a
+                        break
+
+            if req and req.method in ("POST", "PUT", "DELETE", "PATCH"):
+                if not CSRF.verify(req):
+                    return JSONResponse({"success": False, "message": "Invalid or missing CSRF token"}, status_code=403)
+
+            return await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
+        return wrapper
+
+    if callable(fn):
+        return decorator(fn)
+    return decorator
+
+
+# Alias for backward compatibility (@csrf)
+csrf = csrf_protect

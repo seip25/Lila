@@ -1,114 +1,122 @@
+"""Lila Framework v2.0.0 Lightweight Logger.
+Logs events and HTTP requests cleanly without consuming ASGI request streams.
+"""
+
 import os
 import datetime
-from datetime import timedelta
 import traceback
-from lila.core.request import Request
 import re
-from app.config import PATH_LOG_BASE_DIR
+from typing import Optional
+from lila.core.config import get_data_path
 
-if not os.path.exists(PATH_LOG_BASE_DIR):
-    os.makedirs(PATH_LOG_BASE_DIR)
+DEFAULT_LOG_DIR = os.path.join(get_data_path(), "app", "logs")
 
 
-def folder_logs(type):
-    now = datetime.datetime.now().strftime("%d-%m-%Y")
-    path_ = f"{PATH_LOG_BASE_DIR}/{now}"
+def _get_log_dir() -> str:
+    path_ = os.environ.get("LILA_LOG_DIR", DEFAULT_LOG_DIR)
     os.makedirs(path_, exist_ok=True)
-    return f"{path_}/{type}.log"
+    return path_
+
+
+def _get_log_filepath(log_type: str = "app") -> str:
+    base = _get_log_dir()
+    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+    folder = os.path.join(base, date_str)
+    os.makedirs(folder, exist_ok=True)
+    return os.path.join(folder, f"{log_type}.log")
 
 
 class Logger:
+    @classmethod
+    def _write(cls, log_type: str, message: str) -> None:
+        try:
+            filepath = _get_log_filepath(log_type)
+            ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(filepath, "a", encoding="utf-8") as f:
+                f.write(f"[{ts}] [{log_type.upper()}] {message}\n")
+        except Exception:
+            pass
 
     @classmethod
-    def _write_log(cls, log_type, message):
-        log_file = folder_logs(log_type)
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(log_file, "a", encoding="utf-8") as file:
-            file.write(f"{timestamp} - {log_type.upper()} - {message}\n\n\n")
+    def info(cls, message: str) -> None:
+        cls._write("info", message)
 
     @classmethod
-    def error(cls, message: str, exception: Exception = None):
+    def warning(cls, message: str) -> None:
+        cls._write("warning", message)
+
+    @classmethod
+    def error(cls, message: str, exception: Optional[Exception] = None) -> None:
         if exception:
-            message += f"\n{traceback.format_exc()}"
-        cls._write_log("error", message)
+            message = f"{message}\n{traceback.format_exc()}"
+        cls._write("error", message)
 
     @classmethod
-    def warning(cls, message: str):
-        cls._write_log("warning", message)
+    def log(cls, log_type: str, message: str) -> None:
+        cls._write(log_type, message)
 
     @classmethod
-    def info(cls, message: str):
-        cls._write_log("info", message)
-
-    @classmethod
-    def log(cls,log_type:str,message:str)->None:
-        cls._write_log(log_type,message)
-
-    @classmethod
-    async def request(cls, request: Request):
-        client_ip = request.client.host if request.client else "unknown"
-        user_agent = request.headers.get("user-agent", "Unknown")
-        os_info = "Unknown"
-
-        os_patterns = {
-            "Windows": r"Windows NT|Windows",
-            "Linux": r"Linux|X11",
-            "Mac OS": r"Macintosh|Mac OS X",
-            "iOS": r"iPhone|iPad|iPod",
-            "Android": r"Android",
-        }
-
-        for os_name, pattern in os_patterns.items():
-            if re.search(pattern, user_agent, re.IGNORECASE):
-                os_info = os_name
-                break
-        try:
-            body = await request.body()
-            body_content = body.decode() if body else ""
-            sensitive_keys = ["password", "password_2", "token"]
-            for key in sensitive_keys:
-                if key in body_content:
-                    body_content = re.sub(
-                        rf'("{key}"\s*:\s*)"[^"]*"',
-                        rf'\1"***"',
-                        body_content
-                    )
-        except Exception:
-            body_content = ""
-        try:
-            json_content = await request.json()
-            if "password" in json_content:
-                json_content["password"] = ""
-            if "password_2" in json_content:
-                json_content["password_2"] = ""
-            if "token" in json_content:
-                json_content["token"] = ""
-
-        except Exception:
-            json_content = {}
+    def format_request(
+        cls,
+        client_ip: str,
+        method: str,
+        path: str,
+        query: str = "",
+        status_code: int = 200,
+        duration_ms: float = 0.0,
+        user_agent: str = "",
+    ) -> str:
+        """Formats request log line compactly without consuming ASGI body stream."""
+        q_str = f"?{query}" if query else ""
         return (
-            f"IP: {client_ip}, "
-            f"OS: {os_info}, "
-            f"URL: {request.url.path}, "
-            f"Method: {request.method} | "
-            f"Query Params: {dict(request.query_params)} | "
-            f"Path Params: {request.path_params} | "
-            f"Body: {body_content} | "
-            f"JSON: {json_content}"
+            f'{client_ip} - "{method} {path}{q_str}" {status_code} '
+            f"({duration_ms:.2f}ms) | UA: {user_agent[:100]}"
         )
 
+    @classmethod
+    def log_request(
+        cls,
+        client_ip: str,
+        method: str,
+        path: str,
+        query: str = "",
+        status_code: int = 200,
+        duration_ms: float = 0.0,
+        user_agent: str = "",
+    ) -> None:
+        line = cls.format_request(
+            client_ip, method, path, query, status_code, duration_ms, user_agent
+        )
+        cls._write("requests", line)
 
-def delete_old_logs(days: int = 30):
+
+def delete_old_logs(days: int = 30) -> int:
+    """Deletes log folders older than the given days."""
+    base = _get_log_dir()
+    if not os.path.exists(base):
+        return 0
     now = datetime.datetime.now()
-    for folder_name in os.listdir(PATH_LOG_BASE_DIR):
-        folder_path = os.path.join(PATH_LOG_BASE_DIR, folder_name)
+    cutoff = datetime.timedelta(days=days)
+    deleted_count = 0
+
+    for name in os.listdir(base):
+        target = os.path.join(base, name)
+        if not os.path.isdir(target):
+            continue
         try:
-            folder_date = datetime.datetime.strptime(folder_name, "%d-%m-%Y")
-            if now - folder_date > timedelta(days=days):
-                for file in os.listdir(folder_path):
-                    os.remove(os.path.join(folder_path, file))
-                os.rmdir(folder_path)
+            folder_date = datetime.datetime.strptime(name, "%Y-%m-%d")
+            if (now - folder_date) > cutoff:
+                for file_name in os.listdir(target):
+                    try:
+                        os.remove(os.path.join(target, file_name))
+                    except Exception:
+                        pass
+                try:
+                    os.rmdir(target)
+                    deleted_count += 1
+                except Exception:
+                    pass
         except ValueError:
             continue
 
-
+    return deleted_count

@@ -1,0 +1,3 @@
+"""
+Lila base application module.
+"""

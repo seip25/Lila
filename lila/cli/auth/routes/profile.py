@@ -4,9 +4,9 @@ from lila.core.request import Request
 from lila.core.templates import render
 from lila.core.session import Session
 from lila.core.translate import Translate
+from lila.core.auth import PasswordHasher
 from lila.core.middleware import login_required, csrf
 from app.models.user import User
-from app.connections import connection
 from pydantic import BaseModel, Field
 
 router = Router(middlewares=[login_required])
@@ -35,46 +35,31 @@ async def update_profile(request: Request):
     input = request.state.data
 
     session_data = await Session.get(request, "auth")
-    user_id = session_data.get("user_id")
+    user_id = session_data.get("user_id") if session_data else None
 
     user_db = await User.get_by_id_async(user_id)
     if not user_db:
         return JSONResponse({"success": False, "msg": Translate.t(key="Error updating profile", request=request)})
-    if not user_db.check_password(input.password):
+    if not PasswordHasher.verify(user_db.get("password", ""), input.password):
         return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
 
-    db = connection.get_session()
     try:
-        if connection.is_async:
-            from sqlalchemy import select
-            result = await db.execute(select(User).filter_by(id=user_id))
-            user_to_update = result.scalars().first()
-        else:
-            user_to_update = User.get_by_id(db, user_id)
-
-        user_to_update.name = input.name
+        update_fields = {"name": input.name}
         if input.password_2 and len(input.password_2) >= 8:
-            user_to_update.set_password(input.password_2)
+            update_fields["password"] = PasswordHasher.hash(input.password_2)
 
-        if connection.is_async:
-            await db.commit()
-        else:
-            db.commit()
+        await User.update_async(user_id, **update_fields)
 
         response = JSONResponse({"success": True, "msg": Translate.t(key="Profile updated successfully", request=request)})
-        await Session.set(request, response, data={"user_id": user_to_update.id, "email": user_to_update.email, "name": user_to_update.name}, key="auth")
+        await Session.set(
+            request,
+            response,
+            data={"user_id": user_db["id"], "email": user_db["email"], "name": input.name},
+            key="auth",
+        )
         return response
     except Exception as e:
-        if connection.is_async:
-            await db.rollback()
-        else:
-            db.rollback()
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
-    finally:
-        if connection.is_async:
-            await db.close()
-        else:
-            db.close()
 
 
 @router.post("/delete-account", model=DeleteAccountModel)
@@ -83,36 +68,22 @@ async def delete_account(request: Request):
     input = request.state.data
 
     session_data = await Session.get(request, "auth")
-    user_id = session_data.get("user_id")
+    user_id = session_data.get("user_id") if session_data else None
     password = input.password
 
     user_db = await User.get_by_id_async(user_id)
     if not user_db:
         return JSONResponse({"success": False, "msg": Translate.t(key="Error deleting account", request=request)})
-    if not user_db.check_password(password):
+    if not PasswordHasher.verify(user_db.get("password", ""), password):
         return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
 
-    db = connection.get_session()
     try:
-        if connection.is_async:
-            await User.delete_async(db, user_id)
-        else:
-            User.delete(db, user_id)
-
+        await User.delete_async(user_id)
         response = JSONResponse({"success": True, "msg": Translate.t(key="Account deleted successfully", request=request)})
-        await Session.delete(response, key="auth")
+        await Session.delete(response, key="auth", request=request)
         return response
     except Exception as e:
-        if connection.is_async:
-            await db.rollback()
-        else:
-            db.rollback()
         return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
-    finally:
-        if connection.is_async:
-            await db.close()
-        else:
-            db.close()
 
 
 routes = router.get_routes()

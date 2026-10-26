@@ -1,21 +1,25 @@
-from lila.core.routing import Router
+from lila.core.routing import Router, EmailStr
 from lila.core.responses import JSONResponse, RedirectResponse
 from lila.core.request import Request
 from lila.core.templates import render
 from lila.core.session import Session
 from lila.core.translate import Translate
+from lila.core.oauth import OAuth
 from app.models.user import User
 from lila.core.middleware import session_active, csrf
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 import traceback
 from app.config import DEBUG
 from app.connections import connection
 
 class LoginModel(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=20)
+    password: str = Field(..., min_length=6, max_length=100)
 
 router = Router()
+
+# Auto-mount Better Auth OAuth routes (/auth/{provider} & /auth/{provider}/callback)
+OAuth.mount_routes(router, user_model=User, redirect_to="/dashboard", login_url="/login")
 
 @router.get("/login")
 @session_active

@@ -179,35 +179,47 @@ await Cache.clear_async()</code></pre>
                 </div>
             </div>
 
-            <h3>Redis Caching Backend</h3>
+            <h3>Cache Drivers & Configuration (v2.0)</h3>
             <p>
-                If the <code class="code-inline">redis</code> package is installed and your environment variables (<code class="code-inline">REDIS_HOST</code> and <code class="code-inline">REDIS_PORT</code>) are configured, Lila automatically connects and upgrades to a shared Redis caching backend.
+                Lila v2.0 introduces a pluggable cache driver architecture. By default, it uses a high-performance <b>In-Memory LRU + TTL</b> cache, but you can effortlessly switch to <b>Redis</b> without code changes:
             </p>
-            <p>
-                All data is serialized using <code>pickle</code> on the fly and stored directly in the Redis instance. If Redis is unavailable or crashes, Lila falls back seamlessly to the volatile local in-memory dictionary cache without breaking the application runtime.
-            </p>
+            <pre><code class="language-python">from lila.core.cache import Cache
 
-            <h3>Route Caching</h3>
-            <p>
-                Route caching can be activated through the <code class="code-inline">Router</code>. By default, route caching is <b>disabled</b> (<code class="code-inline">cache_ttl=0</code>) to ensure real-time dynamic responses, but you can easily enable it globally on a router or per route.
-            </p>
-            <p>
-                For more details on how to configure route caching, see the <a href="routes.html">Routes Documentation</a>.
-            </p>
+# 1. Configured via .env:
+# CACHE_DRIVER="memory"  (Default, zero infrastructure)
+# CACHE_DRIVER="redis"   (Requires pip install "lila-framework[redis]")
 
-            <h3>️ Core Optimizations</h3>
-            <p>
-                Lila uses this caching system internally to optimize several core features:
-                <ul>
-                    <li><b>OpenAPI:</b> The generated <code class="code-inline">openapi.json</code> is cached for 1 hour.</li>
-                    <li><b>Templates:</b> Asset path resolutions are cached to avoid constant disk I/O.</li>
-                    <li><b>Translations:</b> Localization files are loaded once and kept in memory.</li>
-                </ul>
-            </p>
+# 2. Or configured programmatically with options:
+Cache.configure(driver="memory", options={"max_items": 10000, "default_ttl": 300})
 
+# If Redis package is not installed or unreachable, Lila gracefully logs a notice
+# and falls back to memory without breaking your app:
+Cache.configure(driver="redis", options={"host": "127.0.0.1", "port": 6379, "fallback_to_memory": True})
+            </code></pre>
+
+            <h3>Atomic Counter (Rate Limiting)</h3>
             <p>
-                <strong>Warning:</strong> The memory cache is <b>volatile</b>. If you restart the server, all cached data will be lost. It is intended for temporary data and performance optimization, not for persistent storage.
+                Lila provides atomic counter incrementing for high-throughput rate limiting:
             </p>
+            <pre><code class="language-python"># Increment key with TTL expiration window
+current_count = await Cache.incr_async("rate_limit:ip:127.0.0.1", ttl=60)
+if current_count > 100:
+    return JSONResponse({"error": "rate_limit_exceeded"}, status_code=429)</code></pre>
+
+            <h3>Cache Telemetry Stats</h3>
+            <p>
+                Retrieve real-time metrics for monitoring and the Admin 2.0 dashboard:
+            </p>
+            <pre><code class="language-python">stats = Cache.stats()
+# Returns: {"driver": "memory", "active_backend": "memory", "memory_items": 42, "redis_available": True}</code></pre>
+
+            <h3>Route Caching Decorator</h3>
+            <p>
+                Cache entire responses directly from the route decorator:
+            </p>
+            <pre><code class="language-python">@router.get("/products", cache=120) # Caches response for 120 seconds
+async def list_products(request: Request):
+    return await Product.get_all_async()</code></pre>
 
         </article>
     </main>

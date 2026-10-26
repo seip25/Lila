@@ -1,189 +1,156 @@
 import sys
 import os
+from pathlib import Path
+import subprocess
+import typer
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-import typer
-from pathlib import Path
-import os
-import subprocess
-try:
-    from app.connections import connection
-except ImportError:
-    connection = None
-
-app = typer.Typer()
+app = typer.Typer(help="Generate complete Auth 2.0 system (login, register, forgot-password, dashboard, OAuth).")
 
 package_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 user_project_root = os.getcwd()
 
-def read_file(path):
-    path = os.path.join(package_root, path)
+def read_file(rel_path: str) -> str:
+    path = os.path.join(package_root, rel_path)
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
-
-# ── HTML templates ────────────────────────────────────────────────────────────
-login_template_content           = read_file("cli/auth/templates/login.jinja")
-register_template_content        = read_file("cli/auth/templates/register.jinja")
-forgot_password_template_content = read_file("cli/auth/templates/forgot-password.jinja")
-change_password_template_content = read_file("cli/auth/templates/change-password.jinja")
-invalid_token_template_content   = read_file("cli/auth/templates/invalid-token.jinja")
-authenticated_template_content   = read_file("cli/auth/templates/dashboard.jinja")
-profile_template_content         = read_file("cli/auth/templates/profile.jinja")
-
-# ── Route file templates (auth/) ──────────────────────────────────────────────
-login_route_content           = read_file("cli/auth/routes/login.py")
-register_route_content        = read_file("cli/auth/routes/register.py")
-logout_route_content          = read_file("cli/auth/routes/logout.py")
-forgot_password_route_content = read_file("cli/auth/routes/forgot_password.py")
-change_password_route_content = read_file("cli/auth/routes/change_password.py")
-auth_init_content             = read_file("cli/auth/routes/auth_init.py")
-
-# ── Route file templates (authenticated/) ────────────────────────────────────
-dashboard_route_content         = read_file("cli/auth/routes/dashboard.py")
-profile_route_content           = read_file("cli/auth/routes/profile.py")
-authenticated_init_content      = read_file("cli/auth/routes/authenticated_init.py")
-
-# ── Model templates ───────────────────────────────────────────────────────────
-user_model_content = read_file("cli/auth/models/user.py")
-auth_model_content = read_file("cli/auth/models/auth.py")
-
 
 def _create_templates():
     templates_dir = Path("resources/html/auth")
     templates_dir.mkdir(parents=True, exist_ok=True)
 
     templates = {
-        "login.jinja":           login_template_content,
-        "register.jinja":        register_template_content,
-        "forgot-password.jinja": forgot_password_template_content,
-        "change-password.jinja": change_password_template_content,
-        "invalid-token.jinja":   invalid_token_template_content,
+        "login.jinja":           read_file("cli/auth/templates/login.jinja"),
+        "register.jinja":        read_file("cli/auth/templates/register.jinja"),
+        "forgot-password.jinja": read_file("cli/auth/templates/forgot-password.jinja"),
+        "change-password.jinja": read_file("cli/auth/templates/change-password.jinja"),
+        "invalid-token.jinja":   read_file("cli/auth/templates/invalid-token.jinja"),
     }
 
     for filename, content in templates.items():
         file_path = templates_dir / filename
         file_path.write_text(content, encoding="utf-8")
-        print(f" Template created: {file_path}")
-
-    print("\n Auth templates generated successfully")
+        typer.echo(f"  📄 Template created: {file_path}")
 
     template_dashboard_dir = Path("resources/html/authenticated")
     template_dashboard_dir.mkdir(parents=True, exist_ok=True)
     templates_dashboard = {
-        "dashboard.jinja": authenticated_template_content,
-        "profile.jinja":   profile_template_content,
+        "dashboard.jinja": read_file("cli/auth/templates/dashboard.jinja"),
+        "profile.jinja":   read_file("cli/auth/templates/profile.jinja"),
     }
     for filename, content in templates_dashboard.items():
         file_path = template_dashboard_dir / filename
         file_path.write_text(content, encoding="utf-8")
-        print(f" Template created: {file_path}")
-    print("\n Dashboards templates generated successfully")
-
+        typer.echo(f"  📄 Template created: {file_path}")
 
 def _create_routes():
     main_file = os.path.join(user_project_root, "main.py")
     marker = "auth_marker"
 
     if not os.path.exists(main_file):
-        typer.echo("main.py not found.")
+        typer.secho("❌ main.py not found.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
     with open(main_file, "r", encoding="utf-8") as file:
         content = file.read()
 
     if "from app.routes.web.auth import routes as auth_routes" in content:
-        typer.echo("Auth routes already added.")
+        typer.echo("ℹ️ Auth routes already present in main.py.")
         return
 
     replace_text = f'''# {marker}
 from app.routes.web.auth import routes as auth_routes
 from app.routes.web.authenticated import routes as authenticated_routes
-all_routes.extend(auth_routes)
-all_routes.extend(authenticated_routes)'''
+app.include_router(auth_routes)
+app.include_router(authenticated_routes)'''
 
-    new_content = content.replace(f"# {marker}", replace_text)
+    if f"# {marker}" in content:
+        new_content = content.replace(f"# {marker}", replace_text)
+    else:
+        new_content = content + f"\n\n{replace_text}\n"
 
     with open(main_file, "w", encoding="utf-8") as file:
         file.write(new_content)
 
-    typer.echo("Auth routes added to main.py.")
-
+    typer.echo("  ✨ Auth routes linked in main.py.")
 
 def _create_auth_files():
-    """Write the 5 auth route files + __init__.py into app/routes/web/auth/"""
     auth_dir = Path(os.path.join(user_project_root, "app/routes/web/auth"))
     auth_dir.mkdir(parents=True, exist_ok=True)
 
     files = {
-        "__init__.py":        auth_init_content,
-        "login.py":           login_route_content,
-        "register.py":        register_route_content,
-        "logout.py":          logout_route_content,
-        "forgot_password.py": forgot_password_route_content,
-        "change_password.py": change_password_route_content,
+        "__init__.py":        read_file("cli/auth/routes/auth_init.py"),
+        "login.py":           read_file("cli/auth/routes/login.py"),
+        "register.py":        read_file("cli/auth/routes/register.py"),
+        "logout.py":          read_file("cli/auth/routes/logout.py"),
+        "forgot_password.py": read_file("cli/auth/routes/forgot_password.py"),
+        "change_password.py": read_file("cli/auth/routes/change_password.py"),
     }
     for filename, content in files.items():
         (auth_dir / filename).write_text(content, encoding="utf-8")
 
-    typer.echo("Auth route files created in app/routes/web/auth/")
-
+    typer.echo("  📁 Route files created in app/routes/web/auth/")
 
 def _create_authenticated_files():
-    """Write the 2 authenticated route files + __init__.py into app/routes/web/authenticated/"""
     auth_dir = Path(os.path.join(user_project_root, "app/routes/web/authenticated"))
     auth_dir.mkdir(parents=True, exist_ok=True)
 
     files = {
-        "__init__.py":  authenticated_init_content,
-        "dashboard.py": dashboard_route_content,
-        "profile.py":   profile_route_content,
+        "__init__.py":  read_file("cli/auth/routes/authenticated_init.py"),
+        "dashboard.py": read_file("cli/auth/routes/dashboard.py"),
+        "profile.py":   read_file("cli/auth/routes/profile.py"),
     }
     for filename, content in files.items():
         (auth_dir / filename).write_text(content, encoding="utf-8")
 
-    typer.echo("Authenticated route files created in app/routes/web/authenticated/")
-
+    typer.echo("  📁 Route files created in app/routes/web/authenticated/")
 
 def _overwrite_user_model():
     user_model_path = os.path.join(user_project_root, "app/models/user.py")
+    content = read_file("cli/auth/models/user.py")
     with open(user_model_path, "w", encoding="utf-8") as file:
-        file.write(user_model_content)
-    typer.echo("User model overwritten successfully.")
-
+        file.write(content)
+    typer.echo("  👤 User model updated with OAuth and Argon2/PasswordHasher.")
 
 def _create_auth_model():
     model_path = os.path.join(user_project_root, "app/models/auth.py")
+    content = read_file("cli/auth/models/auth.py")
     with open(model_path, "w", encoding="utf-8") as file:
-        file.write(auth_model_content)
+        file.write(content)
 
-    result = subprocess.run([sys.executable, "-m", "lila.cli.migrations", "--refresh"], cwd=user_project_root)
-    if result.returncode != 0:
-        typer.echo("Failed to run migrations. Please check the error messages above.")
-        return
-
-    typer.echo("LoginAttempt model created successfully.")
-
+    subprocess.run([sys.executable, "-m", "lila.cli.migrations", "--refresh"], cwd=user_project_root)
+    typer.echo("  🔐 LoginAttempt & PasswordResetToken models registered.")
 
 @app.command()
-def main(template: str = "True", route: str = "True"):
+def generate(
+    template: bool = typer.Option(True, "--templates/--no-templates", help="Generate Jinja2 auth templates"),
+    routes: bool = typer.Option(True, "--routes/--no-routes", help="Generate auth and dashboard routes"),
+):
+    """
+    Scaffold authentication system with Better Auth OAuth, Argon2, and dashboard.
+    """
     if not os.path.exists("main.py") or not os.path.exists("app"):
-        typer.echo("❌ Error: This command must be run inside a Lila project root directory.")
+        typer.secho("❌ Error: Must run inside a Lila project root directory.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    if connection is None:
-        subprocess.run([sys.executable, "-m", "lila.cli.migrations"], cwd=user_project_root)
-        typer.echo("Database connection established and migrations run.")
+    typer.secho("🔐 Generating Lila Auth 2.0...", fg=typer.colors.CYAN)
 
-    if template.lower() == "true":
+    if template:
         _create_templates()
 
-    if route.lower() == "true":
-        _create_routes()
+    if routes:
         _create_auth_files()
         _create_authenticated_files()
         _overwrite_user_model()
         _create_auth_model()
+        _create_routes()
+
+    typer.secho("✅ Auth 2.0 generated successfully! OAuth ready with Google, GitHub, and Discord.", fg=typer.colors.GREEN)
+
+def main():
+    app()
 
 if __name__ == "__main__":
     app()

@@ -1,341 +1,291 @@
-from starlette.applications import Starlette
-from lila.core.responses import HTMLResponse,JSONResponse
-from lila.core.templates import render
-from starlette.middleware.cors import CORSMiddleware
-from lila.core.logger import Logger
-from pathlib import Path
-from app.config import PATH_TEMPLATE_NOT_FOUND,DEBUG,PATH_TEMPLATES_HTML
-from typing import List, Optional, Dict, Any
-from starlette_compress import CompressMiddleware
-from starlette.middleware.gzip import GZipMiddleware
-from starlette.middleware import Middleware
-from starlette.middleware.trustedhost import TrustedHostMiddleware
-from lila.core.debug import DebugMiddleware, DebugModel, db
-from lila.core.routing import Router, CachedStaticFiles
-from itertools import chain
-from lila.core.request import Request
-from starlette.routing import Route, Mount
-from starlette.staticfiles import StaticFiles
+"""Lila Framework v2.0.0 Core Application.
+Ultra-lightweight Starlette wrapper with:
+- Pure ASGI optional middlewares (RateLimit, Logging, SecurityHeaders, CORS, GZip)
+- Live-Reload SSE endpoint (/_lila/dev-reload)
+- Dynamic OpenAPI 3.0 & Swagger documentation
+- Automatic Router unpacking and static files mounting
+"""
 
-STATIC_EXTENSIONS = {
-    ".js",
-    ".css",
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".ico",
-    ".svg",
-    ".woff",
-    ".woff2",
-    ".ttf",
-    ".eot",
-}
-EXCLUDED_PATHS = {"public", "static", "assets", "favicon.ico"}
+import os
+import uuid
+import asyncio
+from contextlib import asynccontextmanager
+from typing import Optional, List, Dict, Any, Union, Callable
+
+from starlette.applications import Starlette
+from starlette.routing import Route, Mount, BaseRoute
+from starlette.staticfiles import StaticFiles
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
+from starlette.responses import Response
+
+from lila.core.config import ENV_CONFIG, get_base_path
+from lila.core.routing import Router
+from lila.core.responses import JSONResponse, HTMLResponse, StreamingResponse
+from lila.core.templates import render
+from lila.core.middleware import (
+    PureASGISecurityHeadersMiddleware,
+    PureASGIRateLimitMiddleware,
+    PureASGILoggingMiddleware,
+)
+from lila.core.debug import PureASGIDebugMiddleware, DebugStore
+
+
+BOOT_ID = uuid.uuid4().hex
 
 
 class App(Starlette):
     def __init__(
         self,
-        debug: bool = False,
-        routes: List = None,
-        cors: Optional[Dict[str, Any]] = None,
-        middleware: List = None,
-        compress_type: str = "gzip",
-        trusted_hosts: Optional[List[str]] = None,
-        public_folder: str = "public",
-        public_url: str = "/",
-        public_name: str = "public",
-        on_startup: list = None,
-        on_shutdown: list = None,
-        translate: bool = True,
-        debug_html: bool = False,
-        secret_key: Optional[str] = None,
-        title: Optional[str] = None,
-        version: Optional[str] = None,
-        description: Optional[str] = None,
-        lang_default: Optional[str] = None,
-        minify_html: Optional[bool] = None,
-        path_log_base_dir: Optional[str] = None,
-        path_template_not_found: Optional[str] = None,
-        path_templates_html: Optional[str] = None,
-        path_templates_markdown: Optional[str] = None,
-        path_locales: Optional[str] = None,
-        path_uploads: Optional[str] = None,
+        routes: Optional[List[Any]] = None,
+        debug: Optional[bool] = None,
+        rate_limit: Optional[Union[int, dict]] = None,
+        logging: bool = False,
+        security: bool = False,
+        cors: Optional[Union[bool, dict]] = None,
+        gzip: Optional[Union[bool, dict]] = None,
+        csrf: bool = False,
+        openapi: bool = True,
+        public_dir: Optional[str] = None,
+        on_startup: Optional[List[Any]] = None,
+        on_shutdown: Optional[List[Any]] = None,
+        lifespan: Optional[Callable] = None,
     ):
-        import app.config as config_module
-        if secret_key is not None:
-            config_module.SECRET_KEY = secret_key
-        if title is not None:
-            config_module.TITLE_PROJECT = title
-        if version is not None:
-            config_module.VERSION_PROJECT = version
-        if description is not None:
-            config_module.DESCRIPTION_PROJECT = description
-        if lang_default is not None:
-            config_module.LANG_DEFAULT = lang_default
-        if minify_html is not None:
-            config_module.MINIFY_HTML = minify_html
-        if path_log_base_dir is not None:
-            config_module.PATH_LOG_BASE_DIR = path_log_base_dir
-        if path_template_not_found is not None:
-            config_module.PATH_TEMPLATE_NOT_FOUND = path_template_not_found
-        if path_templates_html is not None:
-            if not path_templates_html.endswith("/"):
-                path_templates_html += "/"
-            config_module.PATH_TEMPLATES_HTML = path_templates_html
-        if path_templates_markdown is not None:
-            if not path_templates_markdown.endswith("/"):
-                path_templates_markdown += "/"
-            config_module.PATH_TEMPLATES_MARKDOWN = path_templates_markdown
-        if path_locales is not None:
-            config_module.PATH_LOCALES = path_locales
-        if path_uploads is not None:
-            config_module.PATH_UPLOADS = path_uploads
+        self._is_debug = debug if debug is not None else bool(ENV_CONFIG.get("DEBUG", True))
+        self._routers: List[Router] = []
+        self._raw_routes: List[BaseRoute] = []
 
-        from lila.core.translate import Translate
-        Translate.translate_enabled = translate
-        self.debug_html = debug_html
+        # 1. Unpack initial routes
+        if routes:
+            for item in routes:
+                self._register_route_item(item)
 
-        routes = routes or []
+        # 2. Mount Public static files
+        static_path = public_dir or get_base_path("public")
+        if not os.path.exists(static_path):
+            pkg_public = os.path.join(os.path.dirname(__file__), "..", "public")
+            if os.path.exists(pkg_public):
+                static_path = os.path.abspath(pkg_public)
 
-        middleware = middleware or []
-        middleware = list(middleware)
-        middleware_compress = (
-            CompressMiddleware if compress_type == "zstd" else GZipMiddleware
-        )
-        
-        middleware.append(Middleware(middleware_compress))
-
-        from lila.core.middleware import FlashMiddleware
-        middleware.append(Middleware(FlashMiddleware))
-
-        if trusted_hosts:
-            middleware.append(
-                Middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
+        if os.path.exists(static_path):
+            self._raw_routes.append(
+                Mount("/public", app=StaticFiles(directory=static_path), name="public")
             )
-        if debug and DEBUG and debug_html:
-            middleware.append(Middleware(DebugMiddleware))
-            routerDebug = Router("debug")
+            # Also mount direct subpaths (/js, /img, /swagger, /favicon.ico)
+            for sub in ("js", "img", "swagger"):
+                sub_dir = os.path.join(static_path, sub)
+                if os.path.exists(sub_dir):
+                    self._raw_routes.append(
+                        Mount(f"/{sub}", app=StaticFiles(directory=sub_dir), name=f"public_{sub}")
+                    )
 
-            @routerDebug.get("/")
-            async def debug(request: Request):
-                if DEBUG:
-                    session = db.get_session()
-                    try:
-                        debugs = session.query(DebugModel).order_by(DebugModel.created_at.desc()).all()
-                        debugs_list = [
-                            {
-                                "path": d.path,
-                                "method": d.method,
-                                "ip": d.ip,
-                                "ram": d.ram,
-                                "cpu": d.cpu,
-                                "time_execution": d.time_execution,
-                                "created_at": d.created_at.strftime("%Y-%m-%d %H:%M:%S") if d.created_at else ""
-                            }
-                            for d in debugs
-                        ]
-                    finally:
-                        session.close()
-                    is_fetch = request.query_params.get("fetch", False)
-                    if is_fetch:
-                        return JSONResponse(content=debugs_list)
-                    response = render(request=request, template="lila/debug")
-                    return response
-                template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
-                return render(request=request, template=template)
+        # 3. Mount Dev-Reload SSE Endpoint
+        if self._is_debug:
+            self._raw_routes.append(
+                Route("/_lila/dev-reload", endpoint=self._dev_reload_endpoint, methods=["GET"])
+            )
 
-            @routerDebug.delete("/")
-            async def delete_debug(request: Request):
-                if DEBUG:
-                    session = db.get_session()
-                    try:
-                        session.query(DebugModel).delete()
-                        session.commit()
-                    finally:
-                        session.close()
-                    return JSONResponse(content={"message": "Debug deleted successfully"})
-                template = f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}"
-                return render(request=request, template=template)
+        # 4. Mount OpenAPI & Swagger UI
+        if openapi:
+            self._raw_routes.append(
+                Route("/openapi.json", endpoint=self._openapi_json_endpoint, methods=["GET"])
+            )
+            self._raw_routes.append(
+                Route("/docs", endpoint=self._docs_ui_endpoint, methods=["GET"])
+            )
 
-            debug_routes = routerDebug.get_routes()
-            routes = list(chain(routes, debug_routes, [
-                Mount(public_url, app=CachedStaticFiles(directory=public_folder), name=public_name)
-            ]))
-        else:
-            routes=list(chain(routes,[
-                Mount(public_url, app=CachedStaticFiles(directory=public_folder), name=public_name)
-            ]))
+        # 5. Build Middleware Stack
+        middleware_stack: List[Middleware] = []
+
+        if cors:
+            cors_conf = cors if isinstance(cors, dict) else {
+                "allow_origins": ["*"],
+                "allow_credentials": True,
+                "allow_methods": ["*"],
+                "allow_headers": ["*"],
+            }
+            middleware_stack.append(Middleware(CORSMiddleware, **cors_conf))
+
+        if gzip:
+            gzip_conf = gzip if isinstance(gzip, dict) else {"minimum_size": 500}
+            middleware_stack.append(Middleware(GZipMiddleware, **gzip_conf))
+
+        if security:
+            middleware_stack.append(Middleware(PureASGISecurityHeadersMiddleware))
+
+        if rate_limit:
+            rl_limit = rate_limit if isinstance(rate_limit, int) else rate_limit.get("max_requests", 300)
+            rl_win = 60 if isinstance(rate_limit, int) else rate_limit.get("window", 60)
+            middleware_stack.append(
+                Middleware(PureASGIRateLimitMiddleware, max_requests=rl_limit, window_seconds=rl_win)
+            )
+
+        if logging:
+            middleware_stack.append(Middleware(PureASGILoggingMiddleware))
+
+        if self._is_debug:
+            middleware_stack.append(Middleware(PureASGIDebugMiddleware))
+
+        # 6. Exception Handlers
+        exception_handlers = {
+            404: self._not_found_handler,
+            500: self._server_error_handler,
+        }
+
+        # 7. Lifespan & Startup/Shutdown hooks (compatible with Starlette 0.30+ and 1.0+)
+        startup_list = list(on_startup or [])
+        shutdown_list = list(on_shutdown or [])
+        shutdown_list.append(self._cleanup_resources)
+
+        @asynccontextmanager
+        async def _default_lifespan(app_instance):
+            for fn in startup_list:
+                res = fn()
+                if asyncio.iscoroutine(res):
+                    await res
+            try:
+                yield
+            finally:
+                for fn in shutdown_list:
+                    res = fn()
+                    if asyncio.iscoroutine(res):
+                        await res
+
         super().__init__(
-            debug=debug, routes=routes, middleware=middleware,
+            debug=self._is_debug,
+            routes=self._raw_routes,
+            middleware=middleware_stack,
+            exception_handlers=exception_handlers,
+            lifespan=lifespan or _default_lifespan,
         )
 
-        try:
-            self.add_exception_handler(404, self._404_page)
-            self.add_exception_handler(500, self._500_page)
+    def _register_route_item(self, item: Any, prefix: str = "") -> None:
+        if isinstance(item, Router):
+            self._routers.append(item)
+            for r in item.get_routes():
+                self._raw_routes.append(r)
+        elif isinstance(item, BaseRoute):
+            self._raw_routes.append(item)
+        elif isinstance(item, list):
+            for sub in item:
+                self._register_route_item(sub, prefix=prefix)
 
-            if cors:
-                self.add_middleware(
-                    CORSMiddleware,
-                    allow_origins=cors.get("origin", ["*"]),
-                    allow_credentials=cors.get("allow_credentials", True),
-                    allow_methods=cors.get("allow_methods", ["*"]),
-                    allow_headers=cors.get("allow_headers", ["*"]),
-                )
+    def include_router(self, router: Union[Router, List[BaseRoute]], prefix: str = "") -> None:
+        """Includes a Router instance or list of Routes at runtime with optional extra prefix."""
+        if isinstance(router, Router):
+            self._routers.append(router)
+            for r in router.get_routes():
+                self.routes.append(r)
+        elif isinstance(router, list):
+            for r in router:
+                if isinstance(r, Router):
+                    self.include_router(r, prefix=prefix)
+                elif isinstance(r, BaseRoute):
+                    self.routes.append(r)
+        elif isinstance(router, BaseRoute):
+            self.routes.append(router)
 
-            Logger.info("Application started successfully")
-        except Exception as e:
-            Logger.error(f"Error initializing application: {e}", exception=e)
+    async def _dev_reload_endpoint(self, request):
+        """SSE endpoint notifying lila-client.js of server bootId changes."""
+        async def event_generator():
+            yield f'data: {{"type": "connected", "bootId": "{BOOT_ID}"}}\n\n'
+            while True:
+                await asyncio.sleep(15)
+                yield f'data: {{"type": "ping"}}\n\n'
 
-    async def _404_page(self, request, exc):
-        template_path = Path(f"{PATH_TEMPLATES_HTML}{PATH_TEMPLATE_NOT_FOUND}.jinja")
-        if template_path.exists():
-            return render(request=request, template=PATH_TEMPLATE_NOT_FOUND)
-        return HTMLResponse(
-            "<h1>404 Not Found</h1><p>The requested resource was not found on this server.</p>",
-            status_code=404,
-        )
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    async def _500_page(self, request, exc):
-        """
-        Handle 500 Internal Server Error
-        Shows detailed error page in DEBUG mode, generic error otherwise
-        """
-        import traceback
-        import sys
-        
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        
-        error_info = {
-            'error_type': exc_type.__name__ if exc_type else 'InternalServerError',
-            'error_message': str(exc),
-            'traceback': traceback.format_exc(),
-            'file': '',
-            'line': 0,
-            'function': '',
-            'path': request.url.path,
-            'method': request.method
+    async def _openapi_json_endpoint(self, request):
+        """Generates OpenAPI 3.0 schema dynamically."""
+        paths: Dict[str, Any] = {}
+        tags = set()
+
+        for router in self._routers:
+            for route_info in router.openapi_routes:
+                p = route_info["path"]
+                # Convert Starlette path parameters: /items/{id:int} -> /items/{id}
+                openapi_path = ""
+                for segment in p.split("/"):
+                    if segment.startswith("{") and segment.endswith("}"):
+                        param_name = segment[1:-1].split(":")[0]
+                        openapi_path += f"/{{{param_name}}}"
+                    else:
+                        openapi_path += f"/{segment}" if segment else ""
+                openapi_path = openapi_path or "/"
+
+                if openapi_path not in paths:
+                    paths[openapi_path] = {}
+
+                for method in route_info["methods"]:
+                    m_lower = method.lower()
+                    paths[openapi_path][m_lower] = {
+                        "summary": route_info["summary"],
+                        "tags": route_info["tags"],
+                        "responses": {
+                            "200": {"description": "Successful Response"},
+                            "422": {"description": "Validation Error"},
+                        },
+                    }
+                    for t in route_info["tags"]:
+                        tags.add(t)
+
+        schema = {
+            "openapi": "3.0.2",
+            "info": {
+                "title": ENV_CONFIG.get("TITLE_PROJECT", "Lila Application"),
+                "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
+                "description": ENV_CONFIG.get("DESCRIPTION_PROJECT", "API documentation powered by Lila Framework"),
+            },
+            "paths": paths,
+            "tags": [{"name": t} for t in sorted(tags)],
         }
-        
-        if exc_tb:
-            frame = exc_tb.tb_frame
-            error_info['file'] = frame.f_code.co_filename
-            error_info['line'] = exc_tb.tb_lineno
-            error_info['function'] = frame.f_code.co_name
-        
-        # Always log to terminal
-        print(f"\n{'='*80}")
-        print(f"500 INTERNAL SERVER ERROR")
-        print(f"{'='*80}")
-        print(f"Path: {error_info['method']} {error_info['path']}")
-        print(f"Error Type: {error_info['error_type']}")
-        print(f"Error Message: {error_info['error_message']}")
-        if error_info['file']:
-            print(f"File: {error_info['file']}:{error_info['line']}")
-            print(f"Function: {error_info['function']}")
-        print(f"\nTraceback:\n{error_info['traceback']}")
-        print(f"{'='*80}\n")
-        
-        Logger.error(
-            f"500 Error: {error_info['method']} {error_info['path']} - "
-            f"{error_info['error_type']}: {error_info['error_message']}"
-        )
-        
-        if DEBUG:
-            # Detailed HTML error page
-            error_html = f"""
-<!DOCTYPE html>
-<html lang="en">
+        return JSONResponse(schema)
+
+    async def _docs_ui_endpoint(self, request):
+        """Renders Swagger UI."""
+        html = """<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>500 Internal Server Error</title>
-    <script src="/js/tailwind.js"></script>
-    <style type="text/tailwindcss">
-        @theme {
-            --color-primary: #1a73e8;
-            --color-secondary: #e91e63;
-            --color-error: #d32f2f;
-            --color-surface: #1e293b;
-            --color-bg-body: #0f172a;
-        }
-    </style>
+    <title>Lila API Documentation</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/swagger/swagger-ui.css">
+    <link rel="shortcut icon" href="/favicon.ico">
 </head>
-<body class="bg-[#0f172a] text-slate-200 min-h-screen p-4 md:p-8 flex items-center justify-center font-sans transition-colors duration-300">
-    <div class="w-full max-w-5xl bg-[#1e293b] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-        <!-- Red warning Header -->
-        <header class="bg-gradient-to-r from-red-600 to-red-800 p-6 md:p-8 border-b border-red-900 flex items-center gap-4">
-            <span class="text-4xl animate-pulse">🚨</span>
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">500 Internal Server Error</h1>
-                <p class="text-sm text-red-200 font-semibold mt-1">An unexpected error occurred while processing your request.</p>
-            </div>
-        </header>
-
-        <div class="p-6 md:p-8 space-y-6">
-            <!-- Request Context -->
-            <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">HTTP Method</span>
-                    <span class="text-md font-bold text-amber-400 mt-1 block">{error_info['method']}</span>
-                </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Requested Path</span>
-                    <span class="text-md font-bold text-slate-200 mt-1 block break-all">{error_info['path']}</span>
-                </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Exception Class</span>
-                    <span class="text-md font-bold text-red-400 mt-1 block break-all">{error_info['error_type']}</span>
-                </div>
-            </section>
-
-            <!-- Error Message -->
-            <section class="bg-red-950/20 border-l-4 border-red-500 p-5 rounded-r-xl">
-                <h3 class="text-xs font-black uppercase text-red-400 tracking-wider mb-1">Error Message</h3>
-                <p class="text-md font-semibold text-slate-200 leading-relaxed">{error_info['error_message']}</p>
-            </section>
-            
-            {f'''<!-- Exception Location -->
-            <section class="bg-slate-900/60 p-6 rounded-xl border border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">File</span>
-                    <span class="text-sm font-semibold text-amber-300 break-all mt-1 block">{error_info['file']}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Line Number</span>
-                    <span class="text-sm font-semibold text-slate-200 mt-1 block">{error_info['line']}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Function</span>
-                    <span class="text-sm font-semibold text-slate-200 mt-1 block">{error_info['function']}</span>
-                </div>
-            </section>''' if error_info['file'] else ''}
-
-            <!-- Traceback Logs -->
-            <section class="space-y-3">
-                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Traceback Stack</h3>
-                <div class="bg-black/80 border border-slate-800 rounded-2xl p-6 overflow-x-auto font-mono text-xs text-lime-400 leading-relaxed max-h-96">
-                    <pre>{error_info['traceback']}</pre>
-                </div>
-            </section>
-        </div>
-
-        <footer class="bg-slate-900/40 p-4 border-t border-slate-800 text-center text-xs font-semibold text-slate-500">
-            💡 This detailed diagnostic console is only visible when <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-350">DEBUG=True</code> in your configuration.
-        </footer>
-    </div>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="/swagger/swagger-ui-bundle.js"></script>
+    <script src="/swagger/swagger-ui-standalone-preset.js"></script>
+    <script>
+    window.onload = function() {
+        SwaggerUIBundle({
+            url: "/openapi.json",
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+            layout: "BaseLayout",
+            deepLinking: true
+        });
+    }
+    </script>
 </body>
-</html>
-"""
-            return HTMLResponse(error_html, status_code=500)
-        else:
-            # Production mode: generic error
-            return HTMLResponse(
-                "<h1>500 Internal Server Error</h1><p>An unexpected error occurred. Please try again later.</p>",
-                status_code=500,
-            )
+</html>"""
+        return HTMLResponse(html)
 
-def getenvironment(key: str, default: Any = None) -> Any:
-    import os
-    return os.getenv(key, default)
+    async def _not_found_handler(self, request, exc):
+        if request.headers.get("accept", "").startswith("application/json") or request.url.path.startswith("/api/"):
+            return JSONResponse({"success": False, "message": "Resource not found"}, status_code=404)
+        return render(request, "lila/404", status_code=404)
+
+    async def _server_error_handler(self, request, exc):
+        if request.headers.get("accept", "").startswith("application/json") or request.url.path.startswith("/api/"):
+            return JSONResponse({"success": False, "message": "Internal server error"}, status_code=500)
+        return HTMLResponse("<h1>500 - Internal Server Error</h1>", status_code=500)
+
+    async def _cleanup_resources(self):
+        """Cleanly closes open database and cache handles on shutdown."""
+        from lila.core.database import db
+        await db.close_async()

@@ -1,277 +1,258 @@
-import orjson
-import secrets
-from app.config import SECRET_KEY
-from itsdangerous import BadSignature, URLSafeTimedSerializer, SignatureExpired
-from lila.core.request import Request
-from typing import Union, Optional, Dict, List
-from lila.core.logger import Logger
-from lila.core.cache import _get_redis_client, _get_redis_client_async
+"""Lila Framework v2.0.0 Session Manager.
+Supports signed cookie sessions with optional Redis backend storage.
+"""
 
-serializer = URLSafeTimedSerializer(SECRET_KEY)
+import secrets
+from typing import Optional, Any, Union
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+from lila.core.config import ENV_CONFIG
+from lila.core.responses import orjson_dumps, orjson_loads
+from lila.core.cache import Cache
+
+
+def _get_session_serializer() -> URLSafeTimedSerializer:
+    secret = str(ENV_CONFIG.get("SECRET_KEY", "lila-session-secret-key-change-me"))
+    return URLSafeTimedSerializer(secret, salt="lila-session-salt")
 
 
 class Session:
-    """Session manager supporting Redis storage with secure fallback to cookies."""
+    """Manages user sessions via signed cookies or Cache/Redis backends.
+    Supports both explicit sync/async methods and awaitable hybrid signatures.
+    """
 
-    @staticmethod
-    def setSession(
-        new_val: Union[str, dict, list],
-        response,
-        name_cookie: str = "session",
-        secure: bool = True,
-        samesite: str = "strict",
-        max_age: int = 3600,
-        domain: Optional[str] = None,
+    @classmethod
+    async def set_async(
+        cls,
+        value: Any = None,
+        response: Any = None,
+        cookie_name: str = "session",
+        max_age: int = 86400,
+        secure: bool = False,
         http_only: bool = True,
+        same_site: str = "lax",
         path: str = "/",
+        request: Any = None,
+        data: Any = None,
+        key: Optional[str] = None,
     ) -> bool:
-        """Set session data synchronously."""
+        """Sets session value asynchronously."""
         try:
-            if isinstance(new_val, (dict, list)):
-                serialized_val = orjson.dumps(new_val).decode()
-            else:
-                serialized_val = str(new_val)
+            payload_val = data if data is not None else value
+            target_cookie = key or cookie_name
+            val_bytes = orjson_dumps(payload_val).decode("utf-8")
+            serializer = _get_session_serializer()
 
-            client = _get_redis_client()
-            if client is not None:
+            if Cache._get_driver() == "redis":
                 session_id = secrets.token_urlsafe(32)
-                client.setex(
-                    name=f"lila:session:{session_id}",
-                    time=max_age,
-                    value=serialized_val
+                await Cache.set_async(f"session:{session_id}", val_bytes, ttl=max_age)
+                cookie_payload = f"sid:{session_id}"
+            else:
+                cookie_payload = val_bytes
+
+            signed = serializer.dumps(cookie_payload)
+            if response is not None:
+                response.set_cookie(
+                    key=target_cookie,
+                    value=signed,
+                    max_age=max_age,
+                    httponly=http_only,
+                    secure=secure,
+                    samesite=same_site,
+                    path=path,
                 )
-                cookie_value = f"sid:{session_id}"
-            else:
-                cookie_value = serialized_val
-
-            signed_session = serializer.dumps(cookie_value)
-
-            response.set_cookie(
-                key=name_cookie,
-                value=signed_session,
-                max_age=max_age,
-                expires=max_age,
-                secure=secure,
-                httponly=http_only,
-                samesite=samesite,
-                domain=domain,
-                path=path,
-            )
             return True
-        except Exception as e:
-            Logger.error(f"Error setting session: {str(e)}")
+        except Exception:
             return False
 
-    @staticmethod
-    async def setSession_async(
-        new_val: Union[str, dict, list],
-        response,
-        name_cookie: str = "session",
-        secure: bool = True,
-        samesite: str = "strict",
-        max_age: int = 3600,
-        domain: Optional[str] = None,
-        http_only: bool = True,
-        path: str = "/",
-    ) -> bool:
-        """Set session data asynchronously."""
-        try:
-            if isinstance(new_val, (dict, list)):
-                serialized_val = orjson.dumps(new_val).decode()
-            else:
-                serialized_val = str(new_val)
-
-            client_async = await _get_redis_client_async()
-            if client_async is not None:
-                session_id = secrets.token_urlsafe(32)
-                await client_async.setex(
-                    name=f"lila:session:{session_id}",
-                    time=max_age,
-                    value=serialized_val
-                )
-                cookie_value = f"sid:{session_id}"
-            else:
-                cookie_value = serialized_val
-
-            signed_session = serializer.dumps(cookie_value)
-
-            response.set_cookie(
-                key=name_cookie,
-                value=signed_session,
-                max_age=max_age,
-                expires=max_age,
-                secure=secure,
-                httponly=http_only,
-                samesite=samesite,
-                domain=domain,
-                path=path,
-            )
-            return True
-        except Exception as e:
-            Logger.error(f"Error setting session: {str(e)}")
-            return False
-
-    @staticmethod
-    def getSession(key: str, request: Request) -> Optional[str]:
-        """Retrieve request cookie session value."""
-        return request.cookies.get(key)
-
-    @staticmethod
-    def unsign(
-        key: str, request: Request, max_age: Optional[int] = None
-    ) -> Union[Dict, List, str, None]:
-        """Unsign and return session data synchronously."""
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
-
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-
-            if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
-                session_id = unsigned_data[4:]
-                client = _get_redis_client()
-                if client is not None:
-                    cached_val = client.get(f"lila:session:{session_id}")
-                    if cached_val is not None:
-                        decoded_val = cached_val.decode("utf-8")
-                        try:
-                            return orjson.loads(decoded_val)
-                        except orjson.JSONDecodeError:
-                            return decoded_val
-                return None
-
-            try:
-                return orjson.loads(unsigned_data)
-            except orjson.JSONDecodeError:
-                return unsigned_data
-
-        except SignatureExpired:
-            Logger.warning(f"Session expired for cookie: {key}")
-            return None
-        except BadSignature:
-            Logger.warning(f"Invalid session signature for cookie: {key}")
-            return None
-        except Exception as e:
-            Logger.error(f"Error unsigning session: {str(e)}")
-            return None
-
-    @staticmethod
-    async def unsign_async(
-        key: str, request: Request, max_age: Optional[int] = None
-    ) -> Union[Dict, List, str, None]:
-        """Unsign and return session data asynchronously."""
-        session_data = request.cookies.get(key)
-        if not session_data:
-            return None
-
-        try:
-            unsigned_data = serializer.loads(session_data, max_age=max_age)
-
-            if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
-                session_id = unsigned_data[4:]
-                client_async = await _get_redis_client_async()
-                if client_async is not None:
-                    cached_val = await client_async.get(f"lila:session:{session_id}")
-                    if cached_val is not None:
-                        decoded_val = cached_val.decode("utf-8")
-                        try:
-                            return orjson.loads(decoded_val)
-                        except orjson.JSONDecodeError:
-                            return decoded_val
-                return None
-
-            try:
-                return orjson.loads(unsigned_data)
-            except orjson.JSONDecodeError:
-                return unsigned_data
-
-        except SignatureExpired:
-            Logger.warning(f"Session expired for cookie: {key}")
-            return None
-        except BadSignature:
-            Logger.warning(f"Invalid session signature for cookie: {key}")
-            return None
-        except Exception as e:
-            Logger.error(f"Error unsigning session: {str(e)}")
-            return None
-
-    @staticmethod
-    def deleteSession(response, name_cookie: str, request: Optional[Request] = None) -> bool:
-        """Delete session synchronously."""
-        try:
-            if request:
-                client = _get_redis_client()
-                if client is not None:
-                    cookie_val = request.cookies.get(name_cookie)
-                    if cookie_val:
-                        try:
-                            unsigned_data = serializer.loads(cookie_val)
-                            if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
-                                session_id = unsigned_data[4:]
-                                client.delete(f"lila:session:{session_id}")
-                        except Exception:
-                            pass
-            response.delete_cookie(name_cookie)
-            return True
-        except Exception as e:
-            Logger.error(f"Error deleting session: {str(e)}")
-            return False
-
-    @staticmethod
-    async def deleteSession_async(response, name_cookie: str, request: Optional[Request] = None) -> bool:
-        """Delete session asynchronously."""
-        try:
-            if request:
-                client_async = await _get_redis_client_async()
-                if client_async is not None:
-                    cookie_val = request.cookies.get(name_cookie)
-                    if cookie_val:
-                        try:
-                            unsigned_data = serializer.loads(cookie_val)
-                            if isinstance(unsigned_data, str) and unsigned_data.startswith("sid:"):
-                                session_id = unsigned_data[4:]
-                                await client_async.delete(f"lila:session:{session_id}")
-                        except Exception:
-                            pass
-            response.delete_cookie(name_cookie)
-            return True
-        except Exception as e:
-            Logger.error(f"Error deleting session: {str(e)}")
-            return False
-
-    @staticmethod
-    def getSessionValue(
-        request: Request, key: str = "auth", max_age: Optional[int] = 3600
-    ) -> Union[Dict, List, str, None]:
-        """Get session value synchronously."""
-        return Session.unsign(key=key, request=request, max_age=max_age)
-
-    @staticmethod
-    async def get(request: Request, key: str = "auth") -> Union[Dict, List, str, None]:
-        """Get session data asynchronously."""
-        return await Session.unsign_async(key=key, request=request)
-
-    @staticmethod
+    @classmethod
     async def set(
-        request: Request, response, data: dict, key: str = "auth", max_age: int = 3600
+        cls,
+        value_or_request: Any = None,
+        response: Any = None,
+        cookie_name: str = "session",
+        max_age: int = 86400,
+        secure: bool = False,
+        http_only: bool = True,
+        same_site: str = "lax",
+        path: str = "/",
+        request: Any = None,
+        data: Any = None,
+        key: Optional[str] = None,
     ) -> bool:
-        """Set session data asynchronously."""
-        return await Session.setSession_async(new_val=data, response=response, name_cookie=key, max_age=max_age)
+        """Async-compatible session setter supporting both v2 and auth scaffold signatures."""
+        val = data if data is not None else value_or_request
+        return await cls.set_async(
+            value=val,
+            response=response,
+            cookie_name=key or cookie_name,
+            max_age=max_age,
+            secure=secure,
+            http_only=http_only,
+            same_site=same_site,
+            path=path,
+        )
 
-    @staticmethod
-    async def delete(response, key: str = "auth", request: Optional[Request] = None) -> bool:
-        """Delete session data asynchronously."""
-        return await Session.deleteSession_async(response=response, name_cookie=key, request=request)
+    @classmethod
+    def set_sync(
+        cls,
+        value: Any,
+        response: Any,
+        cookie_name: str = "session",
+        max_age: int = 86400,
+        secure: bool = False,
+        http_only: bool = True,
+        same_site: str = "lax",
+        path: str = "/",
+    ) -> bool:
+        """Sets session value synchronously."""
+        try:
+            val_bytes = orjson_dumps(value).decode("utf-8")
+            serializer = _get_session_serializer()
 
-    @staticmethod
-    def flash(request: Request, message: str, category: str = "info") -> None:
-        """Queue a flash message."""
-        if not hasattr(request.state, "_new_flashes"):
-            request.state._new_flashes = []
-        request.state._new_flashes.append({"message": message, "category": category})
+            if Cache._get_driver() == "redis":
+                session_id = secrets.token_urlsafe(32)
+                Cache.set(f"session:{session_id}", val_bytes, ttl=max_age)
+                cookie_payload = f"sid:{session_id}"
+            else:
+                cookie_payload = val_bytes
 
+            signed = serializer.dumps(cookie_payload)
+            response.set_cookie(
+                key=cookie_name,
+                value=signed,
+                max_age=max_age,
+                httponly=http_only,
+                secure=secure,
+                samesite=same_site,
+                path=path,
+            )
+            return True
+        except Exception:
+            return False
 
-def flash(request: Request, message: str, category: str = "info") -> None:
-    """Queue a flash message."""
-    Session.flash(request, message, category)
+    @classmethod
+    async def get_async(
+        cls, request: Any, cookie_name: str = "session", max_age: int = 86400, key: Optional[str] = None
+    ) -> Optional[Any]:
+        """Retrieves and deserializes session value asynchronously."""
+        target_cookie = key or cookie_name
+        cookie_val = request.cookies.get(target_cookie)
+        if not cookie_val and target_cookie == "session":
+            # Also check 'auth' cookie if set via auth scaffold
+            cookie_val = request.cookies.get("auth")
+        if not cookie_val:
+            return None
+
+        serializer = _get_session_serializer()
+        try:
+            raw_payload = serializer.loads(cookie_val, max_age=max_age)
+        except (SignatureExpired, BadSignature, Exception):
+            return None
+
+        if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
+            session_id = raw_payload[4:]
+            data = await Cache.get_async(f"session:{session_id}")
+            if data is not None:
+                try:
+                    return orjson_loads(data)
+                except Exception:
+                    return data
+            return None
+
+        try:
+            return orjson_loads(raw_payload)
+        except Exception:
+            return raw_payload
+
+    @classmethod
+    async def get(
+        cls, request: Any, cookie_name: str = "session", max_age: int = 86400, key: Optional[str] = None
+    ) -> Optional[Any]:
+        """Retrieves session value asynchronously."""
+        return await cls.get_async(request, cookie_name=key or cookie_name, max_age=max_age)
+
+    @classmethod
+    def get_sync(
+        cls, request: Any, cookie_name: str = "session", max_age: int = 86400
+    ) -> Optional[Any]:
+        """Retrieves and deserializes session value synchronously."""
+        cookie_val = request.cookies.get(cookie_name)
+        if not cookie_val and cookie_name == "session":
+            cookie_val = request.cookies.get("auth")
+        if not cookie_val:
+            return None
+
+        serializer = _get_session_serializer()
+        try:
+            raw_payload = serializer.loads(cookie_val, max_age=max_age)
+        except (SignatureExpired, BadSignature, Exception):
+            return None
+
+        if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
+            session_id = raw_payload[4:]
+            data = Cache.get(f"session:{session_id}")
+            if data is not None:
+                try:
+                    return orjson_loads(data)
+                except Exception:
+                    return data
+            return None
+
+        try:
+            return orjson_loads(raw_payload)
+        except Exception:
+            return raw_payload
+
+    @classmethod
+    async def delete_async(
+        cls,
+        request: Any = None,
+        response: Any = None,
+        cookie_name: str = "session",
+        path: str = "/",
+        key: Optional[str] = None,
+    ) -> bool:
+        """Deletes session cookie and Redis storage asynchronously."""
+        target_cookie = key or cookie_name
+        # Handle swapped positional args (response, key="auth", request=request)
+        if request is not None and not hasattr(request, "cookies") and hasattr(request, "delete_cookie"):
+            response, request = request, response
+
+        if request is not None and hasattr(request, "cookies"):
+            cookie_val = request.cookies.get(target_cookie)
+            if cookie_val:
+                try:
+                    serializer = _get_session_serializer()
+                    raw_payload = serializer.loads(cookie_val)
+                    if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
+                        session_id = raw_payload[4:]
+                        await Cache.delete_async(f"session:{session_id}")
+                except Exception:
+                    pass
+
+        if response is not None and hasattr(response, "delete_cookie"):
+            response.delete_cookie(key=target_cookie, path=path)
+        return True
+
+    @classmethod
+    async def delete(
+        cls,
+        request_or_response: Any = None,
+        response: Any = None,
+        cookie_name: str = "session",
+        path: str = "/",
+        key: Optional[str] = None,
+        request: Any = None,
+    ) -> bool:
+        """Deletes session asynchronously supporting both v2 and auth scaffold signatures."""
+        req = request if request is not None else (request_or_response if hasattr(request_or_response, "cookies") else None)
+        resp = response if response is not None else (request_or_response if hasattr(request_or_response, "delete_cookie") else None)
+        return await cls.delete_async(request=req, response=resp, cookie_name=key or cookie_name, path=path)
+
+    # Backward compatibility aliases
+    setSession = set
+    setSession_async = set_async
+    getSession = get
+    getSession_async = get_async
+    deleteSession = delete
+    deleteSession_async = delete_async

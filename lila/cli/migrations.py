@@ -1,24 +1,22 @@
 import sys
 import os
+from pathlib import Path
+import asyncio
+import importlib
+import typer
+from dotenv import load_dotenv
+
+load_dotenv()
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-from dotenv import load_dotenv
-load_dotenv()
-
-from sqlalchemy import Table,Column,Integer,String,TIMESTAMP 
 try:
     from app.connections import connection
-    from app.models.user import User #Import models for migrations in models
 except ImportError:
     connection = None
-    User = None
 
-from lila.core.database import Base #Import Base  for migrations in models
-import typer
-import asyncio
-import importlib
-from pathlib import Path
+app = typer.Typer(help="Manage database migrations (SQLAlchemy metadata sync).")
 
 def load_models():
     models_dir = Path("app/models")
@@ -29,58 +27,50 @@ def load_models():
                 try:
                     importlib.import_module(module_name)
                 except Exception as e:
-                    print(f"Error loading model {module_name}: {e}")
+                    typer.echo(f"  ⚠️ Warning loading {module_name}: {e}")
 
-app = typer.Typer()
-
-#English:Example of creating migrations for 'users'
-#Español: Ejemplo de creación de migraciones para 'users'
-# table_users = Table(
-#     'users', connection.metadata,
-#     Column('id', Integer, primary_key=True,autoincrement=True),
-#     Column('name', String(length=50), nullable=False),
-#     Column('email', String(length=50), unique=True),
-#     Column('password', String(length=150), nullable=False),
-#     Column('token', String(length=150), nullable=False),
-#     Column('active', Integer,default=1, nullable=False),
-#     Column('created_at', TIMESTAMP), 
-# )
-
-async def migrate_async(connection, refresh: bool = False) -> bool:
+async def migrate_async(conn, refresh: bool = False) -> bool:
     try:
         load_models()
         if refresh:
-            if hasattr(connection, "drop_all_async") and getattr(connection, "is_async", False):
-                await connection.drop_all_async(use_base=True)
-            elif hasattr(connection, "drop_all"):
-                connection.drop_all(use_base=True)
-            else:
-                connection.metadata.drop_all(connection.engine)
-        
-        if hasattr(connection, "migrate_async") and getattr(connection, "is_async", False):
-            await connection.migrate_async(use_base=True)
+            typer.echo("🔄 Dropping existing tables...")
+            if hasattr(conn, "drop_all_async") and getattr(conn, "is_async", False):
+                await conn.drop_all_async(use_base=True)
+            elif hasattr(conn, "drop_all"):
+                conn.drop_all(use_base=True)
+
+        typer.echo("🚀 Running migrations...")
+        if hasattr(conn, "migrate_async") and getattr(conn, "is_async", False):
+            await conn.migrate_async(use_base=True)
         else:
-            connection.migrate(use_base=True)
-        print("Migrations completed")
-        
+            conn.migrate(use_base=True)
+
+        typer.secho("✅ Migrations completed successfully!", fg=typer.colors.GREEN)
         return True
     except Exception as e:
-        print(e)
+        typer.secho(f"❌ Migration error: {e}", fg=typer.colors.RED)
         return False
     finally:
-        if connection and getattr(connection, "is_async", False) and connection.engine:
-            await connection.engine.dispose()
-    
-    
+        if conn and getattr(conn, "is_async", False) and conn.engine:
+            await conn.engine.dispose()
+
 @app.command()
-def migrate(refresh: bool = False):
-    """Run database migrations"""
+def migrate(
+    refresh: bool = typer.Option(False, "--refresh", "-r", help="Drop all tables before running migrations"),
+):
+    """
+    Run database migrations to synchronize models with the database.
+    """
     if connection is None:
-        typer.echo("❌ Error: 'app.connections' not found. Make sure you are in the root directory of your Lila project.")
+        typer.secho("❌ Error: 'app.connections' not found. Make sure you are in the root directory of your Lila project.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+
     success = asyncio.run(migrate_async(connection, refresh))
     if not success:
         raise typer.Exit(code=1)
 
-if __name__ == "__main__":
+def main():
     app()
+
+if __name__ == "__main__":
+    main()
