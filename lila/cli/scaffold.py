@@ -5,6 +5,18 @@ import socket
 from pathlib import Path
 from importlib import resources
 
+# Ensure UTF-8 output on Windows consoles to prevent charmap UnicodeEncodeError
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
