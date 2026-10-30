@@ -1,17 +1,32 @@
-import sys
+﻿import sys
 import os
+import shutil
 from pathlib import Path
-import subprocess
 from typing import Optional, List, Dict, Any
 import typer
 
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
+from lila.cli._patch import patch_main
+
 app = typer.Typer(help="Generate complete Auth 2.0 system (login, register, forgot-password, dashboard, OAuth).")
 
 package_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 user_project_root = os.getcwd()
+
+
+def _write_with_backup(path: Path, content: str) -> None:
+    """Writes a generated file, backing up a differing existing file."""
+    try:
+        if path.exists():
+            existing = path.read_text(encoding="utf-8")
+            if existing != content:
+                shutil.copy2(path, path.with_suffix(path.suffix + ".bak"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    except Exception as exc:
+        typer.secho(f"  ⚠️ Could not write {path}: {exc}", fg=typer.colors.YELLOW)
 
 def read_file(rel_path: str) -> str:
     path = os.path.join(package_root, rel_path)
@@ -32,7 +47,7 @@ def _create_templates():
 
     for filename, content in templates.items():
         file_path = templates_dir / filename
-        file_path.write_text(content, encoding="utf-8")
+        _write_with_backup(file_path, content)
         typer.echo(f"  📄 Template created: {file_path}")
 
     template_dashboard_dir = Path("resources/html/authenticated")
@@ -43,50 +58,27 @@ def _create_templates():
     }
     for filename, content in templates_dashboard.items():
         file_path = template_dashboard_dir / filename
-        file_path.write_text(content, encoding="utf-8")
+        _write_with_backup(file_path, content)
         typer.echo(f"  📄 Template created: {file_path}")
 
+
 def _create_routes():
-    import re
     main_file = os.path.join(user_project_root, "main.py")
-    marker = "auth_marker"
 
     if not os.path.exists(main_file):
         typer.secho("❌ main.py not found.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    with open(main_file, "r", encoding="utf-8") as file:
-        content = file.read()
-
-    import_lines = (
+    import_stmt = (
         "from app.routes.web.auth import routes as auth_routes\n"
         "from app.routes.web.authenticated import routes as authenticated_routes"
     )
-    include_lines = "app.include_router(auth_routes)\napp.include_router(authenticated_routes)"
+    include_stmt = "app.include_router(auth_routes)\napp.include_router(authenticated_routes)"
 
-    if "from app.routes.web.auth import routes as auth_routes" in content:
-        typer.echo("ℹ️ Auth routes already present in main.py.")
-        return
-
-    if f"# {marker}" in content:
-        content = content.replace(f"# {marker}", f"# {marker}\n{import_lines}")
-    elif "# api_marker" in content:
-        content = content.replace("# api_marker", f"# api_marker\n{import_lines}")
+    if patch_main(main_file, import_stmt, include_stmt):
+        typer.echo("  ✨ Auth routes linked in main.py.")
     else:
-        content = f"{import_lines}\n" + content
-
-    if "app.include_router(auth_routes)" not in content:
-        app_match = re.search(r"(app\s*=\s*App\s*\([^)]*\))", content, re.DOTALL)
-        if app_match:
-            end_pos = app_match.end()
-            content = content[:end_pos] + f"\n{include_lines}\n" + content[end_pos:]
-        else:
-            content += f"\n{include_lines}\n"
-
-    with open(main_file, "w", encoding="utf-8") as file:
-        file.write(content)
-
-    typer.echo("  ✨ Auth routes linked in main.py.")
+        typer.echo("ℹ️ Auth routes already present (or main.py could not be patched safely).")
 
 
 def _create_auth_files():
@@ -102,9 +94,10 @@ def _create_auth_files():
         "change_password.py": read_file("cli/auth/routes/change_password.py"),
     }
     for filename, content in files.items():
-        (auth_dir / filename).write_text(content, encoding="utf-8")
+        _write_with_backup(auth_dir / filename, content)
 
     typer.echo("  📁 Route files created in app/routes/web/auth/")
+
 
 def _create_authenticated_files():
     auth_dir = Path(os.path.join(user_project_root, "app/routes/web/authenticated"))
@@ -116,24 +109,35 @@ def _create_authenticated_files():
         "profile.py":   read_file("cli/auth/routes/profile.py"),
     }
     for filename, content in files.items():
-        (auth_dir / filename).write_text(content, encoding="utf-8")
+        _write_with_backup(auth_dir / filename, content)
 
     typer.echo("  📁 Route files created in app/routes/web/authenticated/")
 
+
 def _overwrite_user_model():
-    user_model_path = os.path.join(user_project_root, "app/models/user.py")
+    user_model_path = Path(user_project_root) / "app/models/user.py"
     content = read_file("cli/auth/models/user.py")
-    with open(user_model_path, "w", encoding="utf-8") as file:
-        file.write(content)
-    typer.echo("  👤 User model updated with OAuth and Argon2/PasswordHasher.")
+    if user_model_path.exists() and user_model_path.read_text(encoding="utf-8") == content:
+        typer.echo("  👤 User model already up to date.")
+        return
+    _write_with_backup(user_model_path, content)
+    typer.echo("  👤 User model updated with OAuth and Argon2/PasswordHasher (previous file backed up).")
+
 
 def _create_auth_model():
-    model_path = os.path.join(user_project_root, "app/models/auth.py")
+    model_path = Path(user_project_root) / "app/models/auth.py"
     content = read_file("cli/auth/models/auth.py")
-    with open(model_path, "w", encoding="utf-8") as file:
-        file.write(content)
+    _write_with_backup(model_path, content)
 
-    subprocess.run([sys.executable, "-m", "lila.cli.migrations", "--refresh"], cwd=user_project_root)
+    # Plain migrations: never --refresh (that would drop existing users).
+    import subprocess
+
+    result = subprocess.run([sys.executable, "-m", "lila.cli.migrations"], cwd=user_project_root)
+    if result.returncode != 0:
+        typer.secho(
+            "  ⚠️ Migrations did not finish successfully; run 'lila migrate' manually.",
+            fg=typer.colors.YELLOW,
+        )
     typer.echo("  🔐 LoginAttempt & PasswordResetToken models registered.")
 
 @app.callback(invoke_without_command=True)
@@ -142,7 +146,7 @@ def default_auth(
     template: bool = typer.Option(True, "--templates/--no-templates", help="Generate Jinja2 auth templates"),
     routes: bool = typer.Option(True, "--routes/--no-routes", help="Generate auth and dashboard routes"),
 ):
-    """Scaffold authentication system with Better Auth OAuth, Argon2, and dashboard."""
+    """Scaffold authentication system with OAuth 2.0, Argon2, and dashboard."""
     if ctx.invoked_subcommand is None:
         generate(template=template, routes=routes)
 
@@ -153,7 +157,7 @@ def generate(
     routes: bool = typer.Option(True, "--routes/--no-routes", help="Generate auth and dashboard routes"),
 ):
     """
-    Scaffold authentication system with Better Auth OAuth, Argon2, and dashboard.
+    Scaffold authentication system with OAuth 2.0, Argon2, and dashboard.
     """
     if not os.path.exists("main.py") or not os.path.exists("app"):
         typer.secho("❌ Error: Must run inside a Lila project root directory.", fg=typer.colors.RED)
@@ -178,3 +182,4 @@ def main():
 
 if __name__ == "__main__":
     app()
+

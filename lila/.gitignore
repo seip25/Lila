@@ -16,12 +16,20 @@ ENV/
 *.sqlite
 *.sqlite3
 *.db
+*.sqlite-wal
+*.sqlite-shm
 *.db-wal
 *.db-shm
 
 # Application logs & cache
 app/logs/
+app/cache/
 *.log
+
+# Lila local generated files
+.lila_secret
+_desktop_entry.py
+*.bak
 
 # Distribution & Packaging
 build/

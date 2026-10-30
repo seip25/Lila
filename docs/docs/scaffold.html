@@ -88,40 +88,49 @@
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
         <article id="scaffold_crud-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <div class="mt-8 mb-4">
                 <h1>️ CLI Scaffold Generator</h1>
                 <p>
-                    Generate complete CRUD functionality from existing models with a single command. The
-                    scaffold generator
-                    creates routes, templates, and automatically imports everything into your
-                    application.
+                    Generate complete CRUD functionality from an existing model with a single command. The
+                    scaffold generator creates web + API routes, a template and tries to link the routes in
+                    <code>main.py</code> using safe patching (it never rewrites the file blindly).
                 </p>
             </div>
 
             <div class="mt-8 mb-4">
                 <h2>Basic Usage</h2>
                 <p>
-                    First, create your model using the model CLI, then generate the scaffold:
+                    First, create your model using the model CLI (it only asks for the model name and
+                    writes a starter model), then generate the scaffold:
                 </p>
             </div>
 
@@ -138,17 +147,16 @@
                     <pre><code class="language-bash">
 
 # Create a model first
-lila-model create --name Product
+lila model create --name Product
 
- 
-# Generate complete CRUD scaffold
-lila-scaffold-crud --model Product
+# Generate the complete CRUD scaffold
+lila crud --model Product
 
-# Custom route name
-lila-scaffold-crud --model Product --name products
+# Custom route slug
+lila crud --model Product --name products
 
-#execute migrations refresh
-lila-migrations --refresh
+# Apply the new table (adds missing columns too)
+lila migrate
 </code>
 </pre>
                 </div>
@@ -157,25 +165,32 @@ lila-migrations --refresh
             <div class="mt-8 mb-4">
                 <h2>What Gets Generated</h2>
                 <p>
-                    The scaffold generator creates a complete CRUD system:
+                    The scaffold generator creates:
                 </p>
                 <ul class="list-disc list-inside space-y-2 ml-4">
                     <li><code
-                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
-                        - Complete CRUD routes</li>
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/api/{name}.py</code>
+                        - Pydantic <code>Create</code>/<code>Update</code> models and the JSON API</li>
                     <li><code
-                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">resources/html/{name}/index.html</code>
-                        - DataTable with modals</li>
-                    <li>Auto-imports routes in <code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/web/{name}.py</code>
+                        - page that renders the DataTable</li>
+                    <li><code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">resources/html/{name}/index.jinja</code>
+                        - DataTable with create/edit modals</li>
+                    <li>a safe import/link attempt in <code
                             class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-                    </li>
+                        (via <code>lila.cli._patch.patch_main</code>)</li>
                 </ul>
+                <p>
+                    If a generated file already exists and the content changes, the previous version is kept
+                    next to it with a <code>.bak</code> suffix.
+                </p>
             </div>
 
             <div class="mt-8 mb-4">
                 <h2>️ Generated Endpoints</h2>
                 <p>
-                    The following routes are automatically created:
+                    With the default route slug (<code>product</code>) the generated routes are:
                 </p>
             </div>
 
@@ -192,27 +207,33 @@ lila-migrations --refresh
                 <div class="editor-content">
                     <pre><code class="language-bash">
 
-GET  /product              → HTML page with DataTable
-GET  /api/product          → JSON list of all products
-GET  /api/product/{id}     → JSON single product
-POST /api/product          → Create new product
-PUT  /api/product/{id}     → Update product
-DELETE /api/product/{id}   → Soft delete (active=0)
+GET    /product              → HTML page with the ResponsiveDataTable
+GET    /api/product          → JSON list (selects the display columns)
+GET    /api/product/{id}     → JSON single product (404 if missing)
+POST   /api/product          → Create (CSRF required)
+PUT    /api/product/{id}     → Update (CSRF required)
+DELETE /api/product/{id}     → Soft delete (active=0) (CSRF required)
 </code>
 </pre>
                 </div>
             </div>
 
+            <p>
+                <code>csrf=True</code> is set on the write routes, so the client must send
+                <code>X-CSRF-Token</code> (the generated template uses <code>Http()</code>, which adds it
+                from the page's <code>&lt;meta name="csrf-token"&gt;</code>).
+            </p>
+
             <div class="mt-8 mb-4">
                 <h2>Features</h2>
                 <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>✅ Validates model exists before generating</li>
+                    <li>✅ Validates that the model exists before generating</li>
                     <li>✅ Responsive DataTable with search and pagination</li>
                     <li>✅ Create and Edit modals</li>
-                    <li>✅ Soft delete functionality (active=0)</li>
-                    <li>✅ Pydantic validation examples (commented)</li>
-                    <li>✅ Multilingual support</li>
-                    <li>✅ Auto-imports in main.py</li>
+                    <li>✅ Soft delete functionality (<code>active=0</code>)</li>
+                    <li>✅ Real Pydantic <code>Create</code>/<code>Update</code> models, not comments</li>
+                    <li>✅ CSRF on POST/PUT/DELETE</li>
+                    <li>✅ Safe <code>main.py</code> patching, with <code>.bak</code> backups</li>
                 </ul>
             </div>
 
@@ -222,15 +243,15 @@ DELETE /api/product/{id}   → Soft delete (active=0)
                     After generation, you can customize:
                 </p>
                 <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>Import in <code
+                    <li>the import/link in <code
                             class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">main.py</code>
-                        the generated route</li>
-                    <li>Edit <code
-                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/{name}.py</code>
-                        to add business logic</li>
-                    <li>Uncomment Pydantic models for validation</li>
-                    <li>Customize the HTML template</li>
-                    <li>Add custom middleware</li>
+                        if the automatic patch could not apply</li>
+                    <li><code
+                            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/routes/api/{name}.py</code>
+                        to add business logic or auth</li>
+                    <li>the Pydantic models to add fields/constraints</li>
+                    <li>the HTML template, columns and form fields</li>
+                    <li>router-level middlewares (<code>auth=True</code>, <code>rate_limit</code>, ...)</li>
                 </ul>
             </div>
         </article>

@@ -76,27 +76,33 @@
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
-  <a href="debug.html">Debug & Profiling</a>
-  <a href="logger.html">Logger</a>
-  <a href="cache.html">Memory Cache</a>
 </aside>
 
         <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -187,15 +193,31 @@ await Cache.clear_async()</code></pre>
 
 # 1. Configured via .env:
 # CACHE_DRIVER="memory"  (Default, zero infrastructure)
-# CACHE_DRIVER="redis"   (Requires pip install "lila-framework[redis]")
+# CACHE_DRIVER="file"    (persistent JSON fallback in CACHE_DIR)
+# CACHE_DRIVER="redis"   (requires pip install "lila-framework[redis]")
 
 # 2. Or configured programmatically with options:
 Cache.configure(driver="memory", options={"max_items": 10000, "default_ttl": 300})
 
-# If Redis package is not installed or unreachable, Lila gracefully logs a notice
-# and falls back to memory without breaking your app:
-Cache.configure(driver="redis", options={"host": "127.0.0.1", "port": 6379, "fallback_to_memory": True})
-            </code></pre>
+# If Redis is not installed or unreachable, Lila logs one notice and keeps
+# working on the in-memory cache (there is no "fallback" option to enable):
+Cache.configure(driver="redis", options={"host": "127.0.0.1", "port": 6379})
+
+# Force a fresh configuration (re-reads CACHE_DRIVER from .env):
+Cache.configure()</code></pre>
+
+            <h3>Clearing the Cache</h3>
+            <p>
+                <code>clear()</code> / <code>clear_async()</code> preserve server-side session entries by
+                default; pass <code>include_sessions=True</code> to wipe everything (this logs users out).
+            </p>
+            <pre><code class="language-python">from lila.core.cache import Cache
+
+# Remove cached values but keep sessions (used by the admin panel)
+await Cache.clear_async(include_sessions=False)
+
+# Remove everything, including server-side session payloads
+Cache.clear(include_sessions=True)</code></pre>
 
             <h3>Atomic Counter (Rate Limiting)</h3>
             <p>

@@ -88,23 +88,32 @@
     <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
     <article id="models-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -112,7 +121,7 @@
       <h5 class="text-lg text-slate-600 dark:text-slate-400 mt-2">Models define the structure of data in the application, featuring inherited CRUD actions.</h5>
       <p class="mt-4 text-slate-600 dark:text-slate-300">
         Lila uses <a href="https://www.sqlalchemy.org/" target="_blank" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">SQLAlchemy</a> as the default ORM. 
-        Instead of writing raw queries or manually handling connections for basic CRUD, models in Lila inherit from <code>BaseModel</code> (defined in <code>core/base_model.py</code>), which implements standardized ActiveRecord operations, soft delete, relationship safely-handling helpers, and database query wrappers.
+        Instead of writing raw queries or manually handling connections for basic CRUD, models in Lila inherit from <code>BaseModel</code> (defined in <code>lila/core/base_model.py</code>), which implements standardized ActiveRecord operations, soft delete, single-flight read caching and partial-column serialization.
       </p>
 
       <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Using BaseModel</h2>
@@ -135,15 +144,18 @@
         </div>
         <div class="editor-content p-4">
           <pre><code class="language-python">from sqlalchemy import Column, Integer, String, TIMESTAMP, func
-from core.base_model import BaseModel
+from lila.core.base_model import BaseModel
 
 class User(BaseModel):
     __tablename__ = "users"
-    
+
+    # Never include these columns in to_dict()/JSON/session payloads.
+    __private_fields__ = ("password", "token")
+
     # Primary key is indexed for database performance
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String(length=50), nullable=False)
-    email = Column(String(length=50), unique=True)
+    email = Column(String(length=80), unique=True)
     password = Column(String(length=150), nullable=False)
     token = Column(String(length=150), nullable=True)
     active = Column(Integer, nullable=False, default=1)
@@ -157,9 +169,15 @@ class User(BaseModel):
         You can configure the behavior of <code>BaseModel</code> by setting specific class-level fields:
       </p>
       <ul class="list-disc pl-6 mt-3 space-y-2 text-slate-600 dark:text-slate-300">
-        <li><code>_delete_logic = True</code>: If <code>True</code> (default), calling <code>delete()</code> performs a soft delete (updates active field to 0). Set to <code>False</code> to perform hard deletion.</li>
-        <li><code>_active_field = "active"</code>: The name of the column storing the soft delete state (default <code>"active"</code>).</li>
-        <li><code>_primary_key = "id"</code>: The name of the primary key field (default <code>"id"</code>).</li>
+        <li><code>_delete_logic = True</code>: if <code>True</code> (the default) <b>and</b> the model has an
+          <code>active</code> column, <code>delete()</code>/<code>delete_async()</code> performs a soft delete
+          (<code>active = 0</code>). Without an <code>active</code> column the row is deleted for real.</li>
+        <li><code>_active_field = "active"</code>: the column used for the soft-delete flag; reads
+          (<code>get_all*</code>, <code>get_by_id*</code>, <code>count_async</code>) automatically filter
+          <code>active = 1</code>.</li>
+        <li><code>_primary_key = "id"</code>: the column used by <code>get_by_id_async</code>/<code>update_async</code>/<code>delete_async</code>.</li>
+        <li><code>__private_fields__ = ("password", "token")</code>: columns that <code>to_dict()</code> and the
+          admin API must never expose.</li>
       </ul>
 
       <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">Memory Optimization with __slots__</h3>
@@ -185,166 +203,162 @@ class User(BaseModel):
         Once a class inherits from <code>BaseModel</code>, the following methods are readily available:
       </p>
       
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">1. Class Methods (ActiveRecord)</h3>
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
-        <div class="editor-content p-4">
-          <pre><code class="language-python">from app.connections import connection
-
-# 1. Fetch all active records (filtered by active=1 automatically)
-users = User.get_all()
-
-# 2. Fetch specific columns to optimize memory (returns list of dicts)
-user_emails = User.get_all(select="id,email")
-
-# 3. Filter by fields and limit
-recent_users = User.get_all(limit=10, active=1)
-
-# Get a session for modifying operations
-db = connection.get_session()
-
-# 4. Fetch a single record by primary key (filtered by active=1 automatically)
-user = User.get_by_id(db, 1)
-
-# 5. Insert a new record
-new_user = User.insert(db, {
-    "name": "Alex",
-    "email": "alex@example.com",
-    "password": "hashed_password"
-})
-db.commit() # Save changes to database
-
-# 6. Update a record by ID
-User.update(db, 1, {"name": "Alex Updated"})
-
-# 7. Delete a record (performs soft delete by default)
-User.delete(db, 1)
-</code></pre>
-        </div>
-      </div>
-
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">2. Async Class Methods (Deduplicated)</h3>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">1. Sync Methods (outside an event loop)</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        Lila provides non-blocking async counterparts for <code>get_all()</code> and <code>get_by_id()</code> to prevent blocking the event loop in concurrent ASGI routes. These async methods utilize **automatic query deduplication (Single-flight)**.
+        These helpers are safe in scripts, CLI commands or sync code. Inside an async route use the
+        <code>_async</code> variants instead — the sync ones raise
+        <code>RuntimeError("Use the *_async variants inside an event loop.")</code>.
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
         <div class="editor-content p-4">
-          <pre><code class="language-python"># Fetch all users asynchronously (non-blocking)
-# Concurrent calls will share a single DB query!
-users = await User.get_all_async(limit=10)
+          <pre><code class="language-python"># 1. Fetch active records (active=1 is applied automatically when the column exists)
+users = User.get_all()
 
-# Fetch a user by primary key asynchronously (non-blocking)
-# Concurrent calls for the same ID share a single query!
-user = await User.get_by_id_async(user_id=1)</code></pre>
+# 2. Load only some columns (returns a list of dicts)
+user_emails = User.get_all(select="id,email")
+
+# 3. Filter by fields, order and paginate
+recent_users = User.get_all(limit=10, offset=0, order_by="name", active=1)
+
+# 4. Fetch one record by primary key
+user = User.get_by_id(1)
+
+# 5. Insert (returns a dict; only loaded columns)
+new_user = User.insert(name="Alex", email="alex@example.com", password="hashed")
+
+# or pass a model instance
+new_user = User.insert(User(name="Alex", email="alex@example.com", password="hashed"))
+
+# 6. Update by ID (returns True/False)
+User.update(1, {"name": "Alex Updated"})
+User.update(1, name="Alex Updated")   # kwargs form
+
+# 7. Delete by ID (soft delete when `active` exists)
+User.delete(1)
+
+# Counting is async-only:
+# total = await User.count_async()
+</code></pre>
+        </div>
+      </div>
+      <div class="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 p-4 rounded-r-xl my-4 text-sm text-slate-700 dark:text-slate-300">
+        <strong>v1 note:</strong> <code>User.insert(db, params)</code> is a User-specific shim kept by some
+        scaffolds. It is <b>not</b> the generic <code>BaseModel</code> signature — the framework API is
+        <code>insert_async(instance=None, **values)</code> / <code>insert(**values)</code>.
+      </div>
+
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">2. Async Methods (inside routes)</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Async CRUD methods use the project connection, return plain dicts and deduplicate concurrent reads
+        (single-flight) with a short <code>MODEL_CACHE_TTL</code> (5 s by default).
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
+        <div class="editor-content p-4">
+          <pre><code class="language-python"># Fetch all users asynchronously (non-blocking).
+# Concurrent identical calls share a single DB query.
+users = await User.get_all_async(limit=10, order_by="name", desc=False)
+
+# Partial columns: `select` and `select_cols` are accepted.
+cards = await User.get_all_async(select="id,name", limit=50)
+
+# Fetch by primary key (returns dict or None)
+user = await User.get_by_id_async(1)
+user = await User.get_by_id_async(1, select="id,email")
+
+# Insert / update / delete
+created = await User.insert_async(name="Alex", email="alex@example.com", password="hashed")
+ok = await User.update_async(created["id"], name="Alex Updated")
+ok = await User.update_async(created["id"], {"name": "Alex Updated"})
+deleted = await User.delete_async(created["id"])   # soft delete if `active` exists
+
+# Count with filters
+total = await User.count_async()</code></pre>
         </div>
       </div>
 
       <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">Writing Custom Async Model Methods</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        You can easily create your own custom async query methods by defining a standard synchronous query method, and then wrapping it inside an async method using the inherited <code>cls.run_async()</code> helper.
+        Use the same transaction and deduplication helpers the framework uses. <code>run_deduplicated()</code>
+        collapses concurrent requests for the same cache key; <code>connection.transaction()</code> commits and
+        rolls back for you.
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content p-4">
-          <pre><code class="language-python">class User(BaseModel):
+          <pre><code class="language-python">from sqlalchemy import select
+from lila.core.base_model import BaseModel, run_deduplicated
+from lila.core.database import db as connection
+
+class User(BaseModel):
     # ... columns ...
 
     @classmethod
-    def get_by_email(cls, db: Session, email: str, active: int = 1):
-        """Standard synchronous query method."""
-        return db.query(cls).filter(cls.email == email, cls.active == active).first()
-
-    @classmethod
     async def get_by_email_async(cls, email: str, active: int = 1):
-        """Non-blocking, query-deduplicated version."""
-        # 1. Define a unique fingerprint to collapse concurrent requests
+        """Custom async query with single-flight deduplication."""
         cache_key = f"{cls.__tablename__}:get_by_email:{email}:{active}"
-        
-        # 2. Define the execution wrapper that opens/closes the database session
-        def _fetch():
-            db = connection.get_session()
-            try:
-                return cls.get_by_email(db, email, active)
-            finally:
-                db.close()
-                
-        # 3. run_async takes care of deduplication, thread pool delegation, and resolution!
-        return await cls.run_async(cache_key, _fetch)</code></pre>
+
+        async def _fetch():
+            async with connection.transaction() as session:
+                stmt = (
+                    select(cls)
+                    .where(cls.email == email, cls.active == active)
+                    .limit(1)
+                )
+                result = await session.execute(stmt)
+                row = result.scalars().first()
+                return row.to_dict() if row else None
+
+        return await run_deduplicated(cache_key, _fetch)</code></pre>
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">3. Relationship Helpers</h3>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">3. to_dict() and Loaded Columns</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        In standard SQLAlchemy, accessing relationships (like <code>user.posts</code>) after the database session has closed raises a <code>DetachedInstanceError</code>. 
-        Lila solves this by offering relationship helpers on <code>BaseModel</code> that manage their own session lifecycle and immediately <strong>expunge</strong> (detach) the retrieved records from the session. 
-        This makes the returned models safe to pass and access anywhere — inside **Routes**, **Services**, or even directly in **Jinja2 Templates** without session issues.
-      </p>
-
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">A. One-to-One / Many-to-One (<code>get_related</code>)</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Fetches a single related object. By default, Lila checks the current model for a foreign key column named <code>{target_model}_id</code>. If that is not found, it checks for <code>id_{target_model}</code>.
-      </p>
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
-        <div class="editor-content p-4">
-          <pre><code class="language-python"># Looks for 'profile_id' (or 'id_profile') on the user instance
-profile = user.get_related(Profile)
-
-# If your foreign key column is named differently, pass it explicitly:
-profile = user.get_related(Profile, foreign_key_field="custom_profile_fk")</code></pre>
-        </div>
-      </div>
-
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">B. One-to-Many (<code>get_related_many</code>)</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Fetches a list of related objects. By default, Lila looks for a foreign key column referencing this model on the <strong>target model</strong> named <code>{current_model}_id</code>. If not found, it checks for <code>id_{current_model}</code> on the target model.
-      </p>
-      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
-        <div class="editor-content p-4">
-          <pre><code class="language-python"># Inside User model, this looks for 'user_id' (or 'id_user') on the Post model:
-posts = user.get_related_many(Post)
-
-# If the foreign key on the Post model is different (e.g. 'author_id'):
-posts = user.get_related_many(Post, foreign_key_field="author_id")
-
-# You can also set a limit on the number of returned records (default is 1000)
-recent_posts = user.get_related_many(Post, limit=10)</code></pre>
-        </div>
-      </div>
-
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">C. Usage in Routes / Jinja2 Templates</h4>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Because these helpers decouple the returned models from the active database session, you can load and pass them directly to your template context:
+        <code>to_dict()</code> returns <b>only loaded columns</b> and always skips
+        <code>__private_fields__</code>. Because CRUD methods return dicts (never detached ORM instances),
+        there is no lazy-loading/<code>DetachedInstanceError</code> problem and no
+        <code>get_related*</code> helper: query the related table explicitly.
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
         <div class="editor-content p-4">
-          <pre><code class="language-python"># In app/routes/routes.py
-@router.get("/profile")
-async def user_profile(request: Request):
-    db = connection.get_session()
-    user = User.get_by_id(db, id=1) # Fetch active user
-    
-    # Safely fetch relationships without keeping the session open
-    profile = user.get_related(Profile)
-    posts = user.get_related_many(Post, limit=5)
-    
-    return render(request, "pages/profile", {
-        "user": user,
-        "profile": profile,
-        "posts": posts
-    })</code></pre>
+          <pre><code class="language-python"># Related rows: an explicit query is the supported pattern.
+posts = await Post.get_all_async(user_id=1, limit=5)
+profiles = await Profile.get_all_async(user_id=1, limit=1)
+profile = profiles[0] if profiles else None
+
+# get_by_id_async returns a dict with loaded columns only.
+user = await User.get_by_id_async(1, select="id,name")
+
+# On a model instance, to_dict() skips unloaded columns and __private_fields__.
+instance = User(name="Alex", email="alex@example.com", password="hashed")
+instance.to_dict()   # {'name': 'Alex', 'email': 'alex@example.com'}</code></pre>
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">3. Performance Raw SQL Fallbacks (Non-ORM)</h3>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-4">4. Raw SQL Fallback (non-ORM)</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        If you need raw performance without ORM overhead, use these raw SQL wrappers:
+        If you need raw performance without the ORM, use the connection's query helpers. Use
+        <code>query_async</code> inside async code and <code>query</code> outside the event loop.
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-2">
         <div class="editor-content p-4">
-          <pre><code class="language-python"># Fetches active rows directly using connection.query (returns list of dicts)
-raw_users = User.get_all_without_orm(select="id, name", limit=5)
+          <pre><code class="language-python">from lila.core.database import db as connection
 
-# Fetches single active row directly (returns dict)
-raw_user = User.get_by_id_without_orm(id=1, select="name, email")
-</code></pre>
+# Returns a list of dicts
+rows = await connection.query_async(
+    "SELECT id, name FROM users WHERE active = :active LIMIT :limit",
+    params={"active": 1, "limit": 5},
+    return_rows=True,
+)
+
+# Returns a single dict (or None)
+row = await connection.query_async(
+    "SELECT name, email FROM users WHERE id = :id",
+    params={"id": 1},
+    return_row=True,
+)
+
+# Writing: the statement is committed automatically and the result object is returned.
+await connection.query_async("UPDATE users SET active = 0 WHERE id = :id", params={"id": 1})</code></pre>
         </div>
       </div>
 

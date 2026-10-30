@@ -31,19 +31,36 @@ SCAFFOLD_ITEMS = {
 }
 
 def copy_item(source_package_name, item_name_in_package, destination_base_path, item_name_in_dest):
+    def _safe_copy_tree(src_path: Path, dest_path: Path, ignore=None):
+        for source in src_path.rglob("*"):
+            if not source.is_file():
+                continue
+            relative = source.relative_to(src_path)
+            if "__pycache__" in relative.parts or source.suffix in (".pyc", ".pyo"):
+                continue
+            if ignore and any(part in ("admin", "lila") for part in relative.parts):
+                continue
+            target = dest_path / relative
+            if target.exists():
+                continue  # never destroy user files on re-init
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+
     def _do_copy(src_path: Path):
         dest_path = Path(destination_base_path) / item_name_in_dest
-        
+
         if src_path.resolve() == dest_path.resolve():
             return
 
         if src_path.is_dir():
-            if dest_path.exists():
-                shutil.rmtree(dest_path)
-            ignore_func = shutil.ignore_patterns("admin", "lila") if item_name_in_package == "resources" else None
-            shutil.copytree(src_path, dest_path, ignore=ignore_func)
-            print(f"  📂 Directory '{item_name_in_package}' -> '{dest_path}'.")
+            dest_path.mkdir(parents=True, exist_ok=True)
+            ignore = item_name_in_package == "resources"
+            _safe_copy_tree(src_path, dest_path, ignore=ignore)
+            print(f"  📂 Directory '{item_name_in_package}' -> '{dest_path}' (existing files preserved).")
         else:
+            if dest_path.exists():
+                print(f"  ℹ️ File '{item_name_in_dest}' already exists; preserved.")
+                return
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src_path, dest_path)
             print(f"  📄 File '{item_name_in_package}' -> '{dest_path}'.")
@@ -82,7 +99,7 @@ def _prompt(label_en: str, label_es: str, default: str) -> str:
 def _collect_project_info(project_dir_name: str) -> dict:
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
 
-    print("\n📝 Configuración del proyecto / Project configuration (Lila v2.0.0)")
+    print("\n📝 Configuración del proyecto / Project configuration (Lila v2.0.1)")
     print("   (Presiona Enter para usar los valores por defecto / Press Enter for defaults)\n")
 
     suggested_port = "8000"
@@ -93,6 +110,14 @@ def _collect_project_info(project_dir_name: str) -> dict:
                 break
 
     app_port = _prompt("HTTP port", "Puerto HTTP", suggested_port)
+    try:
+        port_value = int(app_port)
+        if not (1 <= port_value <= 65535):
+            raise ValueError
+        app_port = str(port_value)
+    except ValueError:
+        print(f"  ⚠️ Invalid port '{app_port}', using {suggested_port}.")
+        app_port = suggested_port
 
     info = {
         "PORT": app_port,
@@ -124,60 +149,74 @@ def _collect_project_info(project_dir_name: str) -> dict:
 
     return info
 
+def _env_value(value) -> str:
+    """Quotes a value for .env (double quotes, escaped backslashes/quotes/newlines)."""
+    text = str(value or "").replace("\\", "\\\\").replace('"', '\\"').replace("\r", "").replace("\n", "\\n")
+    return f'"{text}"'
+
+
 def _write_env_file(env_path: Path, project_info: dict) -> None:
     import secrets
     secret_key = secrets.token_hex(32)
     db_type = project_info.get("DB_TYPE", "sqlite")
-    
+
     db_extra = ""
     if db_type != "sqlite":
-        db_extra = f"""DB_HOST="{project_info.get('DB_HOST', '127.0.0.1')}"
+        db_extra = f"""DB_HOST={_env_value(project_info.get('DB_HOST', '127.0.0.1'))}
 DB_PORT={project_info.get('DB_PORT', 3306)}
-DB_USER="{project_info.get('DB_USER', 'root')}"
-DB_PASSWORD="{project_info.get('DB_PASSWORD', '')}"
+DB_USER={_env_value(project_info.get('DB_USER', 'root'))}
+DB_PASSWORD={_env_value(project_info.get('DB_PASSWORD', ''))}
 """
 
     env_content = f"""# ─── Server Configuration ────────────────────────────────
-SECRET_KEY='{secret_key}'
+SECRET_KEY={_env_value(secret_key)}
 DEBUG=True
 PORT={project_info.get("PORT", "8000")}
 HOST="127.0.0.1"
-JIT=False
-WORKERS="2"
+WORKERS="1"
 
 # ─── Application URL ────────────────────────────────────
 APP_URL=""
 
 # ─── Project Metadata ───────────────────────────────────
-TITLE_PROJECT='{project_info["TITLE_PROJECT"]}'
-VERSION_PROJECT='2.0.0'
-DESCRIPTION_PROJECT='{project_info["DESCRIPTION_PROJECT"]}'
-LANG_DEFAULT='{project_info["LANG_DEFAULT"]}'
+TITLE_PROJECT={_env_value(project_info["TITLE_PROJECT"])}
+VERSION_PROJECT="2.0"
+DESCRIPTION_PROJECT={_env_value(project_info["DESCRIPTION_PROJECT"])}
+LANG_DEFAULT={_env_value(project_info["LANG_DEFAULT"])}
 
 # ─── SEO Defaults ───────────────────────────────────────
-DESCRIPTION_DEFAULT="{project_info["DESCRIPTION_DEFAULT"]}"
-KEYWORDS_DEFAULT="{project_info["KEYWORDS_DEFAULT"]}"
-AUTHOR_DEFAULT="{project_info["AUTHOR_DEFAULT"]}"
+DESCRIPTION_DEFAULT={_env_value(project_info["DESCRIPTION_DEFAULT"])}
+KEYWORDS_DEFAULT={_env_value(project_info["KEYWORDS_DEFAULT"])}
+AUTHOR_DEFAULT={_env_value(project_info["AUTHOR_DEFAULT"])}
 
-# ─── Cache Driver (memory | redis) ───────────────────────
+# ─── Cache Driver (memory | redis | file) ───────────────
+# memory = default for 1-2 workers; redis = shared/multi-worker; file = fallback
 CACHE_DRIVER="memory"
-
-# If CACHE_DRIVER="redis":
+CACHE_DIR="app/cache/data"
 REDIS_HOST="127.0.0.1"
 REDIS_PORT=6379
 REDIS_PASSWORD=""
 REDIS_URL=""
 
 # ─── Database Configuration ──────────────────────────────
-DB_TYPE="{db_type}"
-DB_NAME="{project_info.get('DB_NAME', 'lila')}"
+DB_TYPE={_env_value(db_type)}
+DB_NAME={_env_value(project_info.get('DB_NAME', 'lila'))}
 {db_extra}
 # ─── AI Integration (core/ia.py) ─────────────────────────
 OPENAI_API_KEY=""
 DEEPSEEK_API_KEY=""
 GEMINI_API_KEY=""
 
-# ─── Better Auth OAuth Providers ─────────────────────────
+# ─── Mailer (password reset, optional) ───────────────────
+SMTP_HOST=""
+SMTP_PORT=587
+SMTP_USER=""
+SMTP_PASSWORD=""
+SMTP_FROM=""
+SMTP_TLS=True
+SMTP_SSL=False
+
+# ─── OAuth 2.0 Providers ─────────────────────────
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 GITHUB_CLIENT_ID=""
@@ -201,25 +240,28 @@ def main():
     try:
         project_info = _collect_project_info(project_dir_name)
 
-        print("\n🛠️  Scaffolding project with Lila Framework v2.0.0...")
+        print("\n🛠️  Scaffolding project with Lila Framework v2.0...")
 
         for item_pkg_name, item_dest_name in SCAFFOLD_ITEMS.items():
             copy_item("lila", item_pkg_name, destination_base_path, item_dest_name)
 
         env_path = destination_base_path / ".env"
-        _write_env_file(env_path, project_info)
-        print("  ✨ .env generated successfully.")
+        if env_path.exists():
+            print("  ℹ️ .env already exists; preserved (delete it to regenerate).")
+        else:
+            _write_env_file(env_path, project_info)
+            print("  ✨ .env generated successfully.")
 
         req_path = destination_base_path / "requirements.txt"
         if not req_path.exists():
-            req_path.write_text("lila-framework>=2.0.0\n", encoding="utf-8")
+            req_path.write_text("lila-framework>=2.0.1\n", encoding="utf-8")
             print("  📄 requirements.txt generated.")
 
         readme_content = f"""# {project_info["TITLE_PROJECT"]}
 
 {project_info["DESCRIPTION_PROJECT"]}
 
-Built with **Lila Framework v2.0.0** — Full-Stack Python SPA, SQLite WAL mode, and Desktop ready.
+Built with **Lila Framework v2.0** — Full-Stack Python SPA, SQLite WAL mode, and Desktop ready.
 
 ## Quick Start
 ```bash
@@ -236,9 +278,12 @@ lila desktop build
 ## Documentation
 https://seip25.github.io/Lila
 """
-        with open(destination_base_path / "README.md", "w", encoding="utf-8") as f:
-            f.write(readme_content)
-        print("  📄 README.md created.")
+        readme_path = destination_base_path / "README.md"
+        if not readme_path.exists():
+            readme_path.write_text(readme_content, encoding="utf-8")
+            print("  📄 README.md created.")
+        else:
+            print("  ℹ️ README.md already exists; preserved.")
 
         print("\n🎉 ¡Proyecto Lila v2.0 inicializado con éxito! / Lila v2.0 project scaffolded successfully!")
         print("➡️  Ejecuta 'lila dev' para arrancar el servidor con hot-reload.")
@@ -248,3 +293,4 @@ https://seip25.github.io/Lila
 
 if __name__ == "__main__":
     main()
+

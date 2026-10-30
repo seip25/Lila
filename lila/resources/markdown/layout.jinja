@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>{{ title | default('Lila Document') }}</title>
-  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}">
+  <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}">
   {% include "lila/tailwind.jinja" %}
   {% for css in css_files %}
   <link rel="stylesheet" href="{{ css }}">

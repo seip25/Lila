@@ -86,13 +86,43 @@
     </header>
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <!-- Loaded by partial.js -->
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="logger-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <div>
                 <h1>Logger Utility</h1>
                 <p>
-                    Lila provides a built-in <code>Logger</code> utility specifically tailored for web applications. It handles the formatting, storing, and rotation of log files automatically, while actively scrubbing sensitive data (like passwords) from recorded requests.
+                    Lila provides a built-in <code>Logger</code> utility for web applications. It writes
+                    buffered, thread-safe log files organized in date folders and keeps file handles open
+                    instead of opening/closing a file per request.
                 </p>
             </div>
 
@@ -100,7 +130,8 @@
             <div class="space-y-4 mt-8">
                 <h2>Basic Logging</h2>
                 <p>
-                    You can import the Logger anywhere in your application to record info, warnings, or errors.
+                    Import the Logger anywhere in your application to record info, warnings or errors.
+                    Each level writes to its own file inside the date folder.
                 </p>
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
                     <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -115,18 +146,17 @@
                         <pre><code class="language-python">
 from lila.core.logger import Logger
 
-# Standard logging
+# Standard logging -> app/logs/YYYY-MM-DD/info.log
 Logger.info("Application started successfully.")
-Logger.warning("Database connection is slow.")
+Logger.warning("Database connection is slow.")   # warning.log
 
-# Logging errors with tracebacks
+# Errors: passing the exception appends the traceback -> error.log
 try:
     1 / 0
 except Exception as e:
-    # Passing the exception object automatically logs the traceback
     Logger.error("A critical error occurred", exception=e)
 
-# Custom log types
+# Custom log types -> app/logs/YYYY-MM-DD/audit.log
 Logger.log("audit", "User modified their profile")
                         </code></pre>
                     </div>
@@ -135,12 +165,13 @@ Logger.log("audit", "User modified their profile")
 
             <!-- Request Logging -->
             <div class="space-y-4 mt-8">
-                <h2>Logging Requests Securely</h2>
+                <h2>Request Logging</h2>
                 <p>
-                    The <code>Logger.request()</code> method is an asynchronous helper designed to record incoming requests. It automatically logs the IP, Operating System, HTTP Method, Path, and Body. 
-                </p>
-                <p>
-                    <strong>Security First:</strong> It actively scrubs any JSON or form keys named <code>password</code>, <code>password_2</code>, or <code>token</code> to prevent sensitive data from leaking into your plain text log files.
+                    <code>Logger.format_request()</code> builds a compact one-line entry and
+                    <code>Logger.log_request()</code> writes it to <code>requests.log</code>. The
+                    <code>LoggingMiddleware</code> (enabled with <code>App(logging=True)</code>) calls it
+                    for every non-static request and redacts sensitive query keys
+                    (<code>token</code>, <code>password</code>, <code>_csrf</code>, ...).
                 </p>
 
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
@@ -158,23 +189,44 @@ from lila.core.logger import Logger
 from lila.core.request import Request
 
 async def secure_endpoint(request: Request):
-    # Generates a safe string representing the request
+    # Logger.request() is async and returns a safe one-line string (it does not log by itself).
     log_string = await Logger.request(request)
-    
     Logger.info(f"Incoming Request: {log_string}")
+
+    # Or write a full request line manually.
+    Logger.log_request(
+        client_ip=request.client.host if request.client else "unknown",
+        method=request.method,
+        path=request.url.path,
+        query=request.url.query,
+        status_code=200,
+        duration_ms=12.4,
+        user_agent=request.headers.get("user-agent", ""),
+    )
                         </code></pre>
                     </div>
                 </div>
+
+                <p>
+                    Enable it globally from <code>main.py</code> with
+                    <code class="code-inline">App(routes=[...], logging=True)</code>. Static assets,
+                    <code>/_lila/</code>, <code>/favicon</code> and <code>/health</code> are skipped.
+                </p>
             </div>
 
             <!-- Log Rotation -->
             <div class="space-y-4 mt-8">
                 <h2>Log Storage and Rotation</h2>
                 <p>
-                    Logs are saved into the directory defined by <code>PATH_LOG_BASE_DIR</code> in your <code>app/config.py</code>. Lila organizes logs into folders by date (e.g., <code>DD-MM-YYYY/info.log</code>).
+                    Logs are written to <code>LILA_LOG_DIR</code> when set, otherwise to
+                    <code>app/logs</code>. Lila organizes them into folders by date
+                    (<code>app/logs/YYYY-MM-DD/info.log</code>, <code>error.log</code>,
+                    <code>warning.log</code>, <code>requests.log</code>, plus any custom type).
                 </p>
                 <p>
-                    To prevent your server's disk from filling up, the module includes a helper function <code>delete_old_logs(days)</code>. By default, it deletes folders older than 30 days. You can set this up as a background task or a cron job.
+                    There is no automatic rotation daemon. Call <code>delete_old_logs(days)</code> from a
+                    cron job / background task; <code>days=30</code> is the default and
+                    <code>clear_logs()</code> removes everything (also used by the admin panel).
                 </p>
 
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
@@ -188,10 +240,13 @@ async def secure_endpoint(request: Request):
                     </div>
                     <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                         <pre><code class="language-python">
-from lila.core.logger import delete_old_logs
+from lila.core.logger import delete_old_logs, clear_logs
 
-# Delete logs older than 15 days
+# Delete date folders older than 15 days (returns how many were removed)
 delete_old_logs(days=15)
+
+# Remove every log folder and file
+clear_logs()
                         </code></pre>
                     </div>
                 </div>

@@ -95,27 +95,36 @@
   <main>
     <aside
       class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-      <h4>Menu</h4>
-      <a href="install.html">Installation</a>
-      <a href="routes.html">Routes</a>
-      <a href="static.html">Static</a>
-      <a href="templates.html">Templates</a>
-      <a href="session.html">Session</a>
-      <a href="upload.html">Uploads Files</a>
-      <a href="markdown.html">Markdown/HTML</a>
-      <a href="locales.html">Internationalization</a>
-      <a href="models.html">Models</a>
-      <a href="middlewares.html">Middlewares</a>
-      <a href="cli.html">CLI Commands</a>
-      <a href="connections.html">Connections</a>
-      <a href="migrations.html">Migrations</a>
-      <a href="auth.html">Auth Cli </a>
-      <a href="scaffold.html">Scaffold CRUD</a>
-      <a href="rest_api.html">API Rest CRUD</a>
-      <a href="admin.html">Admin Panel</a>
-      <a href="minify.html">Minify</a>
-      <a href="production.html">Production</a>
-    </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
     <article id="production-eng"
       class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
       <h2>Deployment to Production</h2>
@@ -162,8 +171,10 @@ pip install lila-framework
         <div class="editor-content">
           <pre><code class="language-bash">
 #!/bin/bash
-source <span data-path>/path/to/your/project</span>/venv/bin/activate
-python <span data-path>/path/to/your/project</span>/main.py
+set -e
+cd /path/to/your/project
+source venv/bin/activate
+exec lila run -w 2
                         </code></pre>
         </div>
       </div>
@@ -249,16 +260,19 @@ DEBUG=False
       </div>
 
       <p class="mt-4">
-        <strong>Important Error Handling Details:</strong> When <code>DEBUG=True</code>, the framework's internal
-        <code>App</code> class will automatically intercept <code>500 Internal Server Errors</code> and display a highly
-        detailed HTML page in your browser showing the exact line of code, file path, and a full traceback of the
-        exception.
+        <strong>Important error handling details:</strong> unhandled exceptions are logged by
+        <code>Logger.error()</code> (traceback included) into <code>app/logs/YYYY-MM-DD/error.log</code>. The client
+        always receives a generic <code>500</code>: JSON
+        <code>{"success": false, "message": "Internal server error"}</code> for
+        <code>/api/</code> or <code>Accept: application/json</code> requests, a minimal HTML page otherwise. A
+        template render error additionally shows the traceback panel when debug mode is on.
       </p>
       <p class="mt-2">
-        When you deploy to production and set <code>DEBUG=False</code>, Lila will seamlessly hide this sensitive
-        traceback data and instead render a generic user-friendly <code>500 Error</code> page. Furthermore,
-        <code>404 Not Found</code> errors will automatically look for your custom template defined in
-        <code>PATH_TEMPLATE_NOT_FOUND</code>.
+        When you deploy to production and set <code>DEBUG=False</code>, Lila hides tracebacks and returns a
+        generic <code>500</code> page (JSON <code>{"success": false, "message": "Internal server error"}</code>
+        for API clients). <code>404</code> responses use your project's
+        <code>resources/html/404.jinja</code> when it exists, otherwise the bundled
+        <code>lila/404</code> template.
       </p>
 
 
@@ -331,62 +345,80 @@ server {
 
       <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Zero-Infrastructure VPS Deployment</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        Lila v2.0.0 is intentionally architected for <strong>Zero-Infrastructure by default</strong>: using asynchronous SQLite in WAL mode (<code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs">PRAGMA journal_mode=WAL;</code>) and in-memory LRU cache, a typical application consumes <strong>less than 40MB of RAM</strong>. No bulky database containers, daemon processes, or Docker stacks are required for 95% of real-world workloads.
+        Lila is intentionally <strong>zero-infrastructure by default</strong>: asynchronous SQLite in WAL mode
+        (<code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs">PRAGMA journal_mode=WAL;</code>)
+        and an in-memory LRU cache. Measured on Python 3.14: <code>import lila</code> is about
+        <strong>19 MB RSS</strong> (lazy imports, no SQLAlchemy until models are used) and a full
+        <code>App</code> instance is about <strong>42 MB</strong>. No database container, daemon or Docker
+        stack is required for a typical 1–2 worker app.
       </p>
-      
+
       <div class="mt-4 p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40">
-        <h4 class="text-sm font-semibold text-emerald-900 dark:text-emerald-300">⚡ 5x-10x Concurrency with SQLite Async WAL Mode</h4>
+        <h4 class="text-sm font-semibold text-emerald-900 dark:text-emerald-300">⚡ SQLite async WAL mode</h4>
         <p class="text-xs text-emerald-800/90 dark:text-emerald-300/80 mt-1">
-          Lila's connection engine automatically applies WAL (Write-Ahead Logging), NORMAL synchronicity, and 20MB cache pragmas on SQLite connections. Reads never block writes and writes never block reads, easily handling hundreds of requests per second on a $5/month VPS.
+          Each SQLite connection applies <code>journal_mode=WAL</code>, <code>synchronous=NORMAL</code>,
+          <code>busy_timeout=5000</code>, a ~4 MB page cache (<code>cache_size=-4000</code>) and foreign
+          keys. Readers do not block writers, but SQLite still allows a single writer at a time — benchmark
+          your workload instead of assuming linear scaling.
         </p>
       </div>
 
-      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-6">1. Production ASGI Multi-Worker Setup</h4>
+      <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-6">1. Production ASGI Workers</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        For maximum throughput across all CPU cores in production, run Lila using Uvicorn or Gunicorn with Uvicorn workers:
+        The simplest production command is <code>lila run -w 2</code>, which reads
+        <code>HOST</code>/<code>PORT</code> from <code>.env</code>. With more than one worker, the in-memory
+        cache, rate-limit counters and server-side session payloads are <b>per worker</b> — Lila prints a
+        warning and you should switch to Redis for shared state:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-bash"># Option A: Uvicorn multi-worker directly
-uvicorn main:app --host 127.0.0.1 --port 3002 --workers 4
+          <pre><code class="language-bash"># Recommended: one process per app (SQLite + memory cache)
+lila run -w 1
 
-# Option B: Gunicorn process manager with Uvicorn worker class
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 127.0.0.1:3002 main:app</code></pre>
+# Multi-worker: shared cache/sessions needed
+#   .env -> CACHE_DRIVER="redis"
+lila run -w 4
+
+# Equivalent raw Uvicorn command (run from the project root)
+uvicorn main:app --host 127.0.0.1 --port 3002 --workers 4</code></pre>
         </div>
       </div>
 
       <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">2. Production Environment Variables Checklist</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Verify your <code>.env</code> settings prior to starting your production service:
+        Verify your <code>.env</code> settings before starting the service:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-ini"># Essential Production Configuration
+          <pre><code class="language-ini"># Essential production configuration
 DEBUG=False
 PORT=3002
 HOST=127.0.0.1
 APP_URL=https://your-domain.com
 
-# Generate a strong cryptographically secure key: lila secret-key
-SECRET_KEY=your-64-char-hex-production-secret-key
+# Generate a strong key first: lila secret-key
+# (An empty/placeholder value makes Lila generate .lila_secret and warn.)
+SECRET_KEY="paste-the-output-of-lila-secret-key"
 
-# Zero-Infra Default Cache (In-Memory LRU)
-CACHE_DRIVER=memory
+# Zero-infra default cache (per process)
+CACHE_DRIVER="memory"
 
-# Or scale to Redis if sharing state across multiple VPS nodes:
-# CACHE_DRIVER=redis
-# REDIS_HOST=127.0.0.1
+# Multi-worker / multi-node: shared state
+# CACHE_DRIVER="redis"
+# REDIS_HOST="127.0.0.1"
 # REDIS_PORT=6379</code></pre>
         </div>
       </div>
 
       <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">3. Background Worker Process (Optional)</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        If your application offloads heavy jobs (AI calls, image processing, bulk emails), launch the Lila worker as a secondary systemd unit:
+        If your application offloads heavy jobs (AI calls, image processing, bulk emails), launch the Lila
+        worker as a secondary systemd unit. It consumes JSON tasks from Redis and requires a reachable Redis
+        server:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-bash"># Run Lila background task consumer
+          <pre><code class="language-bash"># Run the Lila background task consumer (same forms: lila worker start / lila-worker)
 lila worker</code></pre>
         </div>
       </div>
@@ -407,7 +439,8 @@ sudo systemctl restart lila.service</code></pre>
 
       <h4 class="text-md font-semibold text-slate-900 dark:text-white mt-4">5. Multi-Project VPS Hosting with Nginx</h4>
       <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-        Because each Lila instance uses ~35MB RAM, you can comfortably host dozens of projects on a single $5 VPS by binding each to a different internal port:
+        Each Lila <code>App</code> uses roughly 42 MB RSS, so several small projects fit on a $5 VPS by
+        binding each one to a different internal port:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-2">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
@@ -428,6 +461,18 @@ server {
     }
 }</code></pre>
         </div>
+      </div>
+
+      <div class="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 p-4 rounded-r-xl my-6">
+        <p class="text-sm text-blue-800 dark:text-blue-300">
+          <strong>Proxy headers:</strong> Uvicorn only trusts forwarded headers when started with
+          <code>--proxy-headers</code> (and <code>--forwarded-allow-ips</code> limited to your proxy).
+          <code>lila run</code> does not add those flags, so if you rely on
+          <code>X-Forwarded-For</code>/<code>X-Forwarded-Proto</code> for client IPs or secure cookies,
+          either run Uvicorn directly with the flags or keep <code>APP_URL="https://..."</code> set so cookies
+          are marked secure. Also keep the WebSocket upgrade headers shown above when using
+          <code>router.ws_hub()</code>.
+        </p>
       </div>
 
       <div class="mt-12">

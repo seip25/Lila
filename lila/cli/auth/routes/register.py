@@ -4,24 +4,20 @@ from lila.core.request import Request
 from lila.core.templates import render
 from lila.core.session import Session
 from lila.core.translate import Translate
+from lila.core.auth import PasswordHasher
+from lila.core.cache import Cache
+from lila.core.logger import Logger
 from app.models.user import User
 from lila.core.middleware import session_active, csrf
 from pydantic import BaseModel, Field
-import traceback
-from app.config import DEBUG
 from app.connections import connection
 
 
 class RegisterModel(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=20)
-    password_2: str = Field(..., min_length=8, max_length=20)
-
-    def validate_passwords(self, request: Request):
-        msg = Translate.t(key="Passwords not match", request=request)
-        if self.password != self.password_2:
-            return JSONResponse({"success": False, "msg": msg})
+    password: str = Field(..., min_length=8, max_length=128)
+    password_2: str = Field(..., min_length=8, max_length=128)
 
 
 router = Router()
@@ -36,49 +32,56 @@ async def register_page(request: Request):
 @router.post("/register", model=RegisterModel)
 @csrf
 async def register(request: Request):
-    input = request.state.data
-    valid_pass = input.validate_passwords(request)
-    if valid_pass:
-        return valid_pass
+    input_data = request.state.data
+    email = str(input_data.email).strip().lower()
+    client_ip = getattr(request.client, "host", "unknown")
 
-    if await User.get_by_email_async(input.email):
-        msg = Translate.t(key="User already exists", request=request)
-        return JSONResponse({"success": False, "msg": msg})
-    if await User.get_by_email_async(input.email, 0):
-        msg = Translate.t(key="User is inactive", request=request)
-        return JSONResponse({"success": False, "msg": msg})
+    count = await Cache.incr_async(f"rl:register:{client_ip}", ttl=300)
+    if count > 10:
+        return JSONResponse(
+            {"success": False, "msg": Translate.t(key="Too many attempts", request=request)},
+            status_code=429,
+            headers={"Retry-After": "300"},
+        )
 
-    db = connection.get_session()
+    if input_data.password != input_data.password_2:
+        return JSONResponse(
+            {"success": False, "msg": Translate.t(key="Passwords not match", request=request)},
+            status_code=422,
+        )
+
+    if await User.get_by_email_async(email):
+        return JSONResponse(
+            {"success": False, "msg": Translate.t(key="User already exists", request=request)},
+            status_code=409,
+        )
+    if await User.get_by_email_async(email, 0):
+        return JSONResponse(
+            {"success": False, "msg": Translate.t(key="User is inactive", request=request)},
+            status_code=403,
+        )
+
     try:
-        user = User(email=input.email, name=input.name)
-        user.set_password(input.password)
-        db.add(user)
-        if connection.is_async:
-            await db.commit()
-        else:
-            db.commit()
-        msg = Translate.t(key="User registered successfully", request=request)
-        response = JSONResponse({"success": True, "msg": msg})
-        await Session.set(
-            request=request,
-            response=response,
-            data={"user_id": user.id, "email": user.email, "name": user.name},
+        async with connection.transaction() as db:
+            user = User(email=email, name=input_data.name.strip(), active=1)
+            user.password = await PasswordHasher.hash_async(input_data.password)
+            db.add(user)
+            await db.flush()
+
+        response = JSONResponse(
+            {"success": True, "msg": Translate.t(key="User registered successfully", request=request)}
+        )
+        await Session.set_async(
+            {"user_id": user.id, "email": user.email, "name": user.name},
+            response,
             key="auth",
         )
         return response
-    except Exception as e:
-        if connection.is_async:
-            await db.rollback()
-        else:
-            db.rollback()
-        if DEBUG:
-            traceback.print_exc()
-        return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
-    finally:
-        if connection.is_async:
-            await db.close()
-        else:
-            db.close()
+    except Exception as exc:
+        Logger.error(f"Registration error: {exc}", exception=exc)
+        return JSONResponse(
+            {"success": False, "msg": "Registration unavailable"}, status_code=500
+        )
 
 
 routes = router.get_routes()

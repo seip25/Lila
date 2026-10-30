@@ -1,16 +1,19 @@
-"""Lila Framework v2.0.0 High-Performance Pure ASGI Middlewares & Decorators.
-Zero BaseHTTPMiddleware streaming overhead.
+"""Lila Framework v2.0.x Pure ASGI Middlewares & Decorators.
+
+Zero BaseHTTPMiddleware streaming overhead. Static assets are excluded from
+rate limiting/logging, and static responses get long-lived cache headers.
 """
 
 import time
 import re
+import inspect
 import asyncio
 from functools import wraps
 from typing import Optional, Callable, Any, Union
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.gzip import GZipMiddleware
+from urllib.parse import parse_qsl, urlencode
+
 from starlette.types import ASGIApp, Scope, Receive, Send
+from starlette.middleware.gzip import GZipMiddleware
 
 from lila.core.config import ENV_CONFIG
 from lila.core.cache import Cache
@@ -22,13 +25,76 @@ from lila.core.responses import JSONResponse, RedirectResponse, HTMLResponse
 
 
 BLOCKED_PATTERNS = re.compile(
-    r"(\.\./|\.env|\.git/|etc/passwd|wp-content|actuator/|heapdump|owa/auth)",
+    r"(^|/)(?:\.env|\.git)(?:/|$)"
+    r"|(^|/)\.\.(?:/|$)"
+    r"|etc/passwd|wp-content/|actuator/|heapdump|owa/auth",
     re.IGNORECASE,
 )
 
+_STATIC_PREFIXES = ("/public/", "/js/", "/img/", "/swagger/", "/uploads/")
+_IGNORED_LOG_PREFIXES = _STATIC_PREFIXES + ("/_lila/", "/favicon", "/health")
+_SENSITIVE_QUERY_KEYS = frozenset(
+    {"token", "access_token", "refresh_token", "key", "api_key", "password", "secret", "csrf", "_csrf", "code"}
+)
+
+
+def _is_static_path(path: str) -> bool:
+    return path.startswith(_STATIC_PREFIXES)
+
+
+def _redact_query(query: str) -> str:
+    if not query:
+        return ""
+    try:
+        pairs = parse_qsl(query, keep_blank_values=True)
+    except Exception:
+        return query
+    redacted = [
+        (key, "***" if key.lower() in _SENSITIVE_QUERY_KEYS else value)
+        for key, value in pairs
+    ]
+    return urlencode(redacted)
+
+
+class PureASGICSRFMiddleware:
+    """Global CSRF guard for JSON/header clients.
+
+    HTML form bodies are verified by the ``@csrf`` decorator or
+    ``@router.post(..., csrf=True)`` after the body is parsed.
+    """
+
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        method = scope.get("method", "GET").upper()
+        path = scope.get("path", "")
+        if method not in ("POST", "PUT", "PATCH", "DELETE") or _is_static_path(path):
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers", []))
+        content_type = headers.get(b"content-type", b"").decode("latin-1").lower()
+        if "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
+            # Body forms are handled by the route-level CSRF check.
+            await self.app(scope, receive, send)
+            return
+
+        request = Request(scope, receive)
+        if not CSRF.verify(request):
+            response = JSONResponse(
+                {"success": False, "message": "Invalid or missing CSRF token"}, status_code=403
+            )
+            await response(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
+
 
 class PureASGISecurityHeadersMiddleware:
-    """Pure ASGI middleware injecting security headers and blocking directory traversal."""
+    """Pure ASGI middleware injecting security headers and blocking real traversal probes."""
 
     def __init__(self, app: ASGIApp, block_traversal: bool = True):
         self.app = app
@@ -41,17 +107,76 @@ class PureASGISecurityHeadersMiddleware:
 
         path = scope.get("path", "")
         if self.block_traversal and BLOCKED_PATTERNS.search(path):
-            response = HTMLResponse("Forbidden", status_code=403)
+            if path.startswith(("/api/", "/admin/api/")) or "application/json" in str(
+                scope.get("headers", [])
+            ):
+                response = JSONResponse({"success": False, "message": "Forbidden"}, status_code=403)
+            else:
+                response = HTMLResponse("Forbidden", status_code=403)
             await response(scope, receive, send)
             return
+
+        is_https = scope.get("scheme") == "https"
 
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
-                headers.append((b"x-content-type-options", b"nosniff"))
-                headers.append((b"x-frame-options", b"DENY"))
-                headers.append((b"x-xss-protection", b"1; mode=block"))
-                headers.append((b"referrer-policy", b"strict-origin-when-cross-origin"))
+                existing = {name.lower() for name, _ in headers}
+
+                def add(name: bytes, value: bytes) -> None:
+                    if name not in existing:
+                        headers.append((name, value))
+
+                add(b"x-content-type-options", b"nosniff")
+                add(b"x-frame-options", b"DENY")
+                add(b"referrer-policy", b"strict-origin-when-cross-origin")
+                add(b"permissions-policy", b"geolocation=(), microphone=(), camera=()")
+                add(b"cross-origin-opener-policy", b"same-origin")
+                if is_https:
+                    add(b"strict-transport-security", b"max-age=31536000; includeSubDomains")
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+class PureASGIGZipMiddleware:
+    """GZip wrapper that never compresses the dev SSE stream."""
+
+    def __init__(self, app: ASGIApp, **kwargs):
+        self.app = app
+        self.gzip_app = GZipMiddleware(app, **kwargs)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] == "http" and scope.get("path", "").startswith("/_lila/"):
+            await self.app(scope, receive, send)
+            return
+        await self.gzip_app(scope, receive, send)
+
+
+class PureASGIStaticCacheMiddleware:
+    """Adds Cache-Control headers to static assets (and immutable for versioned URLs)."""
+
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http" or not _is_static_path(scope.get("path", "")):
+            await self.app(scope, receive, send)
+            return
+
+        query = scope.get("query_string", b"").decode("latin-1", errors="ignore")
+        versioned = any(part.startswith("v=") for part in query.split("&"))
+        max_age = int(ENV_CONFIG.get("STATIC_CACHE_MAX_AGE", 86400) or 86400)
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                if not any(name.lower() == b"cache-control" for name, _ in headers):
+                    if versioned:
+                        headers.append((b"cache-control", b"public, max-age=31536000, immutable"))
+                    else:
+                        headers.append((b"cache-control", f"public, max-age={max_age}".encode()))
                 message["headers"] = headers
             await send(message)
 
@@ -67,18 +192,18 @@ class PureASGIRateLimitMiddleware:
         self.window_seconds = window_seconds
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        if scope["type"] != "http" or self.max_requests <= 0:
-            await self.app(scope, receive, send)
-            return
-
-        path = scope.get("path", "")
-        if path.startswith(("/_lila", "/favicon")):
+        path = scope.get("path", "") if scope["type"] == "http" else ""
+        if (
+            scope["type"] != "http"
+            or self.max_requests <= 0
+            or _is_static_path(path)
+            or path.startswith(("/_lila", "/favicon", "/health"))
+        ):
             await self.app(scope, receive, send)
             return
 
         client = scope.get("client")
         client_ip = client[0] if client else "unknown"
-
         key = f"rl:global:{client_ip}"
         count = await Cache.incr_async(key, ttl=self.window_seconds)
 
@@ -101,12 +226,8 @@ class PureASGILoggingMiddleware:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        path = scope.get("path", "")
-        if path.startswith(("/_lila", "/favicon")):
+        path = scope.get("path", "") if scope["type"] == "http" else ""
+        if scope["type"] != "http" or path.startswith(_IGNORED_LOG_PREFIXES):
             await self.app(scope, receive, send)
             return
 
@@ -125,9 +246,8 @@ class PureASGILoggingMiddleware:
             client = scope.get("client")
             client_ip = client[0] if client else "unknown"
             method = scope.get("method", "GET")
-            query = scope.get("query_string", b"").decode("utf-8")
+            query = _redact_query(scope.get("query_string", b"").decode("utf-8", errors="ignore"))
 
-            # Extract user agent
             user_agent = ""
             for name, val in scope.get("headers", []):
                 if name.lower() == b"user-agent":
@@ -146,33 +266,39 @@ class PureASGILoggingMiddleware:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Decorators for Route Handlers (usable with or without parentheses)
+# Route decorators
 # ──────────────────────────────────────────────────────────────────────────────
+def _find_request(args, kwargs) -> Optional[Request]:
+    req = kwargs.get("request")
+    if isinstance(req, Request):
+        return req
+    for arg in args:
+        if isinstance(arg, Request):
+            return arg
+    return None
+
+
 def login_required(fn_or_redirect: Union[Callable, str] = "/login", session_key: str = "session"):
-    """Decorator ensuring request has active user session (@login_required or @login_required('/login'))."""
+    """Decorator ensuring the request has an active user session."""
     redirect_to = "/login" if callable(fn_or_redirect) else str(fn_or_redirect)
 
     def decorator(fn: Callable):
         @wraps(fn)
         async def wrapper(*args, **kwargs):
-            req: Optional[Request] = kwargs.get("request")
+            req = _find_request(args, kwargs)
             if req is None:
-                for a in args:
-                    if isinstance(a, Request):
-                        req = a
-                        break
-
-            if req is None:
-                return RedirectResponse(redirect_to)
+                return RedirectResponse(redirect_to, status_code=303)
 
             user = await Session.get_async(req, cookie_name=session_key)
             if not user:
-                if req.headers.get("accept", "").startswith("application/json") or req.url.path.startswith("/api/"):
+                if req.headers.get("accept", "").lower().startswith("application/json") or req.url.path.startswith("/api/"):
                     return JSONResponse({"success": False, "message": "Authentication required"}, status_code=401)
-                return RedirectResponse(redirect_to)
+                return RedirectResponse(redirect_to, status_code=303)
 
             req.state.user = user
-            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+            result = fn(*args, **kwargs)
+            return await result if asyncio.iscoroutine(result) else result
+
         return wrapper
 
     if callable(fn_or_redirect):
@@ -181,25 +307,20 @@ def login_required(fn_or_redirect: Union[Callable, str] = "/login", session_key:
 
 
 def session_active(fn_or_redirect: Union[Callable, str] = "/dashboard", session_key: str = "session"):
-    """Redirects authenticated users away from guest-only pages (like /login or /register)."""
+    """Redirects authenticated users away from guest-only pages (login/register)."""
     redirect_to = "/dashboard" if callable(fn_or_redirect) else str(fn_or_redirect)
 
     def decorator(fn: Callable):
         @wraps(fn)
         async def wrapper(*args, **kwargs):
-            req: Optional[Request] = kwargs.get("request")
-            if req is None:
-                for a in args:
-                    if isinstance(a, Request):
-                        req = a
-                        break
-
+            req = _find_request(args, kwargs)
             if req is not None:
                 user = await Session.get_async(req, cookie_name=session_key)
                 if user:
-                    return RedirectResponse(redirect_to)
+                    return RedirectResponse(redirect_to, status_code=303)
+            result = fn(*args, **kwargs)
+            return await result if asyncio.iscoroutine(result) else result
 
-            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
         return wrapper
 
     if callable(fn_or_redirect):
@@ -208,30 +329,29 @@ def session_active(fn_or_redirect: Union[Callable, str] = "/dashboard", session_
 
 
 def admin_required(fn_or_redirect: Union[Callable, str] = "/admin/login", redirect_to: Optional[str] = None):
-    """Decorator ensuring active user is an administrator."""
+    """Decorator ensuring the active user is an administrator."""
     target_redirect = redirect_to or ("/admin/login" if callable(fn_or_redirect) else str(fn_or_redirect))
 
     def decorator(fn: Callable):
         @wraps(fn)
         async def wrapper(*args, **kwargs):
-            req: Optional[Request] = kwargs.get("request")
+            req = _find_request(args, kwargs)
             if req is None:
-                for a in args:
-                    if isinstance(a, Request):
-                        req = a
-                        break
-
-            if req is None:
-                return RedirectResponse(target_redirect)
+                return RedirectResponse(target_redirect, status_code=303)
 
             admin_user = await Session.get_async(req, cookie_name="admin_session")
             if not admin_user:
-                if req.headers.get("accept", "").startswith("application/json") or req.url.path.startswith("/admin/api/"):
+                if (
+                    req.headers.get("accept", "").lower().startswith("application/json")
+                    or req.url.path.startswith("/admin/api/")
+                ):
                     return JSONResponse({"success": False, "message": "Admin authentication required"}, status_code=401)
-                return RedirectResponse(target_redirect)
+                return RedirectResponse(target_redirect, status_code=303)
 
             req.state.admin = admin_user
-            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+            result = fn(*args, **kwargs)
+            return await result if asyncio.iscoroutine(result) else result
+
         return wrapper
 
     if callable(fn_or_redirect):
@@ -244,15 +364,9 @@ def rate_limit(max_requests: int = 60, window_seconds: int = 60):
     def decorator(fn: Callable):
         @wraps(fn)
         async def wrapper(*args, **kwargs):
-            req: Optional[Request] = kwargs.get("request")
-            if req is None:
-                for a in args:
-                    if isinstance(a, Request):
-                        req = a
-                        break
-
+            req = _find_request(args, kwargs)
             client_ip = getattr(req.client, "host", "unknown") if req else "unknown"
-            key = f"rl:route:{fn.__name__}:{client_ip}"
+            key = f"rl:route:{fn.__module__}.{fn.__qualname__}:{client_ip}"
             count = await Cache.incr_async(key, ttl=window_seconds)
 
             if count > max_requests:
@@ -262,28 +376,29 @@ def rate_limit(max_requests: int = 60, window_seconds: int = 60):
                     headers={"Retry-After": str(window_seconds)},
                 )
 
-            return await fn(*args, **kwargs) if asyncio.iscoroutinefunction(fn) else fn(*args, **kwargs)
+            result = fn(*args, **kwargs)
+            return await result if asyncio.iscoroutine(result) else result
+
         return wrapper
     return decorator
 
 
 def csrf_protect(fn: Optional[Callable] = None):
-    """Decorator verifying CSRF token on mutating requests (@csrf or @csrf_protect)."""
+    """Decorator verifying a CSRF token on mutating requests (supports HTML forms)."""
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            req: Optional[Request] = kwargs.get("request")
-            if req is None:
-                for a in args:
-                    if isinstance(a, Request):
-                        req = a
-                        break
-
+            req = _find_request(args, kwargs)
             if req and req.method in ("POST", "PUT", "DELETE", "PATCH"):
-                if not CSRF.verify(req):
-                    return JSONResponse({"success": False, "message": "Invalid or missing CSRF token"}, status_code=403)
+                if not await CSRF.verify_async(req):
+                    if req.headers.get("accept", "").lower().startswith("application/json"):
+                        return JSONResponse(
+                            {"success": False, "message": "Invalid or missing CSRF token"}, status_code=403
+                        )
+                    return HTMLResponse("Invalid or missing CSRF token", status_code=403)
+            result = func(*args, **kwargs)
+            return await result if asyncio.iscoroutine(result) else result
 
-            return await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
         return wrapper
 
     if callable(fn):
@@ -291,5 +406,99 @@ def csrf_protect(fn: Optional[Callable] = None):
     return decorator
 
 
-# Alias for backward compatibility (@csrf)
+def create_decorator(func: Callable):
+    """Turns a validation function into a reusable route decorator.
+
+    Usage::
+
+        @create_decorator
+        async def check_admin(request, role="admin"):
+            if request.state.user.get("role") != role:
+                return JSONResponse({"error": "Unauthorized"}, status_code=403)
+            return True
+
+        @router.get("/admin")
+        @check_admin
+        async def admin(request): ...
+
+        @router.get("/super")
+        @check_admin(role="superadmin")
+        async def superadmin(request): ...
+    """
+
+    def _wrap(route_fn: Callable, config: dict) -> Callable:
+        @wraps(route_fn)
+        async def inner(*args, **kwargs):
+            req = _find_request(args, kwargs)
+            if req is None:
+                return JSONResponse({"success": False, "message": "Unauthorized"}, status_code=401)
+            result = func(req, **config) if req is not None else None
+            if inspect.isawaitable(result):
+                result = await result
+            if result is not None and result is not True:
+                return result
+            output = route_fn(*args, **kwargs)
+            return await output if asyncio.iscoroutine(output) else output
+
+        return inner
+
+    @wraps(func)
+    def factory(*args, **kwargs):
+        if len(args) == 1 and callable(args[0]) and not kwargs:
+            return _wrap(args[0], {})
+        return lambda route_fn: _wrap(route_fn, dict(kwargs))
+
+    return factory
+
+
+def validate_token(fn: Optional[Callable] = None, header: str = "Authorization", key: str = "user_id"):
+    """JWT validation decorator for API routes.
+
+    Usage::
+
+        @router.get("/api/me")
+        @validate_token
+        async def me(request):
+            return {"user_id": request.state.jwt_user_id}
+    """
+    def decorator(route_fn: Callable):
+        @wraps(route_fn)
+        async def wrapper(*args, **kwargs):
+            from lila.core.auth import JWT
+
+            req = _find_request(args, kwargs)
+            if req is None:
+                return JSONResponse({"success": False, "message": "Unauthorized"}, status_code=401)
+
+            auth_value = req.headers.get(header)
+            if not auth_value:
+                return JSONResponse({"success": False, "message": "Missing Authorization header"}, status_code=401)
+
+            data = JWT.decode(auth_value)
+            if not data:
+                return JSONResponse({"success": False, "message": "Invalid or expired token"}, status_code=401)
+
+            req.state.jwt = data
+            req.state.jwt_user_id = data.get(key)
+            result = route_fn(*args, **kwargs)
+            return await result if asyncio.iscoroutine(result) else result
+
+        return wrapper
+
+    if callable(fn):
+        return decorator(fn)
+    return decorator
+
+
+# Compatibility aliases used by older guides.
 csrf = csrf_protect
+check_session = login_required
+check_token = validate_token
+
+# Names used in older middleware documentation.
+from starlette.middleware import Middleware  # noqa: E402
+
+LoggingMiddleware = PureASGILoggingMiddleware
+SecurityHeadersMiddleware = PureASGISecurityHeadersMiddleware
+RateLimitMiddleware = PureASGIRateLimitMiddleware
+StaticCacheMiddleware = PureASGIStaticCacheMiddleware

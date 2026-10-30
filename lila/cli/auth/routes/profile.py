@@ -6,6 +6,7 @@ from lila.core.session import Session
 from lila.core.translate import Translate
 from lila.core.auth import PasswordHasher
 from lila.core.middleware import login_required, csrf
+from lila.core.logger import Logger
 from app.models.user import User
 from pydantic import BaseModel, Field
 
@@ -14,12 +15,12 @@ router = Router(middlewares=[login_required])
 
 class UpdateProfileModel(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
-    password: str = Field(..., min_length=8, max_length=20)
-    password_2: str | None = Field(default=None, min_length=8, max_length=20)
+    password: str = Field(..., min_length=1, max_length=128)  # current password
+    password_2: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class DeleteAccountModel(BaseModel):
-    password: str = Field(..., min_length=8, max_length=20)
+    password: str = Field(..., min_length=1, max_length=128)
 
 
 @router.get("/profile")
@@ -32,58 +33,67 @@ async def profile_page(request: Request):
 @router.post("/profile", model=UpdateProfileModel)
 @csrf
 async def update_profile(request: Request):
-    input = request.state.data
-
+    input_data = request.state.data
     session_data = await Session.get(request, "auth")
-    user_id = session_data.get("user_id") if session_data else None
+    user_id = session_data.get("user_id") if isinstance(session_data, dict) else None
+    if not user_id:
+        return JSONResponse({"success": False, "msg": Translate.t(key="Authentication required", request=request)}, status_code=401)
 
-    user_db = await User.get_by_id_async(user_id)
-    if not user_db:
-        return JSONResponse({"success": False, "msg": Translate.t(key="Error updating profile", request=request)})
-    if not PasswordHasher.verify(user_db.get("password", ""), input.password):
-        return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
+    user = await User.get_by_id_with_password_async(user_id)
+    if not user:
+        return JSONResponse({"success": False, "msg": Translate.t(key="Error updating profile", request=request)}, status_code=404)
+
+    if not await PasswordHasher.verify_async(user.password or "", input_data.password):
+        return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)}, status_code=403)
 
     try:
-        update_fields = {"name": input.name}
-        if input.password_2 and len(input.password_2) >= 8:
-            update_fields["password"] = PasswordHasher.hash(input.password_2)
+        name = input_data.name.strip()
+        if input_data.password_2:
+            new_hash = await PasswordHasher.hash_async(input_data.password_2)
+            await User.update_async(user_id, name=name, password=new_hash)
+        else:
+            await User.update_async(user_id, name=name)
 
-        await User.update_async(user_id, **update_fields)
-
-        response = JSONResponse({"success": True, "msg": Translate.t(key="Profile updated successfully", request=request)})
-        await Session.set(
-            request,
+        response = JSONResponse(
+            {"success": True, "msg": Translate.t(key="Profile updated successfully", request=request)}
+        )
+        await Session.set_async(
+            {"user_id": user.id, "email": user.email, "name": name},
             response,
-            data={"user_id": user_db["id"], "email": user_db["email"], "name": input.name},
             key="auth",
         )
         return response
-    except Exception as e:
-        return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
+    except Exception as exc:
+        Logger.error(f"Profile update error: {exc}", exception=exc)
+        return JSONResponse({"success": False, "msg": "Profile update unavailable"}, status_code=500)
 
 
 @router.post("/delete-account", model=DeleteAccountModel)
 @csrf
 async def delete_account(request: Request):
-    input = request.state.data
-
+    input_data = request.state.data
     session_data = await Session.get(request, "auth")
-    user_id = session_data.get("user_id") if session_data else None
-    password = input.password
+    user_id = session_data.get("user_id") if isinstance(session_data, dict) else None
+    if not user_id:
+        return JSONResponse({"success": False, "msg": Translate.t(key="Authentication required", request=request)}, status_code=401)
 
-    user_db = await User.get_by_id_async(user_id)
-    if not user_db:
-        return JSONResponse({"success": False, "msg": Translate.t(key="Error deleting account", request=request)})
-    if not PasswordHasher.verify(user_db.get("password", ""), password):
-        return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)})
+    user = await User.get_by_id_with_password_async(user_id)
+    if not user:
+        return JSONResponse({"success": False, "msg": Translate.t(key="Error deleting account", request=request)}, status_code=404)
+
+    if not await PasswordHasher.verify_async(user.password or "", input_data.password):
+        return JSONResponse({"success": False, "msg": Translate.t(key="Incorrect password", request=request)}, status_code=403)
 
     try:
         await User.delete_async(user_id)
-        response = JSONResponse({"success": True, "msg": Translate.t(key="Account deleted successfully", request=request)})
-        await Session.delete(response, key="auth", request=request)
+        response = JSONResponse(
+            {"success": True, "msg": Translate.t(key="Account deleted successfully", request=request)}
+        )
+        await Session.delete_async(request, response, key="auth")
         return response
-    except Exception as e:
-        return JSONResponse({"success": False, "msg": str(e)}, status_code=500)
+    except Exception as exc:
+        Logger.error(f"Delete-account error: {exc}", exception=exc)
+        return JSONResponse({"success": False, "msg": "Account deletion unavailable"}, status_code=500)
 
 
 routes = router.get_routes()

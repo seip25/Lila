@@ -74,32 +74,36 @@
 
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <h4>Menu</h4>
-            <a href="install.html">Installation</a>
-            <a href="routes.html">Routes</a>
-            <a href="static.html">Static</a>
-            <a href="templates.html">Templates</a>
-            <a href="session.html">Session</a>
-            <a href="upload.html">Uploads Files</a>
-            <a href="markdown.html">Markdown/HTML</a>
-            <a href="locales.html">Internationalization</a>
-            <a href="models.html">Models</a>
-            <a href="middlewares.html">Middlewares</a>
-            <a href="cli.html">CLI Commands</a>
-            <a href="connections.html">Connections</a>
-            <a href="migrations.html">Migrations</a>
-            <a href="auth.html">Auth Cli </a>
-            <a href="scaffold.html">Scaffold CRUD</a>
-            <a href="rest_api.html">API Rest CRUD</a>
-            <a href="admin.html">Admin Panel</a>
-            <a href="minify.html">Minify</a>
-            <a href="production.html">Production</a>
-            <a href="debug.html">Debug & Profiling</a>
-            <a href="logger.html">Logger</a>
-            <a href="cache.html">Memory Cache</a>
-            <a href="seo.html">SEO</a>
-            <a href="websocket.html">WebSocket (Real-Time)</a>
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
 
         <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h2>SEO Optimization</h2>
@@ -113,8 +117,13 @@
             <h3>1. The @seo Decorator</h3>
             <p>
                 The easiest way to define metadata for a specific route is using the <code
-                    class="code-inline">@seo</code> decorator. It automatically injects the data into the <code
-                    class="code-inline">request.state.seo</code> object.
+                    class="code-inline">@seo</code> decorator from <code
+                    class="code-inline">lila.core.routing</code> (re-exported from <code
+                    class="code-inline">lila.core.seo</code>). It stores the merged metadata in <code
+                    class="code-inline">request.state.seo</code>; <code>render()</code> exposes it as the
+                template <code class="code-inline">seo</code> object with
+                <code>title</code>, <code>description</code>, <code>keywords</code>,
+                <code>canonical</code>, <code>robots</code> and <code>author</code>.
             </p>
 
 
@@ -131,39 +140,39 @@
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
-from lila.core.routing import seo
+from lila.core.routing import Router, seo
+from lila.core.templates import render
 
-# Basic usage (now supports title, description, keywords, og, canonical, author, robots, etc.)
+router = Router()
+
+# Basic usage: any keyword becomes a key of the seo object.
 @router.get("/")
 @seo(
     title="Home Page",
     description="Welcome to our site",
+    keywords="python, lila, framework",
     canonical="https://mywebsite.com/",
     author="Lila Team",
-    robots="index, follow"
+    robots="index, follow",
 )
 async def index(request):
     return render(request, "index")
 
-# Multilingual support (Dictionary)
+# Multilingual values: a dict is resolved at request time with Translate.lang().
 @router.get("/about")
 @seo(title={"en": "About Us", "es": "Sobre Nosotros"})
 async def about(request):
     return render(request, "about")
-
-# Integration with translations (uses locales/translations.json)
-@router.get("/contact")
-@seo(title="translate:contact_title", custom_meta_val="Arbitrary Custom Key")
-async def contact(request):
-    return render(request, "contact")
             </code></pre>
                 </div>
             </div>
 
             <h3>2. Centralized SEO Configuration</h3>
             <p>
-                If you prefer to keep your routes clean, you can define all your SEO metadata in a centralized file
-                located at <code class="code-inline">app/seo.py</code>. Lila will automatically load it.
+                <code>SEO_CONFIG</code> is a plain dict in <code class="code-inline">lila.core.seo</code>.
+                Populate it (for example in your app package) before requests are handled; the decorator
+                merges <code>SEO_CONFIG[request.url.path]</code> first and the decorator keywords override
+                it.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -179,30 +188,44 @@ async def contact(request):
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
-# Map route paths to their SEO metadata
-SEO_CONFIG = {
+from lila.core.seo import SEO_CONFIG
+
+# Map route paths to their SEO metadata.
+SEO_CONFIG.update({
     "/": {
         "title": "Global Home Page",
-        "description": "This applies to the root path automatically."
+        "description": "This applies to the root path automatically.",
     },
     "/services": {
-        "title": {"en": "Services", "es": "Servicios"}
-    }
-}
+        "title": {"en": "Services", "es": "Servicios"},
+    },
+})
             </code></pre>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                <div class="editor-content bg-gray-900 dark:bg-black p-4">
+                    <pre><code class="language-python"># main.py — import the module once so SEO_CONFIG is filled.
+import app.seo  # noqa: F401
+from lila.core.app import App
+
+app = App(routes=[router])</code></pre>
                 </div>
             </div>
 
             <h3>3. Template Integration</h3>
             <p>
-                Lila automatically injects the resolved SEO object into your Jinja2 template context. You can access it
-                directly in your <code class="code-inline">base.html</code>
+                <code>render()</code> injects the resolved SEO object into the Jinja2 context, and also
+                overrides the base <code>title</code>/<code>description</code>/<code>keywords</code>/<code>author</code>
+                values when the SEO object provides them. Access it in your layout
+                (<code>resources/html/lila/base.jinja</code>):
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">
-                        <i class="fas fa-html5 mr-2"></i>resources/html/lila/base.html
+                        <i class="fas fa-html5 mr-2"></i>resources/html/lila/base.jinja
                     </span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -213,7 +236,7 @@ SEO_CONFIG = {
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-html">
 &lt;head&gt;
-    &lt;!-- Use the seo object injected by the Router --&gt;
+    &lt;!-- seo is a dict; title/description fall back to the base context --&gt;
     &lt;title&gt;{{ seo.title | default(title) }}&lt;/title&gt;
     &lt;meta name="description" content="{{ seo.description | default(description) }}"&gt;
     &lt;meta name="keywords" content="{{ seo.keywords | default(keywords) }}"&gt;
@@ -225,12 +248,18 @@ SEO_CONFIG = {
                 </div>
             </div>
 
-            <h3>4. Generating Sitemap & Robots</h3>
+            <h3>4. Generating Sitemap &amp; Robots</h3>
             <p>
-                Lila provides CLI commands to automatically generate your <code class="code-inline">sitemap.xml</code>
-                and <code class="code-inline">robots.txt</code> files based on your registered routes. It intelligently
-                ignores dynamic paths (like <code class="code-inline">/user/{id}</code>) and private areas (like <code
-                    class="code-inline">/admin</code>).
+                <code>lila seo</code> reads <code>APP_URL</code> (or <code>--domain</code>), imports
+                <code>main:app</code>, discovers public <code>GET</code> routes (skipping dynamic paths,
+                <code>/api</code>, <code>/admin</code>, <code>/debug</code>, <code>/uploads</code>,
+                <code>/auth/</code> and the auth pages) and writes <code>public/sitemap.xml</code> plus
+                <code>public/robots.txt</code>.
+            </p>
+            <p>
+                Both files are <b>served at the site root</b> by <code>App</code>:
+                <code class="code-inline">/sitemap.xml</code> and
+                <code class="code-inline">/robots.txt</code> — not under <code>/public/</code>.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -246,15 +275,15 @@ SEO_CONFIG = {
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-bash">
-# Generate sitemap.xml in the public/ folder
-lila-seo sitemap 
-#Or with domain 
-lila-seo sitemap --domain https://mywebsite.com
+# Both files at once (uses APP_URL from .env)
+lila seo
 
-# Generate robots.txt in the public/ folder
-lila-seo robots 
-#Or with domain
-lila-seo robots --domain https://mywebsite.com
+# Only one of them, with an explicit domain
+lila seo sitemap --domain https://mywebsite.com
+lila seo robots  --domain https://mywebsite.com
+
+# Extra paths for the sitemap
+lila seo sitemap --paths "/pricing,/blog"
             </code></pre>
                 </div>
             </div>

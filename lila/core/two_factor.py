@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.0 Two-Factor Authentication (TOTP / RFC 6238).
+﻿"""Lila Framework v2.0.1 Two-Factor Authentication (TOTP / RFC 6238).
 Generates secrets, computes and validates 6-digit TOTP tokens,
 and produces real scannable QR codes for Google Authenticator / Authy.
 """
@@ -9,6 +9,7 @@ import hashlib
 import struct
 import time
 import os
+import html
 import urllib.parse
 from typing import Optional
 
@@ -17,8 +18,8 @@ class TwoFactor:
     """RFC 6238 TOTP Engine."""
 
     @staticmethod
-    def generate_secret(length: int = 16) -> str:
-        """Generates random Base32 secret key."""
+    def generate_secret(length: int = 20) -> str:
+        """Generates a random Base32 secret (160 bits by default)."""
         alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
         random_bytes = os.urandom(length)
         return "".join(alphabet[b % 32] for b in random_bytes)
@@ -99,15 +100,16 @@ class TwoFactor:
         except ImportError:
             pass
 
-        # 3. Native pure-Python QR Generator or lightweight data-url QR wrapper
-        encoded_uri = urllib.parse.quote(otpauth_uri)
-        # Clean fallback vector wrapper containing QR barcode element
+        # 3. No third-party network call: never send a TOTP secret to a QR API.
+        #    Render the otpauth URI + secret so the user can add it manually.
         return (
-            f'<div class="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-slate-200 dark:border-slate-800">'
-            f'<img src="https://api.qrserver.com/v1/create-qr-code/?size={size}x{size}&data={encoded_uri}" '
-            f'width="{size}" height="{size}" alt="2FA QR Code" class="rounded-xl shadow-sm" />'
-            f'</div>'
+            '<div class="flex flex-col items-center justify-center gap-3 p-4 bg-white rounded-2xl border border-slate-200 dark:border-slate-800">'
+            '<p class="text-xs text-slate-500 m-0">Install the <code>qrcode</code> or <code>segno</code> extra for an inline QR code, '
+            "or add this account manually in your authenticator app:</p>"
+            f'<code class="text-[11px] break-all bg-slate-50 p-2 rounded">{html.escape(otpauth_uri)}</code>'
+            "</div>"
         )
 
 
 TOTP = TwoFactor
+

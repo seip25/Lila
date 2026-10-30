@@ -100,27 +100,36 @@
   <main>
     <aside
       class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-      <h4>Menu</h4>
-      <a href="install.html">Installation</a>
-      <a href="routes.html">Routes</a>
-      <a href="static.html">Static</a>
-      <a href="templates.html">Templates</a>
-      <a href="session.html">Session</a>
-      <a href="upload.html">Uploads Files</a>
-      <a href="markdown.html">Markdown/HTML</a>
-      <a href="locales.html">Internationalization</a>
-      <a href="models.html">Models</a>
-      <a href="middlewares.html">Middlewares</a>
-      <a href="cli.html">CLI Commands</a>
-      <a href="connections.html">Connections</a>
-      <a href="migrations.html">Migrations</a>
-      <a href="auth.html">Auth Cli </a>
-      <a href="scaffold.html">Scaffold CRUD</a>
-      <a href="rest_api.html">API Rest CRUD</a>
-      <a href="admin.html">Admin Panel</a>
-      <a href="minify.html">Minify</a>
-      <a href="production.html">Production</a>
-    </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
 
     <article
       class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -145,11 +154,11 @@
             <span class="text-green-400 mr-2">$</span><span>pip install lila-framework</span>
           </div>
           <div class="flex items-center">
-            <span class="text-green-400 mr-2">$</span><span>lila-init</span>
+            <span class="text-green-400 mr-2">$</span><span>lila init</span>
           </div>
 
           <div class="flex items-center">
-            <span class="text-green-400 mr-2">$</span><span>python main.py </span>
+            <span class="text-green-400 mr-2">$</span><span>lila dev</span>
           </div>
           <div class="inline-block w-2 h-4 bg-white animate-pulse" role="presentation"></div>
         </div>
@@ -175,14 +184,10 @@
           </div>
           <div class="editor-content bg-gray-900 dark:bg-black">
             <pre><code class="language-python">
- from lila.core.app import App
-from app.config import DEBUG, HOST, PORT, JIT, WORKERS
+from lila.core.app import App
+from app.config import DEBUG, HOST, PORT, WORKERS
 from app.routes.web.index import router as web_router
 from app.routes.api.index import router as api_router
-from app.routes.api.example import router as example_api_router
-from lila.core.app import App
-import os
-import uvicorn
 
 # api_marker
 # auth_marker
@@ -190,27 +195,16 @@ import uvicorn
 
 # Initialize Lila application with optional batteries
 app = App(
-    routes=[web_router, api_router, example_api_router],
-    debug=DEBUG,
-    security=True,       # Security headers & path traversal shield
-    rate_limit=300,      # 300 req/min per IP (None to disable)
-    logging=False,       # True to log requests in app/logs/
-    cors=True,           # Enable CORS
-    openapi=True,        # Mount /openapi.json and Swagger UI at /docs
+    routes=[web_router, api_router],
+    debug=DEBUG,          # bool, not a string
+    security=True,        # Security headers & path traversal shield
+    rate_limit=300,       # 300 req/min per IP (None to disable)
+    logging=False,        # True to log requests in app/logs/YYYY-MM-DD/
+    cors=True,            # Credentials are OFF by default
+    gzip=True,
+    openapi=True,         # Mounts /openapi.json and Swagger UI at /docs
+    debug_html=DEBUG,     # Mounts GET/DELETE /debug in debug mode
 )
-
-def main():
-    if DEBUG:
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
-    else:
-        workers = min((os.cpu_count() or 1) * 2 + 1, 8) if (str(WORKERS).lower() == "max" or WORKERS == 0) else int(WORKERS)
-        print(f"🚀 Running Lila v2.0.0 on {HOST}:{PORT} with {workers} workers")
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, workers=workers)
-
-if __name__ == "__main__":
-    if JIT:
-        os.environ["PYTHON_JIT"] = "1"
-    main()
             </code></pre>
           </div>
         </div>

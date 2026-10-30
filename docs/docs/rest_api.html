@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -88,49 +88,45 @@
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
         <article id="rest_api_crud-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h1>REST API CRUD Generator</h1>
-            <h5>At Lila, we have a simple way to generate CRUDs with automatic documentation, allowing you to create your REST API efficiently.</h5>
+            <h5>Lila can generate a full async REST endpoint set for any ActiveRecord model with one call.</h5>
 
-            <p>Thanks to the combination of <strong>SQLAlchemy</strong> and <strong>Pydantic</strong>
-                models, it
-                is possible to perform data validations and execute structured queries for API
-                generation.</p>
+            <p><code class="code-inline">Router.rest_crud_generate()</code> mounts list/get/create/update/delete
+                routes that use the model's async CRUD methods. It does not require a Pydantic schema and
+                does not generate HTML — for an HTML DataTable + Pydantic scaffold use
+                <code class="code-inline">lila crud</code> (see the Scaffold CRUD page).</p>
 
-            <p>Additionally, you can integrate custom <strong>middlewares</strong> to validate tokens,
-                manage
-                sessions, or process requests. With just a few lines of code, you can generate a fully
-                documented REST API CRUD.</p>
-
-            <br />
-            <p>
-                <strong>If you haven't already, enable migrations when you start the server</strong>
-                .
-                By default it uses SQLite, it will create a database file <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.sqlite</code>
-                in
-                the
-                project root.
-            </p>
+            <p>Create the table first — <code>lila migrate</code> creates missing tables <b>and</b> adds
+                missing columns:</p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">term</span>
@@ -141,9 +137,11 @@
                     </div>
                 </div>
                 <div class="editor-content">
-                    <pre><code class="bash">
-lila-migrations 
+                    <pre><code class="language-bash">
+lila migrate
 
+# Destructive reset (asks for confirmation without --yes):
+lila migrate --refresh --yes
 </code>
 </pre>
                 </div>
@@ -152,7 +150,7 @@ lila-migrations
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">routes/api.py</span>
+                    <span class="editor-title text-gray-300 dark:text-gray-400">app/routes/api/users.py</span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -161,63 +159,29 @@ lila-migrations
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from lila.core.request import Request
-from lila.core.responses import JSONResponse
 from lila.core.routing import Router
-from pydantic import EmailStr, BaseModel
-from lila.core.middleware import validate_token, check_token, check_session,login_required
-from app.connections import connection  # Database connection with SQLAlchemy
-from app.models.user import User  # SQLAlchemy 'User' model
+from app.models.user import User
 
-router = Router()# Initialize the router instance to manage API routes.
+router = Router(prefix="/api")
 
-
-# Pydantic model for validations when creating or modifying a user.
-class UserModel(BaseModel):
-    email: EmailStr
-    name: str
-    token: str
-    password: str
-
-# Middleware definitions for CRUD operations
-middlewares_user = {
-    "get": [],
-    "post": [], 
-    "get_id": [],
-    "put": [],
-    "delete": [check_session, check_token],# Example middlewares for web session 'check_session' and jwt 'check_token'
-    "html":[login_required] # If generate_html is True in router.rest_crud_generate
-}
-
-# Automatically generate CRUD with validations and configurations
-router.rest_crud_generate(
-    router=router,                                 
-    connection=connection,  # Database connection
-    model_sql=User,  # SQLAlchemy model
-    model_pydantic=UserModel,  # Pydantic model
-    select=["name", "email", "id", "created_at", "active"],  # Fields to select in queries
-    delete_logic=True,  # Enables logic delete (sets 'active = 0' instead of deleting records)
-    active=True,  # Automatically filters active records ('active = 1')
-    middlewares=middlewares_user,  # Custom middlewares for each CRUD action
-)
+# Mounts /users and /users/{id} using User.get_all_async / insert_async / ...
+# base_route defaults to the model's __tablename__ ("users").
+router.rest_crud_generate(User, base_route="users", auth=True)
                             </code></pre>
                 </div>
             </div>
 
-            <br />
-            <p>You can create your own <strong>middlewares</strong> and pass them as a list to customize
-                security and validations for each <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code>
-                operation.</p>
             <p>
-                <strong>To generate the documentation, always remember to run it after the routes <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">router.swagger_ui()</code> and <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">router.openapi_json()</code></strong>
+                <code>auth=True</code> requires an active session for every generated endpoint: API paths
+                get <code>401</code>, pages get a <code>303</code> redirect to <code>/login</code>. The
+                generated routes are cached per identity like any other <code>GET</code> route.
             </p>
-            <h5>Function Parameters for <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code></h5>
-            <p>Below are the parameters that this function accepts to generate CRUD automatically:</p>
+
+            <h5>Function signature</h5>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">core/routing.py</span>
+                    <span class="editor-title text-gray-300 dark:text-gray-400">lila/core/routing.py</span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -228,161 +192,93 @@ router.rest_crud_generate(
                     <pre><code class="language-python">
 def rest_crud_generate(
     self,
-    connection,
-    model_sql,
-    model_pydantic: Type[BaseModel],
-    select: Optional[List[str]] = None,
-    columns: Optional[List[str]] = None,
-    active: bool = False,
-    delete_logic: bool = False,
-    middlewares: dict = None,
-    jsonresponse_prefix:str='',#Return with prefix list o dict 'data' first key
-    
-    user_id_session:bool| str=False #Example 'user id' to validate in query with where 'user_id'= id session_user
- 
-) :                    </code></pre>
+    model_sql,                 # BaseModel subclass
+    base_route: str | None = None,   # defaults to model_sql.__tablename__
+    auth: bool = False,              # require a session on every route
+): ...
+                    </code></pre>
                 </div>
             </div>
 
-            <h5>Automatic Documentation</h5>
-            <p>Below is an example of the generated documentation for the
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">rest_crud_generate</code>
-                function:
+            <h5>Generated endpoints</h5>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="editor-content">
+                    <pre><code class="language-bash">
+GET    /api/users              → await User.get_all_async(limit=100, offset=0)
+GET    /api/users/{id}         → await User.get_by_id_async(id)   (404 if missing)
+POST   /api/users              → await User.insert_async(**json_body)      (201)
+PUT    /api/users/{id}         → await User.update_async(id, **json_body)  (404 if missing)
+DELETE /api/users/{id}         → await User.delete_async(id)               (404 if missing)
+            </code></pre>
+                </div>
+            </div>
+
+            <p>
+                <code>POST</code> expects a JSON object whose keys match the model columns;
+                <code>PUT</code> accepts a partial JSON object. <code>DELETE</code> is a soft delete when
+                the model has an <code>active</code> column. There is no Pydantic validation or password
+                hashing in this generic generator: if you need it, use the <code>lila crud</code> scaffold
+                (Pydantic models + CSRF) or the Admin 2.0 CRUD (sanitized records + password hashing).
             </p>
-            <p>Go to <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://127.0.0.1:8000/docs</code>,
-                or as configured in your .env file (by
-                HOST and
-                PORT).</p>
+
+            <h5>Automatic documentation</h5>
+            <p>
+                Routes registered on a router appear in the app's schema. With
+                <code>App(openapi=True)</code> (the default) the docs are at
+                <code class="code-inline">http://127.0.0.1:8000/docs</code> and the schema at
+                <code class="code-inline">/openapi.json</code>. Set
+                <code class="code-inline">Router(openapi=False)</code> (as the admin does) to hide routes.
+            </p>
             <div>
-                <h5>GET - Retrieve all users</h5>
-                <img src="../img/rest_1.png" alt="GET - Retrieve all users">
+                <h5>Swagger UI — GET list</h5>
+                <img src="../img/rest_1.png" alt="Swagger UI GET list example">
                 <br />
 
-                <h5>GET - Output of all users</h5>
-                <img src="../img/rest_2.png" alt="GET - Output">
+                <h5>JSON response</h5>
+                <img src="../img/rest_2.png" alt="Swagger UI JSON response example">
                 <br />
 
-                <h5>POST - Create new user</h5>
-                <img src="../img/rest_3.png" alt="POST - Create new user">
+                <h5>POST — create</h5>
+                <img src="../img/rest_3.png" alt="Swagger UI POST example">
                 <br />
 
-                <h5>GET_ID - Retrieve a specific user</h5>
-                <img src="../img/rest_4-5.png" alt="GET_ID - Retrieve a specific user">
+                <h5>GET by ID</h5>
+                <img src="../img/rest_4-5.png" alt="Swagger UI GET by ID example">
                 <br />
 
-                <h5>PUT - Update user</h5>
-                <img src="../img/rest_4.png" alt="PUT - Update user">
+                <h5>PUT — update</h5>
+                <img src="../img/rest_4.png" alt="Swagger UI PUT example">
                 <br />
 
-                <h5>DELETE - Delete user</h5>
-                <img src="../img/rest_5.png" alt="DELETE - Delete user">
+                <h5>DELETE</h5>
+                <img src="../img/rest_5.png" alt="Swagger UI DELETE example">
                 <br />
             </div>
             <br />
-            <p>In this example, we did it with 'users', but you can apply it however you want according
-                to your
-                logic ,'products','stores',etc. Even modifying the core in <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/routing.py</code>.
+            <p>
+                In this example the resource is <code>users</code>; the same call works for
+                <code>products</code>, <code>stores</code>, etc. by passing a different model and
+                <code>base_route</code>.
             </p>
             <br />
-            <p>
-                <strong>For both the 'POST' or 'PUT' method function,</strong>
-                If the framework detects that you pass data in the request body such as:
-                'password' , it will automatically encode it with argon2 to make it secure.
-                Body example :
-            <pre><code class="language-json">
-{
-"email":"example@example.com",
-"name":"name",
-"password":"my_password_secret"
-}
-                        </code>
-                        </pre>
-            </p>
-            <p>Then, if you pass 'token' or 'hash', with the <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">helper</code>
-                function
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">generate_token_value</code>
-                , it automatically generates a token, which will be saved in the database as the 'token'
-                column
-                with the value generated by the function
-                .
-                Body example :
-            <pre><code class="language-json">
-{
-"email":"example@example.com",
-"name":"name",
-"password":"my_password_secret",
-"token":""
-}
-                        </code>
-                        </pre>
-            </p>
-            <p>
-                With 'created_at' or 'created_date' , it will save the date and time of the moment, as
-                long as
-                that field exists in the database table.
-                Body example :
-            <pre><code class="language-json">
-{
-"email":"example@example.com",
-"name":"name",
-"password":"my_password_secret",
-"token":"",
-"created_at":""
-}
-                        </code>
-                        </pre>
 
-            </p>
+            <h2 class="text-2xl mt-4 font-bold">HTML CRUD</h2>
             <p>
-                <strong>For the 'PUT', 'GET' (get_id) or 'DELETE' methods</strong>
-                It is optional according to the logic of each REST API, you can pass it as
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">query string</code>
-                , <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">user_id</code>
-                or <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">id_user</code>,
-                an example would be GET, PUT or DELETE as a method
-                to the url http://127.0.0.1:8000/api/products/1?user_id=20
+                <code>rest_crud_generate</code> only creates JSON endpoints. For a generated HTML page
+                with a responsive DataTable, create/edit modals, Pydantic validation and CSRF, run:
             </p>
-            <p>Where it validates that the product ID '1' exists but also that it belongs to the user ID
-                '20' .
-            </p>
-
-            <h2 class="text-2xl mt-4 font-bold">Parameters for HTML CRUD Generation</h2>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                <div class="editor-content">
+                    <pre><code class="language-bash">
+lila crud --model Product
+            </code></pre>
+                </div>
+            </div>
             <p>
-                In addition to generating the REST API CRUD, <code class="font-mono">rest_crud_generate</code> now
-                accepts three new parameters to
-                create a fully functional HTML CRUD directly:
-            </p>
-            <ul>
-                <li><strong>generate_html: bool = True</strong>  - Automatically generates an HTML CRUD
-                    page using a responsive Lila datatable. Useful to generate the interface only during
-                    development.</li>
-                <li><strong>rewrite_template: bool = False</strong>  - If True, overwrites existing
-                    templates.</li>
-                <li><strong>url_html: str = None</strong>  - Optional. Specify the output URL for the
-                    HTML. If not provided, the HTML can be copied and used in any route.</li>
-            </ul>
-
-            <p>
-                This feature allows you to create CRUD pages with <strong>create, update, delete, pagination, validations</strong> and uses the same REST CRUD API as backend.
-                It is ideal for quickly creating multiple CRUDs in HTML and backend for your
-                application: with around 30 lines of code, you get a fully functional HTML CRUD ready
-                for minor edits -or ready to use as is.
-            </p>
-
-            <p>
-                You can pass <code class="font-mono">DEBUG</code> from <code
-                    class="font-mono">from app.config import DEBUG</code> to <code
-                    class="font-mono">generate_html</code> so the HTML is only generated in development.
-                If you set <code class="font-mono">generate_html=False</code>, the HTML is not generated
-                automatically and can be used as you like.
+                That command writes <code>app/routes/web/product.py</code> (page),
+                <code>app/routes/api/product.py</code> (Pydantic API) and
+                <code>resources/html/product/index.jinja</code> (DataTable). See the
+                <a href="scaffold.html">Scaffold CRUD</a> page for details.
             </p>
 
         </article>

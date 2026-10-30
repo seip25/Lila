@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /docs/partials/
+Disallow: /admin
 Sitemap: https://seip25.github.io/Lila/sitemap.xml

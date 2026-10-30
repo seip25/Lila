@@ -1,16 +1,17 @@
-"""Lila Framework v2.0.0 Simplified WebSocket Engine.
+"""Lila Framework v2.0.1 Simplified WebSocket Engine.
 Event-driven WebSocketHub with declarative decorators, rooms, broadcast,
 and zero-overhead Redis Pub/Sub scaling.
 """
 
 import asyncio
+import time
 import uuid
 import threading
 from typing import Set, Dict, Callable, Optional, Any
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from lila.core.logger import Logger
 from lila.core.responses import orjson_dumps, orjson_loads
-from lila.core.cache import Cache, HAS_REDIS_PKG
+from lila.core.cache import Cache, has_redis
 
 
 class WebSocketHub:
@@ -26,37 +27,46 @@ class WebSocketHub:
         self.worker_id = uuid.uuid4().hex
         self.loop = None
         self._pubsub_started = False
-        self._check_and_start_pubsub()
+        self._send_locks: Dict[WebSocket, asyncio.Lock] = {}
 
-    def _check_and_start_pubsub(self) -> None:
-        if self._pubsub_started or not HAS_REDIS_PKG:
+    def _ensure_pubsub(self) -> None:
+        """Starts the Redis listener lazily (Redis may be configured after import)."""
+        if self._pubsub_started or not has_redis():
             return
+        from lila.core.config import ConfigLoader
+
+        ConfigLoader.load()
         if Cache._get_driver() != "redis":
             return
 
         def _listener():
-            r = Cache._get_redis_sync()
-            if not r:
-                return
-            try:
-                ps = r.pubsub()
-                ps.subscribe("lila:ws:pubsub")
-                for msg in ps.listen():
-                    if msg.get("type") == "message":
-                        try:
-                            payload = orjson_loads(msg["data"])
-                            if payload.get("worker_id") != self.worker_id and self.loop and self.loop.is_running():
-                                asyncio.run_coroutine_threadsafe(
-                                    self._handle_pubsub_msg(payload), self.loop
-                                )
-                        except Exception:
-                            pass
-            except Exception:
-                pass
+            while True:
+                r = Cache._get_redis_sync()
+                if not r:
+                    time.sleep(5)
+                    continue
+                try:
+                    ps = r.pubsub()
+                    ps.subscribe("lila:ws:pubsub")
+                    for msg in ps.listen():
+                        if msg.get("type") == "message":
+                            try:
+                                payload = orjson_loads(msg["data"])
+                                if (
+                                    payload.get("worker_id") != self.worker_id
+                                    and self.loop
+                                    and self.loop.is_running()
+                                ):
+                                    asyncio.run_coroutine_threadsafe(
+                                        self._handle_pubsub_msg(payload), self.loop
+                                    )
+                            except Exception:
+                                pass
+                except Exception:
+                    time.sleep(2)
 
         self._pubsub_started = True
-        t = threading.Thread(target=_listener, daemon=True)
-        t.start()
+        threading.Thread(target=_listener, daemon=True).start()
 
     async def _handle_pubsub_msg(self, payload: dict) -> None:
         event = payload.get("event")
@@ -86,11 +96,13 @@ class WebSocketHub:
         await websocket.accept()
         self.active_connections.add(websocket)
         self.client_rooms[websocket] = set()
+        self._send_locks[websocket] = asyncio.Lock()
 
         try:
             self.loop = asyncio.get_running_loop()
         except RuntimeError:
             pass
+        self._ensure_pubsub()
 
         if room:
             self.join_room(websocket, room)
@@ -106,6 +118,7 @@ class WebSocketHub:
     def disconnect(self, websocket: WebSocket) -> None:
         """Removes websocket from active connections and rooms."""
         self.active_connections.discard(websocket)
+        self._send_locks.pop(websocket, None)
         rooms_to_leave = set(self.client_rooms.pop(websocket, set()))
         for r_name in rooms_to_leave:
             self.leave_room(websocket, r_name)
@@ -137,47 +150,59 @@ class WebSocketHub:
         if websocket in self.client_rooms:
             self.client_rooms[websocket].discard(room)
 
+    async def _send(self, websocket: WebSocket, payload: str, timeout: float = 2.0) -> bool:
+        lock = self._send_locks.get(websocket)
+        if lock is None:
+            lock = asyncio.Lock()
+            self._send_locks[websocket] = lock
+        try:
+            async with lock:
+                if websocket.client_state != WebSocketState.CONNECTED:
+                    return False
+                await asyncio.wait_for(websocket.send_text(payload), timeout=timeout)
+                return True
+        except Exception:
+            return False
+
     async def emit(self, websocket: WebSocket, event: str, data: Any = None) -> bool:
         """Sends an event packet to a specific websocket client."""
-        if websocket.client_state != WebSocketState.CONNECTED:
-            return False
-        try:
-            payload = orjson_dumps({"event": event, "data": data}).decode("utf-8")
-            await websocket.send_text(payload)
-            return True
-        except Exception:
+        payload = orjson_dumps({"event": event, "data": data}).decode("utf-8")
+        sent = await self._send(websocket, payload)
+        if not sent:
             self.disconnect(websocket)
-            return False
+        return sent
 
     async def _local_broadcast(
         self, event: str, data: Any = None, room: Optional[str] = None, exclude: Optional[WebSocket] = None
     ) -> int:
-        targets = self.rooms.get(room, set()) if room else self.active_connections
+        targets = list(self.rooms.get(room, set()) if room else self.active_connections)
         if not targets:
             return 0
 
         payload = orjson_dumps({"event": event, "data": data, "room": room}).decode("utf-8")
-        dead_clients = []
+        clients = [
+            client for client in targets
+            if client is not exclude and client.client_state == WebSocketState.CONNECTED
+        ]
+        if not clients:
+            return 0
+
+        results = await asyncio.gather(
+            *(self._send(client, payload) for client in clients), return_exceptions=True
+        )
         sent_count = 0
-
-        for client in list(targets):
-            if client is exclude or client.client_state != WebSocketState.CONNECTED:
-                continue
-            try:
-                await client.send_text(payload)
+        for client, result in zip(clients, results):
+            if result is True:
                 sent_count += 1
-            except Exception:
-                dead_clients.append(client)
-
-        for dead in dead_clients:
-            self.disconnect(dead)
-
+            else:
+                self.disconnect(client)
         return sent_count
 
     async def broadcast(
         self, event: str, data: Any = None, room: Optional[str] = None, exclude: Optional[WebSocket] = None
     ) -> int:
         """Broadcasts event to a room or globally to all clients across workers."""
+        self._ensure_pubsub()
         # 1. Broadcast locally
         count = await self._local_broadcast(event, data, room=room, exclude=exclude)
 
@@ -208,6 +233,9 @@ class WebSocketHub:
         try:
             while True:
                 msg = await websocket.receive_text()
+                if len(msg) > 1_048_576:
+                    await websocket.close(code=1009)
+                    break
                 # Heartbeat ping check
                 if msg == "ping":
                     await websocket.send_text("pong")
@@ -222,6 +250,10 @@ class WebSocketHub:
 
                 event = parsed.get("event")
                 data = parsed.get("data")
+
+                if event == "ping":
+                    await websocket.send_text('{"event": "pong"}')
+                    continue
 
                 if event == "join":
                     room_name = str(data or "")
@@ -252,3 +284,4 @@ class WebSocketHub:
 # Global default hub instance
 ws = WebSocketHub()
 WebSocketManager = WebSocketHub
+

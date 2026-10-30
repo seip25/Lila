@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.0 Unified AI Helper Engine.
+﻿"""Lila Framework v2.0.1 Unified AI Helper Engine.
 Zero heavy SDK dependencies (native async urllib/httpx).
 Supports OpenAI, DeepSeek, and Google Gemini with:
 - Configurable Rate Limiting
@@ -75,12 +75,19 @@ class SensitiveMasker:
                     ph = _get_placeholder("email")
                     vault[ph] = em
 
-        if "phone" in norm_keys or "telefono" in norm_keys:
+        if "phone" in norm_keys or "telefono" in norm_keys or "mobile" in norm_keys or "whatsapp" in norm_keys:
             for ph_num in re.findall(r"\+?[0-9]{2,4}[-.\s]?[0-9]{3,4}[-.\s]?[0-9]{3,4}", text):
                 clean_num = ph_num.strip()
                 if len(clean_num) >= 8 and clean_num not in vault.values():
                     ph = _get_placeholder("phone")
                     vault[ph] = clean_num
+
+        id_keys = {"dni", "ssn", "id_number", "document", "passport", "cedula"}
+        if id_keys.intersection(norm_keys):
+            for id_num in re.findall(r"(?<![\w-])\d{6,12}(?![\w-])", text):
+                if id_num not in vault.values():
+                    ph = _get_placeholder("id")
+                    vault[ph] = id_num
 
         if not vault:
             return text, data, {}
@@ -127,17 +134,17 @@ class IA:
         "openai": {
             "env_key": "OPENAI_API_KEY",
             "url": "https://api.openai.com/v1/chat/completions",
-            "default_model": "gpt-6",
+            "default_model": "gpt-4o-mini",
         },
         "deepseek": {
             "env_key": "DEEPSEEK_API_KEY",
             "url": "https://api.deepseek.com/chat/completions",
-            "default_model": "deepseek-flash",
+            "default_model": "deepseek-chat",
         },
         "gemini": {
             "env_key": "GEMINI_API_KEY",
             "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-            "default_model": "gemini-3.8-flash",
+            "default_model": "gemini-2.0-flash",
         },
     }
 
@@ -209,7 +216,10 @@ class IA:
 
         full_user_content = anon_prompt
         if anon_data:
-            full_user_content += "\n\nContext Data:\n" + json.dumps(anon_data, ensure_ascii=False)
+            try:
+                full_user_content += "\n\nContext Data:\n" + orjson_dumps(anon_data).decode("utf-8")
+            except Exception:
+                full_user_content += "\n\nContext Data:\n" + json.dumps(anon_data, ensure_ascii=False, default=str)
 
         messages = []
         if system_prompt:
@@ -233,7 +243,6 @@ class IA:
                 "success": True,
                 "text": restored_text,
                 "cached": True,
-                "masked": vault,
                 "provider": self.provider,
                 "model": self.model,
             }
@@ -246,7 +255,7 @@ class IA:
             return {
                 "success": False,
                 "error": "api_error",
-                "message": str(err),
+                "message": "AI provider request failed. Check server logs and credentials.",
                 "provider": self.provider,
                 "model": self.model,
             }
@@ -262,7 +271,6 @@ class IA:
             "success": True,
             "text": final_text,
             "cached": False,
-            "masked": vault,
             "provider": self.provider,
             "model": self.model,
         }
@@ -304,12 +312,18 @@ class IA:
             return {
                 "success": True,
                 "text": final_text,
-                "masked": vault,
                 "provider": self.provider,
                 "model": self.model,
             }
         except Exception as e:
-            return {"success": False, "error": str(e), "provider": self.provider}
+            Logger.error(f"AI chat error with {self.provider}: {e}", exception=e)
+            return {
+                "success": False,
+                "error": "api_error",
+                "message": "AI provider request failed. Check server logs and credentials.",
+                "provider": self.provider,
+                "model": self.model,
+            }
 
     async def _call_api(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
         """Executes API request in background thread without heavy client libraries."""
@@ -335,10 +349,12 @@ class IA:
             "User-Agent": "Lila-Framework-2.0",
         }
 
-        # For Google Gemini native endpoints requiring ?key= parameter
+        # Native Gemini endpoints accept the key in a header; never put it in
+        # the URL because proxies and access logs record query strings.
         req_url = self.endpoint
         if "generativelanguage.googleapis.com" in req_url and "openai" not in req_url:
-            req_url = f"{self.endpoint}?key={self.api_key}"
+            headers["x-goog-api-key"] = self.api_key
+            headers.pop("Authorization", None)
 
         def _sync_request() -> str:
             body_bytes = json.dumps(payload).encode("utf-8")
@@ -376,3 +392,5 @@ class IA:
             else:
                 status_code = 500
         return JSONResponse(result, status_code=status_code)
+
+

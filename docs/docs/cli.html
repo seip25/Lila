@@ -86,44 +86,94 @@
     </header>
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <h4>Menu</h4>
-            <a href="install.html">Installation</a>
-            <a href="routes.html">Routes</a>
-            <a href="static.html">Static</a>
-            <a href="templates.html">Templates</a>
-            <a href="session.html">Session</a>
-            <a href="upload.html">Uploads Files</a>
-            <a href="markdown.html">Markdown/HTML</a>
-            <a href="locales.html">Internationalization</a>
-            <a href="models.html">Models</a>
-            <a href="middlewares.html">Middlewares</a>
-            <a href="cli.html">CLI Commands</a>
-            <a href="connections.html">Connections</a>
-            <a href="migrations.html">Migrations</a>
-            <a href="auth.html">Auth Cli </a>
-            <a href="scaffold.html">Scaffold CRUD</a>
-            <a href="rest_api.html">API Rest CRUD</a>
-            <a href="admin.html">Admin Panel</a>
-            <a href="minify.html">Minify</a>
-            <a href="production.html">Production</a>
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="cli_commands-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <div>
                 <h1>CLI Commands Reference</h1>
                 <p>
-                    Lila Framework provides powerful CLI tools to speed up development. All commands
-                    follow the pattern
-                    <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-{command}</code>
+                    Lila Framework v2.0.1 ships a unified CLI: <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila &lt;command&gt;</code>.
+                    Legacy entry points such as <code>lila-init</code>, <code>lila-dev</code>,
+                    <code>lila-auth</code>, <code>lila-admin</code>, <code>lila-model</code>,
+                    <code>lila-crud</code>, <code>lila-migrate</code>, <code>lila-seo</code>,
+                    <code>lila-worker</code>, <code>lila-optimize</code> and
+                    <code>lila-secret-key</code> still exist and point at the same apps.
                 </p>
+            </div>
+
+            <div class="space-y-4 mt-8">
+                <h2>Project &amp; Server</h2>
+                <p>
+                    <code>lila init</code> scaffolds <code>main.py</code>, <code>app/</code>,
+                    <code>public/</code>, <code>resources/</code> and <code>.env</code> without overwriting
+                    existing files. <code>lila dev</code> and <code>lila run</code> read
+                    <code>HOST</code>/<code>PORT</code> from <code>.env</code>.
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="editor-title text-gray-300 dark:text-gray-400">cli.main</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-4 text-sm text-gray-200">
+                    <pre><code class="language-bash"># Scaffold a project (never overwrites existing files / .env)
+lila init
+
+# Development server with reload + dev SSE (or: lila-dev)
+lila dev
+lila dev --host 0.0.0.0 --port 8080
+
+# Production server, no reload (warns with >1 worker + memory cache)
+lila run
+lila run -w 2
+
+# Health check and route introspection
+lila doctor
+lila routes</code></pre>
+                </div>
             </div>
 
             <!-- Model Generator -->
             <div>
                 <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Model Generator</h2>
                 <p class="mt-2 text-slate-600 dark:text-slate-300">
-                    Lila features a powerful model builder that scaffolds SQLAlchemy models inheriting from <code>BaseModel</code>. 
-                    Running the command without parameters starts the <strong>Interactive Wizard</strong>, allowing you to configure primary keys, soft delete logic, timestamps, and define custom columns right from the console.
+                    <code>lila model</code> writes a starter SQLAlchemy model that inherits from
+                    <code>BaseModel</code> (<code>id</code>, <code>name</code>, <code>active</code>,
+                    <code>created_at</code>). It only asks for the model name — it is not a column wizard.
                 </p>
             </div>
 
@@ -137,42 +187,34 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 text-sm text-gray-200">
-                    <pre><code class="language-bash"># 1. Start the interactive console wizard
-lila-model create
+                    <pre><code class="language-bash"># Prompts for the model name
+lila model create
 
-# 2. Create a default model skeleton non-interactively
-lila-model create --name Product
+# Non-interactive: writes app/models/product.py
+lila model create --name Product
 
-# 3. Create a model with a custom database table name
-lila-model create --name Product --table custom_products
+# Custom database table name
+lila model create --name Product --table custom_products
 
-# 4. Force interactive mode even when providing parameters
-lila-model create --name User --interactive
-
-# 5. List all active model files inside app/models/
-lila-model list-models</code></pre>
+# List model files in app/models/
+lila model list-models</code></pre>
                 </div>
             </div>
 
             <div class="bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 mt-4 mb-6">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white font-heading mb-3">Interactive Wizard Features</h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white font-heading mb-3">Generated Model</h3>
                 <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">
-                    The interactive prompt guides you through standard configuration choices:
+                    The template includes an indexed primary key, a <code>name</code> column, the
+                    <code>active</code> soft-delete flag and <code>created_at</code>. Edit the file to add
+                    your own columns; then run <code>lila migrate</code> (it also adds missing columns).
                 </p>
-                <ul class="list-disc pl-6 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                    <li><strong>Table Name:</strong> Automatically infers pluralized snake_case of the model name, or takes a custom name.</li>
-                    <li><strong>Primary Key:</strong> Generates an optimized primary key (e.g. <code>id</code>) configured with database indexes (<code>index=True</code>) for high query performance.</li>
-                    <li><strong>Soft Delete:</strong> Sets up <code>_delete_logic = True</code> and appends an active column. Calling delete on models automatically acts as soft delete.</li>
-                    <li><strong>Timestamps:</strong> Prompts you to add <code>created_at</code> and <code>updated_at</code> timezone/TIMESTAMP fields.</li>
-                    <li><strong>Custom Column Loop:</strong> Add columns dynamically: asks for name, type (String, Integer, Float, Text, Boolean), length (for Strings), nullability, uniqueness, and optional defaults.</li>
-                </ul>
             </div>
 
             <!-- Scaffold Generator -->
             <div class="space-y-4 mt-8">
                 <h2>Scaffold Generator</h2>
                 <p>
-                    Generate complete CRUD functionality from existing models.
+                    Generate a full CRUD scaffold (Pydantic API + HTML DataTable) from an existing model.
                 </p>
             </div>
 
@@ -188,11 +230,11 @@ lila-model list-models</code></pre>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                     <pre class="language-bash">
 
-# Generate scaffold from model
-lila-scaffold-crud --model Product
+# Generate scaffold from model (alias: lila-scaffold-crud)
+lila crud --model Product
 
-# Custom route name
-lila-scaffold-crud --model Product --name products
+# Custom route slug
+lila crud --model Product --name products
 </code>
 </pre>
                 </div>
@@ -202,7 +244,8 @@ lila-scaffold-crud --model Product --name products
             <div class="space-y-4 mt-8">
                 <h2>Migrations</h2>
                 <p>
-                    Run database migrations to create tables from models.
+                    Create missing tables <b>and</b> add missing columns. <code>--refresh</code> drops every
+                    table first and asks for confirmation unless <code>--yes</code> is passed.
                 </p>
             </div>
 
@@ -219,11 +262,14 @@ lila-scaffold-crud --model Product --name products
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                     <pre class="language-bash">
 
-# Run migrations
-lila-migrations migrate
+# Create tables and add missing columns
+lila migrate
 
-# Refresh (drop and recreate all tables)
-lila-migrations migrate --refresh
+# Drop everything and recreate (interactive confirmation)
+lila migrate --refresh
+
+# Same, without the confirmation prompt (destructive!)
+lila migrate --refresh --yes
 </code>
 </pre>
                 </div>
@@ -233,7 +279,9 @@ lila-migrations migrate --refresh
             <div class="space-y-4 mt-8">
                 <h2>Authentication</h2>
                 <p>
-                    Generate authentication system with login, register, and password recovery.
+                    Generate the Auth 2.0 system: login, register, logout, forgot/change password,
+                    dashboard/profile, OAuth routes and templates. Existing files are backed up as
+                    <code>.bak</code>.
                 </p>
             </div>
 
@@ -250,8 +298,12 @@ lila-migrations migrate --refresh
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                     <pre class="language-bash">
 
-# Generate auth system
-lila-auth main
+# Generate auth system (alias: lila-auth)
+lila auth
+
+# Templates or routes only
+lila auth --no-routes
+lila auth --no-templates
 </code>
 </pre>
                 </div>
@@ -261,7 +313,8 @@ lila-auth main
             <div class="space-y-4 mt-8">
                 <h2>Admin Panel</h2>
                 <p>
-                    Create admin users and admin panel.
+                    Create/update the <code>admins</code> table entry and link the admin routes. The admin
+                    panel lives at <code>/admin</code>.
                 </p>
             </div>
 
@@ -278,11 +331,12 @@ lila-auth main
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                     <pre class="language-bash">
 
-# Create admin user
-lila-create-admin --password mypassword
+# Create/update an administrator (password generated if omitted)
+lila admin
+lila admin --user admin --password mypassword
 
-# Create admin panel
-lila-create-panel-admin --password mypassword
+# Aliases: lila-admin, lila-create-admin, lila-create-panel-admin
+lila-create-admin --username admin
 </code>
 </pre>
                 </div>
@@ -310,7 +364,9 @@ lila-create-panel-admin --password mypassword
                     <pre class="language-bash">
 
 # Replace SECRET_KEY in .env with a new randomly generated token
-lila-secret-key
+lila secret-key
+
+# The same command is available as lila-secret-key
 </code>
 </pre>
                 </div>
@@ -321,9 +377,10 @@ lila-secret-key
             <div class="space-y-4 mt-8">
                 <h2>SEO Generators</h2>
                 <p>
-                    Generate <code class="font-mono text-blue-600 dark:text-blue-400">sitemap.xml</code> and <code
-                        class="font-mono text-blue-600 dark:text-blue-400">robots.txt</code> files automatically based
-                    on your application's routes.
+                    Generate <code class="font-mono text-blue-600 dark:text-blue-400">public/sitemap.xml</code>
+                    and <code class="font-mono text-blue-600 dark:text-blue-400">public/robots.txt</code> from
+                    the public GET routes. They are served at <code>/sitemap.xml</code> and
+                    <code>/robots.txt</code> (site root, not <code>/public/</code>).
                 </p>
             </div>
 
@@ -339,21 +396,45 @@ lila-secret-key
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                     <pre class="language-bash">
 
-# Generate sitemap.xml in the public folder
-lila-seo sitemap --domain https://mywebsite.com
+# Generate both files (base URL from APP_URL in .env)
+lila seo
 
-# Generate robots.txt in the public folder
-lila-seo robots --domain https://mywebsite.com
+# Generate one of them with an explicit domain
+lila seo sitemap --domain https://mywebsite.com
+lila seo robots  --domain https://mywebsite.com
 </code>
 </pre>
                 </div>
             </div>
 
-            <!-- Desktop Mode (New in v2.0) -->
+            <!-- Optimize -->
             <div class="space-y-4 mt-8">
-                <h2>Desktop Mode (Native Window & Executables)</h2>
+                <h2>Asset Optimizer</h2>
                 <p>
-                    Execute your application inside a native ultra-lightweight OS window (<25MB RAM) or compile it into a standalone executable.
+                    Minify JS/CSS and convert PNG/JPG images to WebP. Requires
+                    <code>rjsmin</code>/<code>rcssmin</code> for JS/CSS (otherwise it skips them) and
+                    Pillow for images. See the <a href="minify.html">Minify</a> page.
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="editor-content">
+                    <pre class="language-bash">
+lila optimize
+# alias: lila-optimize
+</code>
+</pre>
+                </div>
+            </div>
+
+            <!-- Desktop Mode -->
+            <div class="space-y-4 mt-8">
+                <h2>Desktop Mode (Native Window &amp; Executables)</h2>
+                <p>
+                    Run your application inside a native OS window (pywebview, or Edge/Chrome app mode as a
+                    fallback) or bundle it with PyInstaller. <code>lila desktop dev</code> loads
+                    <code>.env</code>; <code>lila desktop build</code> bundles <code>main</code>,
+                    <code>app</code> and Lila templates/assets into <code>dist/&lt;name&gt;</code>.
                 </p>
             </div>
 
@@ -373,42 +454,19 @@ lila desktop dev
 # Launch with custom dimensions
 lila desktop dev --title "My App" --width 1280 --height 800
 
-# Compile standalone executable (.exe / binary) via PyInstaller
+# Compile a standalone executable (.exe / binary) via PyInstaller
 lila desktop build --name "MyDesktopApp" --onefile --windowed</code></pre>
                 </div>
             </div>
 
-            <!-- Development Server -->
-            <div class="space-y-4 mt-8">
-                <h2>Development Server</h2>
-                <p>
-                    Start the local development server with instant hot-reload and dev SSE sync.
-                </p>
-            </div>
-
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
-                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="ml-auto text-sm font-semibold text-gray-300">cli.dev</span>
-                    <div class="flex space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                </div>
-                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre><code class="language-bash"># Start dev server with auto-reload (or: lila-dev)
-lila dev
-
-# Bind custom host or port
-lila dev --host 0.0.0.0 --port 8080</code></pre>
-                </div>
-            </div>
-
-            <!-- Development Worker -->
+            <!-- Background Worker -->
             <div class="space-y-4 mt-8">
                 <h2>Background Task Worker</h2>
                 <p>
-                    Start the background task runner to process tasks asynchronously enqueued in Redis (e.g. mailer, database write-backs).
+                    Consume JSON tasks from Redis (<code>lila:tasks</code>). Requires the
+                    <code>[redis]</code> extra and a reachable Redis server. Modules must be in
+                    <code>LILA_TASK_MODULES</code> (default <code>app.,lila.</code>); failed tasks are
+                    retried and then sent to the dead-letter queue <code>lila:tasks:dead</code>.
                 </p>
             </div>
 
@@ -424,7 +482,9 @@ lila dev --host 0.0.0.0 --port 8080</code></pre>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                     <pre class="language-bash">
 
-# Start background task worker process
+# All three forms start the worker
+lila worker
+lila worker start
 lila-worker start
 </code>
 </pre>

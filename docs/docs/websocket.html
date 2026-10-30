@@ -83,32 +83,36 @@
   <main>
     <aside
       class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-      <h4>Menu</h4>
-      <a href="install.html">Installation</a>
-      <a href="routes.html">Routes</a>
-      <a href="static.html">Static</a>
-      <a href="templates.html">Templates</a>
-      <a href="session.html">Session</a>
-      <a href="upload.html">Uploads Files</a>
-      <a href="markdown.html">Markdown/HTML</a>
-      <a href="locales.html">Internationalization</a>
-      <a href="models.html">Models</a>
-      <a href="middlewares.html">Middlewares</a>
-      <a href="cli.html">CLI Commands</a>
-      <a href="connections.html">Connections</a>
-      <a href="migrations.html">Migrations</a>
-      <a href="auth.html">Auth Cli </a>
-      <a href="scaffold.html">Scaffold CRUD</a>
-      <a href="rest_api.html">API Rest CRUD</a>
-      <a href="admin.html">Admin Panel</a>
-      <a href="minify.html">Minify</a>
-      <a href="production.html">Production</a>
-      <a href="debug.html">Debug & Profiling</a>
-      <a href="logger.html">Logger</a>
-      <a href="cache.html">Memory Cache</a>
-      <a href="seo.html">SEO</a>
-      <a href="websocket.html">WebSocket (Real-Time)</a>
-    </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
 
     <article
       class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -116,15 +120,19 @@
 
       <p>
         Lila Framework provides a zero-dependency, Socket.io-style WebSocket engine built on top of Starlette.
-        It features binary <code class="code-inline">orjson</code> serialization on the server, room management,
-        automatic heartbeat ping/pong, and a smart reconnecting client (<code
-          class="code-inline">public/js/ws.js</code>).
+        It uses <code class="code-inline">orjson</code>-serialized JSON text frames, room management,
+        automatic heartbeat ping/pong, and a reconnecting client
+        (<code class="code-inline">public/js/ws.js</code>). The hub class is
+        <code class="code-inline">WebSocketHub</code> (also exported as
+        <code class="code-inline">WebSocketManager</code>); the global instance is
+        <code class="code-inline">ws</code>.
       </p>
 
       <h3>1. Backend Setup (<code class="code-inline">lila/core/websocket.py</code>)</h3>
       <p>
-        Register WebSocket routes with <code class="code-inline">@router.websocket("/ws")</code> and handle events using
-        <code class="code-inline">WebSocketManager</code>:
+        Mount the hub with <code class="code-inline">router.ws_hub("/ws/chat", hub)</code> and handle events with
+        <code class="code-inline">@hub.on("event")</code>. Event handlers receive
+        <code>(websocket, data)</code>.
       </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -139,53 +147,72 @@
           </div>
         </div>
         <div class="editor-content bg-gray-900 dark:bg-black">
-          <pre><code class="language-python">from lila.core.routing import Router
-from lila.core.websocket import ws # Global, pre-configured WebSocketHub
-import datetime
+          <pre><code class="language-python">import datetime
+from lila.core.routing import Router
+from lila.core.websocket import ws   # global, pre-configured WebSocketHub
 
 router = Router()
 
-# Auto-mounts connection lifecycle, heartbeats, and room pub/sub in 1 line:
+# Mounts accept / receive loop / heartbeats / disconnect handling in 1 line:
 router.ws_hub("/ws/chat", ws)
 
 # Event handler for joining a room
 @ws.on("join_channel")
 async def handle_join(websocket, data: dict):
-    room = data.get("room", "general")
-    username = data.get("username", "Guest")
-    
+    room = (data or {}).get("room", "general")
+    username = (data or {}).get("username", "Guest")
+
     ws.join_room(websocket, room)
-    
-    # Broadcast join notice to room members
+
+    # Broadcast a join notice to the room members
     await ws.broadcast("user_joined", {
         "user": username,
         "room": room,
-        "time": datetime.datetime.now().strftime("%H:%M")
+        "time": datetime.datetime.now().strftime("%H:%M"),
     }, room=room)
 
-# Event handler for sending chat messages
+# Event handler for chat messages
 @ws.on("send_message")
 async def handle_message(websocket, data: dict):
+    data = data or {}
     room = data.get("room", "general")
-    text = data.get("text", "")
+    text = str(data.get("text", ""))
     username = data.get("username", "Guest")
-    
+
     if not text.strip():
         return
 
-    # Broadcast message to room subscribers
     await ws.broadcast("new_message", {
         "user": username,
         "text": text,
         "room": room,
-        "time": datetime.datetime.now().strftime("%H:%M")
+        "time": datetime.datetime.now().strftime("%H:%M"),
     }, room=room)</code></pre>
+        </div>
+      </div>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-python"># A private hub (instead of the global one) works the same way.
+from lila.core.websocket import WebSocketHub
+
+chat_hub = WebSocketHub()
+router.ws_hub("/ws/private", chat_hub)
+
+# Starlette-style raw endpoint, if you prefer handling the loop yourself:
+from starlette.websockets import WebSocket
+
+@router.websocket("/ws/raw")
+async def raw_socket(websocket: WebSocket):
+    await chat_hub.handle_connection(websocket, default_room="lobby")</code></pre>
         </div>
       </div>
 
       <h3>2. Client-Side Usage (<code class="code-inline">public/js/ws.js</code>)</h3>
       <p>
-        Connect from Jinja2 templates using the built-in <code class="code-inline">lilaWS</code> client:
+        Connect from Jinja2 templates using the built-in <code class="code-inline">lilaWS</code> client.
+        Never inject untrusted values with <code>innerHTML</code>: build DOM nodes with
+        <code>textContent</code> (as below) or escape them first.
       </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -239,7 +266,21 @@ async def handle_message(websocket, data: dict):
 
     ws.on('new_message', (data) => {
       const box = document.getElementById('messages');
-      box.innerHTML += `&lt;div&gt;&lt;b class="text-blue-400"&gt;${data.user}&lt;/b&gt; &lt;span class="text-xs text-slate-500"&gt;[${data.time}]&lt;/span&gt;: ${data.text}&lt;/div&gt;`;
+      const row = document.createElement('div');
+
+      const user = document.createElement('b');
+      user.className = 'text-blue-400';
+      user.textContent = data.user;          // textContent, not innerHTML
+
+      const time = document.createElement('span');
+      time.className = 'text-xs text-slate-500';
+      time.textContent = `[${data.time}]`;
+
+      const text = document.createElement('span');
+      text.textContent = `: ${data.text}`;
+
+      row.append(user, ' ', time, text);
+      box.appendChild(row);
       box.scrollTop = box.scrollHeight;
     });
 
@@ -288,20 +329,27 @@ async def handle_message(websocket, data: dict):
         </div>
         <div class="editor-content bg-gray-900 dark:bg-black p-5 text-gray-200">
           <pre><code class="language-python">
-# Backend (WebSocketManager)
-@ws_manager.on("event_name")                            # Register event callback
-await ws_manager.broadcast("event", data)               # Send event to all sockets
-await ws_manager.broadcast_to_room("room", "event", data)# Send event to room members
-await ws_manager.emit_to(websocket, "event", data)      # Send event to single socket
-ws_manager.join_room(websocket, "room_name")           # Join socket to channel
-ws_manager.leave_room(websocket, "room_name")          # Remove socket from channel
+# Backend (WebSocketHub instance; `ws` is the global one)
+async def hub_example(ws, websocket, sock, data):
+    @ws.on("event_name")                             # Register event callback
+    async def on_event(websocket, data):
+        return None
 
-# Client JavaScript (lilaWS)
-const ws = lilaWS('ws://domain/ws')                    # Connect to server
-ws.on('event', (data) => { ... })                      # Handle server event
-ws.emit('event', { ... })                              # Send event to server
-ws.join('room_name')                                   # Join channel
-ws.leave('room_name')                                  # Leave channel
+    await ws.broadcast("event", data)                # Send to every connected socket
+    await ws.broadcast("event", data, room="room")   # Send to room members only
+    await ws.broadcast("event", data, exclude=sock)  # Skip one socket
+    await ws.emit(websocket, "event", data)          # Send to a single socket
+    ws.join_room(websocket, "room_name")             # Join socket to a channel
+    ws.leave_room(websocket, "room_name")            # Remove socket from a channel
+    await ws.handle_connection(websocket)            # Full receive loop (or router.ws_hub)
+            </code></pre>
+          <pre><code class="language-javascript">
+// Client JavaScript (lilaWS)
+const sock = lilaWS('ws://domain/ws');            // Connect to the server
+sock.on('event', (data) => { /* ... */ });        // Handle a server event
+sock.emit('event', { key: 'value' });             // Send an event to the server
+sock.join('room_name');                           // Join a channel
+sock.leave('room_name');                          // Leave a channel
             </code></pre>
         </div>
       </div>

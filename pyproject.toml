@@ -4,20 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lila-framework"
-version = "2.0.0"
-description = "High-performance full-stack Python web framework with SPA View Transitions, Zero-Infra SQLite WAL, In-Memory/Redis Cache, AI helper and Desktop mode."
+version = "2.0.1"
+description = "High-performance full-stack Python web framework with SPA View Transitions, Zero-Infra SQLite WAL, In-Memory/Redis/File cache, AI helper and Desktop mode."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Andrés Paiva Silveira", email = "andrespaivasilveiraa@gmail.com" }
 ]
+license = { text = "MIT" }
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "License :: OSI Approved :: MIT License", 
-    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -26,8 +26,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "starlette>=1.0.0",
-    "uvicorn[standard]>=0.53.0",
+    "starlette>=1.0.0,<2",
+    "uvicorn>=0.53.0,<1",
     "pydantic>=2.8.0",
     "pydantic[email]",
     "python-dotenv>=1.0.0",
@@ -44,14 +44,25 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+standard = ["uvicorn[standard]>=0.53.0,<1"]
 redis = ["redis>=5.0.0"]
 mysql = ["aiomysql>=0.2.0", "pymysql>=1.1.0", "cryptography>=42.0.0"]
 postgres = ["asyncpg>=0.29.0", "psycopg>=3.2.0"]
 images = ["pillow>=10.4.0"]
 markdown = ["markdown>=3.6"]
-desktop = ["pywebview>=5.2", "pyinstaller>=6.10.0"]
 metrics = ["psutil>=6.0.0"]
-all = ["redis>=5.0.0", "pillow>=10.4.0", "markdown>=3.6", "psutil>=6.0.0", "pywebview>=5.2"]
+optimize = ["rjsmin>=1.2.0", "rcssmin>=1.1.0", "pillow>=10.4.0"]
+desktop = ["pywebview>=5.2", "pyinstaller>=6.10.0"]
+dev = ["pytest>=8.0", "httpx>=0.27", "ruff>=0.6"]
+all = [
+    "redis>=5.0.0",
+    "pillow>=10.4.0",
+    "markdown>=3.6",
+    "psutil>=6.0.0",
+    "rjsmin>=1.2.0",
+    "rcssmin>=1.1.0",
+    "pywebview>=5.2",
+]
 
 [project.scripts]
 lila = "lila.cli.main:app"
@@ -61,6 +72,7 @@ lila-desktop = "lila.cli.desktop:app"
 lila-auth = "lila.cli.auth:app"
 lila-admin = "lila.cli.create_panel_admin:app"
 lila-create-panel-admin = "lila.cli.create_panel_admin:app"
+lila-create-admin = "lila.cli.create_panel_admin:app"
 lila-migrate = "lila.cli.migrations:app"
 lila-migrations = "lila.cli.migrations:app"
 lila-model = "lila.cli.model:app"
@@ -80,7 +92,8 @@ lila = [
     ".env_example",
     ".gitignore",
     "AGENTS.md",
-    "main.py"
+    "main.py",
+    "py.typed",
 ]
 
 [tool.setuptools.exclude-package-data]
@@ -90,13 +103,19 @@ lila = [
     "**/__pycache__/**/*",
     "app/logs/**/*",
     "app/cache/**/*",
-    "**/*.sqlite"
+    "**/*.sqlite",
+    "**/*.sqlite-wal",
+    "**/*.sqlite-shm",
 ]
 
 [tool.setuptools.packages.find]
-where = ["."] 
-include = ["lila*"]  
+where = ["."]
+include = ["lila*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
 
 [project.urls]
-Homepage = "https://seip25.github.io/Lila/"  
+Homepage = "https://seip25.github.io/Lila/"
 Repository = "https://github.com/seip25/Lila"

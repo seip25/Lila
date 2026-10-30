@@ -2,9 +2,10 @@ import os
 import sys
 import subprocess
 import typer
-from lila.core.config import ENV_CONFIG
+from lila.core.config import ConfigLoader, ENV_CONFIG
 
 app = typer.Typer(help="Start Lila local development server with hot-reload.")
+
 
 @app.command()
 def start(
@@ -20,8 +21,12 @@ def start(
         typer.echo("Make sure you are in the root directory of your Lila project.")
         raise typer.Exit(code=1)
 
+    ConfigLoader.load()
     bind_host = host or ENV_CONFIG.get("HOST", "127.0.0.1")
-    bind_port = port or int(ENV_CONFIG.get("PORT", 8000))
+    try:
+        bind_port = int(port or ENV_CONFIG.get("PORT", 8000) or 8000)
+    except (TypeError, ValueError):
+        bind_port = 8000
 
     typer.secho(f"🚀 Starting Lila v2.0 development server at http://{bind_host}:{bind_port} ...", fg=typer.colors.CYAN)
     

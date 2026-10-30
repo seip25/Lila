@@ -8,6 +8,15 @@ class ExampleModel(BaseModel):
     email: EmailStr
     password: str
 
+@router.get("/example")
+async def example_info(request: Request):
+    """Explains the example endpoint without requiring a POST body."""
+    return {
+        "success": True,
+        "message": "POST a JSON body with 'email' and 'password' to validate with Pydantic v2.",
+        "example_body": {"email": "user@example.com", "password": "secret"},
+    }
+
 @router.post("/example", model=ExampleModel)
 async def example(request: Request, data: ExampleModel = None):
     """

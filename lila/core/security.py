@@ -1,8 +1,9 @@
-"""Lila Framework v2.0.0 Security Utilities.
+﻿"""Lila Framework v2.0.1 Security Utilities.
 Provides optional sanitization, path traversal checks, and security headers.
 """
 
 import html
+import os
 import re
 from typing import Any, Union
 
@@ -52,11 +53,15 @@ class Security:
 
     @staticmethod
     def is_safe_path(path_str: str) -> bool:
-        """Checks if a path attempts directory traversal attacks."""
+        """Checks if a path attempts directory traversal or escapes the base."""
         if not path_str:
             return False
-        normalized = path_str.replace("\\", "/")
-        if ".." in normalized or normalized.startswith(("/", "\\")):
+        normalized = os.path.normpath(str(path_str).replace("\\", "/"))
+        if normalized in ("..", ".") or normalized.startswith("../") or "/../" in normalized:
+            return False
+        if os.path.isabs(path_str):
+            return False
+        if len(normalized) > 1 and normalized[1] == ":":
             return False
         return True
 
@@ -69,3 +74,4 @@ class Security:
             "X-XSS-Protection": "1; mode=block",
             "Referrer-Policy": "strict-origin-when-cross-origin",
         }
+

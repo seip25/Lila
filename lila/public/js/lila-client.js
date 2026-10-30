@@ -1,9 +1,29 @@
 /**
- * Lila Framework Client Runtime v2.0.0
+ * Lila Framework Client Runtime v2.0.x
  * Provides client-side SPA routing with View Transitions API,
  * persistent element state, selective React/JS Islands hydration,
  * lightweight global event bus, and modern Tailwind CSS UI components.
  */
+
+/**
+ * Escapes any value before inserting it into HTML. Used by the UI components
+ * (DataTable, toast, command palette) so database/user content cannot inject
+ * markup or scripts.
+ */
+function lilaEscapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function lilaEscapeAttr(value) {
+  return lilaEscapeHtml(value).replace(/`/g, "&#96;");
+}
+
 (() => {
   if (typeof window === "undefined" || window.Lila) return;
 
@@ -181,9 +201,17 @@
         }
 
         const html = await res.text();
+        // The server always returns a full document; extract the outlet so we
+        // never inject <html>/<body>/<head> inside an element.
+        let fragment = html;
+        try {
+          const parsed = new DOMParser().parseFromString(html, "text/html");
+          const outlet = parsed.querySelector("[data-lila-outlet]");
+          if (outlet) fragment = outlet.innerHTML;
+        } catch {}
         const applyPartial = () => {
           Lila.unmountNonPersistent(targetEl);
-          targetEl.innerHTML = html;
+          targetEl.innerHTML = fragment;
           executeScripts(targetEl);
           Lila.hydrate(targetEl);
           if (options.pushUrl) {
@@ -624,8 +652,8 @@ function lila(component, options) {
     const toastEl = document.createElement("div");
     toastEl.className = `pointer-events-auto flex items-start justify-between gap-3 w-full p-4 rounded-2xl shadow-lg border backdrop-blur-md transition-all duration-300 transform translate-y-0 opacity-100 ${theme.classes}`;
 
-    const title = options && options.title ? `<div class="font-bold text-sm leading-tight">${options.title}</div>` : "";
-    const desc = options && options.description ? `<div class="text-xs opacity-90 mt-0.5">${options.description}</div>` : "";
+    const title = options && options.title ? `<div class="font-bold text-sm leading-tight">${lilaEscapeHtml(options.title)}</div>` : "";
+    const desc = options && options.description ? `<div class="text-xs opacity-90 mt-0.5">${lilaEscapeHtml(options.description)}</div>` : "";
 
     toastEl.innerHTML = `
       <div class="flex items-start gap-2.5">
@@ -964,6 +992,7 @@ class ResponsiveDataTable {
       pagination: true,
       headerTitles: {},
       summaryFields: ["id"],
+      idKey: "id",
       edit: false,
       delete: false,
       breakpoint: 768,
@@ -973,12 +1002,21 @@ class ResponsiveDataTable {
     this.currentPage = 1;
     this.filteredData = [...this.options.data];
     this.isMobile = window.innerWidth < this.options.breakpoint;
-    this.init();
-    window.addEventListener("resize", () => {
+    this._onResize = () => {
       const wasMobile = this.isMobile;
       this.isMobile = window.innerWidth < this.options.breakpoint;
       if (wasMobile !== this.isMobile) this.updateTable();
-    });
+    };
+    window.addEventListener("resize", this._onResize);
+    this.init();
+  }
+
+  destroy() {
+    if (this._onResize) {
+      window.removeEventListener("resize", this._onResize);
+      this._onResize = null;
+    }
+    if (this.container) this.container.innerHTML = "";
   }
 
   init() {
@@ -1027,28 +1065,29 @@ class ResponsiveDataTable {
   renderDesktopTable(table) {
     const theadRows = this.options.columns.map((col) => {
       const title = this.options.headerTitles[col.key] || col.title || col.key;
-      return `<th class="px-4 py-3.5 font-bold">${title}</th>`;
+      return `<th class="px-4 py-3.5 font-bold">${lilaEscapeHtml(title)}</th>`;
     }).join("");
 
     const actionsHeader = this.options.edit || this.options.delete ? '<th class="px-4 py-3.5 font-bold text-right">Actions</th>' : "";
 
     const startIndex = (this.currentPage - 1) * this.options.rowsPerPage;
     const pageItems = this.filteredData.slice(startIndex, startIndex + this.options.rowsPerPage);
+    const idKey = this.options.idKey || "id";
 
     const tbodyRows = pageItems.map((item) => {
       const cells = this.options.columns.map((col) => {
         const val = item[col.key];
-        return `<td class="px-4 py-3.5 text-slate-700 dark:text-slate-300 align-middle">${val !== undefined && val !== null ? val : "-"}</td>`;
+        return `<td class="px-4 py-3.5 text-slate-700 dark:text-slate-300 align-middle">${val !== undefined && val !== null ? lilaEscapeHtml(val) : "-"}</td>`;
       }).join("");
 
       let actionBtns = "";
       if (this.options.edit || this.options.delete) {
         actionBtns = `<td class="px-4 py-3.5 text-right align-middle"><div class="flex items-center justify-end gap-2">`;
         if (this.options.edit) {
-          actionBtns += `<button class="datatable-btn-edit px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" data-id="${item.id}">Edit</button>`;
+          actionBtns += `<button class="datatable-btn-edit px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer" data-id="${lilaEscapeAttr(item[idKey])}">Edit</button>`;
         }
         if (this.options.delete) {
-          actionBtns += `<button class="datatable-btn-delete px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer" data-id="${item.id}">Delete</button>`;
+          actionBtns += `<button class="datatable-btn-delete px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer" data-id="${lilaEscapeAttr(item[idKey])}">Delete</button>`;
         }
         actionBtns += `</div></td>`;
       }
@@ -1074,21 +1113,24 @@ class ResponsiveDataTable {
     }
 
     container.innerHTML = pageItems.map((item) => {
-      const summaryText = this.options.summaryFields.map((k) => item[k]).filter(Boolean).join(" • ");
+      const summaryText = this.options.summaryFields.map((k) => item[k]).filter((v) => v !== undefined && v !== null && v !== "").map(lilaEscapeHtml).join(" • ");
       const details = this.options.columns
         .filter((c) => !this.options.summaryFields.includes(c.key))
         .map((c) => {
           const title = this.options.headerTitles[c.key] || c.title || c.key;
-          return `<div class="flex items-center justify-between py-1 text-xs"><dt class="font-bold text-slate-400 uppercase">${title}</dt><dd class="text-slate-700 dark:text-slate-200 font-medium">${item[c.key] || "-"}</dd></div>`;
+          const raw = item[c.key];
+          const shown = raw !== undefined && raw !== null && raw !== "" ? lilaEscapeHtml(raw) : "-";
+          return `<div class="flex items-center justify-between py-1 text-xs"><dt class="font-bold text-slate-400 uppercase">${lilaEscapeHtml(title)}</dt><dd class="text-slate-700 dark:text-slate-200 font-medium">${shown}</dd></div>`;
         }).join("");
+      const idKey = this.options.idKey || "id";
 
       return `
         <article class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-3 shadow-sm">
           <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-100 dark:border-slate-800 mb-2">${summaryText || "Item"}</h3>
           <dl class="space-y-1 mb-3">${details}</dl>
           <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            ${this.options.edit ? `<button class="datatable-btn-edit px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200" data-id="${item.id}">Edit</button>` : ""}
-            ${this.options.delete ? `<button class="datatable-btn-delete px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 text-red-600 dark:text-red-400" data-id="${item.id}">Delete</button>` : ""}
+            ${this.options.edit ? `<button class="datatable-btn-edit px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200" data-id="${lilaEscapeAttr(item[idKey])}">Edit</button>` : ""}
+            ${this.options.delete ? `<button class="datatable-btn-delete px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 text-red-600 dark:text-red-400" data-id="${lilaEscapeAttr(item[idKey])}">Delete</button>` : ""}
           </div>
         </article>
       `;
@@ -1098,10 +1140,11 @@ class ResponsiveDataTable {
   }
 
   bindActionEvents(root) {
+    const idKey = this.options.idKey || "id";
     root.querySelectorAll(".datatable-btn-edit").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const id = btn.getAttribute("data-id");
-        const item = this.options.data.find((d) => String(d.id) === String(id));
+        const item = this.options.data.find((d) => String(d[idKey]) === String(id));
         if (typeof this.options.edit === "function") this.options.edit(e, item || id);
       });
     });
@@ -1109,7 +1152,7 @@ class ResponsiveDataTable {
     root.querySelectorAll(".datatable-btn-delete").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const id = btn.getAttribute("data-id");
-        const item = this.options.data.find((d) => String(d.id) === String(id));
+        const item = this.options.data.find((d) => String(d[idKey]) === String(id));
         if (typeof this.options.delete === "function") this.options.delete(e, item || id);
       });
     });
@@ -1171,12 +1214,12 @@ class ResponsiveDataTable {
  */
 async function Http(url = "/", method = "GET", body = false, bodyForm = false, headers = {}) {
   const csrfEl =
+    document.querySelector('meta[name="csrf-token"]') ||
     document.getElementById("csrf") ||
-    document.querySelector('input[name="_csrf"]') ||
-    document.querySelector('meta[name="csrf-token"]');
-  const csrfToken = csrfEl ? csrfEl.value || csrfEl.getAttribute("content") : null;
+    document.querySelector('input[name="_csrf"]');
+  const csrfToken = csrfEl ? csrfEl.getAttribute("content") || csrfEl.value : null;
 
-  const mergedHeaders = { ...headers };
+  const mergedHeaders = { Accept: "application/json", ...headers };
   if (csrfToken) {
     mergedHeaders["X-CSRF-Token"] = csrfToken;
   }
@@ -1184,19 +1227,17 @@ async function Http(url = "/", method = "GET", body = false, bodyForm = false, h
   const upperMethod = String(method || "GET").toUpperCase();
   const options = { method: upperMethod, headers: mergedHeaders, credentials: "include" };
 
-  if (body) {
-    const payload = csrfToken ? { ...body, _csrf: csrfToken, csrf: csrfToken } : body;
-    options.body = JSON.stringify(payload);
-    if (!mergedHeaders["Content-Type"]) {
-      mergedHeaders["Content-Type"] = "application/json";
-    }
-  }
-
   if (bodyForm) {
-    if (csrfToken && bodyForm instanceof FormData) {
-      if (!bodyForm.has("_csrf")) bodyForm.append("_csrf", csrfToken);
+    if (csrfToken && bodyForm instanceof FormData && !bodyForm.has("_csrf")) {
+      bodyForm.append("_csrf", csrfToken);
     }
     options.body = bodyForm;
+  } else if (body) {
+    const payload = csrfToken ? { ...body, _csrf: csrfToken, csrf: csrfToken } : body;
+    options.body = JSON.stringify(payload);
+    if (!mergedHeaders["Content-Type"] && !mergedHeaders["content-type"]) {
+      mergedHeaders["Content-Type"] = "application/json";
+    }
   }
 
   if (upperMethod !== "GET" && window.Lila && typeof window.Lila.clearPrefetch === "function") {
@@ -1204,16 +1245,31 @@ async function Http(url = "/", method = "GET", body = false, bodyForm = false, h
   }
 
   const response = await fetch(url, options);
+  const contentType = response.headers.get("content-type") || "";
+
   if (!response.ok) {
-    let errorData;
+    let errorData = null;
     try {
-      errorData = await response.json();
+      if (contentType.includes("application/json")) {
+        errorData = await response.json();
+      } else {
+        const text = await response.text();
+        errorData = { message: text ? text.slice(0, 300) : `HTTP Error ${response.status}` };
+      }
     } catch {
       errorData = { message: `HTTP Error ${response.status}: ${response.statusText}` };
     }
-    throw new Error(errorData.message || errorData.msg || "Fetch request failed");
+    const error = new Error(
+      errorData.message || errorData.msg || `HTTP Error ${response.status}: ${response.statusText}`
+    );
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
   }
-  return await response.json();
+
+  if (response.status === 204) return null;
+  if (contentType.includes("application/json")) return await response.json();
+  return await response.text();
 }
 
 if (typeof window !== "undefined") {
@@ -1221,4 +1277,5 @@ if (typeof window !== "undefined") {
   window.Http = Http;
   window.lila = lila;
   window.Lila.ui = lila;
+  window.Lila.escape = lilaEscapeHtml;
 }

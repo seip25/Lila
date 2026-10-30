@@ -1,20 +1,36 @@
-"""Lila Framework v2.0.0 ActiveRecord BaseModel.
-Async & Sync CRUD operations, automatic dict serialization,
-Single-Flight deduplication, and cache invalidation.
+"""Lila Framework v2.0.x ActiveRecord BaseModel.
+
+Async and sync CRUD, safe single-flight deduplication, cache invalidation and
+partial-column serialization that never triggers lazy-load errors.
 """
 
 import asyncio
-from typing import Optional, List, Dict, Any, Union, Type
+from typing import Optional, List, Dict, Any, Callable
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import load_only
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from lila.core.config import ENV_CONFIG
 from lila.core.database import Base, db as default_db
 from lila.core.cache import Cache
+from lila.core.logger import Logger
 
-_PENDING_QUERIES: Dict[str, asyncio.Future] = {}
+
+# In-flight queries: cache_key -> asyncio.Task (never a bare Future, so a
+# cancelled caller cannot leave waiters hanging forever).
+_PENDING_QUERIES: Dict[str, "asyncio.Task"] = {}
 
 
-async def run_deduplicated(cache_key: Optional[str], fetch_coro) -> Any:
-    """Run an async fetch with single-flight deduplication and short TTL caching."""
+def _cacheable(value: Any) -> bool:
+    return isinstance(value, (dict, list, str, int, float, bool))
+
+
+async def run_deduplicated(cache_key: Optional[str], fetch_coro: Callable[[], Any]) -> Any:
+    """Runs an async fetch with single-flight deduplication and short TTL caching.
+
+    Cancellation-safe: if one caller disconnects, the shared task keeps running
+    for the other waiters instead of leaving them blocked.
+    """
     if not cache_key:
         return await fetch_coro()
 
@@ -22,24 +38,27 @@ async def run_deduplicated(cache_key: Optional[str], fetch_coro) -> Any:
     if cached_res is not None:
         return cached_res
 
-    loop = asyncio.get_running_loop()
-    if cache_key in _PENDING_QUERIES:
-        return await asyncio.shield(_PENDING_QUERIES[cache_key])
+    existing = _PENDING_QUERIES.get(cache_key)
+    if existing is not None and not existing.done():
+        return await asyncio.shield(existing)
 
-    future: asyncio.Future = loop.create_future()
-    _PENDING_QUERIES[cache_key] = future
-    try:
+    ttl = max(1, int(ENV_CONFIG.get("MODEL_CACHE_TTL", 5) or 5))
+
+    async def _runner():
         res = await fetch_coro()
-        # Only cache serializable dict/list/primitives, not raw SQLAlchemy instances
-        if isinstance(res, (dict, list, str, int, float, bool)) or res is None:
-            await Cache.set_async(cache_key, res, ttl=5)
-        future.set_result(res)
+        if _cacheable(res):
+            await Cache.set_async(cache_key, res, ttl=ttl)
         return res
-    except Exception as exc:
-        future.set_exception(exc)
-        raise
+
+    task = asyncio.get_running_loop().create_task(_runner())
+    _PENDING_QUERIES[cache_key] = task
+    # Consume exceptions if every waiter goes away, to avoid noisy warnings.
+    task.add_done_callback(lambda t: None if t.cancelled() else t.exception())
+    try:
+        return await asyncio.shield(task)
     finally:
-        _PENDING_QUERIES.pop(cache_key, None)
+        if _PENDING_QUERIES.get(cache_key) is task:
+            _PENDING_QUERIES.pop(cache_key, None)
 
 
 class BaseModel(Base):
@@ -48,6 +67,8 @@ class BaseModel(Base):
     _active_field: str = "active"
     _primary_key: str = "id"
     _connection: Any = None
+    # Columns that must never appear in to_dict()/JSON/session payloads.
+    __private_fields__: tuple = ()
 
     @classmethod
     def get_connection(cls):
@@ -55,62 +76,63 @@ class BaseModel(Base):
             return cls._connection
         try:
             from app.connections import connection
+
             return connection
-        except Exception:
+        except ModuleNotFoundError:
             return default_db
+        except Exception as exc:  # configuration/import errors must not silently use another DB
+            Logger.error(
+                "[Lila Model] Could not import app.connections; refusing to fall back to the "
+                f"default database: {exc}",
+                exception=exc,
+            )
+            raise
 
     def to_dict(self, exclude: Optional[set] = None) -> dict:
-        """Converts model instance to primitive dict."""
-        exclude = exclude or set()
+        """Converts only loaded columns to primitive values.
+
+        Unloaded columns (``load_only``) are skipped instead of being returned as
+        ``None`` or triggering an async lazy-load error.
+        """
+        exclude = set(exclude or set()) | set(getattr(type(self), "__private_fields__", ()))
         data = {}
         for col in self.__table__.columns:
-            if col.name not in exclude:
-                # Check instance __dict__ first to avoid triggering lazy loading DetachedInstanceError
-                if col.name in self.__dict__:
-                    data[col.name] = self.__dict__[col.name]
-                else:
-                    try:
-                        data[col.name] = getattr(self, col.name, None)
-                    except Exception:
-                        data[col.name] = None
+            if col.name in exclude:
+                continue
+            if col.name in self.__dict__:
+                data[col.name] = self.__dict__[col.name]
         return data
 
     @classmethod
+    def _cache_prefix(cls) -> str:
+        return f"model:{cls.__tablename__}"
+
+    @classmethod
     async def invalidate_cache_async(cls) -> None:
-        """Invalidates cached queries for this model in memory and redis."""
-        Cache.delete(f"model:{cls.__tablename__}:*")
-        try:
-            r = await Cache._get_redis_async()
-            if r is not None:
-                cursor = 0
-                while True:
-                    cursor, keys = await r.scan(cursor=cursor, match=f"lila:cache:model:{cls.__tablename__}:*", count=100)
-                    if keys:
-                        await r.delete(*keys)
-                    if cursor == 0:
-                        break
-        except Exception:
-            pass
+        await Cache.delete_async(f"{cls._cache_prefix()}:*")
 
     @classmethod
     def invalidate_cache(cls) -> None:
-        """Synchronously invalidates cached queries for this model."""
-        Cache.delete(f"model:{cls.__tablename__}:*")
-        try:
-            r = Cache._get_redis_sync()
-            if r is not None:
-                cursor = 0
-                while True:
-                    cursor, keys = r.scan(cursor=cursor, match=f"lila:cache:model:{cls.__tablename__}:*", count=100)
-                    if keys:
-                        r.delete(*keys)
-                    if cursor == 0:
-                        break
-        except Exception:
-            pass
+        Cache.delete(f"{cls._cache_prefix()}:*")
+
+    @classmethod
+    def _select_columns(cls, target_select: Optional[str]):
+        if not target_select:
+            return []
+        names = [c.strip() for c in target_select.split(",") if c.strip()]
+        cols = []
+        unknown = []
+        for name in names:
+            if hasattr(cls, name):
+                cols.append(getattr(cls, name))
+            else:
+                unknown.append(name)
+        if unknown:
+            raise ValueError(f"Unknown column(s) for {cls.__name__}: {', '.join(unknown)}")
+        return cols
 
     # ──────────────────────────────────────────────────────────────────────────
-    # Async CRUD Operations
+    # Async CRUD
     # ──────────────────────────────────────────────────────────────────────────
     @classmethod
     async def get_all_async(
@@ -119,31 +141,36 @@ class BaseModel(Base):
         limit: int = 1000,
         offset: int = 0,
         select: Optional[str] = None,
+        order_by: Optional[str] = None,
+        desc: bool = False,
         **filters,
     ) -> List[Dict[str, Any]]:
         conn = cls.get_connection()
         target_select = select_cols or select
         cache_key = (
-            f"model:{cls.__tablename__}:all:{target_select}:{limit}:{offset}:"
+            f"{cls._cache_prefix()}:all:{target_select}:{limit}:{offset}:{order_by}:{desc}:"
             f"{tuple(sorted(filters.items()))}"
         )
 
         async def _fetch():
             async with conn.transaction() as session:
                 from sqlalchemy import select as sa_select
+
                 stmt = sa_select(cls)
-                if target_select:
-                    col_names = [c.strip() for c in target_select.split(",") if c.strip()]
-                    cols = [getattr(cls, c) for c in col_names if hasattr(cls, c)]
-                    if cols:
-                        stmt = stmt.options(load_only(*cols))
+                cols = cls._select_columns(target_select)
+                if cols:
+                    stmt = stmt.options(load_only(*cols))
 
                 if cls._delete_logic and hasattr(cls, cls._active_field):
                     stmt = stmt.where(getattr(cls, cls._active_field) == 1)
 
-                for k, v in filters.items():
-                    if hasattr(cls, k):
-                        stmt = stmt.where(getattr(cls, k) == v)
+                for key, value in filters.items():
+                    if hasattr(cls, key):
+                        stmt = stmt.where(getattr(cls, key) == value)
+
+                if order_by and hasattr(cls, order_by):
+                    order_col = getattr(cls, order_by)
+                    stmt = stmt.order_by(order_col.desc() if desc else order_col.asc())
 
                 stmt = stmt.offset(offset).limit(limit)
                 result = await session.execute(stmt)
@@ -158,22 +185,21 @@ class BaseModel(Base):
     ) -> Optional[Dict[str, Any]]:
         conn = cls.get_connection()
         target_select = select_cols or select
-        cache_key = f"model:{cls.__tablename__}:id:{id_val}:{target_select}"
+        cache_key = f"{cls._cache_prefix()}:id:{id_val}:{target_select}"
 
         async def _fetch():
             async with conn.transaction() as session:
                 from sqlalchemy import select as sa_select
+
                 pk_col = getattr(cls, cls._primary_key)
                 stmt = sa_select(cls).where(pk_col == id_val)
 
                 if cls._delete_logic and hasattr(cls, cls._active_field):
                     stmt = stmt.where(getattr(cls, cls._active_field) == 1)
 
-                if target_select:
-                    col_names = [c.strip() for c in target_select.split(",") if c.strip()]
-                    cols = [getattr(cls, c) for c in col_names if hasattr(cls, c)]
-                    if cols:
-                        stmt = stmt.options(load_only(*cols))
+                cols = cls._select_columns(target_select)
+                if cols:
+                    stmt = stmt.options(load_only(*cols))
 
                 result = await session.execute(stmt)
                 row = result.scalars().first()
@@ -185,14 +211,10 @@ class BaseModel(Base):
     async def insert_async(cls, instance: Optional[Any] = None, **values) -> Dict[str, Any]:
         conn = cls.get_connection()
         async with conn.transaction() as session:
-            if instance is not None:
-                record = instance
-            else:
-                record = cls(**values)
+            record = instance if instance is not None else cls(**values)
             session.add(record)
             await session.flush()
             data = record.to_dict()
-
         await cls.invalidate_cache_async()
         return data
 
@@ -203,6 +225,8 @@ class BaseModel(Base):
         conn = cls.get_connection()
         payload = dict(values or {})
         payload.update(kwargs)
+        if not payload:
+            return False
 
         async with conn.transaction() as session:
             pk_col = getattr(cls, cls._primary_key)
@@ -219,7 +243,7 @@ class BaseModel(Base):
         async with conn.transaction() as session:
             pk_col = getattr(cls, cls._primary_key)
             if cls._delete_logic and hasattr(cls, cls._active_field):
-                stmt = update(cls).where(pk_col == id_val).values({cls._active_field: 0})
+                stmt = update(cls).where(pk_col == id_val).values({getattr(cls, cls._active_field): 0})
             else:
                 stmt = delete(cls).where(pk_col == id_val)
             result = await session.execute(stmt)
@@ -236,36 +260,49 @@ class BaseModel(Base):
             stmt = select(func.count(pk_col))
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-            for k, v in filters.items():
-                if hasattr(cls, k):
-                    stmt = stmt.where(getattr(cls, k) == v)
+            for key, value in filters.items():
+                if hasattr(cls, key):
+                    stmt = stmt.where(getattr(cls, key) == value)
             result = await session.execute(stmt)
             return result.scalar() or 0
 
     # ──────────────────────────────────────────────────────────────────────────
-    # Synchronous CRUD Helpers
+    # Sync compatibility helpers
     # ──────────────────────────────────────────────────────────────────────────
     @classmethod
-    def get_all(cls, select_cols: Optional[str] = None, limit: int = 1000, select: Optional[str] = None, **filters) -> list:
+    def _run_sync(cls, coro):
+        conn = cls.get_connection()
+        return conn.run_sync(coro)
+
+    @classmethod
+    def get_all(
+        cls,
+        select_cols: Optional[str] = None,
+        limit: int = 1000,
+        select: Optional[str] = None,
+        offset: int = 0,
+        **filters,
+    ) -> list:
         conn = cls.get_connection()
         if conn.is_async:
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                return asyncio.run(cls.get_all_async(select_cols=select_cols or select, limit=limit, **filters))
+            return cls._run_sync(
+                cls.get_all_async(select_cols=select_cols or select, limit=limit, offset=offset, **filters)
+            )
         with conn.transaction_sync() as session:
             query = session.query(cls)
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
-            for k, v in filters.items():
-                if hasattr(cls, k):
-                    query = query.filter(getattr(cls, k) == v)
-            rows = query.limit(limit).all()
+            for key, value in filters.items():
+                if hasattr(cls, key):
+                    query = query.filter(getattr(cls, key) == value)
+            rows = query.offset(offset).limit(limit).all()
             return [row.to_dict() for row in rows]
 
     @classmethod
     def get_by_id(cls, id_val: Any) -> Optional[dict]:
         conn = cls.get_connection()
+        if conn.is_async:
+            return cls._run_sync(cls.get_by_id_async(id_val))
         with conn.transaction_sync() as session:
             pk_col = getattr(cls, cls._primary_key)
             query = session.query(cls).filter(pk_col == id_val)
@@ -277,6 +314,8 @@ class BaseModel(Base):
     @classmethod
     def insert(cls, instance: Optional[Any] = None, **values) -> dict:
         conn = cls.get_connection()
+        if conn.is_async:
+            return cls._run_sync(cls.insert_async(instance, **values))
         with conn.transaction_sync() as session:
             record = instance if instance is not None else cls(**values)
             session.add(record)
@@ -288,8 +327,12 @@ class BaseModel(Base):
     @classmethod
     def update(cls, id_val: Any, values: Optional[dict] = None, **kwargs) -> bool:
         conn = cls.get_connection()
+        if conn.is_async:
+            return cls._run_sync(cls.update_async(id_val, values, **kwargs))
         payload = dict(values or {})
         payload.update(kwargs)
+        if not payload:
+            return False
         with conn.transaction_sync() as session:
             pk_col = getattr(cls, cls._primary_key)
             stmt = update(cls).where(pk_col == id_val).values(**payload)
@@ -301,10 +344,12 @@ class BaseModel(Base):
     @classmethod
     def delete(cls, id_val: Any) -> bool:
         conn = cls.get_connection()
+        if conn.is_async:
+            return cls._run_sync(cls.delete_async(id_val))
         with conn.transaction_sync() as session:
             pk_col = getattr(cls, cls._primary_key)
             if cls._delete_logic and hasattr(cls, cls._active_field):
-                stmt = update(cls).where(pk_col == id_val).values({cls._active_field: 0})
+                stmt = update(cls).where(pk_col == id_val).values({getattr(cls, cls._active_field): 0})
             else:
                 stmt = delete(cls).where(pk_col == id_val)
             res = session.execute(stmt)

@@ -3,28 +3,25 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}">
+  <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Lila Framework</title>
   {% include "lila/tailwind.jinja" %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans min-h-screen">
   <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
-    <!-- Persistent Sidebar Menu -->
     <aside data-persist="true" id="admin-sidebar" class="w-full md:w-64 flex-shrink-0">
       {{ menu | safe }}
     </aside>
 
-    <!-- Main Workspace in Lila Outlet -->
     <main id="lila-outlet" data-lila-outlet class="flex-1 space-y-6">
       <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
         <div>
           <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Admin Dashboard
           </h2>
-          <p class="text-xs text-slate-400 mt-1 font-semibold">Lila Engine v2.0.0 Active Telemetry</p>
+          <p class="text-xs text-slate-400 mt-1 font-semibold">Lila Engine v2.0 Live Telemetry</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="purgeCache()" class="btn bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 text-xs px-3.5 py-2">
@@ -36,62 +33,68 @@
         </div>
       </header>
 
-      <!-- Server Metrics Section -->
+      {% if not metrics.psutil_available %}
+      <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/40 p-3 text-xs text-amber-800 dark:text-amber-200">
+        <code>psutil</code> is not installed, so process/system metrics are unavailable.
+        Install it with <code>pip install "lila-framework[metrics]"</code>.
+      </div>
+      {% endif %}
+
       <article class="card p-6">
         <h4 class="text-base font-bold tracking-tight mb-6 flex items-center gap-2">
-          <span>⚡</span> Server & Telemetry Metrics
+          <span>⚡</span> Server &amp; Telemetry Metrics
         </h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila Memory</span>
-            <span class="text-2xl font-black text-slate-900 dark:text-slate-100" id="lilaMemory">{{ lila_memory | round(1) }}</span>
+            <span class="text-2xl font-black text-slate-900 dark:text-slate-100">
+              {% if metrics.process_memory_mb is not none %}{{ "%.1f"|format(metrics.process_memory_mb) }}{% else %}n/a{% endif %}
+            </span>
             <span class="text-xs font-semibold text-slate-400">MB</span>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Lila CPU</span>
-            <span class="text-2xl font-black text-slate-900 dark:text-slate-100" id="lilaCpuUsage">{{ lila_cpu_usage | round(1) }}</span>
+            <span class="text-2xl font-black text-slate-900 dark:text-slate-100">
+              {% if metrics.process_cpu is not none %}{{ "%.1f"|format(metrics.process_cpu) }}{% else %}n/a{% endif %}
+            </span>
             <span class="text-xs font-semibold text-slate-400">%</span>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Cache Driver</span>
-            <span class="text-2xl font-black text-blue-600 dark:text-blue-400" id="cacheDriver">{{ cache_stats.driver if cache_stats is defined else 'memory' }}</span>
-            <span class="text-xs font-semibold text-slate-400 block mt-0.5">{{ cache_stats.memory_items if cache_stats is defined else '0' }} items</span>
+            <span class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ cache_stats.driver | default('memory') }}</span>
+            <span class="text-xs font-semibold text-slate-400 block mt-0.5">{{ cache_stats.memory_items | default(0) }} items</span>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">System Memory</span>
             <span class="text-lg font-black text-slate-900 dark:text-slate-100">
-              <span id="systemUsedMemory">{{ system_used_memory | round(0) }}</span> / <span id="systemTotalMemory">{{ system_total_memory | round(0) }}</span>
+              {% if metrics.system_used_mb is not none %}
+                {{ "%.0f"|format(metrics.system_used_mb) }} / {{ "%.0f"|format(metrics.system_total_mb) }}
+              {% else %}n/a{% endif %}
             </span>
             <span class="text-xs font-semibold text-slate-400">MB</span>
           </div>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
-            <h5 class="text-xs font-bold uppercase text-slate-400 mb-2">Memory Utilization</h5>
-            <div class="w-40 h-40 relative"><canvas id="memoryDoughnutChart"></canvas></div>
-          </div>
-          <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
-            <h5 class="text-xs font-bold uppercase text-slate-400 mb-2">CPU Utilization</h5>
-            <div class="w-40 h-40 relative"><canvas id="cpuDoughnutChart"></canvas></div>
-          </div>
-        </div>
       </article>
 
-      <!-- Logs Section -->
       <article class="card p-6">
         <h4 class="text-base font-bold tracking-tight mb-4 flex items-center gap-2">
           <span>📁</span> Recent Log Activity
         </h4>
-        {% if logs_html %}
-        <div class="prose dark:prose-invert max-w-none text-xs font-mono bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto max-h-96">
-          {{ logs_html | safe }}
-        </div>
+        {% if logs %}
+          {% for log in logs %}
+          <details class="mb-2" {% if loop.first %}open{% endif %}>
+            <summary class="cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
+              {{ log.date }} / {{ log.file }}
+            </summary>
+            <pre class="mt-2 text-[11px] leading-relaxed font-mono bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto max-h-72">{% for line in log.lines %}{{ line }}
+{% endfor %}</pre>
+          </details>
+          {% endfor %}
         {% else %}
-        <p class="text-xs text-slate-400 italic">No log entries found for today.</p>
+        <p class="text-xs text-slate-400 italic">No log entries found. Enable <code>logging=True</code> in App() to record requests.</p>
         {% endif %}
       </article>
     </main>
@@ -113,57 +116,17 @@
     }
 
     async function clearLogs() {
-      if (!confirm('Are you sure you want to delete past log files?')) return;
+      if (!confirm('Delete all log files?')) return;
       try {
         const res = await Http('/admin/logs', 'DELETE');
         if (res.success) {
-          lila('toast', { title: 'Logs Cleared', description: 'Log directory purged.', type: 'success' });
+          lila('toast', { title: 'Logs Cleared', description: res.message || 'Logs purged.', type: 'success' });
           setTimeout(() => window.location.reload(), 500);
         }
       } catch (err) {
         lila('toast', { title: 'Error', description: err.message, type: 'error' });
       }
     }
-
-    // Chart.js initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        const memCtx = document.getElementById('memoryDoughnutChart');
-        if (memCtx) {
-          const used = {{ system_used_memory | default(100) }};
-          const total = {{ system_total_memory | default(1000) }};
-          new Chart(memCtx, {
-            type: 'doughnut',
-            data: {
-              labels: ['Used', 'Free'],
-              datasets: [{
-                data: [used, Math.max(0, total - used)],
-                backgroundColor: ['#3b82f6', '#e2e8f0'],
-                borderWidth: 0
-              }]
-            },
-            options: { cutout: '75%', plugins: { legend: { display: false } } }
-          });
-        }
-
-        const cpuCtx = document.getElementById('cpuDoughnutChart');
-        if (cpuCtx) {
-          const cpu = {{ cpu_usage | default(10) }};
-          new Chart(cpuCtx, {
-            type: 'doughnut',
-            data: {
-              labels: ['Used', 'Idle'],
-              datasets: [{
-                data: [cpu, Math.max(0, 100 - cpu)],
-                backgroundColor: ['#8b5cf6', '#e2e8f0'],
-                borderWidth: 0
-              }]
-            },
-            options: { cutout: '75%', plugins: { legend: { display: false } } }
-          });
-        }
-      } catch (e) {}
-    });
   </script>
 </body>
 

@@ -94,27 +94,44 @@
     <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
 
     <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h2>Installation</h2>
+      <p>
+        Lila Framework v2.0.1 requires <b>Python 3.10+</b> (Starlette 1.x and Uvicorn 0.54
+        need it). Optional extras: <code class="code-inline">[redis]</code>,
+        <code class="code-inline">[images]</code>, <code class="code-inline">[markdown]</code>,
+        <code class="code-inline">[metrics]</code>, <code class="code-inline">[optimize]</code>
+        and <code class="code-inline">[desktop]</code>.
+      </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
           <span class="editor-title text-gray-300 dark:text-gray-400 text-gray-300 dark:text-gray-400">Install</span>
@@ -145,14 +162,23 @@
         </div>
       </div>
       <div id="tailwind-integration" class="mt-8">
-        <h2>Zero-Dependency CDN Style Delivery</h2>
+        <h2>Build-Free Styling</h2>
         <p>
-          Lila includes a zero-dependency, build-free styling system right out-of-the-box.
+          Lila ships a zero-dependency, build-free styling system: no Node.js, Vite or npm
+          step is required to get started.
         </p>
         <ul>
-          <li><b>Google Fonts &amp; Play CDN:</b> By default, Lila loads the premium fonts Outfit and Inter alongside the official Tailwind CSS Play CDN dynamically in the browser. You do not need to install Node.js, Vite, or any npm dependencies.</li>
-          <li><b>Custom Component Layer:</b> The styling engine automatically injects the Lila design system components (such as cards, premium inputs, buttons, and layouts) with complete support for light and dark modes natively.</li>
-          <li><b>Customization &amp; Removal:</b> If you prefer to use another CSS framework (such as Bootstrap or pure CSS), simply edit your main layout base file at <code class="code-inline">resources/html/lila/base.jinja</code> and change or remove the <code class="code-inline">{{ asset('css/tailwind.css') | safe }}</code> call!</li>
+          <li><b>Tailwind Play CDN:</b> Development templates load the Tailwind Play CDN
+            script, so utility classes work immediately. Google Fonts are <b>not</b> loaded by
+            Lila; the bundled layouts use the system font stack.</li>
+          <li><b>Production:</b> the Play CDN is a development convenience. For production the
+            README recommends shipping a precompiled CSS file and pointing
+            <code class="code-inline">public('css/tailwind.css')</code> at it.</li>
+          <li><b>Custom Component Layer:</b> the bundled component classes (cards, inputs,
+            buttons, layouts) support light and dark mode out of the box.</li>
+          <li><b>Customization &amp; Removal:</b> edit your layout at
+            <code class="code-inline">resources/html/lila/base.jinja</code> and change or remove
+            the <code class="code-inline">{{ asset('css/tailwind.css') | safe }}</code> call.</li>
         </ul>
       </div>
 
@@ -182,13 +208,10 @@
           </div>
           <div class="editor-content bg-gray-900 dark:bg-black">
             <pre><code class="language-python">
-from app.config import DEBUG, HOST, PORT, JIT, WORKERS
+from app.config import DEBUG, HOST, PORT, WORKERS
 from app.routes.web.index import router as web_router
 from app.routes.api.index import router as api_router
-from app.routes.api.example import router as example_api_router
 from lila.core.app import App
-import os
-import uvicorn
 
 # api_marker
 # auth_marker
@@ -196,30 +219,26 @@ import uvicorn
 
 # Initialize Lila application with optional batteries
 app = App(
-    routes=[web_router, api_router, example_api_router],
-    debug=DEBUG,
-    security=True,       # Security headers & path traversal shield
-    rate_limit=300,      # 300 req/min per IP (None to disable)
-    logging=False,       # True to log requests in app/logs/
-    cors=True,           # Enable CORS
-    openapi=True,        # Mount /openapi.json and Swagger UI at /docs
+    routes=[web_router, api_router],
+    debug=DEBUG,          # bool, not a string
+    security=True,        # Security headers & path traversal shield
+    rate_limit=300,       # 300 req/min per IP (None to disable)
+    logging=False,        # True to log requests in app/logs/YYYY-MM-DD/
+    cors=True,            # Credentials are OFF by default
+    gzip=True,
+    openapi=True,         # Mounts /openapi.json and Swagger UI at /docs
+    debug_html=DEBUG,     # Mounts GET/DELETE /debug in debug mode
 )
-
-def main():
-    if DEBUG:
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
-    else:
-        workers = min((os.cpu_count() or 1) * 2 + 1, 8) if (str(WORKERS).lower() == "max" or WORKERS == 0) else int(WORKERS)
-        print(f"🚀 Running Lila v2.0.0 on {HOST}:{PORT} with {workers} workers")
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, workers=workers)
-
-if __name__ == "__main__":
-    if JIT:
-        os.environ["PYTHON_JIT"] = "1"
-    main()
             </code></pre>
           </div>
         </div>
+
+        <p>
+          Run the production server with <code class="code-inline">lila run -w 2</code>; the CLI
+          reads <code class="code-inline">HOST</code>/<code class="code-inline">PORT</code> from
+          <code class="code-inline">.env</code> and warns when more than one worker is combined
+          with the in-memory cache.
+        </p>
       </div>
     </article>
   </main>

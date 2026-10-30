@@ -96,42 +96,49 @@
   <main>
     <aside
       class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-      <h4>Menu</h4>
-      <a href="install.html">Installation</a>
-      <a href="routes.html">Routes</a>
-      <a href="static.html">Static</a>
-      <a href="templates.html">Templates</a>
-      <a href="session.html">Session</a>
-      <a href="upload.html">Uploads Files</a>
-      <a href="markdown.html">Markdown/HTML</a>
-      <a href="locales.html">Internationalization</a>
-      <a href="models.html">Models</a>
-      <a href="middlewares.html">Middlewares</a>
-      <a href="cli.html">CLI Commands</a>
-      <a href="connections.html">Connections</a>
-      <a href="migrations.html">Migrations</a>
-      <a href="auth.html">Auth Cli </a>
-      <a href="scaffold.html">Scaffold CRUD</a>
-      <a href="rest_api.html">API Rest CRUD</a>
-      <a href="admin.html">Admin Panel</a>
-      <a href="minify.html">Minify</a>
-      <a href="production.html">Production</a>
-    </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
     <article id="connections-eng"
       class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
       <h1>Connections to Database</h1>
       <p>
-        To use connections, you need to import the <code
+        To use connections, import the <code
           class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Database</code>
         class from
-        lila.core.database. With
-        that you can connect to your database, which can be SQLite, MySLQ, PostgreSQL or
-        whatever you
-        want to configure.
-      <p>Below we leave you the example of how to connect. The connection will close automatically
-        after
-        being used, so you can use it as in this example in the variable <code
-          class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">connection</code>
+        <code class="code-inline">lila.core.database</code>. With that you can connect to SQLite, MySQL or
+        PostgreSQL. The scaffold stores the project instance in
+        <code class="code-inline">app/connections.py</code> as <code class="code-inline">connection</code>.
+      <p>Without an explicit config, <code>Database()</code> reads
+        <code class="code-inline">DB_TYPE</code>/<code class="code-inline">DB_NAME</code> (and host/user/password)
+        from <code>.env</code> the first time it connects. SQLite defaults to async with WAL mode.
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -148,21 +155,23 @@
             <code class="language-python">
 from lila.core.database import Database
 
-#SQLite
-
-#Example connection to a sqlite database 
-config = {"type":"sqlite","database":"test"} #test.db
+# SQLite (async, WAL). "test" -> test.sqlite next to the project.
+config = {"type": "sqlite", "database": "test", "is_async": True}
 connection = Database(config=config)
 connection.connect()
 
-#MySql
-
-#Example connection to a mysql database 
-config = {"type":"mysql","host":"127.0.0.1","user":"root","password":"password","database":"db_test","auto_commit":False}
-connection = Database(config=config)
-connection.connect()
-mysql_connection = connection
-                
+# MySQL (async needs aiomysql: pip install "lila-framework[mysql]")
+config = {
+    "type": "mysql",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "root",
+    "password": "password",
+    "database": "db_test",
+    "is_async": True,
+}
+mysql_connection = Database(config=config)
+mysql_connection.connect()
 
                 </code>
                 </pre>
@@ -170,8 +179,10 @@ mysql_connection = connection
       </div>
       <h3>Transaction Context Manager</h3>
       <p>
-        Lila provides a built-in context manager to safely run database operations. It automatically commits the session
-        on success, or rolls back on exception, closing the session automatically.
+        Lila provides context managers that open a session, commit on success and roll back on
+        exception. Async databases require <code>async with connection.transaction()</code>; use
+        <code>with connection.transaction_sync()</code> only with a sync database
+        (<code>is_async=False</code>).
       </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -182,20 +193,34 @@ mysql_connection = connection
         </div>
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
           <pre><code class="language-python">
-# Automatically opens a session, commits at the end, and handles rollbacks/cleanup!
-with connection.transaction() as db:
-    new_user = User(email="test@example.com", name="Lila")
-    db.add(new_user)
+from sqlalchemy import select
+from app.connections import connection
+
+# Async: opens a session, commits at the end, rolls back on exception.
+async with connection.transaction() as session:
+    session.add(User(email="test@example.com", name="Lila"))
+    await session.flush()
+
+    result = await session.execute(select(User).limit(5))
+    rows = [row.to_dict() for row in result.scalars().all()]
           </code></pre>
+        </div>
+      </div>
+
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-python"># Sync database only (is_async=False)
+with connection.transaction_sync() as session:
+    session.add(User(email="test@example.com", name="Lila"))</code></pre>
         </div>
       </div>
 
       <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Connection Pool
         Configuration</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        Lila's <code>Database</code> class configures connection pooling for MySQL and PostgreSQL by default, with
-        <code>pool_size=20</code> and <code>max_overflow=40</code>. These settings ensure there are enough connections
-        available for concurrent async database executions.
+        Lila's <code>Database</code> class configures connection pooling for MySQL and PostgreSQL, with
+        <code>pool_size=10</code> and <code>max_overflow=20</code> by default. SQLite uses
+        <code>pool_size=5</code> and <code>max_overflow=10</code>.
       </p>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
         You can adjust these values in <code>app/connections.py</code>:
@@ -209,102 +234,120 @@ with connection.transaction() as db:
     "user": "root",
     "password": "password",
     "database": "db_name",
-    "auto_commit": False,
+    "is_async": True,
     "pool_size": 30,       # Maximum number of persistent connections
-    "max_overflow": 60,    # Extra temporary connections under peak loads
+    "max_overflow": 60,    # Extra temporary connections under peak load
 }</code></pre>
         </div>
       </div>
 
       <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Async Database
-        Queries (Non-Blocking & Deduplicated)</h3>
+        Queries</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        Lila routes are asynchronous (<code>async def</code>) running on ASGI. Standard synchronous database queries
-        block the event loop, which drastically reduces throughput under concurrent traffic.
-      </p>
-      <p class="mt-2 text-slate-600 dark:text-slate-300">
-        To prevent blocking, Lila provides non-blocking async variants for model queries with **automatic query
-        deduplication (Single-flight)**.
+        Lila routes are asynchronous (<code>async def</code>) running on ASGI. Synchronous database
+        helpers block the event loop, so inside routes use the <code>_async</code> variants. Model reads
+        additionally use single-flight deduplication and a short <code>MODEL_CACHE_TTL</code> (5 s).
       </p>
       <div
         class="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 p-4 rounded-r-xl my-4 text-sm text-slate-700 dark:text-slate-300">
-        <strong>How Deduplication Works:</strong> If N concurrent requests trigger the exact same <code>SELECT</code>
-        query at the same millisecond, Lila executes only <strong>one real query</strong> to the database. All other
-        requests wait for the same promise (Future) and receive the results simultaneously. The query registry is
-        cleared immediately upon resolution, ensuring subsequent calls always receive fresh database data.
+        <strong>How deduplication works:</strong> if N concurrent requests trigger the exact same model
+        query, Lila runs <strong>one</strong> database query and shares the result. The cache key includes
+        the model, columns, filters and pagination; entries expire after <code>MODEL_CACHE_TTL</code>
+        seconds and are invalidated on every write to that model.
       </div>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
         Use the <code>_async</code> variants inside your routes:
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-python"># ✅ Non-blocking & Deduplicated (Recommended for SELECT in route handlers)
+          <pre><code class="language-python"># Non-blocking reads (recommended in route handlers)
 @router.get("/products")
 async def list_products(request: Request):
     items = await Product.get_all_async(limit=100)
-    return JSONResponse(items)
+    return items                      # list -> JSON automatically
 
-@router.get("/products/{id}")
-async def get_product(request: Request):
-    product = await Product.get_by_id_async(request.path_params["id"])
-    return JSONResponse(product or {})
+@router.get("/products/{id:int}")
+async def get_product(request: Request, id: int):
+    product = await Product.get_by_id_async(id)
+    return product or {}
 
-# ⚠️ Standard writes (must use the synchronous method inside a session context)
-@router.post("/products")
+# Writes also have async variants; do not pass a session.
+@router.post("/products", csrf=True)
 async def create_product(request: Request):
-    db = connection.get_session()
-    Product.insert(db, request.state.data.dict())
-    db.commit()
-    db.close()
-    return JSONResponse({"success": True})</code></pre>
+    created = await Product.insert_async(
+        name="Gaming Chair",
+        price=299.99,
+    )
+    return {"success": True, "id": created.get("id")}</code></pre>
         </div>
       </div>
 
-      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Non-Blocking Raw
-        SQL Queries</h3>
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Raw SQL Queries</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        If you run custom raw queries using the <code>Database.query</code> wrapper, Lila provides a corresponding
-        non-blocking <code>query_async</code> method. Like the ORM variants, it also automatically deduplicates
-        concurrent <code>SELECT</code> queries!
+        Raw SQL goes through <code>query_async</code> (inside a loop) or <code>query</code> (outside).
+        There is no deduplication for raw SQL: each call executes. Passing
+        <code>return_rows=True</code> returns a list of dicts, <code>return_row=True</code> returns one
+        dict, and writes are committed automatically.
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-python"># Non-blocking & Deduplicated raw SELECT query
+          <pre><code class="language-python"># Raw SELECT returning a list of dicts
 sql = "SELECT id, name FROM products WHERE price > :price LIMIT 10"
 products = await connection.query_async(
     sql,
     params={"price": 10.5},
-    return_rows=True
+    return_rows=True,
+)
+
+# Single row (or None)
+product = await connection.query_async(
+    "SELECT id, name FROM products WHERE id = :id",
+    params={"id": 1},
+    return_row=True,
 )</code></pre>
         </div>
       </div>
 
-      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Hybrid Queue-Based Asynchronous Writes</h3>
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Migrations Add Missing Columns</h3>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
-        Under heavy concurrent load, or when explicitly requested, database write queries (INSERT, UPDATE, DELETE) can be routed automatically to a Redis task queue. This prevents connection pool starvation and database lock conflicts.
+        <code>lila migrate</code> creates missing tables <b>and</b> adds missing columns to existing
+        tables (<code>ALTER TABLE ... ADD COLUMN</code>). Nullable columns and columns with a server
+        default can be added automatically; a <code>NOT NULL</code> column without a default is skipped
+        with a warning, so add it manually or give it a <code>server_default</code>.
       </p>
-      <p class="mt-2 text-slate-600 dark:text-slate-300">
-        The system executes writes synchronously if the queue size is 15 or less, and automatically enqueues writes once it passes the threshold. You can also bypass this routing logic using the <code>background</code> parameter:
-      </p>
-      <ul class="list-disc pl-6 mt-2 text-slate-600 dark:text-slate-300">
-        <li><code>background=True</code>: Force the query to execute asynchronously via the Redis queue. Returns a queue response payload immediately: <code>{"success": true, "queued": true, "job_id": "..."}</code>.</li>
-        <li><code>background=False</code>: Force the query to run synchronously against the database, bypassing the queue threshold entirely (useful for critical actions).</li>
-      </ul>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
         <div class="editor-content bg-gray-900 dark:bg-black p-4">
-          <pre><code class="language-python"># Force a raw SQL INSERT to run in the background
-result = await connection.query_async(
-    query="INSERT INTO products(name, price) VALUES(:name, :price)",
-    params={"name": "Gaming Chair", "price": 299.99},
-    background=True
-)
+          <pre><code class="language-python">from app.connections import connection
 
-# Force an ORM model insertion to run in the background
-result = await Product.insert_async(
-    db_session,
-    {"name": "Gaming Keyboard", "price": 89.99},
-    background=True
-)</code></pre>
+report = await connection.migrate_async()
+# {"tables": [...], "added_columns": ["products.sku", ...]}
+
+# Destructive: drop every table first. CLI --refresh asks for confirmation unless --yes.
+await connection.drop_all_async(use_base=True)</code></pre>
+        </div>
+      </div>
+
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading mt-8">Background Work</h3>
+      <p class="mt-2 text-slate-600 dark:text-slate-300">
+        Database writes are always executed by the database call itself — there is no
+        <code>background=True</code> parameter on <code>query_async</code> or on the model API. For
+        out-of-band work use <code>BackgroundTask</code> after a response, or the Redis task worker
+        (<code>lila worker</code>).
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content bg-gray-900 dark:bg-black p-4">
+          <pre><code class="language-python">from lila.core.mailer import Mailer
+
+@router.post("/orders")
+async def create_order(request: Request):
+    created = await Order.insert_async(total=10)
+    # Mailer.send_background() returns a Starlette BackgroundTask.
+    task = Mailer.send_background(
+        to="buyer@example.com",
+        subject="Receipt",
+        body_html=f"&lt;p&gt;Order {created['id']}&lt;/p&gt;",
+    )
+    return JSONResponse({"success": True, "id": created["id"]}, background=task)</code></pre>
         </div>
       </div>
 

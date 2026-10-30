@@ -88,54 +88,65 @@
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
         <article id="admin-panel-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h1>Admin Panel</h1>
             <p>
                 The <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Admin</code>
-                module allows you to manage an admin panel for your application.
-                It includes authentication, model management, system metrics, and more. This panel is
-                highly customizable and integrates easily with your application.
-            </p>
-            <p>
-                The admin panel is now more modular and flexible. All admin-related components
-                (templates, routes, and configuration)
-                are located in the <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">admin</code>
-                folder, making it easier to customize and extend.
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.admin</code>
+                module mounts an admin panel for your application. It uses the <b>project database</b>
+                (through <code>app.connections</code>) and an <code>admins</code> table created by
+                migrations or by <code>lila admin</code>.
             </p>
 
             <h2>Admin 2.0 Features</h2>
             <ul class="list-disc ml-6 space-y-1">
-                <li><strong>Full Interactive CRUD</strong>: Modals for creating, editing, and deleting records directly from the UI.</li>
-                <li><strong>CSV Export</strong>: 1-click zero-dependency CSV download for any registered model.</li>
-                <li><strong>Persistent SPA Sidebar</strong>: Seamless View Transitions navigation without page reloads.</li>
-                <li><strong>Cache Management</strong>: Instant cache purge button for in-memory and Redis instances.</li>
-                <li><strong>Live Telemetry</strong>: Real-time process and system memory/CPU tracking.</li>
+                <li><strong>Interactive CRUD</strong>: create/edit/delete records from the UI or the JSON
+                    API. Password columns are hashed on write and never returned by the API.</li>
+                <li><strong>CSV export</strong>: 1-click download per registered model. Exports are capped at
+                    10,000 rows; when the table is larger, the response includes
+                    <code>X-Lila-Truncated: true</code> and <code>X-Lila-Total-Rows</code>.</li>
+                <li><strong>Persistent SPA sidebar</strong>: View Transitions navigation without reloads.</li>
+                <li><strong>Cache management</strong>: purge the cache while <b>preserving sessions</b>
+                    (<code>Cache.clear_async(include_sessions=False)</code>).</li>
+                <li><strong>Honest telemetry</strong>: real process/system memory and CPU when
+                    <code>psutil</code> is installed; otherwise the dashboard reports
+                    <code>psutil_available: false</code> and <code>n/a</code> instead of fake numbers.</li>
+                <li><strong>Log viewer</strong>: reads the date folders from the logger and can clear them
+                    (<code>DELETE /admin/logs</code>).</li>
             </ul>
 
             <h2 class="text-xl mt-6">Basic Setup</h2>
             <p>
-                Register models in <code class="code-inline">app/routes/admin/index.py</code>:
+                Register models in <code class="code-inline">app/routes/admin/index.py</code> (the CLI
+                creates this file for you):
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-3">
@@ -151,14 +162,24 @@ routes = router.get_routes()</code></pre>
                 </div>
             </div>
 
+            <p>
+                <code>admin_routes()</code> sets <code>router.openapi = False</code> so admin endpoints stay
+                out of the public schema. The admin session uses the
+                <code>admin_session</code> cookie.
+            </p>
+
             <h2 class="text-xl mt-6">CLI Setup Command</h2>
-            <p>To initialize the admin tables and create your first administrator user:</p>
-            <pre><code class="language-bash"># Setup Admin 2.0 (or: lila-admin)
-lila admin --user admin --password secret</code></pre>
+            <p>To initialize the admin tables and create your first administrator:</p>
+            <pre><code class="language-bash"># Setup Admin 2.0 and create/update a superuser (or: lila-admin)
+lila admin --user admin --password secret
+
+# --username is an alias; omit --password to generate one
+lila admin --username admin</code></pre>
 
             <h2>️ Setup and Migrations</h2>
             <p>
-                Before using the admin panel, you need to run the migrations:
+                <code>lila admin</code> creates the <code>admins</code> table itself. If you prefer plain
+                migrations (they also add missing columns), run:
             </p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -172,7 +193,7 @@ lila admin --user admin --password secret</code></pre>
                 <div class="editor-content">
                     <pre>
                 <code class="language-bash">
-lila-migrations
+lila migrate
                 </code>
             </pre>
                 </div>
@@ -180,7 +201,7 @@ lila-migrations
 
             <h2>Creating Admin Users</h2>
             <p>
-                Admin users can be created via command line with customizable parameters:
+                Admin users can be created from the command line with custom parameters:
             </p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -194,11 +215,14 @@ lila-migrations
                 <div class="editor-content">
                     <pre>
                 <code class="language-bash">
-# Default usage (random password generated)
-lila-create-panel-admin
+# Default usage (random password generated and printed)
+lila admin
 
 # With custom username and password
-lila-create-panel-admin --user myadmin --password mysecurepassword
+lila admin --user myadmin --password mysecurepassword
+
+# Aliases: lila-admin / lila-create-admin / lila-create-panel-admin
+lila-create-admin --username myadmin
                 </code>
             </pre>
                 </div>
@@ -206,36 +230,31 @@ lila-create-panel-admin --user myadmin --password mysecurepassword
 
             <h2>️ Generated Routes</h2>
             <p>
-                The admin panel automatically generates the following routes:
+                The admin panel mounts these routes under <code>default_route="admin"</code>:
             </p>
             <p>
-                You can access the templates in the <code
+                The templates live in <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">resources/html/admin</code>
-                folder.
+                in your project (copied by <code>lila admin</code>).
             </p>
             <ul>
-                <li><strong>Login</strong>: <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin/login</code>
-                    (GET/POST)</li>
-                <li><strong>Logout</strong>: <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin/logout</code>
-                    (GET)</li>
-                </li>
-                <li><strong>Dashboard</strong>: <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin</code>
-                    (GET)</li>
-                <li><strong>Model Management</strong>: <code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">/admin/{model_plural}</code>
-                    (GET)</li>
+                <li><strong>Login</strong>: <code>GET/POST /admin/login</code> (CSRF-protected; per-IP rate
+                    limited)</li>
+                <li><strong>Logout</strong>: <code>GET /admin/logout</code></li>
+                <li><strong>Dashboard</strong>: <code>GET /admin</code> (requires <code>admin_session</code>)</li>
+                <li><strong>Model page</strong>: <code>GET /admin/{model_plural}</code></li>
+                <li><strong>CRUD API</strong>: <code>GET/POST /admin/api/{model_plural}</code>,
+                    <code>GET/PUT/DELETE /admin/api/{model_plural}/{id}</code>, plus
+                    <code>GET /admin/api/{model_plural}/export</code> (CSV)</li>
+                <li><strong>Cache purge</strong>: <code>POST /admin/cache/clear</code></li>
+                <li><strong>Clear logs</strong>: <code>DELETE /admin/logs</code></li>
             </ul>
 
             <h2>️ Authentication Middleware</h2>
             <p>
-                To protect routes and ensure only authenticated administrators can access them, use the
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@admin_required</code>
-                decorator from <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/admin.py</code>.
+                To protect your own routes for administrators, use
+                <code>@admin_required</code> from <code>lila.core.middleware</code>. It checks the
+                <code>admin_session</code> cookie and sets <code>request.state.admin</code>.
             </p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -249,13 +268,17 @@ lila-create-panel-admin --user myadmin --password mysecurepassword
                 <div class="editor-content">
                     <pre>
                 <code class="language-python">
-from lila.core.admin import admin_required
+from lila.core.middleware import admin_required
+from lila.core.admin import render_admin_menu
+from lila.core.templates import render
+from lila.core.request import Request
 
-@router.route(path="/admin", methods=["GET"])
+@router.get("/admin/reports")
 @admin_required
-async def admin_route(request: Request):
-    menu_html = menu(models=models)
-    return await admin_dashboard(request=request, menu=menu_html)
+async def admin_reports(request: Request):
+    return render(request, "admin/reports", context={
+        "menu": render_admin_menu(models=[User], request=request),
+    })
                 </code>
             </pre>
                 </div>
@@ -263,36 +286,24 @@ async def admin_route(request: Request):
 
             <h2>System Metrics</h2>
             <p>
-                The admin panel displays real-time metrics, including:
+                The dashboard shows metrics captured when it renders:
             </p>
             <ul>
-                <li>Lila framework memory usage.</li>
-                <li>Lila framework CPU usage.</li>
-                <li>System memory usage.</li>
-                <li>System CPU usage.</li>
+                <li>Process RSS memory and CPU (requires <code>psutil</code>).</li>
+                <li>System memory and CPU (requires <code>psutil</code>).</li>
+                <li>Cache driver, active backend and item count (always available).</li>
             </ul>
             <p>
-                These metrics are updated every 10 seconds.
+                Without <code>psutil</code> the JSON reports <code>psutil_available: false</code> and
+                <code>null</code> values — Lila does not invent telemetry.
             </p>
 
             <h2>Logs</h2>
             <p>
-                In Lila, we use a middleware that you can enable or disable if you want to use
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Logs</code>
-                for info, warnings, or errors in your application.
-            </p>
-            <p>
-                The middleware is located in <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/middleware.py</code>
-                and is added to the
-                application with:
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app.add_middleware(ErrorHandlerMiddleware)</code>.
-            </p>
-            <p>
-                This helps generate logs that you can view in the admin panel, organized by date (in
-                folders) and type.
+                Request logging is enabled with <code>App(routes=[...], logging=True)</code>, which adds
+                <code>LoggingMiddleware</code> from <code>lila.core.middleware</code>. The logger writes
+                date folders under <code>app/logs/YYYY-MM-DD/</code>; the admin log viewer reads the most
+                recent ones, and <code>DELETE /admin/logs</code> clears them.
             </p>
             <p class="container">
                 <img src="../img/admin.png" alt="admin" />
@@ -303,9 +314,8 @@ async def admin_route(request: Request):
             </p>
             <h2 class="  text-2xl font-semibold mt-4">Creating Administrator Users (Simple Command)</h2>
             <p>
-                In addition to the full panel creation command, you can now create individual
-                administrators without affecting routes, middlewares, or existing configurations.
-                This command is useful for quickly adding new admin users.
+                The <code>lila-create-admin</code> alias creates or updates a single administrator without
+                touching routes, middlewares or existing configurations:
             </p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -319,7 +329,7 @@ async def admin_route(request: Request):
                 <div class="editor-content">
                     <pre>
 <code class="language-bash">
-# Create an administrator with specific username and password
+# Create an administrator with a specific username and password
 lila-create-admin --username myadmin --password mysecretpassword
 
 # Create an administrator with a custom username and auto-generated password
@@ -329,9 +339,9 @@ lila-create-admin --username myadmin
                 </div>
             </div>
             <p>
-                <strong>Note:</strong> This command only adds the admin user to the database. It does
-                not generate routes, middlewares, or templates, so it can be used even if the panel is
-                already active or customized.
+                <strong>Note:</strong> the command only creates/updates the admin user in the project
+                database (it still runs/creates the <code>admins</code> table). It does not generate routes
+                or templates, so it is safe to use on an existing, customized panel.
             </p>
 
         </article>

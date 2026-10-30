@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import shutil
 from pathlib import Path
 import importlib.util
 from typing import Optional, List, Dict, Any
@@ -9,8 +10,22 @@ import typer
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
+from lila.cli._patch import patch_main
+
 app = typer.Typer(help="Generate complete CRUD scaffold (API endpoints, HTML view, ResponsiveDataTable).")
 project_root = os.getcwd()
+
+
+def _write_with_backup(path: Path, content: str) -> None:
+    try:
+        if path.exists():
+            old = path.read_text(encoding="utf-8")
+            if old != content:
+                shutil.copy2(path, path.with_suffix(path.suffix + ".bak"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    except Exception as exc:
+        typer.secho(f"  ⚠️ Could not write {path}: {exc}", fg=typer.colors.YELLOW)
 
 def capitalize_first(text: str) -> str:
     if not text:
@@ -44,6 +59,17 @@ def get_model_columns(model_class) -> list:
     except Exception:
         return []
 
+
+def get_model_column_types(model_class) -> dict:
+    types = {}
+    try:
+        for col in model_class.__table__.columns:
+            py_type = getattr(col.type, "python_type", str)
+            types[col.name] = py_type
+    except Exception:
+        pass
+    return types
+
 def generate_web_route_file(model_name: str, route_name: str) -> str:
     return f'''from lila.core.request import Request
 from lila.core.routing import Router
@@ -55,33 +81,44 @@ router = Router()
 @router.get("/{route_name}")
 async def {route_name}_index(request: Request):
     """Render the management page with ResponsiveDataTable for {model_name}"""
-    return render(request=request, template="{route_name}/index")
+    return render(request=request, template="{route_name}/index", csrf=True)
 
 # Merged routes for inclusion
 routes = router.get_routes() + api_{route_name}_router.get_routes()
 '''
 
-def generate_api_route_file(model_name: str, route_name: str, table_name: str, columns: list) -> str:
+def generate_api_route_file(
+    model_name: str,
+    route_name: str,
+    table_name: str,
+    columns: list,
+    column_types: Optional[dict] = None,
+) -> str:
     sensitive_fields = {"password", "token", "hash"}
     display_columns = [col for col in columns if col not in sensitive_fields]
+    column_types = column_types or {}
+    type_names = {int: "int", float: "float", bool: "bool", str: "str", bytes: "str"}
 
     create_fields = []
     update_fields = []
     for col in columns:
+        if col in sensitive_fields:
+            continue
+        py_type = type_names.get(column_types.get(col), "str")
         if col not in {"id", "created_at", "updated_at", "active"}:
-            create_fields.append(f'    {col}: Optional[str] = ""')
-            update_fields.append(f'    {col}: Optional[Any] = None')
+            create_fields.append(f'    {col}: Optional[{py_type}] = None')
+            update_fields.append(f'    {col}: Optional[{py_type}] = None')
         elif col == "active":
             create_fields.append('    active: int = 1')
             update_fields.append('    active: Optional[int] = None')
 
     pydantic_create_fields = "\n".join(create_fields) or "    pass"
     pydantic_update_fields = "\n".join(update_fields) or "    pass"
+    select_expr = ",".join(display_columns) if display_columns else "id"
 
     return f'''from lila.core.request import Request
 from lila.core.routing import Router
 from lila.core.responses import JSONResponse
-from app.connections import connection
 from app.models.{to_snake_case(model_name)} import {model_name}
 from pydantic import BaseModel
 from typing import Optional, Any
@@ -95,45 +132,47 @@ class {model_name}Update(BaseModel):
 {pydantic_update_fields}
 
 @router.get("/{route_name}")
-async def get_all_{route_name}(request: Request):
-    """Get all active {model_name} records"""
+async def get_all_{route_name}(request: Request, limit: int = 100, offset: int = 0):
+    """Get active {model_name} records"""
     try:
-        items = await {model_name}.get_all_async(select="{','.join(display_columns)}", limit=1000)
+        items = await {model_name}.get_all_async(
+            select="{select_expr}", limit=limit, offset=offset
+        )
         return items
     except Exception as e:
         return JSONResponse({{"success": False, "message": str(e)}}, status_code=500)
 
-@router.get("/{route_name}/{{id}}")
+@router.get("/{route_name}/{{id:int}}")
 async def get_{route_name}_by_id(request: Request, id: int):
     """Get a single {model_name} by ID"""
-    item = await {model_name}.get_by_id_async(id)
+    item = await {model_name}.get_by_id_async(id, select="{select_expr}")
     if item is None:
         return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
     return item
 
-@router.post("/{route_name}", model={model_name}Create)
+@router.post("/{route_name}", model={model_name}Create, csrf=True)
 async def create_{route_name}(request: Request, data: {model_name}Create = None):
     """Create a new {model_name} record"""
-    input_data = data.model_dump() if data else request.state.data.model_dump()
+    input_data = data.model_dump(exclude_none=True) if data else request.state.data.model_dump(exclude_none=True)
     try:
         new_item = await {model_name}.insert_async(**input_data)
         return JSONResponse({{"success": True, "id": new_item.get("id")}}, status_code=201)
     except Exception as e:
-        return JSONResponse({{"success": False, "message": str(e)}}, status_code=500)
+        return JSONResponse({{"success": False, "message": str(e)}}, status_code=400)
 
-@router.put("/{route_name}/{{id}}", model={model_name}Update)
+@router.put("/{route_name}/{{id:int}}", model={model_name}Update, csrf=True)
 async def update_{route_name}(request: Request, id: int, data: {model_name}Update = None):
     """Update an existing {model_name}"""
-    input_data = data.model_dump(exclude_unset=True) if data else request.state.data.model_dump(exclude_unset=True)
+    input_data = data.model_dump(exclude_unset=True, exclude_none=True) if data else request.state.data.model_dump(exclude_unset=True, exclude_none=True)
     try:
         success = await {model_name}.update_async(id, **input_data)
         if not success:
             return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
         return {{"success": True}}
     except Exception as e:
-        return JSONResponse({{"success": False, "message": str(e)}}, status_code=500)
+        return JSONResponse({{"success": False, "message": str(e)}}, status_code=400)
 
-@router.delete("/{route_name}/{{id}}")
+@router.delete("/{route_name}/{{id:int}}", csrf=True)
 async def delete_{route_name}(request: Request, id: int):
     """Delete a {model_name} record"""
     try:
@@ -142,7 +181,7 @@ async def delete_{route_name}(request: Request, id: int):
             return JSONResponse({{"success": False, "message": "Not found"}}, status_code=404)
         return {{"success": True}}
     except Exception as e:
-        return JSONResponse({{"success": False, "message": str(e)}}, status_code=500)
+        return JSONResponse({{"success": False, "message": str(e)}}, status_code=400)
 
 routes = router.get_routes()
 '''
@@ -157,14 +196,15 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
 
     form_fields = []
     for col in columns:
-        if col not in {"id", "created_at", "updated_at", "active"}:
-            field_type = "password" if col == "password" else "text"
-            form_fields.append(
-                f'      <div>\n'
-                f'        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">{col.capitalize()}</label>\n'
-                f'        <input name="{col}" id="field_{col}" type="{field_type}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />\n'
-                f'      </div>'
-            )
+        if col in {"id", "created_at", "updated_at", "active", "password", "token", "hash"}:
+            continue
+        field_type = "text"
+        form_fields.append(
+            f'      <div>\n'
+            f'        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">{col.capitalize()}</label>\n'
+            f'        <input name="{col}" id="field_{col}" type="{field_type}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />\n'
+            f'      </div>'
+        )
     form_fields_html = "\n".join(form_fields)
 
     return f'''<!DOCTYPE html>
@@ -173,7 +213,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{model_name} Management | Lila</title>
-  <link rel="icon" type="image/x-icon" href="{{{{ public('img/lila.png') }}}}" />
+  <link rel="icon" type="image/x-icon" href="{{{{ public('favicon.ico') }}}}" />
   {{% include "lila/tailwind.jinja" %}}
 </head>
 <body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
@@ -288,6 +328,9 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
       const formData = Object.fromEntries(new FormData(e.target));
       const id = formData.id;
       delete formData.id;
+      for (const key of Object.keys(formData)) {{
+        if (formData[key] === "") delete formData[key];
+      }}
       try {{
         const url = id ? `/api/{route_name}/${{id}}` : '/api/{route_name}';
         const method = id ? 'PUT' : 'POST';
@@ -312,44 +355,16 @@ def add_route_import_to_main(route_name: str, model_name: str) -> bool:
     main_file = os.path.join(project_root, "main.py")
     if not os.path.exists(main_file):
         return False
-    with open(main_file, "r", encoding="utf-8") as f:
-        content = f.read()
 
     import_stmt = f"from app.routes.web.{route_name} import routes as {route_name}_routes"
     include_stmt = f"app.include_router({route_name}_routes)"
 
-    if import_stmt in content:
-        return True
-
-    # 1. Insert import statement at marker or before app = App(
-    if "# api_imports_marker" in content:
-        content = content.replace("# api_imports_marker", f"# api_imports_marker\n{import_stmt}")
-    elif "# api_marker" in content:
-        content = content.replace("# api_marker", f"# api_marker\n{import_stmt}")
-    elif "app = App(" in content:
-        content = content.replace("app = App(", f"{import_stmt}\n\napp = App(")
+    changed = patch_main(main_file, import_stmt, include_stmt)
+    if changed:
+        typer.echo("  ✅ Routes linked in main.py")
     else:
-        content = f"{import_stmt}\n{content}"
-
-    # 2. Insert router inclusion AFTER app = App(...)
-    if "# api_routes_marker" in content:
-        content = content.replace("# api_routes_marker", f"# api_routes_marker\n{include_stmt}")
-    elif "# routes_marker" in content:
-        content = content.replace("# routes_marker", f"# routes_marker\n{include_stmt}")
-    elif "app = App(" in content:
-        app_pos = content.find("app = App(")
-        end_bracket = content.find(")", app_pos)
-        if end_bracket != -1:
-            content = content[:end_bracket + 1] + f"\n{include_stmt}" + content[end_bracket + 1:]
-        else:
-            content = content + f"\n{include_stmt}\n"
-    else:
-        content = content + f"\n{include_stmt}\n"
-
-    with open(main_file, "w", encoding="utf-8") as f:
-        f.write(content)
-    typer.echo("  ✅ Routes linked in main.py")
-    return True
+        typer.echo("  ℹ️ Routes already linked (or main.py could not be patched safely).")
+    return changed
 
 @app.callback(invoke_without_command=True)
 def main(
@@ -383,22 +398,28 @@ def generate(
         raise typer.Exit(code=1)
 
     columns = get_model_columns(model_class) or ["id", "name", "created_at"]
+    column_types = get_model_column_types(model_class)
     table_name = getattr(model_class, "__tablename__", route_name)
 
     # Web route
     web_dir = Path("app/routes/web")
     web_dir.mkdir(parents=True, exist_ok=True)
-    (web_dir / f"{route_name}.py").write_text(generate_web_route_file(model_name, route_name), encoding="utf-8")
+    _write_with_backup(web_dir / f"{route_name}.py", generate_web_route_file(model_name, route_name))
 
     # API route
     api_dir = Path("app/routes/api")
     api_dir.mkdir(parents=True, exist_ok=True)
-    (api_dir / f"{route_name}.py").write_text(generate_api_route_file(model_name, route_name, table_name, columns), encoding="utf-8")
+    _write_with_backup(
+        api_dir / f"{route_name}.py",
+        generate_api_route_file(model_name, route_name, table_name, columns, column_types),
+    )
 
     # Template
     tmpl_dir = Path(f"resources/html/{route_name}")
     tmpl_dir.mkdir(parents=True, exist_ok=True)
-    (tmpl_dir / "index.jinja").write_text(generate_html_template(model_name, route_name, columns), encoding="utf-8")
+    _write_with_backup(
+        tmpl_dir / "index.jinja", generate_html_template(model_name, route_name, columns)
+    )
 
     add_route_import_to_main(route_name, model_name)
     typer.secho(f"🎉 CRUD scaffold for {model_name} generated successfully at /{route_name} and /api/{route_name}", fg=typer.colors.GREEN)

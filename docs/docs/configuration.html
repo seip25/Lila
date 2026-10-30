@@ -81,6 +81,34 @@
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
 </aside>
 
         <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -121,34 +149,40 @@
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-bash">
 # ─── Server ────────────────────────────────────────────
-SECRET_KEY='your-secret-key-here'
+# SECRET_KEY is mandatory: an empty/placeholder value makes Lila
+# generate a persistent .lila_secret (0600) and warn.
+SECRET_KEY="replace-with-a-long-random-string"
 DEBUG=True
-PORT=8001
+PORT=8000
 HOST=127.0.0.1
-JIT=False
-WORKERS=1
-MINIFY_HTML=False
+WORKERS="1"
 
 # ─── Application URL ──────────────────────────────────
-# Production URL for sitemaps, robots.txt, canonical links.
+# Production URL for sitemaps, robots.txt, canonical links and secure cookies.
 # Leave empty in development — uses http://HOST:PORT automatically.
 APP_URL=""
 
 # ─── Project Metadata ─────────────────────────────────
-TITLE_PROJECT='My App'
-VERSION_PROJECT='1'
-DESCRIPTION_PROJECT='My awesome project'
-LANG_DEFAULT='en'
+TITLE_PROJECT="Lila Application"
+VERSION_PROJECT="2.0"
+DESCRIPTION_PROJECT="Full-stack lightweight Python application"
+LANG_DEFAULT="es"
 
 # ─── SEO Defaults ─────────────────────────────────────
-DESCRIPTION_DEFAULT='A Python web framework'
-KEYWORDS_DEFAULT='Python, web, framework'
-AUTHOR_DEFAULT='Your Name'
+DESCRIPTION_DEFAULT="Lila Framework 2.0 Web App"
+KEYWORDS_DEFAULT="python, lila, spa, fast"
+AUTHOR_DEFAULT="Lila Developer"
+
+# ─── Cache ────────────────────────────────────────────
+CACHE_DRIVER="memory"          # memory | redis | file
+CACHE_DIR="app/cache/data"
+CACHE_MAX_ITEMS=10000
+CACHE_DEFAULT_TTL=300
+MODEL_CACHE_TTL=5
 
 # ─── Your Custom Variables ─────────────────────────────
 # Add any variable here and access it via ENV_CONFIG
-STRIPE_API_KEY='sk_test_...'
-REDIS_URL='redis://localhost:6379'
+STRIPE_API_KEY="sk_test_..."
                     </code></pre>
                 </div>
             </div>
@@ -177,12 +211,12 @@ REDIS_URL='redis://localhost:6379'
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">SECRET_KEY</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
                             <td class="px-4 py-3"><code class="code-inline">""</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Secret key for signing sessions and tokens</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Signs sessions and CSRF tokens. Empty/placeholder → generated once and stored in <code class="code-inline">.lila_secret</code> (0600).</td>
                         </tr>
                         <tr class="bg-slate-50 dark:bg-[#0f1729]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">PORT</td>
                             <td class="px-4 py-3 text-slate-500">int</td>
-                            <td class="px-4 py-3"><code class="code-inline">8001</code></td>
+                            <td class="px-4 py-3"><code class="code-inline">8000</code></td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Server port</td>
                         </tr>
                         <tr class="bg-white dark:bg-[#131b2e]">
@@ -195,73 +229,79 @@ REDIS_URL='redis://localhost:6379'
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">APP_URL</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
                             <td class="px-4 py-3"><code class="code-inline">""</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Production URL (sitemaps, robots.txt, canonical links). Falls back to http://HOST:PORT when empty.</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Production URL (sitemaps, robots.txt, canonical links, secure cookies). Falls back to http://HOST:PORT when empty.</td>
                         </tr>
                         <tr class="bg-white dark:bg-[#131b2e]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DEBUG</td>
                             <td class="px-4 py-3 text-slate-500">bool</td>
-                            <td class="px-4 py-3"><code class="code-inline">True</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Enable debug mode (hot reload, error pages)</td>
-                        </tr>
-                        <tr class="bg-white dark:bg-[#131b2e]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">JIT</td>
-                            <td class="px-4 py-3 text-slate-500">bool</td>
-                            <td class="px-4 py-3"><code class="code-inline">True</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Enable Python JIT compilation</td>
+                            <td class="px-4 py-3"><code class="code-inline">False</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Debug mode (reload, dev SSE, /debug when debug_html=True). Scaffolds set it to True in development.</td>
                         </tr>
                         <tr class="bg-slate-50 dark:bg-[#0f1729]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">WORKERS</td>
-                            <td class="px-4 py-3 text-slate-500">int</td>
-                            <td class="px-4 py-3"><code class="code-inline">1</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Number of Uvicorn worker processes</td>
-                        </tr>
-                        <tr class="bg-white dark:bg-[#131b2e]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">MINIFY_HTML</td>
-                            <td class="px-4 py-3 text-slate-500">bool</td>
-                            <td class="px-4 py-3"><code class="code-inline">False</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Minify HTML output in templates</td>
-                        </tr>
-                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">TITLE_PROJECT</td>
-                            <td class="px-4 py-3 text-slate-500">str</td>
-                            <td class="px-4 py-3"><code class="code-inline">"Lila project"</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project title (used in templates and SEO)</td>
-                        </tr>
-                        <tr class="bg-white dark:bg-[#131b2e]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">VERSION_PROJECT</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
                             <td class="px-4 py-3"><code class="code-inline">"1"</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project version</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Number of Uvicorn workers (used by the scaffolded main.py / <code>lila run -w</code>)</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">TITLE_PROJECT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"Lila Application"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project title (templates, OpenAPI, desktop window)</td>
                         </tr>
                         <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">VERSION_PROJECT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"2.0"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project version (OpenAPI info)</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESCRIPTION_PROJECT</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
-                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3"><code class="code-inline">"Full-stack lightweight Python application"</code></td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Project description for OpenAPI docs</td>
                         </tr>
-                        <tr class="bg-white dark:bg-[#131b2e]">
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LANG_DEFAULT</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
-                            <td class="px-4 py-3"><code class="code-inline">"en"</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default language for i18n</td>
-                        </tr>
-                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESCRIPTION_DEFAULT</td>
-                            <td class="px-4 py-3 text-slate-500">str</td>
-                            <td class="px-4 py-3"><code class="code-inline">"A Python web framework"</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default meta description for SEO</td>
+                            <td class="px-4 py-3"><code class="code-inline">"es"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default language for i18n (<code>lila init</code> asks for it)</td>
                         </tr>
                         <tr class="bg-white dark:bg-[#131b2e]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">KEYWORDS_DEFAULT</td>
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESCRIPTION_DEFAULT</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
-                            <td class="px-4 py-3"><code class="code-inline">"Python, web, framework"</code></td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default meta keywords for SEO</td>
+                            <td class="px-4 py-3"><code class="code-inline">"Lila Framework 2.0 Web App"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default meta description for SEO</td>
                         </tr>
                         <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">KEYWORDS_DEFAULT</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"python, lila, spa, fast"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default meta keywords for SEO</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">AUTHOR_DEFAULT</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
-                            <td class="px-4 py-3"><code class="code-inline">"Seip"</code></td>
+                            <td class="px-4 py-3"><code class="code-inline">"Lila Developer"</code></td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Default author for meta tags</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">CACHE_DRIVER</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">"memory"</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400"><code>memory</code>, <code>redis</code> (only if reachable) or <code>file</code></td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">CACHE_DIR / CACHE_MAX_ITEMS / CACHE_DEFAULT_TTL</td>
+                            <td class="px-4 py-3 text-slate-500">str / int / int</td>
+                            <td class="px-4 py-3"><code class="code-inline">app/cache/data / 10000 / 300</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">File-cache directory, LRU capacity and default TTL</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">MODEL_CACHE_TTL</td>
+                            <td class="px-4 py-3 text-slate-500">int</td>
+                            <td class="px-4 py-3"><code class="code-inline">5</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Seconds a model read stays in the single-flight cache</td>
                         </tr>
                     </tbody>
                 </table>
@@ -273,9 +313,15 @@ REDIS_URL='redis://localhost:6379'
             <!-- ════════════════════════════════════════════════════════════ -->
             <h3>Using Framework Variables</h3>
             <p>
-                All built-in variables are exported as module-level constants from <code class="code-inline">app.config</code>.
-                Import them directly — they are loaded once at startup with automatic type casting.
+                There are two ways to read configuration:
             </p>
+            <ul>
+                <li><code class="code-inline">from lila.core.config import ENV_CONFIG, is_debug</code> — the
+                    framework proxy. Typed for schema keys, returns raw strings for custom keys.</li>
+                <li><code class="code-inline">from app.config import DEBUG, HOST, PORT, WORKERS</code> — the
+                    scaffold re-exports the loaded values as module constants (it calls
+                    <code>ConfigLoader.load()</code> and updates its globals).</li>
+            </ul>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -290,10 +336,17 @@ REDIS_URL='redis://localhost:6379'
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
-from app.config import DEBUG, PORT, HOST, SECRET_KEY
+from app.config import DEBUG, HOST, PORT, SECRET_KEY
 
 if DEBUG:
     print(f"Running in debug mode on {HOST}:{PORT}")
+
+# Or read typed values from the framework proxy
+from lila.core.config import ENV_CONFIG, is_debug, get_secret_key
+
+debug = is_debug()                       # bool, never bool("False")
+max_items = ENV_CONFIG.get_int("CACHE_MAX_ITEMS", 10000)
+origins = ENV_CONFIG.get_list("CORS_ORIGINS", [])
                     </code></pre>
                 </div>
             </div>
@@ -395,8 +448,9 @@ async def create_payment(request: Request):
             <!-- ════════════════════════════════════════════════════════════ -->
             <h3>How app/config.py Works</h3>
             <p>
-                After running <code class="code-inline">lila-init</code>, your <code class="code-inline">app/config.py</code> is clean and minimal.
-                The <code class="code-inline">ConfigLoader</code> handles all the .env loading, type casting, and production caching internally:
+                After <code class="code-inline">lila init</code>, <code class="code-inline">app/config.py</code>
+                is clean and minimal. <code>ConfigLoader</code> loads <code>.env</code>, casts the framework
+                keys and exposes them; the scaffold copies those values into module globals:
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
@@ -416,38 +470,42 @@ import os
 from os import path
 from lila.core.config import ConfigLoader, ENV_CONFIG
 
-# All framework variables loaded and exported automatically
-_cfg = ConfigLoader.load(cache_dir=path.dirname(__file__))
+# Loads .env + framework defaults once and exports them as constants.
+_cfg = ConfigLoader.load()
 globals().update(_cfg)
 
-# Project-specific paths (not loaded from .env)
+# Project paths (not read from .env)
 PATH_LOG_BASE_DIR = "app/logs"
 PATH_TEMPLATE_NOT_FOUND = "lila/404"
 PATH_TEMPLATES_HTML = "resources/html/"
 PATH_TEMPLATES_MARKDOWN = "resources/markdown/"
-PATH_LOCALES = "app/locales"
-PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
+PATH_UPLOADS = path.join(os.getcwd(), "public", "uploads")
                     </code></pre>
                 </div>
             </div>
 
             <p>
-                That's it — <b>no duplication</b>. Each framework variable is defined once in the schema and exported automatically.
-                To change any value, edit <code class="code-inline">.env</code> and restart the server.
+                Framework variables are declared once in <code>FRAMEWORK_SCHEMA</code> inside
+                <code>lila/core/config.py</code>; <code>ENV_CONFIG</code> reads the loaded, typed values.
+                To change any value, edit <code>.env</code> and restart the server.
             </p>
 
 
             <!-- ════════════════════════════════════════════════════════════ -->
-            <!--  PRODUCTION CACHING                                         -->
+            <!--  LOADING & SECRET HANDLING                                  -->
             <!-- ════════════════════════════════════════════════════════════ -->
-            <h3>Production Caching</h3>
+            <h3>Loading &amp; SECRET_KEY generation</h3>
             <p>
-                When <code class="code-inline">DEBUG=False</code>, Lila automatically generates a <code class="code-inline">config_cache.py</code>
-                file in your <code class="code-inline">app/</code> directory. This compiled cache is loaded on subsequent startups
-                without re-reading <code class="code-inline">.env</code>, giving you <b>faster boot times in production</b>.
+                <code>ConfigLoader.load()</code> runs once (it is idempotent) and caches the typed dict in
+                memory for the process. <code>App()</code> calls it automatically, so importing
+                <code>lila.core.app</code> directly still reads <code>.env</code>. There is no
+                <code>config_cache.py</code> file and no separate production cache step.
             </p>
             <p>
-                The cache is automatically invalidated and regenerated whenever the <code class="code-inline">.env</code> file is modified (checked via file modification timestamp).
+                <code>SECRET_KEY</code> is special: an empty value, a value shorter than 16 characters or a
+                known placeholder makes <code>get_secret_key()</code> generate a strong key and persist it in
+                <code>.lila_secret</code> (mode 0600) with a warning. Lila never signs sessions or CSRF
+                tokens with an empty key. Rotate it with <code>lila secret-key</code>.
             </p>
 
             <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl p-5 mt-6 mb-6">
@@ -457,7 +515,7 @@ PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
                         <p class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Performance Note</p>
                         <p class="text-sm text-amber-700 dark:text-amber-400">
                             <code class="code-inline">ENV_CONFIG</code> reads values that were loaded at startup — it does <b>not</b> re-read <code class="code-inline">.env</code> on every access.
-                            This means there is <b>zero performance overhead</b> when using <code class="code-inline">ENV_CONFIG</code> in your route handlers.
+                            This means there is <b>no per-request disk I/O</b> when using <code class="code-inline">ENV_CONFIG</code> in your route handlers.
                         </p>
                     </div>
                 </div>
@@ -481,28 +539,38 @@ PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                         <tr class="bg-white dark:bg-[#131b2e]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ENV_CONFIG["KEY"]</td>
-                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3 text-slate-500">any</td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Get a value. Raises <code class="code-inline">KeyError</code> if not found.</td>
                         </tr>
                         <tr class="bg-slate-50 dark:bg-[#0f1729]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ENV_CONFIG.get("KEY", default)</td>
-                            <td class="px-4 py-3 text-slate-500">str | None</td>
+                            <td class="px-4 py-3 text-slate-500">any</td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Get a value with a fallback default. Returns <code class="code-inline">None</code> if not found and no default given.</td>
                         </tr>
                         <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ENV_CONFIG.get_bool / get_int / get_list</td>
+                            <td class="px-4 py-3 text-slate-500">bool / int / list</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Typed helpers that never use <code class="code-inline">bool("False")</code>.</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">"KEY" in ENV_CONFIG</td>
                             <td class="px-4 py-3 text-slate-500">bool</td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Check if a variable exists in the configuration.</td>
                         </tr>
-                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ConfigLoader.load(cache_dir)</td>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ConfigLoader.load()</td>
                             <td class="px-4 py-3 text-slate-500">dict</td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Load all framework config from .env. Called once in <code class="code-inline">app/config.py</code>.</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Loads <code>.env</code> + defaults once and returns the typed dict (idempotent).</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ConfigLoader.reload()</td>
+                            <td class="px-4 py-3 text-slate-500">dict</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Clears the cached values and loads again (useful in tests).</td>
                         </tr>
                         <tr class="bg-white dark:bg-[#131b2e]">
-                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">ConfigLoader.get("KEY", default)</td>
-                            <td class="px-4 py-3 text-slate-500">any</td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Get any config value. Checks framework fields first, then raw .env values.</td>
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium text-xs">get_secret_key() / is_debug()</td>
+                            <td class="px-4 py-3 text-slate-500">str / bool</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Fail-safe signing key and typed debug flag.</td>
                         </tr>
                     </tbody>
                 </table>

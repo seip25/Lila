@@ -14,4 +14,4 @@ PATH_LOG_BASE_DIR = "app/logs"
 PATH_TEMPLATE_NOT_FOUND = "lila/404"
 PATH_TEMPLATES_HTML = "resources/html/"
 PATH_TEMPLATES_MARKDOWN = "resources/markdown/"
-PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
+PATH_UPLOADS = path.join(os.getcwd(), "public", "uploads")

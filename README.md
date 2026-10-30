@@ -1,100 +1,101 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila.png" width="120" height="120" alt="Lila Framework">
+  <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila-256.webp" width="120" height="120" alt="Lila Framework">
 </p>
 
-<h1 align="center">Lila Framework v2.0.0</h1>
+<h1 align="center">Lila Framework v2.0.1</h1>
 
 <p align="center">
-  <b>Ultra-Lightweight (<40MB RAM) Full-Stack Python Web & Desktop Framework</b><br>
-  Built with Starlette + Pydantic v2 + SQLAlchemy 2.0 Async + Jinja2 + Native View Transitions SPA.
+  <b>Lightweight full-stack Python web & desktop framework</b><br>
+  Starlette + Pydantic v2 + SQLAlchemy 2.0 Async + Jinja2 + a native View Transitions SPA.
 </p>
 
 <p align="center">
   <a href="https://pypi.org/project/lila-framework/"><img src="https://img.shields.io/pypi/v/lila-framework?color=blue" alt="PyPI"></a>
   <a href="https://pypi.org/project/lila-framework/"><img src="https://img.shields.io/pypi/dm/lila-framework" alt="Downloads"></a>
-  <a href="https://seip25.github.io/Lila"><img src="https://img.shields.io/badge/docs-v2.0.0-emerald" alt="Documentation"></a>
+  <a href="https://seip25.github.io/Lila"><img src="https://img.shields.io/badge/docs-v2.0-emerald" alt="Documentation"></a>
   <a href="https://github.com/seip25/Lila/blob/main/LICENSE"><img src="https://img.shields.io/github/license/seip25/Lila" alt="License"></a>
 </p>
 
 ---
 
-## ⚡ What is Lila v2.0?
+## ⚡ What is Lila?
 
-Lila v2.0 is re-architected from the ground up for modern Python developers. It bridges the gap between pure API frameworks (FastAPI) and heavy monolithic frameworks (Django, Next.js):
+Lila is a small, batteries-included Python web framework for people who want the
+speed of Starlette, the validation of Pydantic v2 and an SPA experience **without a
+Node.js build step**. It is designed for 1–2 worker deployments on a cheap VPS:
+SQLite WAL by default, an in-process LRU cache, optional Redis when it is actually
+reachable, and a file cache fallback.
 
-- 🪶 **Ultra-Lightweight (<40MB RAM)**: Pure ASGI pipeline built on top of Starlette and Uvicorn.
-- 🚀 **SPA Experience without Node.js (`lila-client.js`)**: Real client-side navigation powered by the native browser **View Transitions API**, prefetching on hover, persistent islands (`data-persist="true"`), and reactive Tailwind UI components (`toast`, `snackbar`, `ResponsiveDataTable`, `command`, `drawer`, `tabs`, `carousel`).
-- 💾 **Zero-Infrastructure by Default**: Out-of-the-box **SQLite Async (WAL mode)** + **In-Memory LRU Cache**. Run 95% of real-world apps with zero external database or caching servers, with seamless scaling to **Redis, PostgreSQL, or MySQL** via `.env` configuration.
-- 🤖 **AI-First Integration (`core/ia.py`)**: Unified helper for **OpenAI**, **DeepSeek**, and **Gemini** featuring **Automatic PII Masking** (anonymizing emails, phones, and IDs to `[email_01]` and restoring them on response), **Prompt Cache Hits**, and configurable **Rate Limiting**.
-- 🖥️ **Web to Desktop in 1 Command (`lila desktop`)**: Run your application inside a native OS window via `pywebview` or standalone App Mode consuming <25MB RAM, and compile single-file `.exe` binaries with PyInstaller.
-- 🔐 **Better Auth OAuth 2.0 (`core/oauth.py`)**: Instant login with Google, GitHub, and Discord including official inline SVG buttons, 1-line router mounting, and Argon2 password hashing.
-- 🔌 **Simplified WebSockets (`core/websocket.py`)**: Declarative event listeners (`@ws.on(...)`), room management, and broadcasting in 3 lines of code.
-- 🛠️ **Unified Admin 2.0 (`core/admin.py`)**: Interactive CRUD management, live memory/CPU telemetry, cache clearing, and CSV export.
+- 🪶 **Light on import**: `import lila` is lazy (~19 MB RSS). A full `App` is around
+  42 MB on Python 3.14, and no SQLAlchemy is loaded unless you use models.
+- 🚀 **SPA without Node.js**: `lila-client.js` uses the native View Transitions API,
+  hover prefetching, persistent islands (`data-persist="true"`) and Tailwind UI
+  components (toast, snackbar, command palette, drawer, tabs, carousel, DataTable).
+- 💾 **Zero infrastructure by default**: Async SQLite with WAL, an in-memory LRU
+  cache, and `CACHE_DRIVER="file"` for a persistent fallback. `CACHE_DRIVER="redis"`
+  is used only when the Redis package is installed **and the server answers**;
+  otherwise Lila logs once and falls back to memory.
+- 🗄️ **Real migrations**: `lila migrate` creates missing tables **and adds missing
+  columns**. `--refresh` now really drops tables and asks for confirmation.
+- 🤖 **AI helper** (`core/ia.py`): OpenAI, DeepSeek and Gemini with explicit PII
+  masking/restoration, prompt cache and per-IP rate limits.
+- 🔐 **Auth 2.0**: cookie sessions without sensitive fields, Argon2id, CSRF for
+  classic HTML forms, Google/GitHub/Discord OAuth, login lockout and email reset
+  links (SMTP optional).
+- 🛠️ **Admin 2.0**: CRUD, CSV export, cache purge, logs and honest telemetry.
+- 🖥️ **Desktop mode**: `lila desktop dev` / `lila desktop build` (PyInstaller
+  bundles `main` and the Lila templates/assets).
+- 🌍 **Locales**: `en`, `es`, `pt` and `zh` built in, plus project overrides in
+  `app/locales/*.json`.
+
+> **Runtime requirement:** Python **3.10+** (Starlette 1.x and Uvicorn 0.54 require it).
 
 ---
 
-## 📦 Quick Installation
-
-Install Lila Framework v2.0 with pip:
+## 📦 Installation
 
 ```bash
 pip install lila-framework
-```
 
-Optional extras:
-```bash
-# Redis cache & task queue
-pip install "lila-framework[redis]"
-
-# Desktop mode (pywebview & PyInstaller)
-pip install "lila-framework[desktop]"
-
-# PostgreSQL / MySQL drivers
-pip install "lila-framework[postgres]"
-pip install "lila-framework[mysql]"
-
-# Image WebP optimization
-pip install "lila-framework[images]"
+# Optional:
+pip install "lila-framework[redis]"       # Redis cache/worker
+pip install "lila-framework[images]"      # WebP uploads
+pip install "lila-framework[markdown]"    # render_markdown
+pip install "lila-framework[metrics]"     # truthful admin telemetry
+pip install "lila-framework[optimize]"    # rjsmin/rcssmin + Pillow
+pip install "lila-framework[desktop]"     # pywebview + PyInstaller
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### 1. Initialize a new project:
 ```bash
-lila init
+lila init        # scaffold main.py, app/, public/, resources/ and .env
+lila dev         # http://127.0.0.1:8000 with reload + dev SSE
+lila doctor      # check .env, SECRET_KEY, database, templates, public/
+lila routes      # list registered routes of main:app
 ```
-
-### 2. Start the development server with hot-reload:
-```bash
-lila dev
-```
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000) to see your application running with instant SPA transitions.
-
----
-
-## 💡 Code Examples
-
-### 1. Minimal Application (`main.py`)
-Middlewares are pure ASGI and 100% optional:
 
 ```python
-from app.config import DEBUG, HOST, PORT
+# main.py
+from app.config import DEBUG, HOST, PORT, WORKERS
 from app.routes.web.index import router as web_router
-from app.routes.api.index import router as api_router
 from lila.core.app import App
 
 app = App(
-    routes=[web_router, api_router],
+    routes=[web_router],
     debug=DEBUG,
-    security=True,       # Security headers & path shield
-    rate_limit=300,      # 300 requests/min per IP (None to disable)
-    cors=True,           # Enable CORS
+    security=True,
+    rate_limit=300,
+    gzip=True,
+    openapi=True,
+    debug_html=DEBUG,   # mount /debug in debug mode
 )
 ```
 
-### 2. Modern Route with Pydantic v2 & Auto-Casting
+### Routes with typed params
+
 ```python
 from lila.core.routing import Router
 from lila.core.request import Request
@@ -102,80 +103,142 @@ from pydantic import BaseModel, EmailStr
 
 router = Router(prefix="/api")
 
-class RegisterSchema(BaseModel):
-    name: str
+class UserCreate(BaseModel):
     email: EmailStr
+    name: str
 
-@router.post("/register")
-async def register(request: Request, data: RegisterSchema):
-    # Dicts are automatically returned as JSONResponse with orjson
-    return {"success": True, "email": data.email}
+@router.get("/users")
+async def users(request: Request, page: int = 1, q: str | None = None):
+    # page is a real int; invalid values return HTTP 422
+    return {"page": page, "q": q}
 
-@router.get("/users/{id}", cache=60) # Caches response for 60 seconds
+@router.get("/users/{id:int}", cache=60, cache_public=True)
 async def get_user(request: Request, id: int):
-    # Path parameter 'id' is automatically cast to integer
-    return {"user_id": id}
+    return {"id": id}
+
+@router.post("/users", model=UserCreate, csrf=True)
+async def create_user(request: Request, data: UserCreate):
+    return {"success": True, "email": data.email}
 ```
 
-### 3. AI Helper with Sensitive Data (PII) Masking
+### Models and migrations
+
+```python
+from sqlalchemy import Column, Integer, String
+from lila.core.base_model import BaseModel
+
+class Product(BaseModel):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(120), nullable=False)
+    active = Column(Integer, nullable=False, default=1)
+
+# Async API
+await Product.insert_async(name="Chair")
+await Product.get_all_async(limit=50, order_by="name")
+await Product.get_by_id_async(1, select="id,name")
+await Product.update_async(1, name="Desk")
+await Product.delete_async(1)  # soft delete when `active` exists
+```
+
+Run `lila migrate` after changing models; it adds missing columns. For destructive
+changes use `lila migrate --refresh --yes` (asks for confirmation otherwise).
+
+### Cache
+
+```python
+from lila.core.cache import Cache
+
+await Cache.set_async("key", {"a": 1}, ttl=300)
+data = await Cache.get_async("key")
+await Cache.delete_async("key")
+await Cache.clear_async(include_sessions=False)
+```
+
+`CACHE_DRIVER` accepts `memory` (default), `redis` or `file`. Redis is probed
+lazily; if it is down Lila continues with the in-memory cache and logs once.
+
+### AI with PII masking
+
 ```python
 from lila.core.ia import IA
 
 ai = IA(provider="gemini", rate_limit=20, rate_window=60, cache_ttl=3600)
-
 result = await ai.ask(
-    prompt="Generate a polite support reply for this customer issue:",
-    data={
-        "name": "Maria Garcia",
-        "email": "maria@example.com",
-        "ticket": "Cannot access invoice #402"
-    },
-    sensitive_keys=["name", "email"], # Replaced by [name_01] and [email_01] before sending
-    request=request
+    prompt="Draft a support reply for this customer:",
+    data={"name": "Maria", "email": "maria@example.com", "ticket": "Cannot access invoice #402"},
+    sensitive_keys=["name", "email"],
+    request=request,
 )
-# result["text"] -> Automatically restored with original name and email!
 ```
 
-### 4. Native Desktop Application
+Set `OPENAI_API_KEY`, `DEEPSEEK_API_KEY` or `GEMINI_API_KEY`; override the model
+with `OPENAI_MODEL`, `DEEPSEEK_MODEL` or `GEMINI_MODEL`.
+
+### Auth + Admin
+
 ```bash
-# Run locally in a native desktop window
-lila desktop dev
-
-# Compile standalone executable (.exe)
-lila desktop build --name "MyDesktopApp"
+lila auth                 # login/register/reset/profile/dashboard + OAuth
+lila admin -u admin -p ... # create/update the admin user
+lila migrate
 ```
+
+Admin lives at `/admin`; OAuth callbacks at `/auth/{provider}/callback`. Set
+`APP_URL` and the provider credentials in `.env`. Password reset requires SMTP
+(`SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`) — in development the
+reset URL is printed to the console instead.
+
+### Desktop
+
+```bash
+pip install "lila-framework[desktop]"
+lila desktop dev
+lila desktop build --name MyApp --onefile --windowed
+```
+
+The generated executable bundles `main`, `app`, Lila templates and `public/`.
 
 ---
 
-## 🛠️ Unified CLI Reference
-
-Lila v2.0 includes a comprehensive CLI:
+## 🛠️ CLI Reference
 
 | Command | Description |
 | :--- | :--- |
-| `lila init` | Scaffolds a new project without external infrastructure. |
-| `lila dev` | Starts Uvicorn server with hot-reload and dev SSE sync. |
-| `lila desktop dev` | Runs web application inside an ultra-lightweight native window. |
-| `lila desktop build` | Compiles standalone executable using PyInstaller. |
-| `lila auth` | Scaffolds Auth 2.0 with Better Auth OAuth buttons and dashboard. |
-| `lila admin` | Sets up Admin 2.0 panel and administrator credentials. |
-| `lila model` | Generates ActiveRecord models with CRUD boilerplate. |
-| `lila crud` | Scaffolds complete CRUD routes, schemas, and DataTable view. |
-| `lila migrate` | Synchronizes SQLAlchemy models with the database. |
-| `lila optimize` | Minifies JS/CSS and optimizes images to WebP. |
-| `lila secret-key` | Rotates cryptographic SECRET_KEY in `.env`. |
-| `lila seo` | Generates `sitemap.xml` and `robots.txt`. |
-| `lila worker` | Runs background Redis task worker. |
+| `lila init` | Scaffold a project without overwriting existing files. |
+| `lila dev` | Uvicorn with reload + dev SSE (reads `.env` HOST/PORT). |
+| `lila run -w 2` | Production server; warns when using memory cache with >1 worker. |
+| `lila doctor` | Health check: Python, `.env`, SECRET_KEY, DB, templates, public/. |
+| `lila routes` | List every route registered in `main:app`. |
+| `lila auth` | Auth 2.0 scaffold (backups for overwritten files). |
+| `lila admin` | Create/update admin user + link routes safely. |
+| `lila model create` | Generate an ActiveRecord model. |
+| `lila crud --model X` | CRUD API + HTML DataTable with CSRF. |
+| `lila migrate` | Create tables and add missing columns. |
+| `lila migrate --refresh --yes` | Drop and recreate (asks without `--yes`). |
+| `lila optimize` | Minify JS/CSS (needs the optimize extra) + WebP images. |
+| `lila secret-key` | Rotate `SECRET_KEY`. |
+| `lila seo` | `public/sitemap.xml` + `robots.txt` (served at `/sitemap.xml`). |
+| `lila worker` | Redis JSON task worker (`pip install lila-framework[redis]`). |
+| `lila desktop dev/build` | Native window / PyInstaller executable. |
+
+---
+
+## 🧪 Tests
+
+```bash
+python -m unittest discover -s tests -v
+```
 
 ---
 
 ## 📖 Documentation
 
-Comprehensive guides, tutorials, and API reference:  
-👉 **[https://seip25.github.io/Lila](https://seip25.github.io/Lila)**
+Full guides and API reference: **https://seip25.github.io/Lila**
 
 ---
 
 ## 📄 License
 
-Lila Framework is open-source software licensed under the [MIT License](LICENSE).
+MIT. See [LICENSE](LICENSE).
+
+Security policy: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md)

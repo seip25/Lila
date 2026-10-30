@@ -88,58 +88,95 @@
     <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
     <article id="auth-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
       <h1>Auth Scaffold</h1>
       <p>
-        In Lila Framework, you can now generate all authentication routes, templates, models,
-        and
-        middlewares automatically using a single command. This helps you quickly set up login,
-        registration, password reset, and dashboard functionality without manually creating
-        files.
+        Lila can generate the authentication routes, templates, models and main.py wiring with one
+        command (Auth 2.0). Generated files are written with a <code>.bak</code> backup when an existing
+        file would change, and migrations run without <code>--refresh</code> so existing users are never
+        dropped.
       </p>
       <br />
 
       <h2>Features (Auth 2.0)</h2>
       <ul class="list-disc ml-6 space-y-1">
-        <li><strong>Better Auth Style OAuth:</strong> Instant social login with Google, GitHub, and Discord including official vector SVG icons.</li>
-        <li><strong>Argon2 Password Hashing:</strong> State-of-the-art security with automatic PBKDF2/scrypt fallback.</li>
-        <li><strong>SPA Navigation:</strong> Integrated with <code class="code-inline">lila-client.js</code> and View Transitions API.</li>
-        <li>Generates routes: <code>/login</code>, <code>/register</code>, <code>/forgot-password</code>, <code>/invalid-token</code>, <code>/change-password</code>, and OAuth callbacks.</li>
-        <li>Creates the <code>dashboard</code> and <code>profile</code> pages.</li>
+        <li><strong>OAuth:</strong> Google, GitHub and Discord with official SVG icons; the callback checks
+          that the provider reports a verified email before creating or logging in a user.</li>
+        <li><strong>Password hashing:</strong> Argon2id (OWASP parameters) via <code>PasswordHasher</code>,
+          with a native <code>scrypt</code> fallback when argon2-cffi is not installed. Async helpers
+          (<code>hash_async</code>/<code>verify_async</code>) run in a worker thread.</li>
+        <li><strong>Login lockout:</strong> 5 failed attempts lock the account for 5 minutes; login,
+          register and reset endpoints are also per-IP throttled.</li>
+        <li><strong>Password reset:</strong> only the SHA-256 hash of the reset token is stored; the email
+          is sent through SMTP when configured, and in debug the reset URL is printed to the console.</li>
+        <li><strong>Sessions:</strong> only <code>user_id</code>/<code>email</code>/<code>name</code>/<code>avatar</code>
+          are stored in the signed cookie — never password hashes.</li>
+        <li><strong>SPA navigation:</strong> integrated with <code>lila-client.js</code> and View
+          Transitions.</li>
+        <li>Generates routes: <code>/login</code>, <code>/register</code>, <code>/forgot-password</code>,
+          <code>/change-password</code>, <code>/invalid-token</code>, plus the dashboard/profile pages and
+          OAuth callbacks.</li>
       </ul>
 
       <h2 class="text-xl mt-6">Running Auth Scaffold</h2>
-      <p>Use the unified CLI or standalone script:</p>
+      <p>Use the unified CLI or the standalone script:</p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-3">
         <div class="editor-content p-4">
-          <pre><code class="language-bash"># Unified CLI command (or: lila-auth)
-lila auth</code></pre>
+          <pre><code class="language-bash"># Unified CLI (or: lila-auth)
+lila auth
+
+# Templates only / routes only
+lila auth --no-routes
+lila auth --no-templates
+
+# Apply the new tables/columns
+lila migrate</code></pre>
         </div>
       </div>
 
+      <p>
+        The scaffold creates <code>app/routes/web/auth/</code> (login, register, logout, forgot-password,
+        change-password), <code>app/routes/web/authenticated/</code> (dashboard, profile), the
+        <code>User</code> model plus <code>LoginAttempt</code>/<code>PasswordResetToken</code> models, and
+        auth templates under <code>resources/html/auth/</code> and
+        <code>resources/html/authenticated/</code>.
+      </p>
+
       <h2 class="text-xl mt-6">OAuth Configuration (.env)</h2>
-      <p>To enable OAuth providers, simply provide your client credentials in <code class="code-inline">.env</code>:</p>
-      <pre><code class="language-bash">GOOGLE_CLIENT_ID="your-google-client-id"
+      <p>Provide your client credentials in <code class="code-inline">.env</code> and set
+        <code>APP_URL</code> (the callback URL is built from it):</p>
+      <pre><code class="language-bash">APP_URL="https://example.com"
+
+GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 GITHUB_CLIENT_ID="your-github-client-id"
@@ -148,13 +185,61 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 DISCORD_CLIENT_ID="your-discord-client-id"
 DISCORD_CLIENT_SECRET="your-discord-client-secret"</code></pre>
 
+      <p>Register these redirect URIs with each provider:</p>
+      <pre><code class="language-bash">https://example.com/auth/google/callback
+https://example.com/auth/github/callback
+https://example.com/auth/discord/callback</code></pre>
+
+      <h2 class="text-xl mt-6">Mounting OAuth Manually</h2>
+      <p>
+        The scaffold mounts the routes for you; if you add OAuth to an existing project, mount them
+        yourself in one line:
+      </p>
+      <pre><code class="language-python">from lila.core.oauth import OAuth
+from lila.core.routing import Router
+from app.models.user import User
+
+router = Router()
+
+OAuth.mount_routes(
+    router,
+    user_model=User,
+    redirect_to="/dashboard",
+    login_url="/login",
+)</code></pre>
+
       <h2 class="text-xl mt-6">Rendering OAuth Buttons in Templates</h2>
-      <p>Use the built-in Jinja helper anywhere in your templates:</p>
+      <p>Use the built-in Jinja helper anywhere in your templates. It auto-detects the providers whose
+        client id and secret are configured:</p>
       <pre><code class="language-html">&lt;!-- Auto-detects configured providers and renders Tailwind SVG buttons --&gt;
 {{ oauth_buttons() | safe }}
 
-&lt;!-- Customize label --&gt;
-{{ oauth_buttons(label_prefix="Sign in with") | safe }}</code></pre>
+&lt;!-- Customize label and provider list --&gt;
+{{ oauth_buttons(providers=['google', 'github'], label_prefix='Sign in with') | safe }}</code></pre>
+
+      <h2 class="text-xl mt-6">Password Hashing &amp; JWT in Your Code</h2>
+      <pre><code class="language-python">from lila.core.auth import PasswordHasher, JWT
+
+async def login_example(password: str) -> str:
+    # Argon2id (scrypt fallback if argon2-cffi is missing)
+    hashed = await PasswordHasher.hash_async(password)
+    ok = await PasswordHasher.verify_async(hashed, password)
+
+    # Rehash opportunity after a successful login
+    if ok and PasswordHasher.needs_rehash(hashed):
+        hashed = await PasswordHasher.hash_async(password)
+
+    # JWT for API clients (validate with @validate_token)
+    token = JWT.encode({"user_id": 1}, minutes=60)
+    payload = JWT.decode(token)   # None when invalid/expired
+    return hashed</code></pre>
+
+      <div class="bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500 p-4 rounded-r-xl my-4 text-sm text-slate-700 dark:text-slate-300">
+        <strong>Security reminders:</strong> cookies are signed, not encrypted — keep secrets out of the
+        session; the login failure counter is stored in the cache, so use
+        <code>CACHE_DRIVER=redis</code> if you run multiple workers; and always set a strong
+        <code>SECRET_KEY</code> in production (<code>lila secret-key</code>).
+      </div>
 
 
     </article>

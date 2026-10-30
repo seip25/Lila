@@ -1,3 +1,5 @@
+﻿import os
+import sys
 import typer
 from lila.cli.scaffold import main as scaffold_main
 from lila.cli.dev import start as dev_start
@@ -14,7 +16,7 @@ from lila.cli.worker import app as worker_app
 
 app = typer.Typer(
     name="lila",
-    help="Lila Framework v2.0.0 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
+    help="Lila Framework v2.0 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
     add_completion=False
 )
 
@@ -33,8 +35,129 @@ def dev(
     """Run local development server with auto-reload."""
     dev_start(host=host, port=port, reload=reload)
 
+
+@app.command("run")
+def run(
+    host: str = typer.Option(None, "--host", "-h", help="Bind address"),
+    port: int = typer.Option(None, "--port", "-p", help="Port"),
+    workers: int = typer.Option(1, "--workers", "-w", help="Number of worker processes"),
+):
+    """Run the production server (no reload)."""
+    from lila.core.config import ConfigLoader, ENV_CONFIG
+
+    if not os.path.exists("main.py"):
+        typer.secho("❌ main.py not found. Run this command inside your project root.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    ConfigLoader.load()
+    bind_host = host or ENV_CONFIG.get("HOST", "127.0.0.1")
+    bind_port = int(port or ENV_CONFIG.get("PORT", 8000) or 8000)
+    if workers > 1 and str(ENV_CONFIG.get("CACHE_DRIVER", "memory")) != "redis":
+        typer.secho(
+            "⚠️ Multiple workers with the memory cache: rate limits/sessions are per worker. "
+            "Use CACHE_DRIVER=redis for shared state.",
+            fg=typer.colors.YELLOW,
+        )
+    import uvicorn
+
+    typer.secho(f"🚀 Lila v2.0 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
+    uvicorn.run("main:app", host=bind_host, port=bind_port, reload=False, workers=workers)
+
+
+@app.command("routes")
+def routes():
+    """List the registered routes of main:app."""
+    if not os.path.exists("main.py"):
+        typer.secho("❌ main.py not found.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    try:
+        import importlib
+
+        main_module = importlib.import_module("main")
+        app_obj = main_module.app
+    except Exception as exc:
+        typer.secho(f"❌ Could not import main:app: {exc}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    rows = []
+    for route in getattr(app_obj, "routes", []):
+        path = getattr(route, "path", "")
+        methods = getattr(route, "methods", None)
+        if not path:
+            continue
+        rows.append((path, ",".join(sorted(methods)) if methods else "WS/MOUNT"))
+    for path, methods in sorted(rows):
+        typer.echo(f"  {methods:<20} {path}")
+    typer.echo(f"\n{len(rows)} routes.")
+
+
+@app.command("doctor")
+def doctor():
+    """Check the project configuration, secret, database and templates."""
+    import asyncio
+    from lila.core.config import ConfigLoader, ENV_CONFIG, get_secret_key
+
+    if not os.path.exists("main.py") or not os.path.exists("app"):
+        typer.secho("❌ Not a Lila project root (main.py/app missing).", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    ok = True
+    typer.echo("🩺 Lila doctor\n")
+
+    if sys.version_info < (3, 10):
+        typer.secho("  ❌ Python >=3.10 is required.", fg=typer.colors.RED)
+        ok = False
+    else:
+        typer.secho(f"  ✅ Python {sys.version.split()[0]}", fg=typer.colors.GREEN)
+
+    if os.path.exists(".env"):
+        typer.secho("  ✅ .env found", fg=typer.colors.GREEN)
+    else:
+        typer.secho("  ⚠️ .env not found; defaults will be used.", fg=typer.colors.YELLOW)
+
+    ConfigLoader.load()
+    secret = get_secret_key()
+    if len(secret) >= 32:
+        typer.secho("  ✅ SECRET_KEY is set (>=32 chars)", fg=typer.colors.GREEN)
+    else:
+        typer.secho("  ⚠️ SECRET_KEY is short; rotate it with 'lila secret-key'.", fg=typer.colors.YELLOW)
+
+    try:
+        from app.connections import connection
+
+        async def _check_db():
+            return await connection.query_async("SELECT 1 AS ok", return_row=True)
+
+        row = asyncio.run(_check_db())
+        typer.secho(f"  ✅ Database reachable ({connection.type})", fg=typer.colors.GREEN)
+        if row is None:
+            ok = False
+    except Exception as exc:
+        typer.secho(f"  ❌ Database check failed: {exc}", fg=typer.colors.RED)
+        ok = False
+
+    project_templates = os.path.isdir(os.path.join("resources", "html"))
+    package_templates = os.path.isdir(os.path.join(os.path.dirname(__file__), "..", "resources", "html"))
+    if project_templates or package_templates:
+        typer.secho("  ✅ Templates available", fg=typer.colors.GREEN)
+    else:
+        typer.secho("  ❌ No templates found.", fg=typer.colors.RED)
+        ok = False
+
+    if os.path.isdir("public"):
+        typer.secho("  ✅ public/ found", fg=typer.colors.GREEN)
+    else:
+        typer.secho("  ⚠️ public/ not found; bundled assets will be used.", fg=typer.colors.YELLOW)
+
+    if str(ENV_CONFIG.get("DEBUG", True)).lower() in ("true", "1", "yes", "on"):
+        typer.secho("  ⚠️ DEBUG=True. Disable it in production.", fg=typer.colors.YELLOW)
+
+    if not ok:
+        raise typer.Exit(code=1)
+    typer.secho("\n✅ Project looks healthy.", fg=typer.colors.GREEN)
+
+
 app.add_typer(desktop_app, name="desktop", help="Desktop mode: run locally in native window or build .exe bundle.")
-app.add_typer(auth_app, name="auth", help="Generate Auth 2.0 (OAuth Better Auth, login, register, dashboard).")
+app.add_typer(auth_app, name="auth", help="Generate Auth 2.0 (OAuth OAuth 2.0, login, register, dashboard).")
 app.add_typer(admin_app, name="admin", help="Setup Admin Panel 2.0 and superuser credentials.")
 app.add_typer(migrations_app, name="migrate", help="Run database migrations.")
 app.add_typer(migrations_app, name="migrations", help="Run database migrations (alias).")
@@ -52,3 +175,4 @@ app.add_typer(worker_app, name="worker", help="Run background task worker proces
 
 if __name__ == "__main__":
     app()
+

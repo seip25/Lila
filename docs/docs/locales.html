@@ -86,31 +86,42 @@
     </header>
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <h4>Menu</h4>
-            <a href="install.html">Installation</a>
-            <a href="routes.html">Routes</a>
-            <a href="static.html">Static</a>
-            <a href="templates.html">Templates</a>
-            <a href="session.html">Session</a>
-            <a href="upload.html">Uploads Files</a>
-            <a href="markdown.html">Markdown/HTML</a>
-            <a href="locales.html">Internationalization</a>
-            <a href="models.html">Models</a>
-            <a href="middlewares.html">Middlewares</a>
-            <a href="cli.html">CLI Commands</a>
-            <a href="connections.html">Connections</a>
-            <a href="migrations.html">Migrations</a>
-            <a href="auth.html">Auth Cli </a>
-            <a href="scaffold.html">Scaffold CRUD</a>
-            <a href="rest_api.html">API Rest CRUD</a>
-            <a href="admin.html">Admin Panel</a>
-            <a href="minify.html">Minify</a>
-            <a href="production.html">Production</a>
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="locales-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h1>Localization & Validation Translations (v2.0)</h1>
             <p>
-                In Lila v2.0, the localization system was rebuilt from scratch to be <strong>ultra-lightweight and zero-overhead</strong>. Instead of reading disk files and decrypting signed cookies on every single request, Lila operates $O(1)$ in-memory language resolution and focuses on <strong>Pydantic v2 validation error localization</strong>.
+                In Lila v2.0, the localization system was rebuilt to be lightweight: locale files are loaded once
+                and cached in memory, the language is resolved in O(1), and the main focus is
+                <strong>Pydantic v2 validation error localization</strong>.
             </p>
 
             <h2 class="text-xl font-bold mt-6 mb-2">Pydantic v2 Error Localization</h2>
@@ -146,9 +157,13 @@ async def create_user(request: Request, data: UserSchema):
                 <ol class="list-decimal ml-6 space-y-1">
                     <li>Query param: <code>?lang=es</code></li>
                     <li>Cookie: <code>lang=es</code></li>
-                    <li>Header: <code>Accept-Language: es-ES,es;q=0.9</code></li>
-                    <li>Fallback: <code>LANG_DEFAULT</code> in <code>.env</code> (default: <code>"en"</code> or <code>"es"</code>)</li>
+                    <li>Header: <code>Accept-Language: es-ES,es;q=0.9</code> (q-values and regions honored)</li>
+                    <li>Fallback: <code>LANG_DEFAULT</code> in <code>.env</code> (framework default:
+                        <code>"es"</code>)</li>
                 </ol>
+                Built-in languages are <code>en</code>, <code>es</code>, <code>pt</code> and
+                <code>zh</code>. The resolved code is exposed as <code>lang</code> in templates and via
+                <code>Translate.lang(request)</code>.
             </p>
 
             <h3>Forcing Language Manually (Fallback)</h3>
@@ -178,30 +193,32 @@ async def custom_home(request: Request):
             </div>
 
             <h2>Translation Files</h2>
-            <p>To load a locale file, use the <code
+            <p>Use the <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate</code>
                 class from
                 <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.translate</code>.
-                You can access translations using:
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.translate</code>:
             </p>
             <ul>
                 <li><code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.get_translations</code>
-                    - returns a dictionary with all translations</li>
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.get_dict(lang=None)</code>
+                    - returns the merged dictionary for a language (built-ins + project overrides)</li>
                 <li><code
-                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.t</code>
-                    - returns a specific translation (returns original text if
-                    not found)</li>
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.t(key, lang=None, request=None, default=None, file_name=None)</code>
+                    - returns one translation; falls back to <code>default</code>, then to the key itself</li>
+                <li><code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Translate.lang(request)</code>
+                    / <code>Translate.set_lang(request, response, lang)</code> - resolve or persist the language</li>
             </ul>
 
-            <p>Example translation file (<code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">app/locales/translations.json</code>):
+            <p>Locale files are <b>flat JSON</b> and live at
+                <code class="code-inline">app/locales/{lang}.json</code> (one file per language). Keys are
+                merged over the built-in dictionary:
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                    <span class="editor-title text-gray-300 dark:text-gray-400">app/locales/translations.json</span>
+                    <span class="editor-title text-gray-300 dark:text-gray-400">app/locales/en.json</span>
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -211,38 +228,24 @@ async def custom_home(request: Request):
                 <div class="editor-content">
                     <pre><code class="language-json">
 {
-    "Send": {
-        "es": "Enviar",
-        "en": "Send"
-    },
-    "Cancel": {
-        "es": "Cancelar",
-        "en": "Cancel"
-    },
-    "Accept": {
-        "es": "Aceptar",
-        "en": "Accept"
-    },
-    "Email": {
-        "es": "Email",
-        "en": "Email"
-    },
-    "Name": {
-        "es": "Nombre",
-        "en": "Name"
-    },
-    "Back": {
-        "es": "Volver",
-        "en": "Back"
-    },
-    "Hi": {
-        "es": "Hola",
-        "en": "Hi"
-    }
+    "login": "Welcome Back",
+    "send": "Send",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "email": "Email",
+    "name": "Name",
+    "back": "Back",
+    "hi": "Hi"
 }
                                     </code></pre>
                 </div>
             </div>
+
+            <p>
+                The equivalent <code>app/locales/es.json</code> would contain
+                <code>{"send": "Enviar", "cancel": "Cancelar", ...}</code>. Nested
+                <code>{"Send": {"es": ..., "en": ...}}</code> maps are <b>not</b> supported.
+            </p>
             <h2>Using Translations</h2>
             <p>Get a specific translation:</p>
 
@@ -259,40 +262,58 @@ async def custom_home(request: Request):
                     <pre><code class="language-python">
 from lila.core.translate import Translate
 
+# Resolve the language from the request (query param -> cookie -> header -> LANG_DEFAULT)
 msg_error_login = Translate.t(
-    key="Incorrect email or password", 
-    request=request, 
-    file_name="guest"
+    key="incorrect_email_or_password",
+    request=request,
+    default="Incorrect email or password",
 )
+
+# Force a language / provide a fallback
+msg_es = Translate.t("login", lang="es", default="Iniciar sesión")
+
+# file_name is a deprecated v1 compatibility argument: it looks up
+# "file_name.key" in the same flat dictionary, then falls back to key/default.
+legacy = Translate.t("title", file_name="guest", default="Welcome")
                                     </code></pre>
                 </div>
             </div>
 
             <h2>Helpers and Performance</h2>
-            <p>Lila includes helpers to manage the application state and ensure high performance through caching.</p>
+            <p>Lila includes helpers to manage the application state and keep locale lookups in memory.</p>
 
             <h3>Setting the Language</h3>
-            <p>You can change the user's language dynamically. This stores the preference in an encrypted session
-                cookie.</p>
+            <p>
+                <code>Translate.set_lang(request, response, lang)</code> writes a
+                <code>lang</code> cookie (not a session, and not encrypted — it only holds the language
+                code) that <code>Translate.lang()</code> reads on the next request.
+            </p>
 
             <h4>Option A: Dynamic POST Route (e.g. for fetch/AJAX)</h4>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-python">
+from lila.core.translate import Translate
+
 @router.post("/set-language")
 async def change_lang(request: Request):
     data = await request.json()
-    new_lang = data.get("lang", "en")
-    
-    response = JSONResponse({"success": True})
-    await Translate.set_lang(request, response, new_lang)
+    new_lang = str(data.get("lang", "en"))[:2].lower()
+
+    response = JSONResponse({"success": True, "lang": new_lang})
+    Translate.set_lang(request, response, new_lang)   # sync helper
     return response
                     </code></pre>
                 </div>
             </div>
 
-            <h4>Option B: Automatic Query Parameter Switching (Zero Code/Routes Required)</h4>
-            <p>To completely avoid defining custom routes or controllers, Lila provides a built-in global switcher. Simply append the query parameter <code>?lang=code</code> (or <code>?changeLang=code</code>, <code>?change_lang=code</code>) to <strong>any URL in your entire application</strong>. Lila will intercept it, update the session language preference automatically, and seamlessly perform an instant, clean redirect to the same URL without the query parameter.</p>
+            <h4>Option B: Per-request switch with the query parameter</h4>
+            <p>
+                <code>Translate.lang(request)</code> reads <code>?lang=code</code> first, so appending
+                <code>?lang=es</code> to a URL renders that one request in Spanish. It does not persist
+                the preference — call <code>Translate.set_lang()</code> (or write the cookie yourself) if
+                you want it to survive navigation.
+            </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -305,9 +326,12 @@ async def change_lang(request: Request):
                 </div>
                 <div class="editor-content bg-gray-900 dark:bg-black">
                     <pre><code class="language-html">
-&lt;!-- Dynamically switches the active language to Spanish or English and reloads the current page cleanly --&gt;
+&lt;!-- Renders this page in Spanish for this request --&gt;
 &lt;a href="?lang=es"&gt;🇪🇸 Español&lt;/a&gt;
 &lt;a href="?lang=en"&gt;🇺🇸 English&lt;/a&gt;
+
+&lt;!-- To persist the choice, call the POST /set-language route shown above
+     with fetch(), or call Translate.set_lang() in your own route. --&gt;
                     </code></pre>
                 </div>
             </div>
@@ -330,13 +354,14 @@ except ValidationError as e:
             </div>
 
             <p>
-                <strong>Performance Note:</strong> The <code>Translate</code> class uses internal caching to avoid
-                re-reading JSON files and re-processing dictionaries on every request. Language settings are also cached
-                within the request state to minimize session decryption overhead.
+                <strong>Performance note:</strong> <code>Translate.get_dict()</code> loads each language
+                once and keeps the merged dictionary in memory; <code>Translate.lang()</code> resolves the
+                language from the request without any disk I/O. Pydantic messages come from in-memory
+                catalogs.
             </p>
 
             <h2>Usage in Templates</h2>
-            <p>Translations are automatically available in the <code>translate</code> context variable:</p>
+            <p>Translations are available as <code>translate</code> (a dict) and <code>t()</code> (a function):</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -349,11 +374,16 @@ except ValidationError as e:
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-html">
-{{ translate["Send"] }}
-    
-<!-- With variables -->
-{{ translate["Hi"] }} {{ user.name }}
-                        </code></pre>
+{{ translate["send"] }}
+
+&lt;!-- With a fallback (missing keys render the default) --&gt;
+{{ translate["missing_key"] | default('Fallback label') }}
+
+&lt;!-- Function form --&gt;
+{{ t('login', default='Welcome Back') }}
+
+&lt;!-- With variables --&gt;
+{{ translate["hi"] }} {{ user.name }}</code></pre>
                 </div>
             </div>
 

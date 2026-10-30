@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="canonical" href="https://seip25.github.io/Lila/" />
+    <title>Lila Framework - Minify &amp; Asset Optimization</title>
+    <meta name="description"
+        content="Minify JS/CSS and convert images to WebP with lila optimize, and learn how the asset manifest drives public() and cache busting." />
+    <meta name="keywords" content="Python, Web Framework, Minify, Assets, WebP, Cache Busting" />
+    <meta name="author" content="Lila Framework Team" />
+    <meta property="og:title" content="Lila Framework - Minify &amp; Asset Optimization" />
+    <meta property="og:description"
+        content="Minify JS/CSS and convert images to WebP with lila optimize, and learn how the asset manifest drives public() and cache busting." />
+    <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta property="og:url" content="https://seip25.github.io/Lila/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lila Framework - Minify &amp; Asset Optimization" />
+    <meta name="twitter:description"
+        content="Minify JS/CSS and convert images to WebP with lila optimize, and learn how the asset manifest drives public() and cache busting." />
+    <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
+    <meta name="language" content="en" />
+    <meta http-equiv="Content-Language" content="en" />
+    <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+    <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+    <link rel="stylesheet" href="../css/lila.css" />
+    <!-- Google Fonts for Outfit and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gemini: {
+                blue: '#1a73e8',
+                blueBg: '#f0f4f9',
+                blueHover: '#e1ecf8',
+                indigo: '#4f46e5',
+                purple: '#8b5cf6',
+                accent: '#4285f4',
+                darkBg: '#090d16',
+                darkCard: '#131b2e',
+                darkBorder: '#1e293b',
+                darkHover: '#1e293b'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body>
+        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+      <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+            L
+          </div>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            Home
+          </a>
+          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+            Github
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
+
+        <article id="minify-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+            <h2>Minify &amp; Asset Optimization</h2>
+
+            <p>
+                <code class="code-inline">lila optimize</code> scans <code class="code-inline">public/</code>,
+                writes minified copies of JS/CSS and WebP versions of PNG/JPG images, and records the mapping
+                in a manifest. Your templates keep referencing the original names:
+                <code class="code-inline">public()</code> swaps in the optimized file and appends a
+                cache-busting version.
+            </p>
+
+            <h3>Requirements</h3>
+            <ul class="list-disc pl-6 mt-2 space-y-1 text-slate-600 dark:text-slate-300">
+                <li><code>rjsmin</code> for JavaScript — without it, JS files are <b>skipped</b> (never copied
+                    unminified over the original).</li>
+                <li><code>rcssmin</code> for CSS — without it, CSS files are skipped.</li>
+                <li><code>Pillow</code> for PNG/JPG → WebP conversion.</li>
+            </ul>
+
+            <pre><code class="language-bash"># Everything at once
+pip install "lila-framework[optimize]"
+
+# Or individually
+pip install rjsmin rcssmin pillow</code></pre>
+
+            <h3>Running it</h3>
+            <pre><code class="language-bash"># From the project root (alias: lila-optimize)
+lila optimize</code></pre>
+
+            <p>The command:</p>
+            <ul class="list-disc pl-6 mt-2 space-y-1 text-slate-600 dark:text-slate-300">
+                <li>walks every file under <code>public/</code>;</li>
+                <li>minifies <code>*.js</code> (except <code>*.min.js</code>) to
+                    <code>*.min.js</code> and <code>*.css</code> (except <code>*.min.css</code>) to
+                    <code>*.min.css</code>;</li>
+                <li>converts <code>*.png</code>, <code>*.jpg</code> and <code>*.jpeg</code> to
+                    <code>*.webp</code> (quality 82);</li>
+                <li>writes <code>app/cache/assets_manifest.json</code> and
+                    <code>app/cache/manifest_cache.py</code>
+                    (<code>ASSET_MANIFEST = {"js/app.js": "js/app.min.js", ...}</code>).</li>
+            </ul>
+
+            <div class="bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500 p-4 rounded-r-xl my-4 text-sm text-slate-700 dark:text-slate-300">
+                <strong>No HTML minification:</strong> Lila does not minify rendered HTML. There is no
+                <code>MINIFY_HTML</code> setting. For transport compression use
+                <code>App(..., gzip=True)</code> (default when enabled in <code>main.py</code>) or gzip/brotli
+                in your reverse proxy.
+            </div>
+
+            <h3>How <code>public()</code> consumes the manifest</h3>
+            <p>
+                The template helper loads <code>app/cache/assets_manifest.json</code> (or
+                <code>manifest_cache.py</code>) once per process, maps the requested path, and appends
+                <code>?v=&lt;file-mtime&gt;</code>. In production (DEBUG off and
+                <code>APP_URL</code> set) the URL is absolute.
+            </p>
+
+            <pre><code class="language-html">&lt;!-- In a Jinja2 template: reference the original file, not the minified one --&gt;
+&lt;link rel="stylesheet" href="{{ public('css/app.css') }}"&gt;
+&lt;script src="{{ public('js/app.js') }}"&gt;&lt;/script&gt;
+
+&lt;!-- After `lila optimize` these resolve to: --&gt;
+&lt;!-- /css/app.min.css?v=1730000000 --&gt;
+&lt;!-- /js/app.min.js?v=1730000000 --&gt;
+
+&lt;!-- asset() builds the whole tag: --&gt;
+{{ asset('css/app.css') | safe }}</code></pre>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                <div class="editor-content bg-gray-900 dark:bg-black p-4">
+                    <pre><code class="language-python">
+from lila.core.templates import public, asset
+
+public("js/lila-client.js")   # "/js/lila-client.min.js?v=1730000000"
+asset("css/app.css")          # a &lt;link rel="stylesheet"&gt; tag pointing at /css/app.min.css?v=...
+                    </code></pre>
+                </div>
+            </div>
+
+            <h3>Cache busting &amp; static headers</h3>
+            <p>
+                <code>StaticCacheMiddleware</code> adds <code>Cache-Control</code> headers for
+                <code>/public</code>, <code>/js</code>, <code>/img</code>, <code>/swagger</code> and
+                <code>/uploads</code>. Requests with a <code>?v=</code> parameter are marked
+                <code>public, max-age=31536000, immutable</code>; other static files use
+                <code>STATIC_CACHE_MAX_AGE</code> (86400 by default). Because the version is taken from the
+                file mtime, replacing an asset changes its URL automatically.
+            </p>
+
+            <h3>Deployment order</h3>
+            <ol class="list-decimal pl-6 mt-2 space-y-1 text-slate-600 dark:text-slate-300">
+                <li>Deploy the new <code>public/</code> files.</li>
+                <li>Run <code>lila optimize</code> (writes the new manifest).</li>
+                <li>Restart the app so the per-process URL cache is rebuilt. If you run multiple workers,
+                    run <code>optimize</code> <b>before</b> starting them.</li>
+            </ol>
+
+            <div class="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 p-4 rounded-r-xl my-6">
+                <p class="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                    <strong>Tailwind note:</strong> the bundled layouts use the Tailwind Play CDN in
+                    development. For production, generate a precompiled CSS file, place it under
+                    <code>public/css/</code> and reference it with <code>public('css/tailwind.css')</code>;
+                    then <code>lila optimize</code> can minify it like any other stylesheet.
+                </p>
+            </div>
+
+        </article>
+    </main>
+
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            hljs.highlightAll();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="../js/lila.js"></script>
+    <script src="../js/partial.js"></script>
+</body>
+
+</html>

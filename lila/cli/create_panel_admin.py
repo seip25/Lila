@@ -1,130 +1,123 @@
-import sys
 import os
+import sys
+import asyncio
 import secrets
-import subprocess
-from typing import Optional, List, Dict, Any
+from pathlib import Path
+
 import typer
-from sqlalchemy import text
 
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
 from lila.core.auth import PasswordHasher
+from lila.core.config import ConfigLoader, ENV_CONFIG
+from lila.cli._patch import patch_main
 
 app = typer.Typer(help="Setup Admin 2.0 and create administrator credentials.")
+
 
 def get_connection():
     try:
         from app.connections import connection
         return connection
-    except Exception:
+    except Exception as exc:
+        typer.secho(f"  ❌ Could not load app.connections: {exc}", fg=typer.colors.RED)
         return None
 
-def check_and_create_admins_table(conn) -> bool:
-    is_sqlite = "sqlite" in conn.config.get("type", "sqlite")
-    is_postgres = "postgres" in conn.config.get("type", "")
-
-    if is_sqlite:
-        check_q = "SELECT name FROM sqlite_master WHERE type='table' AND name='admins'"
-    else:
-        check_q = "SELECT table_name FROM information_schema.tables WHERE table_name = 'admins'"
-
-    try:
-        row = conn.query(query=check_q, return_row=True)
-        if not row:
-            if is_sqlite:
-                pk_def = "id INTEGER PRIMARY KEY AUTOINCREMENT"
-            elif is_postgres:
-                pk_def = "id SERIAL PRIMARY KEY"
-            else:
-                pk_def = "id INTEGER PRIMARY KEY AUTO_INCREMENT"
-
-            create_q = f"""
-            CREATE TABLE admins (
-                {pk_def},
-                username VARCHAR(100) NOT NULL UNIQUE,
-                password VARCHAR(255) NOT NULL,
-                active INTEGER NOT NULL DEFAULT 1,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-            conn.query(query=create_q)
-        return True
-    except Exception as e:
-        typer.echo(f"  ⚠️ Table check notice: {e}")
-        return False
-
-def create_admin_user(conn, username: str, password: str) -> bool:
-    hashed_password = PasswordHasher.hash(password)
-    query = "INSERT INTO admins (username, password, active) VALUES (:username, :password, 1)"
-    params = {"username": username, "password": hashed_password}
-    try:
-        conn.query(query=query, params=params)
-        return True
-    except Exception as e:
-        typer.secho(f"  ❌ Error creating admin user: {e}", fg=typer.colors.RED)
-        return False
 
 def copy_admin_files():
     import shutil
+
     dest_routes = os.path.join(os.getcwd(), "app", "routes", "admin")
     if not os.path.exists(dest_routes):
-        os.makedirs(dest_routes, exist_ok=True)
         src_routes = os.path.join(os.path.dirname(__file__), "..", "app", "routes", "admin")
         if os.path.exists(src_routes):
             shutil.copytree(src_routes, dest_routes, dirs_exist_ok=True)
             typer.echo("  📁 Admin routes copied to app/routes/admin/")
 
+    # Admin templates are framework UI: upgrade them (with backups) so an old
+    # v1.x dashboard does not crash against the new context.
+    src_templates = os.path.join(os.path.dirname(__file__), "..", "resources", "html", "admin")
     dest_templates = os.path.join(os.getcwd(), "resources", "html", "admin")
-    if not os.path.exists(dest_templates):
+    if os.path.exists(src_templates):
         os.makedirs(dest_templates, exist_ok=True)
-        src_templates = os.path.join(os.path.dirname(__file__), "..", "resources", "html", "admin")
-        if os.path.exists(src_templates):
-            shutil.copytree(src_templates, dest_templates, dirs_exist_ok=True)
-            typer.echo("  📄 Admin templates copied to resources/html/admin/")
+        updated = 0
+        for name in os.listdir(src_templates):
+            source = os.path.join(src_templates, name)
+            if not os.path.isfile(source):
+                continue
+            target = os.path.join(dest_templates, name)
+            try:
+                content = open(source, "r", encoding="utf-8").read()
+                if os.path.exists(target) and open(target, "r", encoding="utf-8").read() == content:
+                    continue
+                if os.path.exists(target):
+                    shutil.copy2(target, target + ".bak")
+                shutil.copy2(source, target)
+                updated += 1
+            except Exception:
+                pass
+        if updated:
+            typer.echo(f"  📄 Admin templates updated ({updated} files, old versions backed up).")
 
 
-def update_main_routes():
-    import re
-    main_file = "main.py"
-    marker = "admin_marker"
+def update_main_routes() -> bool:
+    main_file = os.path.join(os.getcwd(), "main.py")
     if not os.path.exists(main_file):
-        return
+        return False
+    import_stmt = "from app.routes.admin.index import router as admin_router"
+    include_stmt = "app.include_router(admin_router)"
+    if patch_main(main_file, import_stmt, include_stmt):
+        typer.echo("  ✨ Admin routes linked in main.py.")
+        return True
+    return False
 
-    with open(main_file, "r", encoding="utf-8") as file:
-        content = file.read()
 
-    import_line = "from app.routes.admin.index import router as admin_router"
-    include_line = "app.include_router(admin_router)"
+async def _create_async(connection, username: str, password: str) -> bool:
+    from lila.core.admin import Admin, ensure_admin_table_async
 
-    if import_line in content:
-        return
-
-    if f"# {marker}" in content:
-        content = content.replace(f"# {marker}", f"# {marker}\n{import_line}")
+    await ensure_admin_table_async(connection)
+    row = await connection.query_async(
+        "SELECT id FROM admins WHERE lower(username) = lower(:u) LIMIT 1",
+        {"u": username},
+        return_row=True,
+    )
+    hashed = await PasswordHasher.hash_async(password)
+    if row:
+        await Admin.update_async(row["id"], password=hashed, active=1)
+        typer.echo(f"  🔁 Administrator '{username}' password updated.")
     else:
-        content = f"{import_line}\n" + content
+        await Admin.insert_async(username=username, password=hashed, active=1)
+        typer.echo(f"  ✅ Administrator '{username}' created.")
+    return True
 
-    if include_line not in content and "admin_router" not in content.split("App(")[-1].split(")")[0]:
-        app_match = re.search(r"(app\s*=\s*App\s*\([^)]*\))", content, re.DOTALL)
-        if app_match:
-            end_pos = app_match.end()
-            content = content[:end_pos] + f"\n{include_line}\n" + content[end_pos:]
-        else:
-            content += f"\n{include_line}\n"
 
-    with open(main_file, "w", encoding="utf-8") as file:
-        file.write(content)
-    typer.echo("  ✨ Admin routes linked in main.py.")
+def _create_sync(connection, username: str, password: str) -> bool:
+    from lila.core.admin import Admin
+
+    connection.migrate(use_base=True)
+    row = connection.query(
+        "SELECT id FROM admins WHERE lower(username) = lower(:u) LIMIT 1",
+        {"u": username},
+        return_row=True,
+    )
+    hashed = PasswordHasher.hash(password)
+    if row:
+        Admin.update(row["id"], password=hashed, active=1)
+        typer.echo(f"  🔁 Administrator '{username}' password updated.")
+    else:
+        Admin.insert(username=username, password=hashed, active=1)
+        typer.echo(f"  ✅ Administrator '{username}' created.")
+    return True
 
 
 @app.callback(invoke_without_command=True)
 def default_admin(
     ctx: typer.Context,
-    username: str = typer.Option("admin", "--user", "-u", help="Admin username"),
+    username: str = typer.Option("admin", "--user", "-u", "--username", help="Admin username"),
     password: str = typer.Option(None, "--password", "-p", help="Admin password (generated if omitted)"),
 ):
-    """Setup Admin Panel 2.0 tables and create a superuser."""
+    """Setup Admin 2.0 tables and create/update a superuser."""
     if ctx.invoked_subcommand is None:
         create(username=username, password=password)
 
@@ -132,35 +125,39 @@ def default_admin(
 @app.command("create")
 @app.command("setup")
 def create(
-    username: str = typer.Option("admin", "--user", "-u", help="Admin username"),
+    username: str = typer.Option("admin", "--user", "-u", "--username", help="Admin username"),
     password: str = typer.Option(None, "--password", "-p", help="Admin password (generated if omitted)"),
 ):
-    """
-    Setup Admin Panel 2.0 tables and create a superuser.
-    """
+    """Setup Admin 2.0 tables and create/update a superuser."""
     if not os.path.exists("main.py") or not os.path.exists("app"):
         typer.secho("❌ Error: Must run inside a Lila project root directory.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    conn = get_connection()
-    if conn is None:
-        typer.secho("❌ Could not connect to database via app.connections.", fg=typer.colors.RED)
+    ConfigLoader.load()
+    connection = get_connection()
+    if connection is None:
+        typer.secho("❌ Could not connect to the project database via app.connections.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
     typer.echo("🛠️  Setting up Admin 2.0 tables...")
-    check_and_create_admins_table(conn)
-
     copy_admin_files()
 
-    admin_pw = password or secrets.token_urlsafe(10)
-    if create_admin_user(conn, username, admin_pw):
-        typer.secho(f"✅ Administrator '{username}' created successfully!", fg=typer.colors.GREEN)
-        typer.echo(f"   🔑 Password: {admin_pw}")
-        typer.echo("   🌐 Login at: http://127.0.0.1:8000/admin")
-        update_main_routes()
-    else:
-        typer.secho(f"❌ Failed to create admin user '{username}'.", fg=typer.colors.RED)
+    admin_pw = password or secrets.token_urlsafe(12)
+    try:
+        if getattr(connection, "is_async", True):
+            asyncio.run(_create_async(connection, username, admin_pw))
+        else:
+            _create_sync(connection, username, admin_pw)
+    except Exception as exc:
+        typer.secho(f"❌ Failed to create administrator: {exc}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+
+    update_main_routes()
+    typer.secho(f"✅ Administrator '{username}' ready!", fg=typer.colors.GREEN)
+    typer.echo(f"   🔑 Password: {admin_pw}")
+    host = ENV_CONFIG.get("HOST", "127.0.0.1")
+    port = ENV_CONFIG.get("PORT", 8000)
+    typer.echo(f"   🌐 Login at: http://{host}:{port}/admin")
 
 
 def main():
@@ -169,4 +166,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

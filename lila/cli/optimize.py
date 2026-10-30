@@ -23,6 +23,8 @@ except ImportError:
     Image = None
 
 project_root = os.getcwd()
+_warned_js = False
+_warned_css = False
 
 def process_js(file_path: str, new_file_path: str) -> bool:
     try:
@@ -31,10 +33,11 @@ def process_js(file_path: str, new_file_path: str) -> bool:
         if rjsmin:
             minified = rjsmin.jsmin(content)
         else:
-            # Safe comment removal that preserves URLs ('wss://', 'https://') and strings
-            minified = re.sub(r'/\*[\s\S]*?\*/', '', content)
-            minified = re.sub(r'^\s*//.*$', '', minified, flags=re.MULTILINE)
-            minified = re.sub(r'\n\s*\n+', '\n', minified).strip()
+            global _warned_js
+            if not _warned_js:
+                print("  ⚠️ rjsmin not installed; skipping JS minification. pip install rjsmin")
+                _warned_js = True
+            return False
         with open(new_file_path, 'w', encoding='utf-8') as f:
             f.write(minified)
         return True
@@ -49,8 +52,11 @@ def process_css(file_path: str, new_file_path: str) -> bool:
         if rcssmin:
             minified = rcssmin.cssmin(content)
         else:
-            minified = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
-            minified = re.sub(r'\s+', ' ', minified)
+            global _warned_css
+            if not _warned_css:
+                print("  ⚠️ rcssmin not installed; skipping CSS minification. pip install rcssmin")
+                _warned_css = True
+            return False
         with open(new_file_path, 'w', encoding='utf-8') as f:
             f.write(minified)
         return True

@@ -6,16 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light dark" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <meta name="description" content="{{ description | default('Lila Framework v2.0 - Ultra-Lightweight Full-Stack Python') }}" />
-  <meta name="keywords" content="{{ keywords | default('lila, python, starlette, spa, web, framework') }}" />
-  <meta name="author" content="{{ author | default('Lila Framework') }}" />
-  <title>{% block title %}{{ title | default('Lila Framework') }}{% endblock %}</title>
-  <link rel="icon" type="image/x-icon" href="{{ public('img/lila.png') }}" />
+  <meta name="description" content="{{ seo.description | default(description) | default('Lila Framework v2.0 - Ultra-Lightweight Full-Stack Python') }}" />
+  <meta name="keywords" content="{{ seo.keywords | default(keywords) | default('lila, python, starlette, spa, web, framework') }}" />
+  <meta name="author" content="{{ seo.author | default(author) | default('Lila Framework') }}" />
+  <title>{% block title %}{{ seo.title | default(title) | default('Lila Framework') }}{% endblock %}</title>
+  {% if seo.canonical %}<link rel="canonical" href="{{ seo.canonical }}" />{% endif %}
+  {% if seo.robots %}<meta name="robots" content="{{ seo.robots }}" />{% endif %}
+  <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
   {% include "lila/tailwind.jinja" %}
   {% block head %}{% endblock %}
 </head>
 
-<body
+<body data-layout="default"
   class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col">
   
   <div id="lila-outlet" data-lila-outlet class="flex-1 flex flex-col">

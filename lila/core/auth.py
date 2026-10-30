@@ -1,15 +1,20 @@
-"""Lila Framework v2.0.0 Authentication & Password Hashing.
-Provides JWT helpers and Argon2 password hashing with native scrypt fallback.
+"""Lila Framework v2.0.x Authentication & Password Hashing.
+
+JWT helpers and Argon2 password hashing with a native scrypt fallback.
+Async helpers offload the CPU-bound hash to a worker thread so the event loop
+is never blocked for ~100 ms per login.
 """
 
+import asyncio
 import hashlib
 import secrets
 import base64
 from datetime import datetime, timedelta, timezone
 from typing import Union, Any, Optional
+
 import jwt
 
-from lila.core.config import ENV_CONFIG
+from lila.core.config import ENV_CONFIG, get_secret_key
 from lila.core.request import Request
 from lila.core.responses import JSONResponse
 
@@ -17,14 +22,20 @@ try:
     from argon2 import PasswordHasher as _Argon2Hasher
     from argon2.exceptions import VerifyMismatchError, VerificationError
     HAS_ARGON2 = True
-    _argon2 = _Argon2Hasher(time_cost=2, memory_cost=65536, parallelism=1)
-except ImportError:
+    # OWASP-recommended Argon2id parameters (19 MiB) instead of 64 MiB.
+    _argon2 = _Argon2Hasher(time_cost=2, memory_cost=19456, parallelism=1)
+except ImportError:  # pragma: no cover - optional dependency
     HAS_ARGON2 = False
     _argon2 = None
 
+try:
+    import argon2 as _argon2_module
+except ImportError:  # pragma: no cover
+    _argon2_module = None
+
 
 def _get_secret() -> str:
-    return str(ENV_CONFIG.get("SECRET_KEY", "lila-auth-secret-key-change-me"))
+    return get_secret_key()
 
 
 class PasswordHasher:
@@ -32,14 +43,12 @@ class PasswordHasher:
 
     @classmethod
     def hash(cls, password: str) -> str:
-        """Hashes password with Argon2 (or PBKDF2/scrypt if argon2 is unavailable)."""
         if not password:
             raise ValueError("Password cannot be empty")
 
         if HAS_ARGON2 and _argon2 is not None:
             return _argon2.hash(password)
 
-        # Secure native scrypt fallback
         salt = secrets.token_bytes(16)
         derived = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
         salt_b64 = base64.b64encode(salt).decode("ascii")
@@ -47,8 +56,12 @@ class PasswordHasher:
         return f"$scrypt$ln=14,r=8,p=1${salt_b64}${hash_b64}"
 
     @classmethod
+    async def hash_async(cls, password: str) -> str:
+        """Non-blocking hash for async routes."""
+        return await asyncio.to_thread(cls.hash, password)
+
+    @classmethod
     def verify(cls, hashed: str, password: str) -> bool:
-        """Verifies password against stored hash."""
         if not hashed or not password:
             return False
 
@@ -65,7 +78,6 @@ class PasswordHasher:
         if hashed.startswith("$scrypt$"):
             try:
                 parts = hashed.split("$")
-                # parts: ['', 'scrypt', 'ln=14,r=8,p=1', salt_b64, hash_b64]
                 salt = base64.b64decode(parts[3])
                 expected = base64.b64decode(parts[4])
                 derived = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
@@ -73,17 +85,24 @@ class PasswordHasher:
             except Exception:
                 return False
 
-        # Fallback SHA-256 for legacy compatibility (salt$sha256)
+        # Legacy salted SHA-256 compatibility (salt$sha256)
         if "$" in hashed:
-            salt, sha = hashed.split("$", 1)
-            candidate = hashlib.sha256((salt + password).encode("utf-8")).hexdigest()
-            return secrets.compare_digest(candidate, sha)
+            try:
+                salt, sha = hashed.split("$", 1)
+                candidate = hashlib.sha256((salt + password).encode("utf-8")).hexdigest()
+                return secrets.compare_digest(candidate, sha)
+            except Exception:
+                return False
 
         return False
 
     @classmethod
+    async def verify_async(cls, hashed: str, password: str) -> bool:
+        """Non-blocking verification for async routes."""
+        return await asyncio.to_thread(cls.verify, hashed, password)
+
+    @classmethod
     def needs_rehash(cls, hashed: str) -> bool:
-        """Checks if hash needs rehash to modern Argon2 format."""
         if HAS_ARGON2 and _argon2 is not None:
             if not hashed.startswith("$argon2"):
                 return True
@@ -101,14 +120,18 @@ class JWT:
     def encode(payload: dict, minutes: int = 1440, secret: Optional[str] = None) -> str:
         sec = secret or _get_secret()
         data = dict(payload)
-        data["exp"] = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+        now = datetime.now(timezone.utc)
+        data.setdefault("iat", now)
+        data["exp"] = now + timedelta(minutes=minutes)
         return jwt.encode(data, sec, algorithm="HS256")
 
     @staticmethod
     def decode(token_str: str, secret: Optional[str] = None) -> Optional[dict]:
         sec = secret or _get_secret()
+        if not token_str:
+            return None
         if " " in token_str:
-            token_str = token_str.strip().split(" ")[1]
+            token_str = token_str.strip().split(" ", 1)[1]
         try:
             return jwt.decode(token_str, sec, algorithms=["HS256"])
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, Exception):
@@ -120,9 +143,7 @@ def generate_token_value(hex_length: int = 16) -> str:
 
 
 def generate_token(name: str, value: Any = None, minutes: int = 1440) -> str:
-    options = {
-        name: value if value is not None else generate_token_value(),
-    }
+    options = {name: value if value is not None else generate_token_value()}
     return JWT.encode(options, minutes=minutes)
 
 
@@ -130,7 +151,7 @@ def get_token(token_str: str) -> Union[dict, JSONResponse]:
     sec = _get_secret()
     try:
         if " " in token_str:
-            token_str = token_str.strip().split(" ")[1]
+            token_str = token_str.strip().split(" ", 1)[1]
         return jwt.decode(token_str, sec, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
         return JSONResponse({"session": False, "message": "Token has expired"}, status_code=401)

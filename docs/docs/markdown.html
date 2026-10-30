@@ -88,23 +88,32 @@
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
         <article id="markdown-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -112,51 +121,48 @@
             <p>
                 To render <code
                     class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">markdown</code>
-                files, the
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">renderMarkdown</code>
-                function is used, which receives the following parameters:
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
-            request, file: str, base_path: str='resources/markdown/', css_files: list=[], js_files: list=[], picocss: bool=False
-        </code>
+                documents, use <code
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render_markdown</code>
+                from <code>lila.core.templates</code>. Signature:
             </p>
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+                <div class="editor-content bg-gray-900 dark:bg-black p-4">
+                    <pre><code class="language-python">
+def render_markdown(
+    request: Request,
+    markdown_path: str,
+    context: dict | None = None,
+    css_files: list[str] | None = None,
+    js_files: list[str] | None = None,
+) -> HTMLResponse: ...
+                    </code></pre>
+                </div>
+            </div>
 
             <p>
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">file</code>
-                is the name of the Markdown file starting from <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">base_path</code>.
-                For example: <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>.
-                It will look for <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">index.md</code>
-                inside <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">resources/markdown/</code>.
+                <code>markdown_path</code> is resolved inside <code>resources/markdown/</code>
+                (the <code>.md</code> extension is optional). Absolute paths and
+                <code>../</code> traversal are rejected with <b>400</b>; a missing document returns
+                <b>404</b>. The rendered HTML is wrapped in the bundled
+                <code>markdown/layout.jinja</code> layout, which you can override in your project by
+                creating the same file under <code>resources/html/</code>.
             </p>
-
             <p>
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">css_files</code>
-                and
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">js_files</code>
-                are lists of CSS and JS files to include in the rendered HTML.
+                <code>css_files</code> and <code>js_files</code> are lists of URLs (or public paths)
+                added to the layout. A v1-compatible alias, <code>renderMarkdown</code>, also exists but
+                new code should use the snake_case name. Markdown conversion requires the optional
+                <code>markdown</code> package (<code>pip install "lila-framework[markdown]"</code>);
+                without it the raw text is escaped and shown inside a <code>&lt;pre&gt;</code>.
             </p>
 
-            <p>
-                <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">picocss</code>
-                is a boolean indicating whether the PicoCSS stylesheet should be loaded.
-            </p>
+            <div class="bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500 p-4 rounded-r-xl my-4 text-sm text-slate-700 dark:text-slate-300">
+                <strong>Note:</strong> the Markdown file itself is <b>not</b> processed as a Jinja2
+                template. Placeholders such as <code>{{ translate["welcome"] }}</code> would be shown
+                literally. Pass values through <code>context=</code> to the layout, or keep one
+                <code>.md</code> file per language.
+            </div>
 
-            <p>Now, you can use <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">layout.html</code>
-                in <code>resources/markdown/</code> as a base editable template:</p>
-
-
-
-            <p>Below is an example of rendering a Markdown file with bilingual support in Lilac:</p>
+            <p>Example document (<code>resources/markdown/example.md</code>):</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -169,19 +175,17 @@
                 </div>
                 <div class="editor-content">
                     <pre>
-<code class="language-html">
-# {{ translate["welcome"] }}
+<code class="language-markdown">
+# Welcome
 
-This is a simple **Markdown** example. 
+This is a simple **Markdown** example.
 
-## {{ translate["features"] }}
-- {{ translate["easy_write"] }}
-- {{ translate["convert_html"] }}
-- {{ translate["supports_links"] }}
+## Features
+- Easy to write
+- Converts to HTML
+- Supports links and code blocks
 
-### {{ translate["example_code"] }}
-
-\`\`\`
+\`\`\`python
 print("Hello, Markdown!")
 \`\`\`
 </code>
@@ -189,7 +193,7 @@ print("Hello, Markdown!")
                 </div>
             </div>
 
-            <p>Python code to render it using <code>renderMarkdown</code>:</p>
+            <p>Python route rendering it:</p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -203,18 +207,18 @@ print("Hello, Markdown!")
                 <div class="editor-content">
                     <pre>
 <code class="language-python">
-from lila.core.templates import renderMarkdown
+from lila.core.request import Request
+from lila.core.templates import render_markdown
 
-@router.route(path='/markdown', methods=['GET'])
-async def home(request: Request):
-    css = ["/public/css/styles.css"]
-    response = renderMarkdown(
-        request=request,
-        file='example',
-        css_files=css,
-        picocss=True
+@router.get("/markdown")
+async def docs_page(request: Request):
+    return render_markdown(
+        request,
+        "example",                      # -> resources/markdown/example.md
+        context={"title": "Docs"},
+        css_files=["/public/css/styles.css"],
+        js_files=["/js/highlight.min.js"],
     )
-    return response
 </code>
 </pre>
                 </div>

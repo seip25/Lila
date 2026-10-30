@@ -88,23 +88,32 @@
     <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
     <article id="migrations-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
@@ -168,16 +177,18 @@ table_users = Table(
           </div>
         </div>
         <div class="editor-content p-4">
-          <pre><code class="language-python">from core.base_model import BaseModel
+          <pre><code class="language-python">from lila.core.base_model import BaseModel
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func
 
 class User(BaseModel):
     __tablename__ = 'users'
-    
+
+    __private_fields__ = ("password", "token")
+
     # Primary key with index=True to speed up lookup performance
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     name = Column(String(length=50), nullable=False)
-    email = Column(String(length=50), unique=True)
+    email = Column(String(length=80), unique=True)
     password = Column(String(length=150), nullable=False)
     token = Column(String(length=150), nullable=True)
     active = Column(Integer, nullable=False, default=1)
@@ -187,19 +198,24 @@ class User(BaseModel):
       </div>
 
       <h5>Run Migrations</h5>
-      <p>Once your model is defined in <code>app/models/</code>, Lila will automatically load it
-        to register it in the database. Simply run:</p>
+      <p>Once your model is defined in <code>app/models/</code>, Lila imports every model module so
+        SQLAlchemy registers the table. Then run:</p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-2 mb-4">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
           <span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
         </div>
         <div class="editor-content">
-          <pre><code class="language-bash">lila-migrations migrate</code></pre>
+          <pre><code class="language-bash">lila migrate</code></pre>
         </div>
       </div>
 
       <h2>Running Migrations</h2>
-      <p>To execute migrations, use the following command in your terminal:</p>
+      <p>
+        <code>lila migrate</code> creates missing tables <b>and</b> adds missing columns to existing tables
+        (nullable columns or columns with a default). A <code>NOT NULL</code> column without a default is
+        skipped with a warning. <code>--refresh</code> drops every table first and asks for confirmation
+        unless <code>--yes</code> is passed.
+      </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -212,11 +228,14 @@ class User(BaseModel):
         </div>
         <div class="editor-content">
           <pre><code class="language-bash">
-# Basic migration
-lila-migrations 
+# Create tables + add missing columns (alias: lila-migrations)
+lila migrate
 
-# Refresh all tables (drop and recreate)
-lila-migrations --refresh
+# Drop and recreate everything (interactive confirmation)
+lila migrate --refresh
+
+# Destructive, no prompt:
+lila migrate --refresh --yes
                                     </code></pre>
         </div>
       </div>
@@ -225,16 +244,34 @@ lila-migrations --refresh
       <ul>
         <li><code
             class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">migrate</code>:
-          Run the database migrations</li>
+          create missing tables and add missing columns</li>
         <li><code
             class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">--refresh</code>:
-          Optional flag to drop and recreate all tables</li>
+          drop all tables before migrating (asks for confirmation)</li>
+        <li><code
+            class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">--yes</code>:
+          skip the confirmation prompt for <code>--refresh</code></li>
       </ul>
 
+      <h3>From Python</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content p-4">
+          <pre><code class="language-python">
+from app.connections import connection
+
+report = await connection.migrate_async()
+# {"tables": ["users", "admins", ...], "added_columns": ["users.token", ...]}
+
+# Destructive: drops every table registered in Base.metadata.
+await connection.drop_all_async(use_base=True)
+          </code></pre>
+        </div>
+      </div>
+
       <div class="note">
-        <p><strong>Note:</strong> When using Models, make sure to import all your model classes
-          in the migrations file
-          so SQLAlchemy can detect them for migrations.</p>
+        <p><strong>Note:</strong> models are imported from <code>app/models/*.py</code> (and
+          <code>lila.core.admin</code> for the admins table). If a module fails to import, its table may be
+          missing — the command prints the failing modules and exits with a non-zero status.</p>
       </div>
     </article>
   </main>

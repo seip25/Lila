@@ -92,27 +92,36 @@
 
   <main>
     <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-      <h4>Menu</h4>
-      <a href="install.html">Installation</a>
-      <a href="routes.html">Routes</a>
-      <a href="static.html">Static</a>
-      <a href="templates.html">Templates</a>
-      <a href="session.html">Session</a>
-      <a href="upload.html">Uploads Files</a>
-      <a href="markdown.html">Markdown/HTML</a>
-      <a href="locales.html">Internationalization</a>
-      <a href="models.html">Models</a>
-      <a href="middlewares.html">Middlewares</a>
-      <a href="cli.html">CLI Commands</a>
-      <a href="connections.html">Connections</a>
-      <a href="migrations.html">Migrations</a>
-      <a href="auth.html">Auth Cli </a>
-      <a href="scaffold.html">Scaffold CRUD</a>
-      <a href="rest_api.html">API Rest CRUD</a>
-      <a href="admin.html">Admin Panel</a>
-      <a href="minify.html">Minify</a>
-      <a href="production.html">Production</a>
-    </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
 
     <article id="templates-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
       <h1>Template Rendering (Jinja2)</h1>
@@ -199,8 +208,22 @@ routes=router.get_routes()
         </div>
         <div class=" ">
           <pre><code class="language-python">
-def render(request: Request, template: str, context: dict = None, files_translate: list[str] = None, lang_default: str = None):
+def render(
+    request: Request,
+    template_name: str | None = None,
+    context: dict | None = None,
+    extension: str = "jinja",
+    csrf: bool = False,
+    status_code: int = 200,
+    template: str | None = None,      # alias for template_name
+    layout: str | None = None,
+    headers: dict | None = None,
+    lang_default: str | None = None,
+    files_translate: list | None = None,   # accepted for v1 compatibility
+) -> HTMLResponse: ...
 
+# render_markdown is also available:
+def render_markdown(request, markdown_path, context=None, css_files=None, js_files=None): ...
 </code>
 </pre>
         </div>
@@ -217,24 +240,39 @@ def render(request: Request, template: str, context: dict = None, files_translat
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start">
-          <strong>template (str):</strong>
+          <strong>template_name (str):</strong>
           <p>
-            Template name (without the
-            <code
-              class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">.html</code>
-            extension).
+            Template name. <code>.jinja</code> is preferred, but legacy
+            <code>.html</code> names are accepted (<code>"index.html"</code> also finds
+            <code>index.jinja</code>). With no extension, <code>.jinja</code> is used.
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start">
           <strong>context (dict):</strong>
           <p>
-            Data to pass to the template (dictionaries, lists, etc.).
+            Data to pass to the template (dictionaries, lists, etc.). It is merged over the base
+            context.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>csrf (bool):</strong>
+          <p>
+            Accepted for readability. A CSRF token, the signed <code>_csrf</code> cookie and
+            <code>csrf_input</code> are produced on <b>every</b> render.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>status_code / headers / layout:</strong>
+          <p>
+            Response status (default 200), extra response headers, and a layout override for the
+            <code>layout</code> context variable.
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start">
           <strong>files_translate (list):</strong>
           <p>
-            List of additional translation files.
+            Deprecated v1 parameter. It is accepted but <b>ignored</b>: v2 locale files are flat JSON
+            merged by language (<code>app/locales/{lang}.json</code>).
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start">
@@ -286,41 +324,65 @@ def render(request: Request, template: str, context: dict = None, files_translat
         </div>
         <div class="editor-content">
           <pre><code class="language-python">
-def get_base_context(request, files_translate=[], lang_default=None):
-    context = {
-        "title": TITLE_PROJECT,
-        "version": VERSION_PROJECT,
-        "lang": lang_default if lang_default else lang(request),
-        "translate": t("translations", request, lang_default=lang_default),
-        "description": DESCRIPTION_DEFAULT,
-        "keywords": KEYWORDS_DEFAULT,
-        "author": AUTHOR_DEFAULT,
+def get_base_context(request, lang_default=None, files_translate=None):
+    # Values are resolved from .env / ConfigLoader and the request.
+    return {
+        "request": request,
+        "title": ENV_CONFIG.get("TITLE_PROJECT", "Lila Application"),
+        "description": ENV_CONFIG.get("DESCRIPTION_PROJECT", ...),
+        "keywords": ENV_CONFIG.get("KEYWORDS_DEFAULT", ""),
+        "author": ENV_CONFIG.get("AUTHOR_DEFAULT", ""),
+        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0"),
+        "lang": current_lang,
+        "translate": Translate.get_dict(current_lang),
+        "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),
+        "app_url": app_url,
+        "debug": is_debug(),
+        "debug_html": is_debug(),
+        "layout": DEFAULT_LAYOUT,      # "lila/base.jinja"
+        "csrf_token": "",
     }
 
-    for file_name in files_translate:
-        context["translate"].update(
-            t(file_name, request, lang_default=lang_default)
-        )
-
-    return context
+# render() then adds: csrf_token, csrf_input and (when @seo was used) "seo".
       </code></pre>
         </div>
       </div>
       <h3 class=" mt-8 text-2xl font-semibold">Jinja2 Helpers</h3>
-      <p>Lila provides several helpers to make your templates more powerful:</p>
+      <p>Lila registers these helpers as Jinja2 globals:</p>
 
       <ul class="rounded bg-surface py-4 px-4">
         <li class="flex flex-col md:flex-row md:items-start mb-4">
           <strong>public(path):</strong>
           <p class="ml-2">
-            Resolves paths to static assets under the <code>public/</code> directory. In addition, it automatically checks the system assets manifest in RAM to swap files for their optimized, compressed, or minified versions (e.g., swapping <code>.css</code> for <code>.min.css</code>, or images for their highly optimized <code>.webp</code> versions) in production seamlessly.
+            Resolves an asset under <code>public/</code> to a URL, applies the
+            <code>lila optimize</code> manifest (for example <code>app.js</code> →
+            <code>app.min.js</code>, <code>photo.png</code> → <code>photo.webp</code>) and appends
+            <code>?v=&lt;mtime&gt;</code> for cache busting. When
+            <code>APP_URL</code> is set and DEBUG is off, the URL is absolute.
+          </p>
+        </li>
+
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>asset(path):</strong>
+          <p class="ml-2">
+            Returns a ready-to-use tag: a <code>&lt;link rel="stylesheet"&gt;</code> for
+            <code>.css</code>, a <code>&lt;script src="..."&gt;</code> for <code>.js</code>, or the
+            resolved URL otherwise. It does not load fonts or other files implicitly.
+          </p>
+        </li>
+
+        <li class="flex flex-col md:flex-row md:items-start mb-4">
+          <strong>t(key, default=None) / translate:</strong>
+          <p class="ml-2">
+            Current-language translation function and dictionary (<code>translate['login']</code>).
           </p>
         </li>
 
         <li class="flex flex-col md:flex-row md:items-start">
-          <strong>asset(path):</strong>
+          <strong>oauth_buttons():</strong>
           <p class="ml-2">
-            Resolves and returns the full HTML tag (e.g. <code>&lt;link rel="stylesheet"&gt;</code>) for CSS/JS assets, loading the zero-dependency Google Fonts, Tailwind Play CDN, theme variables, and custom Lila styles dynamically.
+            Renders the Google/GitHub/Discord buttons for the configured providers. Use
+            <code>{{ oauth_buttons() | safe }}</code>.
           </p>
         </li>
       </ul>
@@ -359,20 +421,28 @@ def get_base_context(request, files_translate=[], lang_default=None):
 
       <h3 class="mt-8 text-2xl font-semibold">CSRF Protection in Templates</h3>
       <p>
-        When rendering a form that requires CSRF protection, pass <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf=True</code> to the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render()</code> function. This generates a signed token, sets the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie, and injects <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_token</code> into the template context.
+        Every <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render()</code> generates a signed CSRF token, sets the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie and injects <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_token</code>, <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_input</code> into the template context. Passing <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf=True</code> is accepted for readability; it does not change the token generation.
       </p>
 
       <ul class="rounded bg-surface py-4 px-4">
         <li class="flex flex-col md:flex-row md:items-start mb-4">
           <strong>render(request, template, csrf=True):</strong>
           <p class="ml-2">
-            Generates a CSRF token, injects it as <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">csrf_token</code> in the context, and sets the signed <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">_csrf</code> cookie on the response.
+            Produces <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">csrf_token</code> in the context and the signed <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">_csrf</code> cookie on the response.
           </p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start mb-4">
           <strong>csrf_input:</strong>
           <p class="ml-2">
-            Jinja2 context variable injected by <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">render(csrf=True)</code>. Renders <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">&lt;input type="hidden" name="csrf" id="csrf" value="TOKEN" /&gt;</code>. Use with the <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">| safe</code> filter. The <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">request</code> object is never exposed to the template.
+            Ready-made hidden input: <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">&lt;input type="hidden" name="_csrf" id="csrf" value="TOKEN" /&gt;</code>. Use it with the <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">| safe</code> filter. The base context also includes the <code class="bg-gray-100 dark:bg-gray-900 px-1.5 py-0.5 rounded-md font-mono text-xs">request</code> object, so templates can access request data.
+          </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>meta tag:</strong>
+          <p class="ml-2">
+            The bundled <code>lila/tailwind.jinja</code> partial prints
+            <code>&lt;meta name="csrf-token" content="{{ csrf_token }}"&gt;</code>, which the client
+            <code>Http()</code> helper reads automatically.
           </p>
         </li>
       </ul>
@@ -424,12 +494,14 @@ async def contact_submit(request: Request):
       </div>
 
       <p>
-        The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Http()</code> helper in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js/utils.js</code> automatically reads <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">document.getElementById('csrf')</code> and sends the value as the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header on every fetch. No additional client-side code is needed.
+        The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Http()</code> helper in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js/lila-client.js</code> reads <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">&lt;meta name="csrf-token"&gt;</code> (or the <code>#csrf</code> input) and sends the value as the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header on every fetch. No additional client-side code is needed.
       </p>
 
-      <h3 class="mt-8 text-2xl font-semibold">Lila Premium CSS Utility Components</h3>
+      <h3 class="mt-8 text-2xl font-semibold">Lila CSS Utility Components</h3>
       <p>
-        To accelerate your UI development and enable rapid, professional prototyping, Lila packages a set of pre-configured, high-performance styling utility classes loaded automatically by the <code>asset('css/tailwind.css')</code> CDN helper. All of them natively support Dark Mode:
+        The bundled Tailwind setup includes a set of pre-configured utility classes that support dark
+        mode natively. They are loaded by the layout's Tailwind Play CDN script (development) or by
+        your precompiled CSS in production:
       </p>
 
       <ul class="rounded bg-surface py-4 px-4 my-4 space-y-4">
@@ -466,17 +538,19 @@ async def contact_submit(request: Request):
       </ul>
 
 
-      <h3 class="mt-8 text-2xl font-semibold">Performance Optimizations</h3>
+      <h3 class="mt-8 text-2xl font-semibold">Performance Notes</h3>
       <p>
-        Lila is designed for high performance. Templates are optimized through several mechanisms:
+        Templates are rendered by a single Jinja2 environment (auto-reload only in debug). Some honest
+        details:
       </p>
       <ul class="rounded bg-surface py-4 px-4">
-        <li><strong>Request State Caching:</strong> Core data like the current language and SEO metadata are cached in
-          the request object to avoid redundant processing or cryptographic operations.</li>
-        <li><strong>Translation Caching:</strong> Processed translation dictionaries are cached in memory per language.
-        </li>
-        <li><strong>Template Minification:</strong> In production, HTML templates are automatically minified to reduce
-          payload size.</li>
+        <li><strong>Request state:</strong> <code>@seo</code> metadata is stored on
+          <code>request.state.seo</code> and merged into the context, so a handler does not recompute it.</li>
+        <li><strong>Translation caching:</strong> locale dictionaries are loaded once per language and kept
+          in memory (<code>SafeTranslationDict</code>).</li>
+        <li><strong>No HTML minification:</strong> Lila does not minify rendered HTML. Use
+          <code>lila optimize</code> for JS/CSS/images and the <code>gzip=True</code> App option (or your
+          reverse proxy) for transport compression.</li>
       </ul>
 
     </article>

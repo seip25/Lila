@@ -35,8 +35,10 @@ def wait_for_server(host: str, port: int, timeout: float = 6.0) -> bool:
 def run_uvicorn_thread(host: str, port: int):
     """Runs uvicorn in a background daemon thread."""
     import uvicorn
-    # Suppress verbose access logs for desktop mode
-    uvicorn.run("main:app", host=host, port=port, log_level="warning", access_log=False)
+
+    import main as app_module  # static import so PyInstaller bundles the app
+
+    uvicorn.run(app_module.app, host=host, port=port, log_level="warning", access_log=False)
 
 def launch_native_browser(url: str, width: int = 1200, height: int = 800) -> Optional[subprocess.Popen]:
     """Fallback mode: launches Edge, Chrome, or Brave in standalone app mode."""
@@ -112,9 +114,15 @@ def dev(
     Runs the Lila application inside a native ultra-lightweight desktop window.
     Uses pywebview (WebView2 on Windows, WebKit on macOS/Linux) or fallback App Mode.
     """
-    from lila.core.config import ENV_CONFIG
+    from lila.core.config import ConfigLoader, ENV_CONFIG
+
+    ConfigLoader.load()
     window_title = title or ENV_CONFIG.get("TITLE_PROJECT", "Lila Desktop")
-    target_port = port if port > 0 else find_free_port(int(ENV_CONFIG.get("PORT", 8000)))
+    try:
+        preferred_port = int(ENV_CONFIG.get("PORT", 8000) or 8000)
+    except (TypeError, ValueError):
+        preferred_port = 8000
+    target_port = port if port > 0 else find_free_port(preferred_port)
 
     typer.echo(f"🚀 Starting Lila Desktop on http://127.0.0.1:{target_port} ...")
 
@@ -184,31 +192,34 @@ def build(
         typer.echo("Install it using: pip install pyinstaller OR pip install \"lila-framework[desktop]\"")
         raise typer.Exit(code=1)
 
-    from lila.core.config import ENV_CONFIG
-    app_name = name or ENV_CONFIG.get("TITLE_PROJECT", "LilaApp").replace(" ", "_")
+    from lila.core.config import ConfigLoader, ENV_CONFIG
 
-    # Generate bootstrap entry script
-    bootstrap_code = f"""import os, sys, threading, socket, time
-from lila.core.config import get_base_path, get_data_path
+    ConfigLoader.load()
+    app_name = (name or ENV_CONFIG.get("TITLE_PROJECT", "LilaApp")).replace(" ", "_")
+    app_name = "".join(ch for ch in app_name if ch.isalnum() or ch in ("_", "-")) or "LilaApp"
+
+    # Generate bootstrap entry script. Importing ``main`` statically is what
+    # makes PyInstaller include the application code (a runtime "main:app"
+    # string is invisible to its analysis).
+    bootstrap_code = f'''import os, sys, threading, socket, time
 import uvicorn
+import main as app_module
 
 def find_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('127.0.0.1', 0))
+        s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
 
 port = find_port()
 
 def run_server():
-    uvicorn.run("main:app", host="127.0.0.1", port=port, log_level="warning", access_log=False)
+    uvicorn.run(app_module.app, host="127.0.0.1", port=port, log_level="warning", access_log=False)
 
-t = threading.Thread(target=run_server, daemon=True)
-t.start()
+threading.Thread(target=run_server, daemon=True).start()
 
-# Wait for server
-for _ in range(50):
+for _ in range(80):
     try:
-        with socket.create_connection(('127.0.0.1', port), timeout=0.1):
+        with socket.create_connection(("127.0.0.1", port), timeout=0.1):
             break
     except Exception:
         time.sleep(0.1)
@@ -217,7 +228,7 @@ url = f"http://127.0.0.1:{{port}}"
 
 try:
     import webview
-    webview.create_window("{app_name}", url, width=1200, height=800)
+    webview.create_window({app_name!r}, url, width=1200, height=800)
     webview.start()
 except ImportError:
     import webbrowser
@@ -227,7 +238,7 @@ except ImportError:
             time.sleep(1)
     except KeyboardInterrupt:
         pass
-"""
+'''
 
     bootstrap_file = "_desktop_entry.py"
     with open(bootstrap_file, "w", encoding="utf-8") as f:
@@ -237,7 +248,13 @@ except ImportError:
         sys.executable, "-m", "PyInstaller",
         "--name", app_name,
         "--clean",
-        "-y"
+        "--noconfirm",
+        "--hidden-import", "main",
+        "--hidden-import", "aiosqlite",
+        "--collect-submodules", "app",
+        "--collect-submodules", "lila",
+        "--collect-data", "lila",
+        "--paths", ".",
     ]
 
     if onefile:
@@ -251,7 +268,6 @@ except ImportError:
     if icon and os.path.isfile(icon):
         pyinstaller_cmd.extend(["--icon", icon])
 
-    # Add data directories: public and resources
     sep = ";" if sys.platform == "win32" else ":"
     if os.path.isdir("public"):
         pyinstaller_cmd.extend(["--add-data", f"public{sep}public"])
@@ -261,12 +277,14 @@ except ImportError:
     pyinstaller_cmd.append(bootstrap_file)
 
     typer.secho(f"📦 Compiling {app_name} with PyInstaller...", fg=typer.colors.CYAN)
-    result = subprocess.run(pyinstaller_cmd)
+    result = None
+    try:
+        result = subprocess.run(pyinstaller_cmd)
+    finally:
+        if os.path.exists(bootstrap_file):
+            os.remove(bootstrap_file)
 
-    if os.path.exists(bootstrap_file):
-        os.remove(bootstrap_file)
-
-    if result.returncode == 0:
+    if result is not None and result.returncode == 0:
         typer.secho(f"✅ Desktop application built successfully! Output in dist/{app_name}", fg=typer.colors.GREEN)
     else:
         typer.secho("❌ PyInstaller build failed.", fg=typer.colors.RED)

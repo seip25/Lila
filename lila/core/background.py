@@ -1,15 +1,23 @@
-"""Lila Framework v2.0.0 Background Tasks.
-Routes tasks to Redis queue if Redis is configured, or executes via Starlette BackgroundTasks.
+"""Lila Framework v2.0.x Background Tasks.
+
+Queues JSON tasks in Redis when available; otherwise falls back to Starlette's
+in-process BackgroundTask. No pickle is used.
 """
 
-import pickle
+from typing import Any
+
 from starlette.background import BackgroundTask as StarletteBackgroundTask
 from starlette.background import BackgroundTasks
+
 from lila.core.cache import Cache
+from lila.core.logger import Logger
+from lila.core.responses import orjson_dumps
+
+QUEUE_KEY = "lila:tasks"
 
 
 class BackgroundTask:
-    """Dispatches background work to Redis worker or Starlette execution."""
+    """Dispatches background work to a Redis worker or Starlette execution."""
 
     def __init__(self, func, *args, **kwargs):
         self.func = func
@@ -18,19 +26,18 @@ class BackgroundTask:
         self._starlette_task = None
 
         if Cache._get_driver() == "redis":
-            client = Cache._get_redis_sync()
+            client = Cache.redis_client()
             if client is not None:
                 try:
-                    func_path = f"{func.__module__}:{func.__qualname__}"
                     payload = {
-                        "func_path": func_path,
-                        "args": args,
+                        "func_path": f"{func.__module__}:{func.__qualname__}",
+                        "args": list(args),
                         "kwargs": kwargs,
                     }
-                    client.lpush("lila:tasks", pickle.dumps(payload))
+                    client.lpush(QUEUE_KEY, orjson_dumps(payload))
                     return
-                except Exception:
-                    pass
+                except Exception as exc:
+                    Logger.warning(f"[Lila Background] Could not enqueue task in Redis: {exc}")
 
         self._starlette_task = StarletteBackgroundTask(func, *args, **kwargs)
 

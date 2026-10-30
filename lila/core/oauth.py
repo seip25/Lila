@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.0 Better Auth-Style OAuth 2.0 Engine.
+﻿"""Lila Framework v2.0.1 OAuth 2.0 Engine.
 Preconfigured for Google, GitHub, and Discord with built-in official SVG icons,
 fully asynchronous token exchange, auto-mounted routes, and user synchronization.
 """
@@ -48,7 +48,7 @@ BUILTIN_SVGS = {
 
 
 class OAuth:
-    """Better Auth-Style OAuth 2.0 Engine for Lila Framework."""
+    """OAuth 2.0 Engine for Lila Framework."""
 
     PROVIDERS = {
         "google": {
@@ -152,11 +152,13 @@ class OAuth:
                     "provider": "google",
                     "id": str(raw_user.get("id")),
                     "email": raw_user.get("email"),
+                    "email_verified": bool(raw_user.get("verified_email", True)),
                     "name": raw_user.get("name") or raw_user.get("email", "").split("@")[0],
                     "avatar_url": raw_user.get("picture"),
                 }
             elif provider == "github":
                 email = raw_user.get("email")
+                verified = False
                 if not email and "emails_url" in conf:
                     # Fetch primary verified email
                     try:
@@ -166,6 +168,7 @@ class OAuth:
                             for em in emails:
                                 if em.get("primary") and em.get("verified"):
                                     email = em.get("email")
+                                    verified = True
                                     break
                     except Exception:
                         pass
@@ -173,6 +176,7 @@ class OAuth:
                     "provider": "github",
                     "id": str(raw_user.get("id")),
                     "email": email or f"{raw_user.get('login')}@users.noreply.github.com",
+                    "email_verified": verified or bool(email),
                     "name": raw_user.get("name") or raw_user.get("login"),
                     "avatar_url": raw_user.get("avatar_url"),
                 }
@@ -188,6 +192,7 @@ class OAuth:
                     "provider": "discord",
                     "id": user_id,
                     "email": raw_user.get("email"),
+                    "email_verified": bool(raw_user.get("verified", True)),
                     "name": raw_user.get("global_name") or raw_user.get("username"),
                     "avatar_url": avatar_url,
                 }
@@ -212,7 +217,7 @@ class OAuth:
             # Detect configured providers
             active = []
             for p, conf in cls.PROVIDERS.items():
-                if ENV_CONFIG.get(conf["client_id_env"]):
+                if ENV_CONFIG.get(conf["client_id_env"]) and ENV_CONFIG.get(conf["client_secret_env"]):
                     active.append(p)
             providers = active or ["google", "github"]
 
@@ -257,7 +262,8 @@ class OAuth:
             state = secrets.token_urlsafe(32)
             # Determine base redirect_uri
             base_url = ENV_CONFIG.get("APP_URL") or str(request.base_url).rstrip("/")
-            callback_uri = f"{base_url}/auth/{p}/callback"
+            route_prefix = str(getattr(router, "prefix", "") or "").rstrip("/")
+            callback_uri = f"{base_url}{route_prefix}/auth/{p}/callback"
 
             auth_url = cls.get_auth_url(p, callback_uri, state)
             if not auth_url:
@@ -269,7 +275,9 @@ class OAuth:
                 state,
                 max_age=600,
                 httponly=True,
+                secure=str(ENV_CONFIG.get("APP_URL", "") or "").lower().startswith("https://"),
                 samesite="lax",
+                path="/",
             )
             return response
 
@@ -287,11 +295,15 @@ class OAuth:
                 return RedirectResponse(f"{login_url}?error=invalid_state")
 
             base_url = ENV_CONFIG.get("APP_URL") or str(request.base_url).rstrip("/")
-            callback_uri = f"{base_url}/auth/{p}/callback"
+            route_prefix = str(getattr(router, "prefix", "") or "").rstrip("/")
+            callback_uri = f"{base_url}{route_prefix}/auth/{p}/callback"
 
             profile = await cls.exchange_code(p, code, callback_uri)
             if not profile or not profile.get("email"):
                 return RedirectResponse(f"{login_url}?error=oauth_failed")
+            if not profile.get("email_verified", True):
+                return RedirectResponse(f"{login_url}?error=email_not_verified")
+            profile["email"] = str(profile["email"]).strip().lower()
 
             # Resolve User Model
             target_model = user_model
@@ -301,35 +313,43 @@ class OAuth:
                     target_model = User
                 except Exception:
                     pass
+            if target_model is None:
+                return RedirectResponse(f"{login_url}?error=user_model_missing")
 
             user_dict = None
-            if target_model is not None:
-                # Find user by email
-                users = await target_model.get_all_async(limit=1, email=profile["email"])
-                if users:
-                    user_dict = users[0]
-                    # Update oauth info if needed
-                    await target_model.update_async(
-                        user_dict["id"],
-                        oauth_provider=p,
-                        oauth_id=profile["id"],
-                        avatar_url=profile.get("avatar_url") or user_dict.get("avatar_url"),
-                    )
-                else:
-                    # Register new user
-                    rand_pwd = PasswordHasher.hash(secrets.token_urlsafe(32))
-                    user_dict = await target_model.insert_async(
-                        name=profile.get("name") or profile["email"].split("@")[0],
-                        email=profile["email"],
-                        password=rand_pwd,
-                        oauth_provider=p,
-                        oauth_id=profile["id"],
-                        avatar_url=profile.get("avatar_url"),
-                        active=1,
-                    )
+            # Find user by email
+            users = await target_model.get_all_async(limit=1, email=profile["email"])
+            if users:
+                user_dict = users[0]
+                await target_model.update_async(
+                    user_dict["id"],
+                    oauth_provider=p,
+                    oauth_id=profile["id"],
+                    avatar_url=profile.get("avatar_url") or user_dict.get("avatar_url"),
+                )
+            else:
+                # Register new user
+                rand_pwd = await PasswordHasher.hash_async(secrets.token_urlsafe(32))
+                user_dict = await target_model.insert_async(
+                    name=profile.get("name") or profile["email"].split("@")[0],
+                    email=profile["email"],
+                    password=rand_pwd,
+                    oauth_provider=p,
+                    oauth_id=profile["id"],
+                    avatar_url=profile.get("avatar_url"),
+                    active=1,
+                )
 
-            response = RedirectResponse(redirect_to)
-            response.delete_cookie(f"_oauth_state_{p}")
+            response = RedirectResponse(redirect_to, status_code=303)
+            response.delete_cookie(f"_oauth_state_{p}", path="/")
             if user_dict:
-                await Session.set_async(user_dict, response)
+                # Never store password hashes or arbitrary model fields in a cookie.
+                session_payload = {
+                    key: user_dict.get(key)
+                    for key in ("id", "email", "name", "avatar_url")
+                    if user_dict.get(key) is not None
+                }
+                session_payload["user_id"] = session_payload.pop("id", None)
+                await Session.set_async(session_payload, response)
             return response
+

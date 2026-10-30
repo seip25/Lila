@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -92,27 +92,36 @@
 
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <h4>Menu</h4>
-            <a href="install.html">Installation</a>
-            <a href="routes.html">Routes</a>
-            <a href="static.html">Static</a>
-            <a href="templates.html">Templates</a>
-            <a href="session.html">Session</a>
-            <a href="upload.html">Uploads Files</a>
-            <a href="markdown.html">Markdown/HTML</a>
-            <a href="locales.html">Internationalization</a>
-            <a href="models.html">Models</a>
-            <a href="middlewares.html">Middlewares</a>
-            <a href="cli.html">CLI Commands</a>
-            <a href="connections.html">Connections</a>
-            <a href="migrations.html">Migrations</a>
-            <a href="auth.html">Auth Cli </a>
-            <a href="scaffold.html">Scaffold CRUD</a>
-            <a href="rest_api.html">API Rest CRUD</a>
-            <a href="admin.html">Admin Panel</a>
-            <a href="minify.html">Minify</a>
-            <a href="production.html">Production</a>
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
 
         <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h1 class="text-center text-blue">Lila Framework</h1>
@@ -145,31 +154,30 @@
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-bash">pip install lila-framework
-lila-init
-python main.py</code></pre>
+lila init
+lila dev</code></pre>
                 </div>
             </div>
 
             <h2 class="mt-8 text-xl">Project Structure</h2>
             <p>
                 The <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila-init</code>
-                command scaffolds your entire project structure:
+                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila init</code>
+                command scaffolds your entire project structure (existing files are never
+                overwritten):
             </p>
             <div class="bg-surface px-4 py-4 rounded-lg">
                 <ul>
                     <li>📂 <strong>app/routes/</strong> — Route definitions for your application and API endpoints</li>
                     <li>📂 <strong>app/models/</strong> — SQLAlchemy models for database tables</li>
-                    <li>📂 <strong>core/middleware.py</strong> — Core middleware functions for authentication, logging,
-                        and security</li>
-                    <li>📂 <strong>core/</strong> — Framework core logic (routing, templates, session, auth, files,
-                        security, etc.)</li>
-                    <li>📂 <strong>app/locales/</strong> — Translation files for internationalization (i18n)</li>
+                    <li>📂 <strong>lila/core/</strong> — Framework core (routing, templates, session, auth, cache,
+                        database, middleware, files, security, ...)</li>
+                    <li>📂 <strong>app/locales/</strong> — Flat JSON translation files (en, es, pt, zh)</li>
                     <li>📄 <strong>app/connections.py</strong> — Database connection configuration (SQLite, MySQL,
                         PostgreSQL)</li>
                     <li>📄 <strong>app/config.py</strong> — Application settings and environment configuration</li>
-                    <li>📂 <strong>templates/</strong> — Jinja2 templates for server-side rendering</li>
-                    <li>📂 <strong>public/</strong> — Static files (CSS, JS, images)</li>
+                    <li>📂 <strong>resources/html/</strong> — Jinja2 templates for server-side rendering</li>
+                    <li>📂 <strong>public/</strong> — Static files (CSS, JS, images, uploads/)</li>
                     <li>🐍 <strong>main.py</strong> — Application entry point</li>
                     <li>🔒 <strong>.env</strong> — Environment variables (HOST, PORT, DEBUG, SECRET_KEY)</li>
                 </ul>
@@ -182,15 +190,16 @@ python main.py</code></pre>
                 <li>🎨 <strong>Templates</strong> — Server-side rendering with Jinja2, including Markdown support</li>
                 <li>🔐 <strong>Sessions</strong> — Secure signed sessions using <code>itsdangerous</code></li>
                 <li>🛡️ <strong>Middlewares</strong> — Built-in authentication (<code>login_required</code>,
-                    <code>session_active</code>, <code>validate_token</code>) and a security middleware that blocks
-                    malicious IPs, URLs, and sensitive paths
+                    <code>session_active</code>, <code>admin_required</code>, <code>validate_token</code>) and a security
+                    middleware that adds headers and blocks real traversal probes (<code>.env</code>, <code>.git</code>,
+                    <code>../</code>)
                 </li>
                 <li>🗄️ <strong>Models & ORM</strong> — SQLAlchemy integration with automatic model generation via CLI
                 </li>
-                <li>📦 <strong>Migrations</strong> — One-command database migrations with <code>lila-migrations</code>
+                <li>📦 <strong>Migrations</strong> — One-command schema sync (<code>lila migrate</code>) that also adds
+                    missing columns
                 </li>
-                <li>⚡ <strong>REST API CRUD</strong> — Auto-generate fully documented REST APIs with Swagger/OpenAPI,
-                    including Pydantic validation and customizable middlewares</li>
+                <li>⚡ <strong>REST API CRUD</strong> — Generate REST endpoints from a model; the OpenAPI schema and Swagger UI are mounted by <code>App(openapi=True)</code> at <code>/openapi.json</code> and <code>/docs</code></li>
                 <li>📤 <strong>File Uploads</strong> — Built-in helper with validation, size limits, and secure
                     filenames</li>
                 <li>🌍 <strong>Internationalization</strong> — JSON-based translations with per-route language forcing
@@ -216,7 +225,7 @@ python main.py</code></pre>
                     <li>🖥️ <code>lila desktop</code> — Run or package native desktop applications (pywebview/PyInstaller)</li>
                     <li>📦 <code>lila model</code> — Generate SQLAlchemy models with ActiveRecord methods</li>
                     <li>🗄️ <code>lila migrate</code> — Run database migrations</li>
-                    <li>🔐 <code>lila auth</code> — Scaffold Better Auth with Google/GitHub/Discord SVG buttons</li>
+                    <li>🔐 <code>lila auth</code> — Scaffold OAuth 2.0 with Google/GitHub/Discord SVG buttons</li>
                     <li>🏗️ <code>lila crud</code> — Generate complete CRUD with ResponsiveDataTable</li>
                     <li>👤 <code>lila admin</code> — Setup Admin 2.0 with full CRUD and telemetry</li>
                     <li>🧹 <code>lila optimize</code> — Minify CSS/JS assets and convert images to WebP</li>

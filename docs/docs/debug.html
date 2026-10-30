@@ -86,13 +86,43 @@
     </header>
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <!-- Loaded by partial.js -->
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="debug-profiling-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <div>
                 <h1>Debug & Profiling</h1>
                 <p>
-                    Lila Framework includes an advanced <strong>DebugMiddleware</strong> that automatically monitors the performance of your application. When debugging is enabled, it tracks RAM usage, CPU consumption, execution time, and more for every HTTP request.
+                    Lila includes an in-memory diagnostic engine (<code>lila.core.debug</code>). When
+                    debugging is enabled, a pure ASGI middleware records the <b>last 100 requests</b> in RAM
+                    (no disk I/O, no SQLite table) with their timing and status.
                 </p>
             </div>
 
@@ -100,10 +130,13 @@
             <div class="space-y-4 mt-8">
                 <h2>Enabling Debug Mode & Dashboard</h2>
                 <p>
-                    The debugging and profiling features are only active when your application is in debug mode (<code>DEBUG=True</code> in your <code>.env</code> or config).
+                    The debugging features are only active when your application is in debug mode
+                    (<code>debug=True</code>, or <code>DEBUG=True</code> in <code>.env</code>).
                 </p>
                 <p>
-                    In addition, the <strong>Debug Dashboard (<code>/debug</code>)</strong> is disabled by default to keep the framework extremely lightweight. To enable it, pass <code>debug_html=True</code> during the <code>App</code> initialization in <code>main.py</code>:
+                    The <strong>Debug Dashboard (<code>/debug</code>)</strong> is mounted only when you also
+                    pass <code>debug_html=True</code> during <code>App</code> initialization in
+                    <code>main.py</code>:
                 </p>
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
                     <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -116,12 +149,13 @@
                     </div>
                     <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                         <pre><code class="language-python">
+from app.config import DEBUG
 from lila.core.app import App
 
 app = App(
-    debug=True,
-    debug_html=True,  # Enables the /debug dashboard panel
-    # ...
+    routes=[router],
+    debug=DEBUG,        # bool, not the string "False"
+    debug_html=DEBUG,   # mounts GET/DELETE /debug and /debug/
 )
                         </code></pre>
                     </div>
@@ -132,35 +166,43 @@ app = App(
             <div class="space-y-4 mt-8">
                 <h2>What gets tracked?</h2>
                 <p>
-                    For every non-static asset request, the middleware logs the following data into a local SQLite database (`debug` table):
+                    For every non-static request, <code>DebugStore</code> appends one entry to the
+                    in-memory history (<code>collections.deque(maxlen=100)</code>):
                 </p>
                 <ul class="list-disc pl-6 space-y-2 mt-4 text-gray-700 dark:text-gray-300">
-                    <li><strong>Path & Method:</strong> Endpoint accessed and HTTP method.</li>
-                    <li><strong>IP Address:</strong> Client's IP.</li>
-                    <li><strong>RAM Used:</strong> Memory allocated during the request lifecycle.</li>
-                    <li><strong>CPU:</strong> Processor time consumed.</li>
-                    <li><strong>Execution Time:</strong> Total time taken to respond.</li>
-                    <li><strong>Status Code:</strong> The HTTP response status.</li>
+                    <li><strong>Time:</strong> local <code>HH:MM:SS</code> of the request.</li>
+                    <li><strong>Path &amp; Method:</strong> endpoint accessed and HTTP method.</li>
+                    <li><strong>IP Address:</strong> client IP (or <code>unknown</code>).</li>
+                    <li><strong>Status Code:</strong> the HTTP response status.</li>
+                    <li><strong>Duration:</strong> total wall time in milliseconds.</li>
                 </ul>
+                <p>
+                    RAM/CPU figures come from <code>DebugStore.get_system_metrics()</code> and require the
+                    optional <code>psutil</code> package (<code>pip install "lila-framework[metrics]"</code>).
+                    Without it the dashboard reports zeros instead of inventing numbers.
+                </p>
             </div>
 
             <!-- Dashboard -->
             <div class="space-y-4 mt-8">
                 <h2>The Debug Dashboard</h2>
                 <p>
-                    Lila automatically mounts a visual dashboard for you to inspect these logs without needing any additional setup.
-                    Simply navigate to:
+                    With <code>debug=True, debug_html=True</code>, Lila mounts:
                 </p>
+                <ul class="list-disc pl-6 space-y-2 mt-2 text-gray-700 dark:text-gray-300">
+                    <li><code>GET /debug</code> (and <code>/debug/</code>) — HTML dashboard.</li>
+                    <li><code>GET /debug/?fetch=true</code> — JSON history (<code>true</code>,
+                        <code>True</code> or <code>1</code>).</li>
+                    <li><code>DELETE /debug/</code> — clears the in-memory history.</li>
+                </ul>
                 <p>
-                    <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">http://localhost:8000/debug/</code>
+                    The dashboard is not mounted when <code>debug_html</code> is false, and nothing is
+                    recorded when debug is off.
                 </p>
-                <p class="mt-4">
-                    Here you will see a real-time table with all the recorded requests and their performance metrics.
-                </p>
-                
+
                 <h3>Fetching Data Programmatically</h3>
                 <p>
-                    If you want to fetch this data programmatically, you can hit the same endpoint with a `fetch` query parameter:
+                    Hit the same endpoint with the <code>fetch</code> query parameter:
                 </p>
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
                     <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -173,14 +215,28 @@ app = App(
                     </div>
                     <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
                         <pre><code class="language-bash">
-curl http://localhost:8000/debug/?fetch=True
+curl http://localhost:8000/debug/?fetch=true
                         </code></pre>
                     </div>
                 </div>
-                
+
+                <h3>Reading the Store in Code</h3>
+                <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                    <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                        <pre><code class="language-python">
+from lila.core.debug import DebugStore
+
+history = DebugStore.get_all()          # list[dict], newest first
+metrics = DebugStore.get_system_metrics()
+DebugStore.clear()                      # same as DELETE /debug/
+                        </code></pre>
+                    </div>
+                </div>
+
                 <h3>Clearing Logs</h3>
                 <p>
-                    To clean up your database and remove all previous debug logs, simply send a <code>DELETE</code> request to the dashboard URL:
+                    Send a <code>DELETE</code> request to the dashboard URL (or call
+                    <code>DebugStore.clear()</code>):
                 </p>
                 <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
                     <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -200,7 +256,10 @@ curl -X DELETE http://localhost:8000/debug/
             </div>
 
             <div class="p-4 mb-4 mt-8 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
-                <span class="font-medium">Note:</span> The <code>/debug</code> endpoint and the <code>DebugMiddleware</code> are completely disabled when <code>DEBUG=False</code> to ensure zero performance overhead in production environments.
+                <span class="font-medium">Note:</span> the debug middleware, <code>/_lila/dev-reload</code>
+                and <code>/debug</code> are only mounted when <code>debug=True</code>, so production keeps
+                zero overhead. Never enable <code>debug_html</code> on a public server: the dashboard
+                exposes request paths and client IPs.
             </div>
 
         </article>

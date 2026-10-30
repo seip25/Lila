@@ -132,6 +132,18 @@ celerybeat.pid
 .venv
 env/
 venv/
+
+# Lila generated/local files
+.lila_secret
+_desktop_entry.py
+*.bak
+*.sqlite-wal
+*.sqlite-shm
+app/cache/
+app/logs/
+.tmp_*/
+tests/.tmp_*/
+.audit/
 ENV/
 env.bak/
 venv.bak/
@@ -189,3 +201,4 @@ test/
 app/cache/
 .jinja_cache/
 development/
+audit/

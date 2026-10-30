@@ -86,35 +86,51 @@
     </header>
     <main>
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
-            <h4>Menu</h4>
-            <a href="install.html">Installation</a>
-            <a href="routes.html">Routes</a>
-            <a href="static.html">Static</a>
-            <a href="templates.html">Templates</a>
-            <a href="session.html">Session</a>
-            <a href="upload.html">Uploads Files</a>
-            <a href="markdown.html">Markdown/HTML</a>
-            <a href="locales.html">Internationalization</a>
-            <a href="models.html">Models</a>
-            <a href="middlewares.html">Middlewares</a>
-            <a href="cli.html">CLI Commands</a>
-            <a href="connections.html">Connections</a>
-            <a href="migrations.html">Migrations</a>
-            <a href="auth.html">Auth Cli </a>
-            <a href="scaffold.html">Scaffold CRUD</a>
-            <a href="rest_api.html">API Rest CRUD</a>
-            <a href="admin.html">Admin Panel</a>
-            <a href="minify.html">Minify</a>
-            <a href="production.html">Production</a>
-        </aside>
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
         <article id="middlewares-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h1>️ Middlewares</h1>
-            <h5>Middleware functions are used to intercept requests before they reach the main logic of the application. In Lila, core middlewares are defined in the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">core/middleware.py</code> file. Middlewares can be used for tasks such as authentication, logging, security, and error handling.</h5>
+            <h5>Middleware functions are used to intercept requests before they reach the main logic of the application. In Lila, core middlewares are defined in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila/core/middleware.py</code> and re-exported from <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.middleware</code>. Middlewares can be used for tasks such as authentication, logging, security, and error handling.</h5>
             <p>
-                Lila uses a unified <code
-                    class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Middleware</code>
-                manager that provides both class-based HTTP middlewares and route decorators.
+                Lila exposes two families:
             </p>
+            <ul>
+                <li><b>Route decorators</b>: <code>login_required</code>, <code>session_active</code>,
+                    <code>admin_required</code>, <code>rate_limit</code>, <code>csrf_protect</code> (alias
+                    <code>csrf</code>), <code>validate_token</code>, <code>create_decorator</code>.</li>
+                <li><b>Pure ASGI classes</b>: <code>LoggingMiddleware</code>,
+                    <code>SecurityHeadersMiddleware</code>, <code>RateLimitMiddleware</code>,
+                    <code>StaticCacheMiddleware</code>, plus Starlette's
+                    <code>Middleware</code> factory used by <code>App(middleware=[...])</code>.</li>
+            </ul>
 
             <h2>Default Route Middlewares</h2>
             <p>
@@ -124,20 +140,33 @@
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@login_required</code>:
-                    Validates an active session. If not found, redirects to a login page (default: <code
-                        class="text-blue-600">/login</code>).
+                    requires an active session. Pages get a <code class="text-blue-600">303</code> redirect to
+                    <code class="text-blue-600">/login</code>; <code>/api/</code> requests get
+                    <code class="text-blue-600">401</code>. It also sets <code>request.state.user</code>.
                 </li>
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@session_active</code>:
-                    Checks if a session is already active. If so, redirects to a dashboard (default: <code
-                        class="text-blue-600">/dashboard</code>).
+                    redirects already-authenticated users away from guest pages (default:
+                    <code class="text-blue-600">/dashboard</code>).
+                </li>
+                <li>
+                    <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@admin_required</code>:
+                    checks the <code class="text-blue-600">admin_session</code> cookie and sets
+                    <code>request.state.admin</code> (default redirect: <code class="text-blue-600">/admin/login</code>).
                 </li>
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@validate_token</code>:
-                    Validates a JWT token from the <code
-                        class="text-blue-600">Authorization: Bearer &lt;token&gt;</code> header.
+                    validates a JWT from the <code
+                        class="text-blue-600">Authorization: Bearer &lt;token&gt;</code> header and exposes
+                    <code>request.state.jwt</code> / <code>request.state.jwt_user_id</code>.
+                </li>
+                <li>
+                    <code
+                        class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@rate_limit(60, 60)</code>:
+                    per-route limiter backed by <code>Cache.incr_async</code> (memory or Redis).
                 </li>
             </ul>
 
@@ -152,25 +181,42 @@
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from lila.core.middleware import login_required, session_active, validate_token
+from lila.core.middleware import (
+    login_required, session_active, admin_required, validate_token, rate_limit,
+)
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
+from lila.core.templates import render
 
 # Require authentication for this route
 @router.get('/dashboard')
 @login_required
 async def dashboard(request: Request):
-    return render(request=request, template='dashboard')
+    return render(request, 'dashboard')
 
-# Redirect authenticated users away from login page
+# Redirect authenticated users away from the login page
 @router.get('/login')
 @session_active
 async def login_page(request: Request):
-    return render(request=request, template='login')
+    return render(request, 'login')
 
 # Validate JWT for API routes
 @router.get('/api/data')
 @validate_token
 async def api_data(request: Request):
-    return JSONResponse({"data": "secure"})
+    return {"data": "secure", "user_id": request.state.jwt_user_id}
+
+# Per-route rate limit: 30 requests per 60 seconds per client IP
+@router.post('/api/contact')
+@rate_limit(30, 60)
+async def contact(request: Request):
+    return {"success": True}
+
+# Admin-only page (uses the admin_session cookie)
+@router.get('/admin/reports')
+@admin_required
+async def reports(request: Request):
+    return render(request, 'admin/reports')
                     </code></pre>
                 </div>
             </div>
@@ -195,19 +241,21 @@ async def api_data(request: Request):
                 <div class="editor-content">
                     <pre><code class="language-python">
 from lila.core.middleware import create_decorator
+from lila.core.request import Request
+from lila.core.responses import JSONResponse
 
 @create_decorator
 async def check_admin(request: Request, role="admin"):
-    # If the logic returns a response, it breaks the chain and returns it
-    # If it returns True or None, it continues to the route
-    user = request.state.user
+    # Returning a Response stops the chain and sends it to the client.
+    # Returning True or None lets the route handler run.
+    user = getattr(request.state, "user", None) or {}
     if user.get("role") != role:
         return JSONResponse({"error": "Unauthorized"}, status_code=403)
     return True
 
 # Usage in routes:
-# @check_admin -> uses default role="admin"
-# @check_admin(role="superadmin") -> uses custom role
+# @check_admin                       -> default role="admin"
+# @check_admin(role="superadmin")    -> custom role
                     </code></pre>
                 </div>
             </div>
@@ -229,14 +277,15 @@ async def check_admin(request: Request, role="admin"):
                 <div class="editor-content">
                     <pre><code class="language-python">
 from lila.core.routing import Router
-from lila.core.middleware import login_required, validate_token
+from lila.core.middleware import login_required, rate_limit
 
-# Both middlewares will automatically run for every route in this router
-auth_router = Router(prefix="v1/api", middlewares=[login_required, validate_token])
+# Both middlewares run for every route in this router, left to right.
+auth_router = Router(prefix="/v1/api", middlewares=[login_required, rate_limit(120, 60)])
 
 @auth_router.get("/user")
 async def user_details(request: Request):
-    return JSONResponse({"user": request.state.user})
+    # login_required already populated request.state.user
+    return {"user": request.state.user}
                     </code></pre>
                 </div>
             </div>
@@ -246,7 +295,7 @@ async def user_details(request: Request):
                 Lila includes a built-in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@csrf</code> decorator that protects routes against Cross-Site Request Forgery attacks. It verifies the CSRF token on all unsafe HTTP methods (<code class="text-blue-600">POST</code>, <code class="text-blue-600">PUT</code>, <code class="text-blue-600">PATCH</code>, <code class="text-blue-600">DELETE</code>). Safe methods (<code class="text-blue-600">GET</code>, <code class="text-blue-600">HEAD</code>, <code class="text-blue-600">OPTIONS</code>) are always allowed through.
             </p>
             <p>
-                The token is read from the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header first, then from the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf</code> field in the request body, and compared against the signed <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie set by <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render(csrf=True)</code>.
+                The token is read from the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header first, then from the parsed body (<code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code>, <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf</code> or <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_token</code>; JSON or form), and compared against the signed <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie set by <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render()</code>. Tokens in the query string are intentionally <b>not</b> accepted.
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -302,22 +351,33 @@ async def contact_submit(request: Request):
             </div>
 
             <p>
-                The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Http()</code> function in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js/utils.js</code> automatically detects <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">document.getElementById('csrf')</code> and sends the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header on every fetch request. No additional client-side code is required.
+                The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Http()</code> helper in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">public/js/lila-client.js</code> reads the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">&lt;meta name="csrf-token"&gt;</code> tag (present on every rendered page) and sends the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header on every fetch request. No additional client-side code is required.
             </p>
 
             <h2>Global Security Middlewares</h2>
             <p>
-                Lila includes a set of global HTTP middlewares for application-wide protection. These are configured in
-                <code class="text-blue-600">main.py</code> using the <code class="text-blue-600">Middleware</code>
-                class.
+                Lila includes a set of global HTTP middlewares for application-wide protection. Pass them to
+                <code class="text-blue-600">App(middleware=[...])</code>:
             </p>
             <ul>
-                <li><code class="text-blue-600">LoggingMiddleware</code>: Pure ASGI logger for HTTP requests (skips static
-                    files for performance).</li>
-                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: Adds essential security headers like
-                    X-Content-Type-Options, X-Frame-Options, and <strong>Powered-By: Lila Framework</strong>.</li>
-                <li><code class="text-blue-600">RateLimitMiddleware</code>: Redis-backed pure ASGI rate limiter protecting against brute-force attacks.</li>
-                <li><code class="text-blue-600">FlashMiddleware</code>: Pure ASGI signed cookie session flash messages handler.</li>
+                <li><code class="text-blue-600">LoggingMiddleware</code>: Pure ASGI request logger (skips static
+                    files, redacts sensitive query keys).</li>
+                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: adds
+                    <code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>,
+                    <code>Referrer-Policy</code>, <code>Permissions-Policy</code>,
+                    <code>Cross-Origin-Opener-Policy</code> and HSTS on HTTPS; blocks real traversal probes
+                    (<code>.env</code>, <code>.git</code>, <code>../</code>).</li>
+                <li><code class="text-blue-600">RateLimitMiddleware</code>: pure ASGI limiter backed by
+                    <code>Cache.incr_async</code> (memory by default, Redis when configured) — not
+                    Redis-only.</li>
+                <li><code class="text-blue-600">StaticCacheMiddleware</code>: adds long-lived
+                    <code>Cache-Control</code> headers to <code>/public</code>, <code>/js</code>,
+                    <code>/img</code>, <code>/uploads</code> assets (immutable when the URL has
+                    <code>?v=</code>).</li>
+                <li><code class="text-blue-600">csrf_protect</code>/<code class="text-blue-600">csrf</code>:
+                    a route decorator that verifies CSRF for HTML form posts. The global
+                    <code>App(csrf=True)</code> guard covers JSON/header clients; form bodies are handled by
+                    the route-level check.</li>
             </ul>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
@@ -331,20 +391,19 @@ async def contact_submit(request: Request):
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-from lila.core.middleware import (
-    Middleware,
-    LoggingMiddleware, 
-    SecurityHeadersMiddleware,
-    RateLimitMiddleware,
-    FlashMiddleware,
-)
+from starlette.middleware import Middleware
+from lila.core.app import App
+from lila.core.middleware import LoggingMiddleware, SecurityHeadersMiddleware
 
 middlewares = [
     Middleware(LoggingMiddleware),
-    Middleware(RateLimitMiddleware),
+    Middleware(SecurityHeadersMiddleware),
 ]
 
-app = App(..., middleware=middlewares)
+app = App(routes=[router], middleware=middlewares, gzip=True)
+
+# Shorthands are equivalent:
+# app = App(routes=[router], logging=True, security=True, rate_limit=300)
                     </code></pre>
                 </div>
             </div>

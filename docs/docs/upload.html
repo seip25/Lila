@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en" data-theme="light">
 
 <head>
@@ -88,39 +88,48 @@
         <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
   <a href="routes.html">Routes</a>
   <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
   <a href="templates.html">Templates</a>
-  <a href="session.html">Session</a>
-  <a href="upload.html">Uploads Files</a>
   <a href="markdown.html">Markdown/HTML</a>
   <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
   <a href="models.html">Models</a>
-  <a href="middlewares.html">Middlewares</a>
-  <a href="cli.html">CLI Commands</a>
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
-  <a href="auth.html">Auth Cli </a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
   <a href="scaffold.html">Scaffold CRUD</a>
   <a href="rest_api.html">API Rest CRUD</a>
-  <a href="admin.html">Admin Panel</a>
-  <a href="minify.html">Minify</a>
   <a href="production.html">Production</a>
 </aside>
         <article id="upload-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
             <h1>File Upload Helper</h1>
-            <p><strong>The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code> helper provides a complete solution for handling file uploads in your application, including validation, security checks, and translation support.</strong></p>
+            <p><strong>The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">upload</code> helper provides a complete solution for handling file uploads, including validation, streaming to disk, and safe URLs.</strong></p>
 
             <p>This helper automatically handles:
             <ul>
-                <li>HTTP method validation (POST only)</li>
-                <li>Content-Type validation (multipart/form-data)</li>
-                <li>File extension validation</li>
-                <li>File size limits</li>
+                <li>HTTP method validation (POST only → 405)</li>
+                <li>Content-Type validation (<code>multipart/form-data</code> → 400)</li>
+                <li>File extension validation (active SVG/HTML uploads are blocked by default)</li>
+                <li>File size limits (15 MB by default, enforced while streaming)</li>
                 <li>Empty file detection</li>
-                <li>Secure filename handling</li>
+                <li>Sanitized, unique filenames (Unicode letters preserved)</li>
                 <li>Automatic directory creation</li>
-                <li>Translation support for error messages</li>
+                <li>Relative URLs only — never absolute server paths</li>
             </ul>
             </p>
 
@@ -139,11 +148,13 @@
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-python">
-request: Request          # Starlette request object
-name_file: str | list     # Field name for file upload (default: 'file')
-UPLOAD_DIR: str           # Directory to save files (default: 'uploads')
-ALLOWED_EXTENSIONS: set   # Allowed file extensions (default: {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'})
-MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
+request: Request                  # Starlette request object (must be POST multipart)
+name_file: str = "file"           # Form field name (supports multiple files under it)
+upload_dir: str | None = None     # Default: the project's public/uploads (served at /uploads)
+allowed_extensions: set | None    # Default: txt/pdf/png/jpg/jpeg/webp/gif/mp4/mp3/zip/docx...
+max_file_size: int | None = None  # Default: 15 * 1024 * 1024 bytes
+convert_to_webp: bool = False     # Convert jpg/jpeg/png to WebP (needs Pillow)
+webp_quality: int = 80            # WebP quality when converting
             </code></pre>
                 </div>
             </div>
@@ -161,12 +172,34 @@ MAX_FILE_SIZE: int        # Maximum file size in bytes (default: 10MB)
                 <div class="editor-content">
                     <pre><code class="language-python">
 from lila.core.files import upload
+from lila.core.request import Request
 
-@router.route("/upload", methods=["POST"])
-async def uploadFile(request: Request):
-    response = await upload(request=request, name_file="file")
-    return response
-                                    </code></pre>
+@router.post("/upload")
+async def upload_file(request: Request):
+    # Saves into public/uploads and returns {"success": True, "url": "/uploads/..."}
+    return await upload(request, name_file="file")
+
+# Always return a JSONResponse (from upload) directly: it already has
+# the right status code and a {"success": false, "message": ...} body on error.
+                    </code></pre>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+                <div class="editor-content">
+                    <pre><code class="language-python">
+# Custom limits, an avatar field and WebP conversion.
+@router.post("/avatar")
+async def upload_avatar(request: Request):
+    return await upload(
+        request,
+        name_file="avatar",
+        allowed_extensions={"png", "jpg", "jpeg", "webp"},
+        max_file_size=2 * 1024 * 1024,   # 2 MB
+        convert_to_webp=True,
+        webp_quality=82,
+    )
+                    </code></pre>
                 </div>
             </div>
 
@@ -182,43 +215,31 @@ async def uploadFile(request: Request):
                 </div>
                 <div class="editor-content">
                     <pre><code class="language-html">
-&lt;form onsubmit="upload(event);"&gt;
-    &lt;fieldset&gt;
-        &lt;input type="file" name="file" required&gt;
-    &lt;/fieldset&gt;
-    &lt;button type="submit"&gt;
-        &lt;i class="icon-check-circle"&gt;&lt;/i&gt;
-        Upload Files
-    &lt;/button&gt;
+&lt;form id="upload-form" enctype="multipart/form-data"&gt;
+    &lt;input type="file" name="file" required&gt;
+    &lt;button type="submit"&gt;Upload File&lt;/button&gt;
 &lt;/form&gt;
 
 &lt;script&gt;
-    async function upload(event) {
+    document.getElementById('upload-form').addEventListener('submit', async (event) =&gt; {
         event.preventDefault();
-        const formElement = event.target;
-        const formData = new FormData(formElement);
-        
+        const formData = new FormData(event.target);
+
         try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData,
-            });
-            
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
-            
-            alert('File uploaded successfully!');
+            // Http(url, method, body, bodyForm) appends the CSRF token when needed.
+            const result = await Http('/upload', 'POST', false, formData);
+            console.log(result.url);          // "/uploads/name_ab12cd34.png"
         } catch (error) {
-            alert(error.message);
+            alert(error.message || 'Upload failed');
         }
-    }
+    });
 &lt;/script&gt;
                                     </code></pre>
                 </div>
             </div>
 
             <h2>Response Format</h2>
-            <p>The helper returns a JSONResponse with this structure:</p>
+            <p>A single uploaded file returns (not wrapped in a JSONResponse message):</p>
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">Success Response</span>
@@ -231,9 +252,27 @@ async def uploadFile(request: Request):
                 <div class="editor-content">
                     <pre><code class="language-json">
 {
-    "file": "/uploads/filename.ext",
     "success": true,
-    "message": "File uploaded successfully"
+    "original_name": "photo.png",
+    "saved_name": "photo_ab12cd34.png",
+    "size": 48213,
+    "mime": "image/png",
+    "url": "/uploads/photo_ab12cd34.png"
+}
+                                    </code></pre>
+                </div>
+            </div>
+
+            <p>Multiple files under the same field return a list:</p>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4 mb-4">
+                <div class="editor-content">
+                    <pre><code class="language-json">
+{
+    "success": true,
+    "files": [
+        {"original_name": "a.pdf", "saved_name": "a_1a2b3c4d.pdf", "size": 1200, "mime": "application/pdf", "url": "/uploads/a_1a2b3c4d.pdf"}
+    ]
 }
                                     </code></pre>
                 </div>
@@ -251,9 +290,8 @@ async def uploadFile(request: Request):
                 <div class="editor-content">
                     <pre><code class="language-json">
 {
-    "error": true,
     "success": false,
-    "message": "Error message in user's language"
+    "message": "File extension '.svg' is not permitted."
 }
                                     </code></pre>
                 </div>
@@ -262,25 +300,14 @@ async def uploadFile(request: Request):
             <div class="mb-8">
                 <h3 class="text-xl text-blue-500 bg-blue-100 p-4 text-center rounded">Important Notes</h3>
 
-                <p>If you are using Windows or the file is not created in the Path, remember to
-                    configure it in <code>app/config.py</code></p>
-                <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8  mb-4">
-                    <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
-                        <span class="editor-title text-gray-300 dark:text-gray-400">app/config.py</span>
-                        <div class="flex space-x-2">
-                            <div class="control close"></div>
-                            <div class="control minimize"></div>
-                            <div class="control maximize"></div>
-                        </div>
-                    </div>
-                    <div class="editor-content">
-                        <pre><code class="language-python">
-PATH_UPLOADS = path.join(os.getcwd(), "public", "img", "uploads")
-
-                                    </code></pre>
-
-                    </div>
-                </div>
+                <p>
+                    The default destination is <code>public/uploads</code> (created automatically) and
+                    <code>App</code> serves it at <code>/uploads/&lt;file&gt;</code>. Pass
+                    <code>upload_dir=</code> to store files elsewhere; if that directory is inside
+                    <code>public/</code> the returned URL uses <code>/public/&lt;relative&gt;/&lt;file&gt;</code>.
+                    Files are streamed in 1 MB chunks, so a large upload does not load the whole file into
+                    RAM. There is no <code>PATH_UPLOADS</code> configuration to edit.
+                </p>
             </div>
         </article>
     </main>

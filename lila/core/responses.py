@@ -104,13 +104,14 @@ class JSONResponse(Response):
         status_code: int = 200,
         headers: Optional[dict] = None,
         media_type: Optional[str] = None,
+        background: Any = None,
     ) -> None:
         if not headers:
             headers = {"X-Powered-By": "Lila Framework 2.0"}
         elif "X-Powered-By" not in headers:
             headers = dict(headers)
             headers["X-Powered-By"] = "Lila Framework 2.0"
-        super().__init__(content, status_code, headers, media_type)
+        super().__init__(content, status_code, headers, media_type, background)
 
     def render(self, content: Any) -> bytes:
         return orjson_dumps(content)
