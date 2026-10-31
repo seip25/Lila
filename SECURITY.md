@@ -33,11 +33,16 @@ fix and release before disclosing details publicly.
   default; use `cache_public=True` only for public content.
 - Admin mutations require an authenticated admin session and a CSRF token.
 - Uploads are streamed, limited to 15 MB by default, stored under
-  `public/uploads`, and SVG is blocked unless explicitly enabled.
+  `public/uploads` in a web deployment (OS app-data `uploads` in a frozen desktop
+  build), and SVG is blocked unless explicitly enabled.
 - Passwords use Argon2id when `argon2-cffi` is installed and are verified in a
   worker thread so the event loop is not blocked.
 - Password-reset tokens are stored as SHA-256 hashes and are single-use after a
   successful password change.
+- Desktop mode binds only to `127.0.0.1`, allows one instance, and gates every
+  request/WebSocket with a per-run token exchanged for an HttpOnly cookie.
+- `lila deploy` sanitizes unsafe service/domain/user tokens and serves static
+  files from the real `/public`, `/js`, `/img`, `/swagger` and `/uploads` paths.
 
 ## Production checklist
 

@@ -35,8 +35,8 @@
 
       {% if not metrics.psutil_available %}
       <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/40 p-3 text-xs text-amber-800 dark:text-amber-200">
-        <code>psutil</code> is not installed, so process/system metrics are unavailable.
-        Install it with <code>pip install "lila-framework[metrics]"</code>.
+        <code>psutil</code> is not installed; Lila is using native OS fallbacks for the
+        available metrics. Install it with <code>pip install "lila-framework[metrics]"</code>.
       </div>
       {% endif %}
 
@@ -102,9 +102,10 @@
 
   <script src="{{ public('js/lila-client.js') }}"></script>
   <script>
+    const ADMIN_PREFIX = {{ admin_prefix | default('/admin') | tojson }};
     async function purgeCache() {
       try {
-        const res = await Http('/admin/cache/clear', 'POST', {});
+        const res = await Http(`${ADMIN_PREFIX}/cache/clear`, 'POST', {});
         if (res.success) {
           lila('toast', { title: 'Cache Cleared', description: res.message || 'Cache emptied successfully', type: 'success' });
         } else {
@@ -118,7 +119,7 @@
     async function clearLogs() {
       if (!confirm('Delete all log files?')) return;
       try {
-        const res = await Http('/admin/logs', 'DELETE');
+        const res = await Http(`${ADMIN_PREFIX}/logs`, 'DELETE');
         if (res.success) {
           lila('toast', { title: 'Logs Cleared', description: res.message || 'Logs purged.', type: 'success' });
           setTimeout(() => window.location.reload(), 500);

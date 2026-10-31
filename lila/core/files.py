@@ -9,13 +9,14 @@
 import io
 import os
 import re
+import sys
 import uuid
 import mimetypes
 from typing import Union, List, Set, Optional, Dict, Any
 
 from starlette.datastructures import UploadFile
 
-from lila.core.config import get_base_path
+from lila.core.config import get_base_path, get_data_path
 from lila.core.request import Request
 from lila.core.responses import JSONResponse
 from lila.core.logger import Logger
@@ -57,6 +58,12 @@ def _public_url(target_dir: str, filename: str) -> str:
     public_root = os.path.realpath(get_base_path("public"))
     uploads_root = os.path.join(public_root, "uploads")
     real_target = os.path.realpath(target_dir)
+    if getattr(sys, "frozen", False):
+        data_uploads = os.path.realpath(get_data_path("uploads"))
+        if real_target == data_uploads or real_target.startswith(data_uploads + os.sep):
+            relative = os.path.relpath(real_target, data_uploads).replace("\\", "/")
+            prefix = "" if relative == "." else relative + "/"
+            return f"/uploads/{prefix}{filename}"
     if real_target == uploads_root or real_target.startswith(uploads_root + os.sep):
         relative = os.path.relpath(real_target, uploads_root).replace("\\", "/")
         prefix = "" if relative == "." else relative + "/"
@@ -104,7 +111,12 @@ async def upload(
     webp_quality: int = 80,
 ) -> Union[JSONResponse, Dict[str, Any]]:
     """Handles async file uploads with validation and optional WebP optimization."""
-    target_dir = upload_dir or get_base_path("public", "uploads")
+    if upload_dir:
+        target_dir = upload_dir
+    elif getattr(sys, "frozen", False):
+        target_dir = get_data_path("uploads")
+    else:
+        target_dir = get_base_path("public", "uploads")
     allowed = {str(ext).lower().lstrip(".") for ext in (allowed_extensions or DEFAULT_ALLOWED_EXTENSIONS)}
     max_size = int(max_file_size or DEFAULT_MAX_FILE_SIZE)
 

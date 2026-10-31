@@ -280,6 +280,14 @@ DEBUG=False
 
 
       <h4>6. Configure Nginx (Optional)</h4>
+      <p>
+        The fastest path is <code>lila deploy --domain your-domain.com --port 3002</code>.
+        It writes a ready-to-copy systemd unit plus an Nginx config that proxies the
+        app and serves Lila's real static paths (<code>/public/</code>, <code>/js/</code>,
+        <code>/img/</code>, <code>/swagger/</code>, <code>/uploads/</code>) directly,
+        with WebSocket support and <code>gzip_static on</code> for pre-compressed
+        assets. The manual example below is equivalent.
+      </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
@@ -360,6 +368,16 @@ server {
           <code>busy_timeout=5000</code>, a ~4 MB page cache (<code>cache_size=-4000</code>) and foreign
           keys. Readers do not block writers, but SQLite still allows a single writer at a time — benchmark
           your workload instead of assuming linear scaling.
+        </p>
+      </div>
+
+      <div class="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+        <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Backups</h4>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+          Use <code>lila backup --max-backups 14</code> for a consistent online SQLite
+          backup; it uses SQLite's native backup API and does not stop the server.
+          Schedule it with cron/Task Scheduler and keep copies outside the project
+          directory.
         </p>
       </div>
 

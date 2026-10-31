@@ -119,7 +119,9 @@
       <h3 class="text-xl font-bold mt-8 mb-3">1. Running in Desktop Mode</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
         <code>lila desktop dev</code> loads <code>.env</code>, finds a free port, starts Uvicorn in a
-        daemon thread and opens a native window:
+        daemon thread and opens a native window. It binds only to <code>127.0.0.1</code>, allows a
+        single instance and gates the session with a per-run token that is exchanged for an
+        HttpOnly cookie on the first navigation:
       </p>
       <pre><code class="language-bash"># Starts Uvicorn in a daemon thread and opens a native window
 lila desktop dev
@@ -139,7 +141,7 @@ lila desktop dev --title "My Desktop App" --width 1280 --height 850</code></pre>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         <code>lila desktop build</code> writes a temporary bootstrap that imports <code>main</code>
         statically (so PyInstaller can see your code), then bundles <code>main</code>, <code>app</code> and
-        Lila's data files (<code>--collect-data lila</code>), plus <code>public/</code> and
+        Lila's data files (<code>--collect-all lila</code>), plus <code>public/</code> and
         <code>resources/</code> when they exist. Output goes to <code>dist/&lt;name&gt;</code>.
       </p>
 
@@ -163,9 +165,14 @@ lila desktop build --name "InvoiceManager" --onedir
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         Lila's <code class="code-inline">lila.core.config</code> resolves read-only assets through
         <code>get_base_path()</code> (honoring <code>sys._MEIPASS</code> when frozen) and writable files
-        (SQLite database, cache, logs) through <code>get_data_path()</code> next to the executable. Keep the
-        database name in <code>.env</code> relative (<code>DB_NAME="lila"</code>) so the file lands in the
-        application folder instead of a temporary extraction directory.
+        (SQLite database, cache, logs) through <code>get_data_path()</code>. In a frozen build the
+        writable location is the OS application-data directory
+        (<code>%LOCALAPPDATA%\\&lt;title&gt;</code> on Windows, <code>~/Library/Application Support/&lt;title&gt;</code>
+        on macOS, <code>$XDG_DATA_HOME/&lt;title&gt;</code> on Linux), not the read-only executable folder.
+        On a frozen build, Lila looks for <code>.env</code> in that application-data directory first
+        (then the current working directory) and keeps the SQLite database, cache and logs there.
+        Keep <code>DB_NAME</code> relative (<code>DB_NAME="lila"</code>) so it resolves under that
+        directory.
       </p>
     </article>
   </main>

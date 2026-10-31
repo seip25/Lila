@@ -25,19 +25,27 @@ def run_sqlite_backup(
     """Executes an online zero-downtime backup of the active SQLite database."""
     ConfigLoader.load()
 
+    db_type = str(ENV_CONFIG.get("DB_TYPE", "sqlite") or "sqlite").lower()
+    if db_type not in ("sqlite", "sqlite3"):
+        raise RuntimeError(
+            "Hot backup is only available for SQLite. Use pg_dump/mysqldump for "
+            f"DB_TYPE={db_type!r}."
+        )
+
     # 1. Resolve source SQLite database path
-    if source_db_path and os.path.isfile(source_db_path):
+    if source_db_path:
+        if not os.path.isfile(source_db_path):
+            raise FileNotFoundError(f"Database file not found at: {source_db_path}")
         src_path = os.path.abspath(source_db_path)
     else:
         db_name = str(ENV_CONFIG.get("DB_NAME") or ENV_CONFIG.get("DB_DATABASE") or "lila")
-        candidates = [
-            get_data_path(f"{db_name}.sqlite"),
-            get_data_path(f"{db_name}.db"),
-            os.path.join(os.getcwd(), f"{db_name}.sqlite"),
-            os.path.join(os.getcwd(), f"{db_name}.db"),
-            os.path.join(os.getcwd(), "lila.sqlite"),
-            os.path.join(os.getcwd(), "app.sqlite"),
-        ]
+        if db_name.endswith((".sqlite", ".sqlite3", ".db")):
+            names = [db_name]
+        else:
+            names = [f"{db_name}.sqlite", f"{db_name}.db"]
+        candidates = [get_data_path(name) for name in names]
+        candidates += [os.path.join(os.getcwd(), name) for name in names]
+        candidates += [os.path.join(os.getcwd(), "lila.sqlite"), os.path.join(os.getcwd(), "app.sqlite")]
         src_path = None
         for cand in candidates:
             if os.path.isfile(cand):
@@ -69,6 +77,9 @@ def run_sqlite_backup(
             dst_path = os.path.abspath(output_path)
     else:
         dst_path = os.path.join(default_backup_dir, f"backup_{base_name}_{timestamp}.sqlite")
+
+    if os.path.realpath(dst_path) == os.path.realpath(src_path):
+        raise ValueError("Backup destination cannot be the source database file.")
 
     # 3. Perform native hot backup
     start_time = time.perf_counter()

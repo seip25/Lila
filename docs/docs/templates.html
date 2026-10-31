@@ -332,7 +332,7 @@ def get_base_context(request, lang_default=None, files_translate=None):
         "description": ENV_CONFIG.get("DESCRIPTION_PROJECT", ...),
         "keywords": ENV_CONFIG.get("KEYWORDS_DEFAULT", ""),
         "author": ENV_CONFIG.get("AUTHOR_DEFAULT", ""),
-        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0"),
+        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
         "lang": current_lang,
         "translate": Translate.get_dict(current_lang),
         "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),

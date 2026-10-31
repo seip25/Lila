@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light dark" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <meta name="description" content="{{ seo.description | default(description) | default('Lila Framework v2.0.2 - Ultra-Lightweight Full-Stack Python Framework with SPA View Transitions, AI Helper, SQLite WAL, and Desktop mode.') }}" />
-  <title>{{ seo.title | default(title) | default('Lila Framework v2.0.2 - Full-Stack Python') }}</title>
+  <meta name="description" content="{{ seo.description | default(description) | default('Lila Framework v2.0.0 - Ultra-Lightweight Full-Stack Python Framework with SPA View Transitions, AI Helper, SQLite WAL, and Desktop mode.') }}" />
+  <title>{{ seo.title | default(title) | default('Lila Framework v2.0.0 - Full-Stack Python') }}</title>
   {% if seo.canonical %}<link rel="canonical" href="{{ seo.canonical }}" />{% endif %}
   <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
   {% include "lila/tailwind.jinja" %}
@@ -23,7 +23,7 @@
           <img src="{{ public('img/lila-128.webp') }}" alt="Lila" width="36" height="36" class="rounded-xl shadow-sm transform group-hover:scale-105 transition-transform" />
           <div class="flex items-center gap-2">
             <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lila</span>
-            <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">v2.0.2</span>
+            <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">v2.0.0</span>
           </div>
         </a>
 
@@ -79,7 +79,7 @@
         <a href="/api/example" data-no-router class="btn btn-secondary px-6 py-3 text-sm">
           <span>⚡</span> View API Example
         </a>
-        <button onclick="lila('toast', { title: 'Lila v2.0.2 Active!', description: 'SPA View Transitions & reactive UI runtime ready.', type: 'success' })" class="btn bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-5 py-3 text-sm hover:bg-slate-200 dark:hover:bg-slate-700">
+        <button onclick="lila('toast', { title: 'Lila v2.0.0 Active!', description: 'SPA View Transitions & reactive UI runtime ready.', type: 'success' })" class="btn bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-5 py-3 text-sm hover:bg-slate-200 dark:hover:bg-slate-700">
           <span>🔔</span> Test Toast
         </button>
       </div>
@@ -156,7 +156,7 @@
 
     <!-- Footer -->
     <footer class="w-full border-t border-slate-200/80 dark:border-slate-800/80 py-6 text-center text-xs text-slate-400">
-      <p>Lila Framework v2.0.2 &bull; Licensed under MIT &bull; Built with Starlette, SQLAlchemy 2.0 & Pydantic v2</p>
+      <p>Lila Framework v2.0.0 &bull; Licensed under MIT &bull; Built with Starlette, SQLAlchemy 2.0 & Pydantic v2</p>
     </footer>
   </div>
 

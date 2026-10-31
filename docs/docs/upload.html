@@ -150,7 +150,7 @@
                     <pre><code class="language-python">
 request: Request                  # Starlette request object (must be POST multipart)
 name_file: str = "file"           # Form field name (supports multiple files under it)
-upload_dir: str | None = None     # Default: the project's public/uploads (served at /uploads)
+upload_dir: str | None = None     # Default: public/uploads; OS app-data/uploads in desktop builds
 allowed_extensions: set | None    # Default: txt/pdf/png/jpg/jpeg/webp/gif/mp4/mp3/zip/docx...
 max_file_size: int | None = None  # Default: 15 * 1024 * 1024 bytes
 convert_to_webp: bool = False     # Convert jpg/jpeg/png to WebP (needs Pillow)
@@ -301,8 +301,10 @@ async def upload_avatar(request: Request):
                 <h3 class="text-xl text-blue-500 bg-blue-100 p-4 text-center rounded">Important Notes</h3>
 
                 <p>
-                    The default destination is <code>public/uploads</code> (created automatically) and
-                    <code>App</code> serves it at <code>/uploads/&lt;file&gt;</code>. Pass
+                    The default destination is <code>public/uploads</code> (created
+                    automatically) in a web app; a frozen desktop build uses its writable OS
+                    app-data <code>uploads</code> directory. <code>App</code> serves it at
+                    <code>/uploads/&lt;file&gt;</code>. Pass
                     <code>upload_dir=</code> to store files elsewhere; if that directory is inside
                     <code>public/</code> the returned URL uses <code>/public/&lt;relative&gt;/&lt;file&gt;</code>.
                     Files are streamed in 1 MB chunks, so a large upload does not load the whole file into

@@ -14,7 +14,7 @@ import html
 import traceback
 from typing import Optional, Dict, Any, List
 
-from jinja2 import Environment, FileSystemLoader, ChoiceLoader
+from jinja2 import Environment, FileSystemLoader, ChoiceLoader, pass_context
 
 from lila.core.config import ENV_CONFIG, get_base_path, get_data_path, is_debug
 from lila.core.request import Request
@@ -144,10 +144,30 @@ def set_default_layout(layout_name: str) -> None:
 
 jinja_env.globals["public"] = public
 jinja_env.globals["asset"] = asset
-jinja_env.globals["oauth_buttons"] = OAuth.render_buttons
+
+
+@pass_context
+def _oauth_buttons_ctx(ctx, *args, **kwargs):
+    if len(args) < 4 and not kwargs.get("label_prefix"):
+        request = ctx.get("request")
+        lang = ctx.get("lang") or Translate.lang(request)
+        kwargs["label_prefix"] = Translate.t("continue_with", lang=lang, default="Continue with")
+    return OAuth.render_buttons(*args, **kwargs)
+
+
+@pass_context
+def _t_ctx(ctx, key, *args, **kwargs):
+    if args and "default" not in kwargs:
+        kwargs["default"] = args[0]
+    kwargs.setdefault("request", ctx.get("request"))
+    kwargs.setdefault("lang", ctx.get("lang") or Translate.lang(ctx.get("request")))
+    return Translate.t(key, **kwargs)
+
+
+jinja_env.globals["oauth_buttons"] = _oauth_buttons_ctx
 jinja_env.globals["lang"] = lambda: str(ENV_CONFIG.get("LANG_DEFAULT", "en"))
 jinja_env.globals["translate"] = Translate.get_dict()
-jinja_env.globals["t"] = Translate.t
+jinja_env.globals["t"] = _t_ctx
 
 
 def _inspect_app_routes(app_obj: Any) -> Dict[str, bool]:
@@ -166,6 +186,10 @@ def _inspect_app_routes(app_obj: Any) -> Dict[str, bool]:
         routes = getattr(app_obj, "raw_routes", None)
     if not routes:
         return flags
+
+    cached = getattr(app_obj, "_lila_route_flags", None)
+    if cached is not None and cached[0] == len(routes):
+        return dict(cached[1])
 
     visited = set()
 
@@ -199,6 +223,10 @@ def _inspect_app_routes(app_obj: Any) -> Dict[str, bool]:
                 check_routes(sub, prefix=full_path)
 
     check_routes(routes)
+    try:
+        setattr(app_obj, "_lila_route_flags", (len(routes), dict(flags)))
+    except Exception:
+        pass
     return flags
 
 
@@ -222,7 +250,7 @@ def get_base_context(
         app_obj = request.scope.get("app")
     route_flags = _inspect_app_routes(app_obj)
 
-    debug_val = is_debug()
+    debug_val = bool(getattr(app_obj, "_is_debug", is_debug())) if app_obj else is_debug()
     debug_html_val = route_flags["debug_html"] if app_obj else debug_val
 
     return {
@@ -231,7 +259,7 @@ def get_base_context(
         "description": ENV_CONFIG.get("DESCRIPTION_PROJECT", ENV_CONFIG.get("DESCRIPTION_DEFAULT", "")),
         "keywords": ENV_CONFIG.get("KEYWORDS_DEFAULT", ""),
         "author": ENV_CONFIG.get("AUTHOR_DEFAULT", ""),
-        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.2"),
+        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
         "lang": current_lang,
         "translate": trans_dict,
         "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),
@@ -331,7 +359,8 @@ def render(
 
     except Exception as e:
         Logger.error(f"Template render error in '{target_template}': {e}", exception=e)
-        if is_debug():
+        debug_enabled = bool(getattr(getattr(request, "app", None), "_is_debug", is_debug()))
+        if debug_enabled:
             tb = traceback.format_exc()
             return HTMLResponse(
                 f'<div style="padding: 2rem; font-family: sans-serif; background: #fff1f2; color: #9f1239;">'

@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila-256.webp" width="120" height="120" alt="Lila Framework">
 </p>
 
-<h1 align="center">Lila Framework v2.0.1</h1>
+<h1 align="center">Lila Framework v2.0.0</h1>
 
 <p align="center">
   <b>Lightweight full-stack Python web & desktop framework</b><br>
@@ -197,6 +197,9 @@ lila desktop build --name MyApp --onefile --windowed
 ```
 
 The generated executable bundles `main`, `app`, Lila templates and `public/`.
+Lila binds the desktop server to `127.0.0.1`, enforces a per-run local token,
+prevents a second instance and stores its SQLite/cache/logs in the OS
+application-data directory.
 
 ---
 
@@ -219,7 +222,13 @@ The generated executable bundles `main`, `app`, Lila templates and `public/`.
 | `lila secret-key` | Rotate `SECRET_KEY`. |
 | `lila seo` | `public/sitemap.xml` + `robots.txt` (served at `/sitemap.xml`). |
 | `lila worker` | Redis JSON task worker (`pip install lila-framework[redis]`). |
+| `lila deploy` | Generate systemd + Nginx + Windows Server files in `deploy/`. |
+| `lila backup` | Online, zero-downtime SQLite backup with retention. |
 | `lila desktop dev/build` | Native window / PyInstaller executable. |
+
+`lila desktop` binds to `127.0.0.1`, enforces a generated local session token and
+allows only one instance. The frozen build stores SQLite/cache/logs in the OS
+application-data directory.
 
 ---
 

@@ -39,15 +39,16 @@
 
   <script src="{{ public('js/lila-client.js') }}"></script>
   <script>
+    const ADMIN_PREFIX = {{ admin_prefix | default('/admin') | tojson }};
     document.getElementById("loginForm").addEventListener("submit", async function (event) {
       event.preventDefault();
       const formData = Object.fromEntries(new FormData(event.target));
       try {
-        const response = await Http("/admin/login", "POST", formData);
+        const response = await Http(`${ADMIN_PREFIX}/login`, "POST", formData);
         if (response.success) {
           lila('toast', { title: 'Welcome', description: 'Redirecting to admin dashboard...', type: 'success' });
           setTimeout(() => {
-            window.location.href = response.redirect || "/admin";
+            window.location.href = response.redirect || ADMIN_PREFIX;
           }, 300);
         } else {
           document.getElementById("password").value = "";

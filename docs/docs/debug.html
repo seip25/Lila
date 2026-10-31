@@ -177,9 +177,9 @@ app = App(
                     <li><strong>Duration:</strong> total wall time in milliseconds.</li>
                 </ul>
                 <p>
-                    RAM/CPU figures come from <code>DebugStore.get_system_metrics()</code> and require the
-                    optional <code>psutil</code> package (<code>pip install "lila-framework[metrics]"</code>).
-                    Without it the dashboard reports zeros instead of inventing numbers.
+                    RAM/CPU figures come from <code>DebugStore.get_system_metrics()</code>. Lila uses
+                    <code>psutil</code> when installed (<code>pip install "lila-framework[metrics]"</code>)
+                    and native OS fallbacks otherwise; values are never invented.
                 </p>
             </div>
 
@@ -191,9 +191,11 @@ app = App(
                 </p>
                 <ul class="list-disc pl-6 space-y-2 mt-2 text-gray-700 dark:text-gray-300">
                     <li><code>GET /debug</code> (and <code>/debug/</code>) — HTML dashboard.</li>
-                    <li><code>GET /debug/?fetch=true</code> — JSON history (<code>true</code>,
+                    <li><code>GET /debug/?fetch=true</code> — JSON object with
+                        <code>metrics</code> and <code>history</code> (<code>true</code>,
                         <code>True</code> or <code>1</code>).</li>
-                    <li><code>DELETE /debug/</code> — clears the in-memory history.</li>
+                    <li><code>DELETE /debug/</code> — clears the in-memory history. Send the page
+                        CSRF token in <code>X-CSRF-Token</code> (or the <code>_csrf</code> cookie token).</li>
                 </ul>
                 <p>
                     The dashboard is not mounted when <code>debug_html</code> is false, and nothing is

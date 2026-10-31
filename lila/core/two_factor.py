@@ -1,4 +1,4 @@
-﻿"""Lila Framework v2.0.1 Two-Factor Authentication (TOTP / RFC 6238).
+﻿"""Lila Framework v2.0.0 Two-Factor Authentication (TOTP / RFC 6238).
 Generates secrets, computes and validates 6-digit TOTP tokens,
 and produces real scannable QR codes for Google Authenticator / Authy.
 """

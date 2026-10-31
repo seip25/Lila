@@ -1,4 +1,4 @@
-# Lila Framework v2.0.1 — Agent & Developer Reference
+# Lila Framework v2.0.0 — Agent & Developer Reference
 
 Lila is a lightweight full-stack Python web framework built on **Starlette**,
 **Pydantic v2**, **SQLAlchemy 2.0 Async** and **Jinja2**. It targets 1–2 worker
@@ -201,7 +201,12 @@ class Product(BaseModel):
   `public/robots.txt`; served at the site root.
 - `lila worker` — Redis JSON tasks (`LILA_TASK_MODULES` allowlist, retries,
   dead-letter queue).
-- `lila desktop dev/build` — bundles `main`, `app`, Lila templates/assets.
+- `lila deploy` — generates systemd app/worker units, Nginx static+proxy config
+  and Windows Server starter scripts in `deploy/`.
+- `lila backup` — online SQLite backup with retention; refuses non-SQLite DBs.
+- `lila desktop dev/build` — bundles `main`, `app`, Lila templates/assets;
+  binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, and stores data under the
+  OS app-data directory when frozen.
 
 ---
 
@@ -212,7 +217,8 @@ python -m unittest discover -s tests -v
 ```
 
 Tests cover routing/422, cache isolation, CSRF forms, sessions, seed secrets,
-schema column additions and safe `main.py` patching.
+schema column additions, admin coercion, deploy/backup generation, locale parity,
+native metrics, desktop locking/bridge and safe `main.py` patching.
 
 ---
 

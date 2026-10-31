@@ -202,5 +202,3 @@ app/cache/
 .jinja_cache/
 development/
 audit/
-/tests
-/tests

@@ -1,4 +1,4 @@
-﻿"""Lila Framework v2.0.1 Security Utilities.
+﻿"""Lila Framework v2.0.0 Security Utilities.
 Provides optional sanitization, path traversal checks, and security headers.
 """
 

@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.2 Admin 2.0 Engine.
+"""Lila Framework v2.0.0 Admin 2.0 Engine.
 
 - Uses the project's database connection (not the global default DB).
 - Creates the ``admins`` table through the normal model/migration flow.
@@ -100,10 +100,15 @@ def get_admin_metrics() -> dict:
     return metrics
 
 
-def render_admin_menu(models: Optional[list] = None, request: Optional[Request] = None) -> str:
+def render_admin_menu(
+    models: Optional[list] = None,
+    request: Optional[Request] = None,
+    prefix: str = "/admin",
+) -> str:
     """Renders the persistent Admin sidebar."""
     models = models or []
-    current_path = request.url.path if request else "/admin"
+    base = "/" + prefix.strip("/")
+    current_path = request.url.path if request else base
 
     def _link(path: str, label: str, icon: str) -> str:
         active = current_path == path or (path != "/admin" and current_path.startswith(path))
@@ -114,15 +119,15 @@ def render_admin_menu(models: Optional[list] = None, request: Optional[Request] 
         )
         return f'<a href="{path}" class="{cls_name}"><span>{icon}</span> <span>{label}</span></a>'
 
-    nav_links = [_link("/admin", "Dashboard", "📊")]
+    nav_links = [_link(base, "Dashboard", "📊")]
     if models:
         nav_links.append('<div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-4 pb-1">Data Models</div>')
         for model in models:
             name = model.__name__
-            nav_links.append(_link(f"/admin/{pluralize(name)}", name, "📁"))
+            nav_links.append(_link(f"{base}/{pluralize(name)}", name, "📁"))
 
     nav_links.append('<div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-4 pb-1">System</div>')
-    nav_links.append('<a href="/admin/logout" data-no-router class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"><span>🚪</span> <span>Sign Out</span></a>')
+    nav_links.append(f'<a href="{base}/logout" data-no-router class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"><span>🚪</span> <span>Sign Out</span></a>')
     return (
         '<aside id="admin-sidebar" data-persist="true" class="w-64 flex-shrink-0 p-4 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 min-h-screen flex flex-col justify-between">'
         '<div>'
@@ -294,17 +299,18 @@ _coerce_payload = _coerce_payload_for_model
 
 def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any:
     """Mounts Admin 2.0 routes on the given router."""
-    prefix = f"/{default_route.strip('/')}"
+    prefix = "/" + (str(default_route or "").strip("/") or "admin")
     router.openapi = False
 
     @router.get(f"{prefix}/login")
     async def admin_login_view(request: Request):
-        return render(request, "admin/login", csrf=True)
+        return render(request, "admin/login", context={"admin_prefix": prefix}, csrf=True)
 
     @router.post(f"{prefix}/login", csrf=True)
     async def admin_login_action(request: Request):
         client_ip = getattr(request.client, "host", "unknown")
-        attempts = await Cache.incr_async(f"rl:admin-login:{client_ip}", ttl=60)
+        rl_key = f"rl:admin-login:{client_ip}"
+        attempts = await Cache.incr_async(rl_key, ttl=60)
         if attempts > 10:
             return JSONResponse(
                 {"success": False, "message": "Too many attempts. Try again later."},
@@ -332,6 +338,7 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
         if not valid:
             return JSONResponse({"success": False, "message": "Invalid credentials"}, status_code=401)
 
+        await Cache.delete_async(rl_key)
         response = JSONResponse({"success": True, "redirect": prefix})
         await Session.set_async(
             {"id": admin_record.id, "username": admin_record.username},
@@ -351,12 +358,13 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
     @admin_required(redirect_to=f"{prefix}/login")
     async def admin_dashboard_view(request: Request):
         metrics = get_admin_metrics()
-        menu_html = render_admin_menu(models, request)
+        menu_html = render_admin_menu(models, request, prefix=prefix)
         context = {
             "metrics": metrics,
             "cache_stats": metrics.get("cache", {}),
             "menu": menu_html,
             "logs": _collect_logs(),
+            "admin_prefix": prefix,
         }
         return render(request, "admin/dashboard", context=context)
 
@@ -430,7 +438,8 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
                 "headers": headers,
                 "form_columns": form_columns,
                 "items_json": _jsonable(items),
-                "menu": render_admin_menu(models, request),
+                "menu": render_admin_menu(models, request, prefix=prefix),
+                "admin_prefix": prefix,
             }
             return render(request, "admin/model_table", context=context)
 

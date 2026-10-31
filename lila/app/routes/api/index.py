@@ -12,7 +12,7 @@ async def api_root(request: Request):
     return {
         "status": "healthy",
         "framework": "Lila",
-        "version": "2.0.1",
+        "version": "2.0.0",
         "docs": "/docs",
         "openapi": "/openapi.json"
     }

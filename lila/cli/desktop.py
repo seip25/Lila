@@ -411,6 +411,10 @@ class DesktopBridge:
         except Exception:
             return None
 
+desktop_token = secrets.token_hex(20)
+os.environ["LILA_DESKTOP_TOKEN"] = desktop_token
+os.environ.setdefault("TITLE_PROJECT", {app_name!r})
+
 import uvicorn
 import main as app_module
 
@@ -420,8 +424,6 @@ def find_port():
         return s.getsockname()[1]
 
 port = find_port()
-desktop_token = secrets.token_hex(20)
-os.environ["LILA_DESKTOP_TOKEN"] = desktop_token
 server_holder = []
 
 def run_server():

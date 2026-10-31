@@ -2,157 +2,157 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://seip25.github.io/Lila/</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/index.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/admin.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/auth.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/cache.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/cli.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/client.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/configuration.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/connections.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/debug.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/desktop.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/documentation.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/ia.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/install.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/locales.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/logger.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/markdown.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/middlewares.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/migrations.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/minify.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/models.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/production.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/rest_api.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/routes.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/scaffold.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/seo.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/session.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/static.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/templates.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/upload.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://seip25.github.io/Lila/docs/websocket.html</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>
   </url>
 </urlset>

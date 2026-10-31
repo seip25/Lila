@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lila-framework"
-version = "2.0.2"
+version = "2.0.0"
 description = "High-performance full-stack Python web framework with SPA View Transitions, Zero-Infra SQLite WAL, In-Memory/Redis/File cache, AI helper and Desktop mode."
 readme = "README.md"
 requires-python = ">=3.10"

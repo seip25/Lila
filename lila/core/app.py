@@ -9,6 +9,7 @@ Ultra-lightweight Starlette wrapper with:
 """
 
 import os
+import sys
 import uuid
 import asyncio
 from contextlib import asynccontextmanager
@@ -30,6 +31,7 @@ from lila.core.middleware import (
     PureASGIStaticCacheMiddleware,
     PureASGICSRFMiddleware,
     PureASGIGZipMiddleware,
+    PureASGIDesktopGuardMiddleware,
 )
 from lila.core.debug import PureASGIDebugMiddleware, DebugStore
 
@@ -106,11 +108,15 @@ class App(Starlette):
                         )
                         break
 
-        # 3. Uploads (project public/uploads by default). Do not create a bare
-        # "public" directory in arbitrary working directories; the upload helper
-        # creates the destination on demand and StaticFiles picks it up.
-        uploads_dir = os.path.join(self._project_public, "uploads")
-        if os.path.isdir(self._project_public):
+        # 3. Uploads (project public/uploads by default, writable app-data in
+        # a frozen desktop build). Do not create a bare "public" directory in
+        # arbitrary working directories; the upload helper creates the
+        # destination on demand and StaticFiles picks it up.
+        if getattr(sys, "frozen", False):
+            uploads_dir = get_data_path("uploads")
+        else:
+            uploads_dir = os.path.join(self._project_public, "uploads")
+        if getattr(sys, "frozen", False) or os.path.isdir(self._project_public):
             try:
                 os.makedirs(uploads_dir, exist_ok=True)
             except Exception:
@@ -148,6 +154,12 @@ class App(Starlette):
 
         # 7. Middleware stack
         middleware_stack: List[Middleware] = []
+
+        # Desktop mode: gate every request/WebSocket behind the local token
+        # before static files or any route can respond. The token is set before
+        # ``main`` is imported by lila desktop / the PyInstaller bootstrap.
+        if os.environ.get("LILA_DESKTOP_TOKEN"):
+            middleware_stack.append(Middleware(PureASGIDesktopGuardMiddleware))
 
         middleware_stack.append(Middleware(PureASGIStaticCacheMiddleware))
 
@@ -388,6 +400,10 @@ class App(Starlette):
         from lila.core.templates import render
 
         if request.method == "DELETE":
+            from lila.core.csrf import CSRF
+
+            if not CSRF.verify(request):
+                return JSONResponse({"success": False, "message": "Invalid or missing CSRF token"}, status_code=403)
             DebugStore.clear()
             return JSONResponse({"success": True, "message": "Debug history cleared."})
         if request.query_params.get("fetch") in ("1", "true", "True"):

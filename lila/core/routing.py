@@ -184,11 +184,14 @@ class RouteInspector:
         "sig",
         "has_write_method",
         "wants_request",
+        "request_param_name",
         "body_param_name",
         "body_model",
         "body_optional",
         "query_model_name",
         "query_model",
+        "query_model_optional",
+        "query_model_default",
         "path_params",
         "query_params",
         "params_map",
@@ -202,11 +205,14 @@ class RouteInspector:
         self.has_write_method = any(m in ("POST", "PUT", "PATCH", "DELETE") for m in methods)
 
         self.wants_request = False
+        self.request_param_name: Optional[str] = None
         self.body_param_name: Optional[str] = None
         self.body_model: Optional[Type[PydanticBaseModel]] = None
         self.body_optional = False
         self.query_model_name: Optional[str] = None
         self.query_model: Optional[Type[PydanticBaseModel]] = None
+        self.query_model_optional = False
+        self.query_model_default: Any = inspect.Parameter.empty
         self.path_params: Dict[str, Type] = {}
         self.query_params: Dict[str, tuple] = {}
         self.params_map: Dict[str, RouteParam] = {}
@@ -220,6 +226,7 @@ class RouteInspector:
 
             if ann is Request or (name == "request" and not _is_pydantic_model(ann)):
                 self.wants_request = True
+                self.request_param_name = name
                 continue
 
             if _is_pydantic_model(ann):
@@ -227,6 +234,8 @@ class RouteInspector:
                     # GET-only handlers interpret a Pydantic annotation as a query model.
                     self.query_model_name = name
                     self.query_model = _unwrap_annotation(ann)
+                    self.query_model_optional = _is_optional(ann) or not required
+                    self.query_model_default = default
                     continue
                 self.body_param_name = name
                 self.body_model = _unwrap_annotation(ann)
@@ -367,7 +376,7 @@ class Router:
             # 4. Extract and cast arguments (using pre-compiled TypeAdapter)
             kwargs: Dict[str, Any] = {}
             if inspector.wants_request:
-                kwargs["request"] = request
+                kwargs[inspector.request_param_name or "request"] = request
 
             path_params = request.path_params
             for k, val in path_params.items():
@@ -441,10 +450,15 @@ class Router:
 
                     request.state.raw_data = data
                     request.state.data = data
-                    validated_body = active_model.model_validate(data)
-                    request.state.data = validated_body
-                    if body_param_name:
-                        kwargs[body_param_name] = validated_body
+                    if not data and inspector.body_optional:
+                        request.state.data = None
+                        if body_param_name:
+                            kwargs[body_param_name] = None
+                    else:
+                        validated_body = active_model.model_validate(data)
+                        request.state.data = validated_body
+                        if body_param_name:
+                            kwargs[body_param_name] = validated_body
                 except ValidationError as val_err:
                     translated = Translate.format_errors(val_err, request=request)
                     return JSONResponse.validation_error(val_err, translated_errors=translated)
@@ -463,10 +477,14 @@ class Router:
             # 7. Query model (GET only)
             if inspector.query_model is not None and inspector.query_model_name:
                 try:
-                    query_data = dict(query_params)
-                    if sanitize_xss:
-                        query_data = Security.sanitize_data(query_data)
-                    kwargs[inspector.query_model_name] = inspector.query_model.model_validate(query_data)
+                    if not query_params and inspector.query_model_optional:
+                        if inspector.query_model_default is inspect.Parameter.empty:
+                            kwargs[inspector.query_model_name] = None
+                    else:
+                        query_data = dict(query_params)
+                        if sanitize_xss:
+                            query_data = Security.sanitize_data(query_data)
+                        kwargs[inspector.query_model_name] = inspector.query_model.model_validate(query_data)
                 except ValidationError as val_err:
                     translated = Translate.format_errors(val_err, request=request)
                     return JSONResponse.validation_error(val_err, translated_errors=translated)

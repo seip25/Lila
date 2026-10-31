@@ -6,7 +6,7 @@ desktop paths, validates the SECRET_KEY and exposes safe defaults.
 Key guarantees:
 - ``ENV_CONFIG.get("DEBUG")`` returns a bool when the framework schema knows the key.
 - An empty or placeholder ``SECRET_KEY`` can never be used to sign sessions/CSRF.
-- ``ConfigLoader.load()`` has no side effects on ``os.environ``.
+- ``ConfigLoader.load()`` loads `.env` once and caches the typed values.
 """
 
 import os
@@ -25,7 +25,7 @@ FRAMEWORK_SCHEMA = [
     ("DEBUG",                "bool", False),
     ("WORKERS",              "str",  "1"),
     ("TITLE_PROJECT",        "str",  "Lila Application"),
-    ("VERSION_PROJECT",      "str",  "2.0"),
+    ("VERSION_PROJECT",      "str",  "2.0.0"),
     ("DESCRIPTION_PROJECT",  "str",  "Full-stack lightweight Python application"),
     ("LANG_DEFAULT",         "str",  "es"),
     ("DESCRIPTION_DEFAULT",  "str",  "Lila Framework 2.0 Web App"),
@@ -92,6 +92,7 @@ _PLACEHOLDER_SECRET_MARKERS = (
 )
 
 _SECRET_CACHE: Optional[str] = None
+_FROZEN_DATA_BASE: Optional[str] = None
 _SECRET_WARNED = False
 
 
@@ -119,20 +120,25 @@ def get_base_path(*subpaths: str) -> str:
 
 def get_data_path(*subpaths: str) -> str:
     """Returns writable directory for databases, cache and logs."""
+    global _FROZEN_DATA_BASE
     if getattr(sys, "frozen", False):
-        title = ENV_CONFIG.get("TITLE_PROJECT", "LilaApp")
-        clean_title = "".join(c for c in title if c.isalnum() or c in ("-", "_")).strip() or "LilaApp"
-        if sys.platform == "win32":
-            appdata = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~\\AppData\\Local")
-            base = os.path.join(appdata, clean_title)
-        elif sys.platform == "darwin":
-            base = os.path.expanduser(f"~/Library/Application Support/{clean_title}")
+        if _FROZEN_DATA_BASE:
+            base = _FROZEN_DATA_BASE
         else:
-            base = os.environ.get("XDG_DATA_HOME") or os.path.expanduser(f"~/.local/share/{clean_title}")
-        try:
-            os.makedirs(base, exist_ok=True)
-        except Exception:
-            base = os.path.dirname(sys.executable)
+            title = ENV_CONFIG.get("TITLE_PROJECT", "LilaApp")
+            clean_title = "".join(c for c in title if c.isalnum() or c in ("-", "_")).strip() or "LilaApp"
+            if sys.platform == "win32":
+                appdata = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~\\AppData\\Local")
+                base = os.path.join(appdata, clean_title)
+            elif sys.platform == "darwin":
+                base = os.path.expanduser(f"~/Library/Application Support/{clean_title}")
+            else:
+                base = os.environ.get("XDG_DATA_HOME") or os.path.expanduser(f"~/.local/share/{clean_title}")
+            try:
+                os.makedirs(base, exist_ok=True)
+            except Exception:
+                base = os.path.dirname(sys.executable)
+            _FROZEN_DATA_BASE = base
     else:
         base = os.getcwd()
     return os.path.join(base, *subpaths) if subpaths else base

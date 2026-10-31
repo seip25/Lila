@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.2 In-Memory Diagnostic & Debug Engine.
+"""Lila Framework v2.0.0 In-Memory Diagnostic & Debug Engine.
 Tracks the last 100 requests in RAM (collections.deque) with zero disk I/O.
 Provides unified zero-dependency telemetry with native OS fallbacks.
 """
@@ -243,7 +243,8 @@ def get_system_metrics() -> Dict[str, Any]:
 DEBUG_HISTORY: deque = deque(maxlen=100)
 
 IGNORE_EXTENSIONS = frozenset({
-    ".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".ttf",
+    ".css", ".js", ".map", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico",
+    ".woff", ".woff2", ".ttf", ".gz", ".br",
 })
 
 
@@ -311,6 +312,6 @@ class PureASGIDebugMiddleware:
                 "path": path,
                 "status": status_code[0],
                 "duration_ms": round(elapsed_ms, 2),
-                "ram_mb": get_process_ram_mb(),
+                "ram_mb": get_system_metrics().get("process_ram_mb", 0.0),
                 "ip": client_ip,
             })

@@ -120,7 +120,7 @@
             <div>
                 <h1>CLI Commands Reference</h1>
                 <p>
-                    Lila Framework v2.0.1 ships a unified CLI: <code
+                    Lila Framework v2.0.0 ships a unified CLI: <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila &lt;command&gt;</code>.
                     Legacy entry points such as <code>lila-init</code>, <code>lila-dev</code>,
                     <code>lila-auth</code>, <code>lila-admin</code>, <code>lila-model</code>,
@@ -427,6 +427,82 @@ lila optimize
                 </div>
             </div>
 
+            <!-- Deploy -->
+            <div class="space-y-4 mt-8">
+                <h2>Production Deploy Generator</h2>
+                <p>
+                    Generate a systemd service (plus optional Redis worker unit), an Nginx
+                    reverse proxy for Lila's real <code>/public</code>, <code>/js</code>,
+                    <code>/img</code>, <code>/swagger</code> and <code>/uploads</code> paths,
+                    a Bash starter and a Windows Server PowerShell starter. The generated
+                    Nginx config enables WebSocket proxying, forwarded headers and
+                    <code>gzip_static on</code> for the pre-compressed assets produced by
+                    <code>lila optimize</code>.
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="ml-auto text-sm font-semibold text-gray-300">cli.deploy</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                    <pre class="language-bash">
+
+# Generate deploy/start_lila.sh, deploy/<domain>.nginx.conf and systemd unit
+lila deploy --domain example.com --port 8000
+
+# Also generate the Redis worker unit (requires CACHE_DRIVER=redis)
+lila deploy --domain example.com --with-worker
+
+# Override Unix service user/group and output directory
+lila deploy --user www-data --group www-data --out-dir deploy
+</code>
+</pre>
+                </div>
+            </div>
+
+            <!-- Backup -->
+            <div class="space-y-4 mt-8">
+                <h2>SQLite Hot Backup</h2>
+                <p>
+                    Create a consistent online backup with SQLite's native
+                    <code>sqlite3.Connection.backup()</code> while the server keeps writing.
+                    Retention keeps the newest <code>--max-backups</code> files in the target
+                    directory. The command refuses remote MySQL/PostgreSQL databases; use
+                    the database vendor's dump tool for those.
+                </p>
+            </div>
+
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+                <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+                    <span class="ml-auto text-sm font-semibold text-gray-300">cli.backup</span>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
+                    <pre class="language-bash">
+
+# Back up the active SQLite DB into backups/ (keeps 7)
+lila backup
+
+# Explicit source and directory, keep 14 copies
+lila backup --source lila.sqlite --output backups --max-backups 14
+
+# Explicit destination file
+lila backup --output backups/lila_before_release.sqlite
+</code>
+</pre>
+                </div>
+            </div>
+
             <!-- Desktop Mode -->
             <div class="space-y-4 mt-8">
                 <h2>Desktop Mode (Native Window &amp; Executables)</h2>
@@ -435,6 +511,10 @@ lila optimize
                     fallback) or bundle it with PyInstaller. <code>lila desktop dev</code> loads
                     <code>.env</code>; <code>lila desktop build</code> bundles <code>main</code>,
                     <code>app</code> and Lila templates/assets into <code>dist/&lt;name&gt;</code>.
+                    Desktop mode binds the server to <code>127.0.0.1</code>, allows one
+                    instance, and gates the session with a per-run local token (the first
+                    navigation uses <code>?_dt=…</code> and is immediately exchanged for an
+                    HttpOnly cookie).
                 </p>
             </div>
 

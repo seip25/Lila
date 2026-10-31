@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.2 Lightweight Translation Engine.
+"""Lila Framework v2.0.0 Lightweight Translation Engine.
 Fast, in-memory Pydantic v2 validation error translation (es, en, pt, zh)
 with zero disk I/O and zero session overhead per request.
 """
@@ -456,6 +456,9 @@ class Translate:
         force = ENV_CONFIG.get_bool("LANG_FORCE", False)
         default_lang = (lang_default or ENV_CONFIG.get("LANG_DEFAULT", "en"))[:2].lower()
 
+        if force:
+            return default_lang
+
         if request is not None:
             # 1. Query parameter (?lang=es)
             try:
@@ -472,9 +475,6 @@ class Translate:
                     return c_lang[:2].lower()
             except Exception:
                 pass
-
-            if force:
-                return default_lang
 
             # 3. Header Accept-Language (honours q-values and region variants)
             try:
@@ -495,7 +495,7 @@ class Translate:
                                     quality = float(bit[2:])
                                 except ValueError:
                                     quality = 0.0
-                        if quality > best_q:
+                        if quality > best_q and quality > 0:
                             best_q = quality
                             best = code
                     if best:
@@ -620,3 +620,10 @@ class Translate:
             if val:
                 return val
         return default if default is not None else key
+
+# Auth route messages are kept here so every built-in locale has the same
+# response keys even before a project copies app/locales/*.json.
+_AUTH_MESSAGES = {'en': {'Account deleted successfully': 'Account deleted successfully.', 'Account temporarily locked': 'Account temporarily locked. Try again later.', 'Authentication required': 'Authentication required.', 'Error deleting account': 'Could not delete the account.', 'Error updating profile': 'Could not update the profile.', 'If the email exists, a reset link has been sent': 'If that email exists, a reset link has been sent.', 'Incorrect password': 'Incorrect password.', 'Invalid email or password': 'Invalid email or password.', 'Invalid or expired token': 'Invalid or expired token.', 'Logged out successfully': 'Logged out successfully.', 'Login successful': 'Login successful.', 'Password changed successfully': 'Password changed successfully.', 'Password must be at least 8 characters': 'Password must be at least 8 characters.', 'Passwords not match': 'Passwords do not match.', 'Profile updated successfully': 'Profile updated successfully.', 'Too many attempts': 'Too many attempts. Try again later.', 'User already exists': 'User already exists.', 'User is inactive': 'User is inactive.', 'User registered successfully': 'User registered successfully.'}, 'es': {'Account deleted successfully': 'Cuenta eliminada correctamente.', 'Account temporarily locked': 'Cuenta bloqueada temporalmente. Intentá más tarde.', 'Authentication required': 'Autenticación requerida.', 'Error deleting account': 'No se pudo eliminar la cuenta.', 'Error updating profile': 'No se pudo actualizar el perfil.', 'If the email exists, a reset link has been sent': 'Si el correo existe, se envió un enlace de restablecimiento.', 'Incorrect password': 'Contraseña incorrecta.', 'Invalid email or password': 'Correo o contraseña inválidos.', 'Invalid or expired token': 'Token inválido o expirado.', 'Logged out successfully': 'Sesión cerrada correctamente.', 'Login successful': 'Inicio de sesión correcto.', 'Password changed successfully': 'Contraseña cambiada correctamente.', 'Password must be at least 8 characters': 'La contraseña debe tener al menos 8 caracteres.', 'Passwords not match': 'Las contraseñas no coinciden.', 'Profile updated successfully': 'Perfil actualizado correctamente.', 'Too many attempts': 'Demasiados intentos. Intentá más tarde.', 'User already exists': 'El usuario ya existe.', 'User is inactive': 'El usuario está inactivo.', 'User registered successfully': 'Usuario registrado correctamente.'}, 'pt': {'Account deleted successfully': 'Conta excluída com sucesso.', 'Account temporarily locked': 'Conta temporariamente bloqueada. Tente mais tarde.', 'Authentication required': 'Autenticação necessária.', 'Error deleting account': 'Não foi possível excluir a conta.', 'Error updating profile': 'Não foi possível atualizar o perfil.', 'If the email exists, a reset link has been sent': 'Se o e-mail existir, um link de redefinição foi enviado.', 'Incorrect password': 'Senha incorreta.', 'Invalid email or password': 'E-mail ou senha inválidos.', 'Invalid or expired token': 'Token inválido ou expirado.', 'Logged out successfully': 'Sessão encerrada com sucesso.', 'Login successful': 'Login realizado com sucesso.', 'Password changed successfully': 'Senha alterada com sucesso.', 'Password must be at least 8 characters': 'A senha deve ter pelo menos 8 caracteres.', 'Passwords not match': 'As senhas não coincidem.', 'Profile updated successfully': 'Perfil atualizado com sucesso.', 'Too many attempts': 'Muitas tentativas. Tente mais tarde.', 'User already exists': 'O usuário já existe.', 'User is inactive': 'O usuário está inativo.', 'User registered successfully': 'Usuário registrado com sucesso.'}, 'zh': {'Account deleted successfully': '账户已成功删除。', 'Account temporarily locked': '账户已暂时锁定，请稍后再试。', 'Authentication required': '需要身份验证。', 'Error deleting account': '无法删除账户。', 'Error updating profile': '无法更新个人资料。', 'If the email exists, a reset link has been sent': '如果该邮箱存在，已发送重置链接。', 'Incorrect password': '密码错误。', 'Invalid email or password': '邮箱或密码无效。', 'Invalid or expired token': '链接无效或已过期。', 'Logged out successfully': '已成功退出登录。', 'Login successful': '登录成功。', 'Password changed successfully': '密码修改成功。', 'Password must be at least 8 characters': '密码至少需要 8 个字符。', 'Passwords not match': '两次输入的密码不一致。', 'Profile updated successfully': '个人资料更新成功。', 'Too many attempts': '尝试次数过多，请稍后再试。', 'User already exists': '用户已存在。', 'User is inactive': '用户已被禁用。', 'User registered successfully': '用户注册成功。'}}
+for _lang, _messages in _AUTH_MESSAGES.items():
+    Translate.BUILTIN_LOCALES.setdefault(_lang, {}).update(_messages)
+

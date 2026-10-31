@@ -1,4 +1,4 @@
-﻿"""Lila Framework v2.0.1 Unified AI Helper Engine.
+﻿"""Lila Framework v2.0.0 Unified AI Helper Engine.
 Zero heavy SDK dependencies (native async urllib/httpx).
 Supports OpenAI, DeepSeek, and Google Gemini with:
 - Configurable Rate Limiting

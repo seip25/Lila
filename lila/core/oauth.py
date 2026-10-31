@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.1 OAuth 2.0 Engine.
+"""Lila Framework v2.0.0 OAuth 2.0 Engine.
 Preconfigured for Google, GitHub, and Discord with built-in official SVG icons,
 fully asynchronous token exchange, auto-mounted routes, and user synchronization.
 """
@@ -211,12 +211,13 @@ class OAuth:
         custom_icons: Optional[Dict[str, str]] = None,
         prefix: str = "/auth",
         label_prefix: Optional[str] = None,
+        lang: Optional[str] = None,
     ) -> str:
         """Renders Tailwind CSS styled OAuth buttons for templates."""
         if label_prefix is None:
             try:
                 from lila.core.translate import Translate
-                label_prefix = Translate.t("continue_with", default="Continue with")
+                label_prefix = Translate.t("continue_with", lang=lang, default="Continue with")
             except Exception:
                 label_prefix = "Continue with"
         if providers is None:
@@ -267,7 +268,7 @@ class OAuth:
 
             state = secrets.token_urlsafe(32)
             # Determine base redirect_uri
-            base_url = ENV_CONFIG.get("APP_URL") or str(request.base_url).rstrip("/")
+            base_url = str(ENV_CONFIG.get("APP_URL") or str(request.base_url)).rstrip("/")
             route_prefix = str(getattr(router, "prefix", "") or "").rstrip("/")
             callback_uri = f"{base_url}{route_prefix}/auth/{p}/callback"
 
@@ -300,7 +301,7 @@ class OAuth:
             if not code or not state or not cookie_state or not secrets.compare_digest(state, cookie_state):
                 return RedirectResponse(f"{login_url}?error=invalid_state")
 
-            base_url = ENV_CONFIG.get("APP_URL") or str(request.base_url).rstrip("/")
+            base_url = str(ENV_CONFIG.get("APP_URL") or str(request.base_url)).rstrip("/")
             route_prefix = str(getattr(router, "prefix", "") or "").rstrip("/")
             callback_uri = f"{base_url}{route_prefix}/auth/{p}/callback"
 

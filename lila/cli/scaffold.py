@@ -99,7 +99,7 @@ def _prompt(label_en: str, label_es: str, default: str) -> str:
 def _collect_project_info(project_dir_name: str) -> dict:
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
 
-    print("\n📝 Configuración del proyecto / Project configuration (Lila v2.0.1)")
+    print("\n📝 Configuración del proyecto / Project configuration (Lila v2.0.0)")
     print("   (Presiona Enter para usar los valores por defecto / Press Enter for defaults)\n")
 
     suggested_port = "8000"
@@ -180,7 +180,7 @@ APP_URL=""
 
 # ─── Project Metadata ───────────────────────────────────
 TITLE_PROJECT={_env_value(project_info["TITLE_PROJECT"])}
-VERSION_PROJECT="2.0"
+VERSION_PROJECT="2.0.0"
 DESCRIPTION_PROJECT={_env_value(project_info["DESCRIPTION_PROJECT"])}
 LANG_DEFAULT={_env_value(project_info["LANG_DEFAULT"])}
 
@@ -254,7 +254,7 @@ def main():
 
         req_path = destination_base_path / "requirements.txt"
         if not req_path.exists():
-            req_path.write_text("lila-framework>=2.0.1\n", encoding="utf-8")
+            req_path.write_text("lila-framework>=2.0.0\n", encoding="utf-8")
             print("  📄 requirements.txt generated.")
 
         readme_content = f"""# {project_info["TITLE_PROJECT"]}

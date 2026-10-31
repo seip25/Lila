@@ -18,7 +18,7 @@ from lila.cli.backup import app as backup_app
 
 app = typer.Typer(
     name="lila",
-    help="Lila Framework v2.0.2 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
+    help="Lila Framework v2.0.0 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
     add_completion=False
 )
 
@@ -63,7 +63,7 @@ def run(
         )
     import uvicorn
 
-    typer.secho(f"🚀 Lila v2.0.2 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
+    typer.secho(f"🚀 Lila v2.0.0 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
     uvicorn.run(
         "main:app",
         host=bind_host,
@@ -160,7 +160,7 @@ def doctor():
     else:
         typer.secho("  ⚠️ public/ not found; bundled assets will be used.", fg=typer.colors.YELLOW)
 
-    if str(ENV_CONFIG.get("DEBUG", True)).lower() in ("true", "1", "yes", "on"):
+    if ENV_CONFIG.get_bool("DEBUG", False):
         typer.secho("  ⚠️ DEBUG=True. Disable it in production.", fg=typer.colors.YELLOW)
 
     if not ok:

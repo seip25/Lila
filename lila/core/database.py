@@ -110,9 +110,9 @@ class Database:
             asyncio.set_event_loop(self._sync_loop)
         return self._sync_loop.run_until_complete(coro)
 
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     # Connection management
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     def connect(self) -> bool:
         """Establish the database engine and session maker."""
         if self._connected and self.engine is not None:
@@ -180,15 +180,22 @@ class Database:
         def _set_sqlite_pragmas(dbapi_connection, connection_record):
             try:
                 cursor = dbapi_connection.cursor()
-                cursor.execute("PRAGMA journal_mode=WAL;")
-                cursor.execute("PRAGMA synchronous=NORMAL;")
-                cursor.execute("PRAGMA busy_timeout=5000;")
-                cursor.execute("PRAGMA cache_size=-4000;")
-                cursor.execute("PRAGMA foreign_keys=ON;")
-                cursor.execute("PRAGMA temp_store=MEMORY;")
-                cursor.execute("PRAGMA mmap_size=67108864;")
-                cursor.execute("PRAGMA journal_size_limit=67108864;")
-                cursor.execute("PRAGMA wal_autocheckpoint=1000;")
+                pragmas = (
+                    "PRAGMA journal_mode=WAL;",
+                    "PRAGMA synchronous=NORMAL;",
+                    "PRAGMA busy_timeout=5000;",
+                    "PRAGMA cache_size=-4000;",
+                    "PRAGMA foreign_keys=ON;",
+                    "PRAGMA temp_store=MEMORY;",
+                    "PRAGMA mmap_size=67108864;",
+                    "PRAGMA journal_size_limit=67108864;",
+                    "PRAGMA wal_autocheckpoint=1000;",
+                )
+                for statement in pragmas:
+                    try:
+                        cursor.execute(statement)
+                    except Exception:
+                        pass
                 cursor.close()
             except Exception:
                 pass
@@ -297,9 +304,9 @@ class Database:
             self.connect()
         return self.SessionLocal()
 
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     # Transactions
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     @asynccontextmanager
     async def transaction(self):
         """Async context manager managing commit/rollback lifecycle."""
@@ -330,9 +337,9 @@ class Database:
         finally:
             session.close()
 
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     # Migrations / schema sync
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     async def migrate_async(self, use_base: bool = True, add_columns: bool = True) -> Dict[str, Any]:
         """Creates missing tables and (by default) adds missing columns."""
         if not self._connected or self.engine is None:
@@ -457,9 +464,9 @@ class Database:
             raise RuntimeError("drop_all() cannot run inside an active event loop. Use 'await db.drop_all_async()'.")
         metadata.drop_all(self.engine)
 
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     # Raw queries
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # --------------------------------------------------------------------------
     async def query_async(
         self,
         query: str,

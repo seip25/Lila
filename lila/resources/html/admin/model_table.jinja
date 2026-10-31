@@ -24,7 +24,7 @@
           <p class="text-xs text-slate-400 font-semibold mt-1">Live Database CRUD &amp; Telemetry</p>
         </div>
         <div class="flex items-center gap-3">
-          <a href="/admin/api/{{ model_plural }}/export" target="_blank" data-no-router class="btn bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs px-3.5 py-2">
+          <a href="{{ admin_prefix | default('/admin') }}/api/{{ model_plural }}/export" target="_blank" data-no-router class="btn bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs px-3.5 py-2">
             <span>📥</span> Export CSV
           </a>
           <button onclick="openCreateModal()" class="btn btn-primary text-xs px-4 py-2 shadow-sm cursor-pointer">
@@ -89,16 +89,20 @@
 
       <script>
         (function() {
-          const MODEL_PLURAL = "{{ model_plural }}";
+          const ADMIN_PREFIX = {{ admin_prefix | default('/admin') | tojson }};
+          const MODEL_PLURAL = {{ model_plural | tojson }};
           let dataTableInstance = null;
 
           function renderAdminTable(data) {
             if (!document.getElementById('table')) return;
+            if (window.__lilaAdminTable && typeof window.__lilaAdminTable.destroy === 'function') {
+              window.__lilaAdminTable.destroy();
+            }
             dataTableInstance = new ResponsiveDataTable('table', {
               data: data || [],
               columns: [
                 {% for header in headers %}
-                { title: "{{ header.replace('_', ' ').capitalize() }}", key: "{{ header }}" },
+                { title: {{ header.replace('_', ' ').capitalize() | tojson }}, key: {{ header | tojson }} },
                 {% endfor %}
               ],
               rowsPerPage: 10,
@@ -109,11 +113,12 @@
               headerTitles: { "id": "ID" },
               summaryFields: ['id']
             });
+            window.__lilaAdminTable = dataTableInstance;
           }
 
           async function loadData() {
             try {
-              const res = await Http(`/admin/api/${MODEL_PLURAL}`);
+              const res = await Http(`${ADMIN_PREFIX}/api/${MODEL_PLURAL}`);
               const rows = Array.isArray(res) ? res : (res && (res.items || res.data)) || [];
               renderAdminTable(rows);
             } catch (err) {
@@ -140,7 +145,7 @@
             if (!modal) return;
             const id = typeof item === 'object' ? item.id : item;
             try {
-              const res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`);
+              const res = await Http(`${ADMIN_PREFIX}/api/${MODEL_PLURAL}/${id}`);
               const data = res.item || res.data || res;
               document.getElementById('modalTitle').textContent = `Edit {{ model_name.capitalize() }} #${id}`;
               document.getElementById('recordId').value = id;
@@ -164,7 +169,7 @@
             const id = typeof item === 'object' ? item.id : item;
             if (!confirm(`Are you sure you want to delete #${id}?`)) return;
             try {
-              const res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`, 'DELETE');
+              const res = await Http(`${ADMIN_PREFIX}/api/${MODEL_PLURAL}/${id}`, 'DELETE');
               if (res && res.success) {
                 lila('toast', { title: 'Deleted', description: res.message || 'Record removed.', type: 'success' });
                 loadData();
@@ -186,9 +191,9 @@
               try {
                 let res;
                 if (id) {
-                  res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`, 'PUT', formData);
+                  res = await Http(`${ADMIN_PREFIX}/api/${MODEL_PLURAL}/${id}`, 'PUT', formData);
                 } else {
-                  res = await Http(`/admin/api/${MODEL_PLURAL}`, 'POST', formData);
+                  res = await Http(`${ADMIN_PREFIX}/api/${MODEL_PLURAL}`, 'POST', formData);
                 }
                 if (res && res.success) {
                   lila('toast', { title: 'Success', description: res.message || 'Saved successfully', type: 'success' });
@@ -214,12 +219,10 @@
           }
 
           if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initModelTable);
+            document.addEventListener('DOMContentLoaded', initModelTable, { once: true });
           } else {
             initModelTable();
           }
-
-          window.addEventListener('lila:load', initModelTable);
         })();
       </script>
     </main>

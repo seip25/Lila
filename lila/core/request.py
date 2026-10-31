@@ -1,9 +1,10 @@
 """Lila Request Object.
-Re-exports Starlette Request with Lila extensions and __slots__.
+
+Lila handlers receive Starlette's real ``Request`` instance. Re-exporting the
+same class (instead of a subclass) keeps ``isinstance()`` checks in decorators,
+middlewares and user code compatible.
 """
 
-from starlette.requests import Request as StarletteRequest
+from starlette.requests import Request
 
-
-class Request(StarletteRequest):
-    __slots__ = ("_user_cache",)
+__all__ = ["Request"]

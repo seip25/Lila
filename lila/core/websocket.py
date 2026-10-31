@@ -1,4 +1,4 @@
-"""Lila Framework v2.0.1 Simplified WebSocket Engine.
+"""Lila Framework v2.0.0 Simplified WebSocket Engine.
 Event-driven WebSocketHub with declarative decorators, rooms, broadcast,
 and zero-overhead Redis Pub/Sub scaling.
 """
