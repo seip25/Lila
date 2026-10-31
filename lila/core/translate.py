@@ -524,6 +524,11 @@ class Translate:
             return False
 
     @classmethod
+    def clear_cache(cls) -> None:
+        """Drops cached locale dictionaries (used by the dev watcher)."""
+        _LOCALES_CACHE.clear()
+
+    @classmethod
     def get_dict(cls, lang: Optional[str] = None) -> SafeTranslationDict:
         """Returns in-memory dictionary for requested language, loading from app/locales/{lang}.json once."""
         target_lang = (lang or cls.lang())[:2].lower()

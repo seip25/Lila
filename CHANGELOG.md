@@ -68,6 +68,10 @@ SQLAlchemy 2.0 Async + Jinja2, with 1–2 worker deployments as the primary targ
 - **Templates/frontend**: CSRF meta on every page, XSS escape fixes, DataTable
   cleanup, full-document partial navigation fallback, dark-mode persistence and
   no Google Fonts/Chart.js CDNs.
+- **Dev reload**: `lila dev` forces the development flag, enables Jinja
+  auto-reload and adds an SSE watcher for `.jinja`, `.html`, `.json`, CSS and JS
+  edits. The browser reloads and the locale/asset caches are cleared without
+  requiring `watchfiles`; Python edits keep using Uvicorn's reloader.
 - **Locales**: completed key parity and removed hardcoded Spanglish; force mode
   (`LANG_FORCE`) now overrides request detection consistently.
 - **Debug/telemetry**: `/debug` endpoints match the dashboard payload, static

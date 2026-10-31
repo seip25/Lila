@@ -191,6 +191,8 @@ class Product(BaseModel):
 
 - `lila init` — scaffold; **never overwrites existing files/.env**.
 - `lila dev` / `lila run` — read `.env` HOST/PORT; `run` supports `-w`.
+  `lila dev` forces development mode and enables Jinja auto-reload plus an SSE
+  watcher for templates/static/locales (works without `watchfiles`).
 - `lila doctor`, `lila routes` — health and route introspection.
 - `lila auth`, `lila admin`, `lila model`, `lila crud` — safe `main.py` patching
   (`lila/cli/_patch.py`) with backups for overwritten scaffold files.

@@ -33,7 +33,6 @@ def main():
             host=HOST,
             port=PORT,
             reload=True,
-            reload_includes=["*.jinja", "*.html", "*.json"],
         )
     else:
         workers = min((os.cpu_count() or 1) * 2 + 1, 8) if (str(WORKERS).lower() == "max" or WORKERS == 0) else int(WORKERS)

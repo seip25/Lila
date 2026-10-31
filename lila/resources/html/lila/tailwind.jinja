@@ -1,5 +1,6 @@
 <!-- CSRF token for fetch/Http() on every page (kept in sync by render()). -->
 <meta name="csrf-token" content="{{ csrf_token | default('') }}">
+{% if debug %}<meta name="lila-debug" content="1">{% endif %}
 
 <!-- Tailwind CSS Play runtime (zero build step). For maximum performance in
      production you can replace this with a precompiled CSS and keep Play in dev. -->

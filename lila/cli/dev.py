@@ -35,17 +35,22 @@ def start(
         "--host", str(bind_host),
         "--port", str(bind_port)
     ]
+    child_env = os.environ.copy()
+    # ``lila dev`` is a development command even if the project .env says
+    # DEBUG=False. This enables Jinja auto_reload + the dev SSE watcher.
+    child_env["DEBUG"] = "True"
+    child_env["LILA_DEV"] = "1"
+    child_env["LILA_DEV_RELOAD"] = "1" if reload else "0"
     if reload:
+        # Python files are watched by uvicorn. Jinja/HTML/static edits are
+        # detected by the Lila SSE watcher, which works without watchfiles.
         cmd.extend([
             "--reload",
             "--reload-dir", ".",
-            "--reload-include", "*.jinja",
-            "--reload-include", "*.html",
-            "--reload-include", "*.json",
         ])
 
     try:
-        subprocess.run(cmd)
+        subprocess.run(cmd, env=child_env)
     except KeyboardInterrupt:
         typer.echo("\n🛑 Lila server stopped.")
     except Exception as e:

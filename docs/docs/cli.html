@@ -166,6 +166,14 @@ lila doctor
 lila routes</code></pre>
                 </div>
             </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+                <code>lila dev</code> forces the development flag in the child server, enables Jinja
+                auto-reload and starts an SSE watcher for <code>.jinja</code>, <code>.html</code>,
+                <code>.json</code>, CSS and JS edits. The browser reloads itself when a view or locale
+                changes, even when <code>watchfiles</code>/<code>uvicorn[standard]</code> is not installed;
+                Python edits still use Uvicorn's normal reloader. <code>--no-reload</code> disables
+                Uvicorn's reloader and the browser watcher (a manual refresh still sees new templates).
+            </p>
 
             <!-- Model Generator -->
             <div>

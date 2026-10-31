@@ -540,14 +540,16 @@ async def contact_submit(request: Request):
 
       <h3 class="mt-8 text-2xl font-semibold">Performance Notes</h3>
       <p>
-        Templates are rendered by a single Jinja2 environment (auto-reload only in debug). Some honest
+        Templates are rendered by a single Jinja2 environment (auto-reload only in debug). Under
+        <code>lila dev</code>, Jinja auto-reload is enabled and the SSE watcher reloads the browser
+        and clears the locale/asset caches after template, locale or static edits. Some honest
         details:
       </p>
       <ul class="rounded bg-surface py-4 px-4">
         <li><strong>Request state:</strong> <code>@seo</code> metadata is stored on
           <code>request.state.seo</code> and merged into the context, so a handler does not recompute it.</li>
         <li><strong>Translation caching:</strong> locale dictionaries are loaded once per language and kept
-          in memory (<code>SafeTranslationDict</code>).</li>
+          in memory (<code>SafeTranslationDict</code>); the dev watcher clears that cache on edit.</li>
         <li><strong>No HTML minification:</strong> Lila does not minify rendered HTML. Use
           <code>lila optimize</code> for JS/CSS/images and the <code>gzip=True</code> App option (or your
           reverse proxy) for transport compression.</li>

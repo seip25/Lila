@@ -57,6 +57,49 @@ _PUBLIC_CACHE: Dict[str, str] = {}
 _MANIFEST_CACHE: Dict[str, str] = {}
 _MANIFEST_LOADED = False
 
+_DEV_RELOAD_SCRIPT = """<script>
+(function () {
+  if (window.__lilaDevReload) return;
+  window.__lilaDevReload = true;
+  if (!window.EventSource) return;
+  var host = window.location.hostname;
+  if (host !== "localhost" && host !== "127.0.0.1" && host !== "::1") return;
+  var initial = null, es = null, timer = null;
+  function close() {
+    if (es) { try { es.close(); } catch (e) {} es = null; }
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+  function connect() {
+    close();
+    try {
+      es = new EventSource("/_lila/dev-reload");
+      es.onmessage = function (event) {
+        try {
+          var data = JSON.parse(event.data);
+          if (data.type === "template") { close(); location.reload(); return; }
+          if (data.type === "connected" && data.bootId) {
+            if (initial === null) initial = data.bootId;
+            else if (initial !== data.bootId) { close(); location.reload(); }
+          }
+        } catch (e) {}
+      };
+      es.onerror = function () { close(); timer = setTimeout(connect, 400); };
+    } catch (e) { timer = setTimeout(connect, 600); }
+  }
+  window.addEventListener("beforeunload", close);
+  connect();
+})();
+</script>"""
+
+
+
+def clear_asset_cache() -> None:
+    """Drops cached asset URLs/manifests (used by the dev template watcher)."""
+    global _MANIFEST_LOADED
+    _PUBLIC_CACHE.clear()
+    _MANIFEST_CACHE.clear()
+    _MANIFEST_LOADED = False
+
 
 def _load_asset_manifest() -> Dict[str, str]:
     global _MANIFEST_LOADED, _MANIFEST_CACHE
@@ -340,10 +383,26 @@ def render(
             raise last_error or RuntimeError(f"Template not found: {target_template}")
 
         body = tmpl.render(ctx)
+        debug_enabled = bool(getattr(getattr(request, "app", None), "_is_debug", is_debug()))
+        if debug_enabled and request.headers.get("x-lila-partial") != "1" and 'name="lila-debug"' not in body:
+            marker = '<meta name="lila-debug" content="1">'
+            if "</head>" in body:
+                body = body.replace("</head>", marker + "</head>", 1)
+            else:
+                body = marker + body
+        if debug_enabled and request.headers.get("x-lila-partial") != "1" and "__lilaDevReload" not in body:
+            lower = body.lower()
+            close_body = lower.rfind("</body>")
+            if close_body >= 0:
+                body = body[:close_body] + _DEV_RELOAD_SCRIPT + body[close_body:]
+            else:
+                body += _DEV_RELOAD_SCRIPT
 
         response_headers = dict(headers or {})
         if request.headers.get("x-lila-partial") == "1":
             response_headers["X-Lila-Partial"] = "1"
+        if debug_enabled:
+            response_headers.setdefault("Cache-Control", "no-store")
 
         response = HTMLResponse(content=body, status_code=status_code, headers=response_headers)
         response.set_cookie(

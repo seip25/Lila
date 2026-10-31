@@ -532,6 +532,11 @@ function lilaEscapeAttr(value) {
 
   function initDevReload() {
     if (typeof window === "undefined" || !window.EventSource) return;
+    // Injected by render() only when App(debug=True); avoids SSE 404 spam on
+    // localhost production servers.
+    if (!document.querySelector('meta[name="lila-debug"]')) return;
+    if (window.__lilaDevReload) return;
+    window.__lilaDevReload = true;
     const isLocalhost =
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1" ||
@@ -547,6 +552,10 @@ function lilaEscapeAttr(value) {
         try { es.close(); } catch {}
         es = null;
       }
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
     }
 
     function connect() {
@@ -557,6 +566,12 @@ function lilaEscapeAttr(value) {
         es.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
+            if (data.type === "template") {
+              console.log("[Lila] Template/static change detected, reloading page...");
+              cleanup();
+              window.location.reload();
+              return;
+            }
             if (data.type === "connected" && data.bootId) {
               if (initialBootId === null) {
                 initialBootId = data.bootId;

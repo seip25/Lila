@@ -208,7 +208,7 @@ application-data directory.
 | Command | Description |
 | :--- | :--- |
 | `lila init` | Scaffold a project without overwriting existing files. |
-| `lila dev` | Uvicorn with reload + dev SSE (reads `.env` HOST/PORT). |
+| `lila dev` | Uvicorn reload + Jinja/static SSE auto-reload (reads `.env` HOST/PORT). |
 | `lila run -w 2` | Production server; warns when using memory cache with >1 worker. |
 | `lila doctor` | Health check: Python, `.env`, SECRET_KEY, DB, templates, public/. |
 | `lila routes` | List every route registered in `main:app`. |
