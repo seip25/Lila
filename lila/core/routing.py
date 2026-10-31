@@ -1,9 +1,10 @@
 """Lila Framework v2.0.x High-Performance Router.
 
 - Automatic response casting (dict/list/Pydantic -> JSON, str -> HTML)
-- Typed path/query parameter injection with real 422 validation
+- Typed path/query parameter injection with pre-compiled TypeAdapter (Rust-speed) and real 422 validation
 - Pydantic v2 body validation with localized errors
 - Per-route options: rate_limit, cache, cache_public, csrf, auth, sanitize_xss
+- Vary: Accept, X-Lila-Partial, Cookie headers for safe SPA caching
 - OpenAPI-friendly metadata and WebSocketHub integration
 """
 
@@ -77,7 +78,7 @@ def _is_optional(annotation: Any) -> bool:
 
 
 def _cast_param(val: Any, target_type: Type) -> Any:
-    """Casts a path/query value according to the handler annotation."""
+    """Casts a path/query value according to the handler annotation (backward-compatibility)."""
     if val is None:
         return None
     if target_type in (inspect.Parameter.empty, Any):
@@ -117,7 +118,6 @@ def _cast_param(val: Any, target_type: Type) -> Any:
     if target is dict:
         return val if isinstance(val, dict) else dict(val)
 
-    # Pydantic handles UUID/date/datetime/Decimal and constrained types.
     try:
         return TypeAdapter(target).validate_python(val)
     except Exception:
@@ -133,8 +133,66 @@ def _param_error(field: str, message: str) -> JSONResponse:
     )
 
 
+class RouteParam:
+    """Pre-compiled metadata for a single path/query parameter."""
+
+    __slots__ = (
+        "name",
+        "annotation",
+        "adapter",
+        "default",
+        "required",
+        "is_optional",
+        "is_list",
+    )
+
+    def __init__(
+        self,
+        name: str,
+        annotation: Any,
+        adapter: Optional[TypeAdapter],
+        default: Any,
+        required: bool,
+        is_optional: bool,
+        is_list: bool,
+    ):
+        self.name = name
+        self.annotation = annotation
+        self.adapter = adapter
+        self.default = default
+        self.required = required
+        self.is_optional = is_optional
+        self.is_list = is_list
+
+
+def _build_param_adapter(annotation: Any) -> Optional[TypeAdapter]:
+    """Pre-compiles a Pydantic TypeAdapter once during route registration."""
+    if annotation in (inspect.Parameter.empty, Any):
+        return None
+    try:
+        return TypeAdapter(annotation)
+    except Exception:
+        return None
+
+
 class RouteInspector:
     """Pre-analyzes route handlers once during registration for fast dispatch."""
+
+    __slots__ = (
+        "handler",
+        "is_async",
+        "sig",
+        "has_write_method",
+        "wants_request",
+        "body_param_name",
+        "body_model",
+        "body_optional",
+        "query_model_name",
+        "query_model",
+        "path_params",
+        "query_params",
+        "params_map",
+    )
 
     def __init__(self, handler: Callable, methods: Optional[List[str]] = None):
         self.handler = handler
@@ -151,6 +209,7 @@ class RouteInspector:
         self.query_model: Optional[Type[PydanticBaseModel]] = None
         self.path_params: Dict[str, Type] = {}
         self.query_params: Dict[str, tuple] = {}
+        self.params_map: Dict[str, RouteParam] = {}
 
         for name, param in self.sig.parameters.items():
             if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
@@ -174,8 +233,23 @@ class RouteInspector:
                 self.body_optional = _is_optional(ann) or not required
                 continue
 
+            unwrapped = _unwrap_annotation(ann) if ann is not inspect.Parameter.empty else str
+            is_list = get_origin(unwrapped) in (list, tuple, set)
+            adapter = _build_param_adapter(ann if ann is not inspect.Parameter.empty else str)
+
+            route_param = RouteParam(
+                name=name,
+                annotation=ann,
+                adapter=adapter,
+                default=None if required else default,
+                required=required,
+                is_optional=_is_optional(ann),
+                is_list=is_list,
+            )
+            self.params_map[name] = route_param
+            self.path_params[name] = unwrapped
             self.query_params[name] = (
-                _unwrap_annotation(ann) if ann is not inspect.Parameter.empty else str,
+                unwrapped,
                 None if required else default,
                 required,
                 _is_optional(ann),
@@ -282,19 +356,31 @@ class Router:
                 cached = await Cache.get_async(cache_key)
                 if cached is not None:
                     if isinstance(cached, (dict, list)):
-                        return JSONResponse(cached)
-                    if isinstance(cached, str):
-                        return HTMLResponse(cached)
-                    return cached
+                        cached_res = JSONResponse(cached)
+                    elif isinstance(cached, str):
+                        cached_res = HTMLResponse(cached)
+                    else:
+                        cached_res = cached
+                    cached_res.headers["Vary"] = "Accept, X-Lila-Partial, Cookie"
+                    return cached_res
 
-            # 4. Extract and cast arguments
+            # 4. Extract and cast arguments (using pre-compiled TypeAdapter)
             kwargs: Dict[str, Any] = {}
             if inspector.wants_request:
                 kwargs["request"] = request
 
             path_params = request.path_params
             for k, val in path_params.items():
-                if k in inspector.sig.parameters:
+                if k in inspector.params_map:
+                    param = inspector.params_map[k]
+                    if param.adapter is not None:
+                        try:
+                            kwargs[k] = param.adapter.validate_python(val)
+                        except Exception as err:
+                            return _param_error(k, str(err) or "Invalid value")
+                    else:
+                        kwargs[k] = val
+                elif k in inspector.sig.parameters:
                     target_t = inspector.sig.parameters[k].annotation
                     try:
                         kwargs[k] = _cast_param(val, target_t)
@@ -302,25 +388,30 @@ class Router:
                         return _param_error(k, str(err) or "Invalid value")
 
             query_params = request.query_params
-            for qk, (qt, qdef, required, is_optional) in inspector.query_params.items():
+            for qk, param in inspector.params_map.items():
                 if qk in kwargs or qk in path_params:
                     continue
                 if qk in query_params:
                     try:
-                        if get_origin(_unwrap_annotation(qt)) in (list, tuple, set):
-                            raw_values = query_params.getlist(qk)
-                            kwargs[qk] = _cast_param(raw_values, qt)
+                        if param.is_list:
+                            raw_val = query_params.getlist(qk)
                         else:
-                            val = _cast_param(query_params[qk], qt)
-                            if sanitize_xss and isinstance(val, str):
-                                val = Security.sanitize_str(val)
-                            kwargs[qk] = val
-                    except (ValueError, TypeError) as err:
+                            raw_val = query_params[qk]
+
+                        if param.adapter is not None:
+                            val = param.adapter.validate_python(raw_val)
+                        else:
+                            val = raw_val
+
+                        if sanitize_xss and isinstance(val, str):
+                            val = Security.sanitize_str(val)
+                        kwargs[qk] = val
+                    except Exception as err:
                         return _param_error(qk, str(err) or "Invalid value")
-                elif required and not is_optional:
+                elif param.required and not param.is_optional:
                     return _param_error(qk, "Field required")
-                elif qdef is not None:
-                    kwargs[qk] = qdef
+                elif param.default is not None:
+                    kwargs[qk] = param.default
                 # Missing optional/None params fall back to the Python default.
 
             # 5. Body parsing and Pydantic validation
@@ -407,6 +498,7 @@ class Router:
                 final_res = JSONResponse(result)
 
             if cache_key and final_res.status_code == 200:
+                final_res.headers["Vary"] = "Accept, X-Lila-Partial, Cookie"
                 if isinstance(result, PydanticBaseModel):
                     await Cache.set_async(cache_key, result.model_dump(), ttl=cache)
                 elif isinstance(result, (dict, list, str)):

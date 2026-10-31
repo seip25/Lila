@@ -120,7 +120,19 @@ def get_base_path(*subpaths: str) -> str:
 def get_data_path(*subpaths: str) -> str:
     """Returns writable directory for databases, cache and logs."""
     if getattr(sys, "frozen", False):
-        base = os.path.dirname(sys.executable)
+        title = ENV_CONFIG.get("TITLE_PROJECT", "LilaApp")
+        clean_title = "".join(c for c in title if c.isalnum() or c in ("-", "_")).strip() or "LilaApp"
+        if sys.platform == "win32":
+            appdata = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~\\AppData\\Local")
+            base = os.path.join(appdata, clean_title)
+        elif sys.platform == "darwin":
+            base = os.path.expanduser(f"~/Library/Application Support/{clean_title}")
+        else:
+            base = os.environ.get("XDG_DATA_HOME") or os.path.expanduser(f"~/.local/share/{clean_title}")
+        try:
+            os.makedirs(base, exist_ok=True)
+        except Exception:
+            base = os.path.dirname(sys.executable)
     else:
         base = os.getcwd()
     return os.path.join(base, *subpaths) if subpaths else base

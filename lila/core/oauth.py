@@ -1,4 +1,4 @@
-﻿"""Lila Framework v2.0.1 OAuth 2.0 Engine.
+"""Lila Framework v2.0.1 OAuth 2.0 Engine.
 Preconfigured for Google, GitHub, and Discord with built-in official SVG icons,
 fully asynchronous token exchange, auto-mounted routes, and user synchronization.
 """
@@ -210,9 +210,15 @@ class OAuth:
         providers: Optional[List[str]] = None,
         custom_icons: Optional[Dict[str, str]] = None,
         prefix: str = "/auth",
-        label_prefix: str = "Continue with",
+        label_prefix: Optional[str] = None,
     ) -> str:
         """Renders Tailwind CSS styled OAuth buttons for templates."""
+        if label_prefix is None:
+            try:
+                from lila.core.translate import Translate
+                label_prefix = Translate.t("continue_with", default="Continue with")
+            except Exception:
+                label_prefix = "Continue with"
         if providers is None:
             # Detect configured providers
             active = []

@@ -24,13 +24,13 @@
     
     <!-- Description -->
     <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-      The page you are looking for might have been moved, deleted, or does not exist.
+      {{ translate['page_not_found_desc'] | default('The page you are looking for might have been moved, deleted, or does not exist.') }}
     </p>
     
     <!-- Action button -->
     <div class="pt-2">
       <a href="/" class="btn btn-primary w-full shadow-md py-3 text-sm">
-        {{ translate['back'] | default('Go Back Home') }}
+        {{ translate['go_back_home'] | default(translate['back'] | default('Go Back Home')) }}
       </a>
     </div>
   </div>

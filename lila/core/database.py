@@ -186,6 +186,7 @@ class Database:
                 cursor.execute("PRAGMA cache_size=-4000;")
                 cursor.execute("PRAGMA foreign_keys=ON;")
                 cursor.execute("PRAGMA temp_store=MEMORY;")
+                cursor.execute("PRAGMA mmap_size=67108864;")
                 cursor.execute("PRAGMA journal_size_limit=67108864;")
                 cursor.execute("PRAGMA wal_autocheckpoint=1000;")
                 cursor.close()

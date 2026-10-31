@@ -24,10 +24,10 @@
           <p class="text-xs text-slate-400 font-semibold mt-1">Live Database CRUD &amp; Telemetry</p>
         </div>
         <div class="flex items-center gap-3">
-          <a href="/admin/api/{{ model_plural }}/export" target="_blank" class="btn bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs px-3.5 py-2">
+          <a href="/admin/api/{{ model_plural }}/export" target="_blank" data-no-router class="btn bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs px-3.5 py-2">
             <span>📥</span> Export CSV
           </a>
-          <button onclick="openCreateModal()" class="btn btn-primary text-xs px-4 py-2 shadow-sm">
+          <button onclick="openCreateModal()" class="btn btn-primary text-xs px-4 py-2 shadow-sm cursor-pointer">
             <span>➕</span> New {{ model_name.capitalize() }}
           </button>
         </div>
@@ -36,148 +36,196 @@
       <article class="card p-6">
         <div id="table" class="overflow-x-auto"></div>
       </article>
+
+      <!-- Record Modal (Centered via m-auto fixed inset-0) -->
+      <dialog id="recordModal" class="m-auto fixed inset-0 rounded-2xl p-6 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full backdrop:bg-slate-950/40">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <h3 id="modalTitle" class="text-lg font-bold text-slate-900 dark:text-white">New {{ model_name.capitalize() }}</h3>
+          <button onclick="document.getElementById('recordModal').close()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+        </div>
+        <form id="recordForm" class="space-y-4">
+          <input type="hidden" id="recordId" name="id" value="" />
+          <div id="formFields" class="space-y-3">
+            {% for field in form_columns %}
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                {{ field.name.replace('_', ' ').capitalize() }}
+                {% if field.required and field.name != 'password' %}<span class="text-red-500">*</span>{% endif %}
+              </label>
+              {% if field.name == 'password' %}
+              <input type="password" name="password" id="field_password" placeholder="••••••••" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              {% elif field.input_type == 'active_select' %}
+              <select name="active" id="field_active" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm">
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+              {% elif field.input_type == 'boolean_select' %}
+              <select name="{{ field.name }}" id="field_{{ field.name }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm">
+                <option value="true">True</option>
+                <option value="false">False</option>
+              </select>
+              {% elif field.input_type == 'number' %}
+              <input type="number" step="any" name="{{ field.name }}" id="field_{{ field.name }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" {% if field.required %}required{% endif %} />
+              {% elif field.input_type == 'date' %}
+              <input type="date" name="{{ field.name }}" id="field_{{ field.name }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" {% if field.required %}required{% endif %} />
+              {% elif field.input_type == 'datetime-local' %}
+              <input type="datetime-local" name="{{ field.name }}" id="field_{{ field.name }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" {% if field.required %}required{% endif %} />
+              {% else %}
+              <input type="text" name="{{ field.name }}" id="field_{{ field.name }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" {% if field.required %}required{% endif %} />
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button type="button" onclick="document.getElementById('recordModal').close()" class="btn bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-4 py-2 cursor-pointer">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary text-xs px-4 py-2 cursor-pointer">
+              Save Record
+            </button>
+          </div>
+        </form>
+      </dialog>
+
+      <script>
+        (function() {
+          const MODEL_PLURAL = "{{ model_plural }}";
+          let dataTableInstance = null;
+
+          function renderAdminTable(data) {
+            if (!document.getElementById('table')) return;
+            dataTableInstance = new ResponsiveDataTable('table', {
+              data: data || [],
+              columns: [
+                {% for header in headers %}
+                { title: "{{ header.replace('_', ' ').capitalize() }}", key: "{{ header }}" },
+                {% endfor %}
+              ],
+              rowsPerPage: 10,
+              search: true,
+              pagination: true,
+              edit: (e, item) => openEditModal(item),
+              delete: (e, item) => deleteRecord(item),
+              headerTitles: { "id": "ID" },
+              summaryFields: ['id']
+            });
+          }
+
+          async function loadData() {
+            try {
+              const res = await Http(`/admin/api/${MODEL_PLURAL}`);
+              const rows = Array.isArray(res) ? res : (res && (res.items || res.data)) || [];
+              renderAdminTable(rows);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+
+          window.openCreateModal = function() {
+            const modal = document.getElementById('recordModal');
+            if (!modal) return;
+            document.getElementById('modalTitle').textContent = 'New {{ model_name.capitalize() }}';
+            document.getElementById('recordId').value = '';
+            document.getElementById('recordForm').reset();
+            const pwInput = document.getElementById('field_password');
+            if (pwInput) {
+              pwInput.required = true;
+              pwInput.placeholder = '••••••••';
+            }
+            modal.showModal();
+          };
+
+          window.openEditModal = async function(item) {
+            const modal = document.getElementById('recordModal');
+            if (!modal) return;
+            const id = typeof item === 'object' ? item.id : item;
+            try {
+              const res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`);
+              const data = res.item || res.data || res;
+              document.getElementById('modalTitle').textContent = `Edit {{ model_name.capitalize() }} #${id}`;
+              document.getElementById('recordId').value = id;
+              for (const [key, val] of Object.entries(data || {})) {
+                const input = document.getElementById(`field_${key}`);
+                if (input) input.value = val !== null && val !== undefined ? val : '';
+              }
+              const pwInput = document.getElementById('field_password');
+              if (pwInput) {
+                pwInput.required = false;
+                pwInput.placeholder = 'Leave blank to keep current';
+                pwInput.value = '';
+              }
+              modal.showModal();
+            } catch (err) {
+              lila('toast', { title: 'Error', description: 'Failed to load record details', type: 'error' });
+            }
+          };
+
+          window.deleteRecord = async function(item) {
+            const id = typeof item === 'object' ? item.id : item;
+            if (!confirm(`Are you sure you want to delete #${id}?`)) return;
+            try {
+              const res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`, 'DELETE');
+              if (res && res.success) {
+                lila('toast', { title: 'Deleted', description: res.message || 'Record removed.', type: 'success' });
+                loadData();
+              } else {
+                lila('toast', { title: 'Error', description: (res && res.message) || 'Delete failed', type: 'error' });
+              }
+            } catch (err) {
+              lila('toast', { title: 'Error', description: err.message, type: 'error' });
+            }
+          };
+
+          const formEl = document.getElementById('recordForm');
+          if (formEl) {
+            formEl.onsubmit = async function(e) {
+              e.preventDefault();
+              const formData = Object.fromEntries(new FormData(e.target));
+              const id = formData.id;
+              delete formData.id;
+              try {
+                let res;
+                if (id) {
+                  res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`, 'PUT', formData);
+                } else {
+                  res = await Http(`/admin/api/${MODEL_PLURAL}`, 'POST', formData);
+                }
+                if (res && res.success) {
+                  lila('toast', { title: 'Success', description: res.message || 'Saved successfully', type: 'success' });
+                  document.getElementById('recordModal').close();
+                  loadData();
+                } else {
+                  lila('toast', { title: 'Error', description: (res && res.message) || 'Operation failed', type: 'error' });
+                }
+              } catch (err) {
+                lila('toast', { title: 'Error', description: err.message, type: 'error' });
+              }
+            };
+          }
+
+          function initModelTable() {
+            let initialData = {{ items_json | tojson }};
+            if (typeof initialData === 'string') {
+              try { initialData = JSON.parse(initialData); } catch (e) { initialData = []; }
+            }
+            if (!Array.isArray(initialData)) initialData = [];
+            renderAdminTable(initialData);
+            if (initialData.length === 0) loadData();
+          }
+
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initModelTable);
+          } else {
+            initModelTable();
+          }
+
+          window.addEventListener('lila:load', initModelTable);
+        })();
+      </script>
     </main>
   </div>
 
-  <dialog id="recordModal" class="rounded-2xl p-6 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full backdrop:bg-slate-950/40">
-    <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-      <h3 id="modalTitle" class="text-lg font-bold text-slate-900 dark:text-white">New {{ model_name.capitalize() }}</h3>
-      <button onclick="document.getElementById('recordModal').close()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
-    </div>
-    <form id="recordForm" class="space-y-4">
-      <input type="hidden" id="recordId" name="id" value="" />
-      <div id="formFields" class="space-y-3">
-        {% for header in headers %}
-        {% if header != 'id' and header != 'created_at' and header != 'updated_at' %}
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{{ header }}</label>
-          {% if header == 'active' %}
-          <select name="active" id="field_{{ header }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm">
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
-          </select>
-          {% else %}
-          <input type="{{ 'password' if header == 'password' else 'text' }}" name="{{ header }}" id="field_{{ header }}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
-          {% endif %}
-        </div>
-        {% endif %}
-        {% endfor %}
-      </div>
-      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button type="button" onclick="document.getElementById('recordModal').close()" class="btn bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-4 py-2">
-          Cancel
-        </button>
-        <button type="submit" class="btn btn-primary text-xs px-4 py-2">
-          Save Record
-        </button>
-      </div>
-    </form>
-  </dialog>
-
   <script src="{{ public('js/lila-client.js') }}"></script>
-  <script>
-    const MODEL_PLURAL = "{{ model_plural }}";
-    const CSRF_TOKEN = "{{ csrf_token }}";
-    let dataTableInstance = null;
-
-    function renderAdminTable(data) {
-      dataTableInstance = new ResponsiveDataTable('table', {
-        data: data || [],
-        columns: [
-          {% for header in headers %}
-          { title: "{{ header.capitalize() }}", key: "{{ header }}" },
-          {% endfor %}
-        ],
-        rowsPerPage: 10,
-        search: true,
-        pagination: true,
-        edit: (e, item) => openEditModal(item),
-        delete: (e, item) => deleteRecord(item),
-        headerTitles: { "id": "ID" },
-        summaryFields: ['id']
-      });
-    }
-
-    async function loadData() {
-      try {
-        const res = await Http(`/admin/api/${MODEL_PLURAL}`);
-        const rows = Array.isArray(res) ? res : (res && (res.items || res.data)) || [];
-        renderAdminTable(rows);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    function openCreateModal() {
-      document.getElementById('modalTitle').textContent = 'New {{ model_name.capitalize() }}';
-      document.getElementById('recordId').value = '';
-      document.getElementById('recordForm').reset();
-      document.getElementById('recordModal').showModal();
-    }
-
-    async function openEditModal(item) {
-      const id = typeof item === 'object' ? item.id : item;
-      try {
-        const res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`);
-        const data = res.item || res;
-        document.getElementById('modalTitle').textContent = `Edit {{ model_name.capitalize() }} #${id}`;
-        document.getElementById('recordId').value = id;
-        for (const [key, val] of Object.entries(data || {})) {
-          const input = document.getElementById(`field_${key}`);
-          if (input) input.value = val !== null && val !== undefined ? val : '';
-        }
-        document.getElementById('recordModal').showModal();
-      } catch (err) {
-        lila('toast', { title: 'Error', description: 'Failed to load record details', type: 'error' });
-      }
-    }
-
-    async function deleteRecord(item) {
-      const id = typeof item === 'object' ? item.id : item;
-      if (!confirm(`Are you sure you want to delete ${id}?`)) return;
-      try {
-        const res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`, 'DELETE');
-        if (res.success) {
-          lila('toast', { title: 'Deleted', description: res.message || 'Record removed.', type: 'success' });
-          loadData();
-        } else {
-          lila('toast', { title: 'Error', description: res.message, type: 'error' });
-        }
-      } catch (err) {
-        lila('toast', { title: 'Error', description: err.message, type: 'error' });
-      }
-    }
-
-    document.getElementById('recordForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = Object.fromEntries(new FormData(e.target));
-      const id = formData.id;
-      delete formData.id;
-      try {
-        let res;
-        if (id) {
-          res = await Http(`/admin/api/${MODEL_PLURAL}/${id}`, 'PUT', formData);
-        } else {
-          res = await Http(`/admin/api/${MODEL_PLURAL}`, 'POST', formData);
-        }
-        if (res.success) {
-          lila('toast', { title: 'Success', description: res.message || 'Saved successfully', type: 'success' });
-          document.getElementById('recordModal').close();
-          loadData();
-        } else {
-          lila('toast', { title: 'Error', description: res.message, type: 'error' });
-        }
-      } catch (err) {
-        lila('toast', { title: 'Error', description: err.message, type: 'error' });
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const initialData = {{ items_json | tojson }};
-      renderAdminTable(initialData || []);
-      if (!initialData || initialData.length === 0) loadData();
-    });
-  </script>
 </body>
 
 </html>

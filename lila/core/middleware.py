@@ -62,6 +62,7 @@ class PureASGICSRFMiddleware:
     HTML form bodies are verified by the ``@csrf`` decorator or
     ``@router.post(..., csrf=True)`` after the body is parsed.
     """
+    __slots__ = ("app",)
 
     def __init__(self, app: ASGIApp):
         self.app = app
@@ -95,6 +96,7 @@ class PureASGICSRFMiddleware:
 
 class PureASGISecurityHeadersMiddleware:
     """Pure ASGI middleware injecting security headers and blocking real traversal probes."""
+    __slots__ = ("app", "block_traversal")
 
     def __init__(self, app: ASGIApp, block_traversal: bool = True):
         self.app = app
@@ -142,6 +144,7 @@ class PureASGISecurityHeadersMiddleware:
 
 class PureASGIGZipMiddleware:
     """GZip wrapper that never compresses the dev SSE stream."""
+    __slots__ = ("app", "gzip_app")
 
     def __init__(self, app: ASGIApp, **kwargs):
         self.app = app
@@ -156,6 +159,7 @@ class PureASGIGZipMiddleware:
 
 class PureASGIStaticCacheMiddleware:
     """Adds Cache-Control headers to static assets (and immutable for versioned URLs)."""
+    __slots__ = ("app",)
 
     def __init__(self, app: ASGIApp):
         self.app = app
@@ -185,6 +189,7 @@ class PureASGIStaticCacheMiddleware:
 
 class PureASGIRateLimitMiddleware:
     """Pure ASGI rate limiter using Cache atomic increment."""
+    __slots__ = ("app", "max_requests", "window_seconds")
 
     def __init__(self, app: ASGIApp, max_requests: int = 300, window_seconds: int = 60):
         self.app = app
@@ -221,6 +226,7 @@ class PureASGIRateLimitMiddleware:
 
 class PureASGILoggingMiddleware:
     """Pure ASGI request logger without consuming body streams."""
+    __slots__ = ("app",)
 
     def __init__(self, app: ASGIApp):
         self.app = app

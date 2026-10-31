@@ -1,5 +1,5 @@
 {% extends layout | default('lila/base.jinja') %}
-{% block title %}{{ title | default('Sign In') }} - Lila Framework{% endblock %}
+{% block title %}{{ title | default(translate['sign_in'] | default('Sign In')) }} - Lila Framework{% endblock %}
 
 {% block content %}
 <main
@@ -11,19 +11,19 @@
             <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 {{ translate['login'] | default('Welcome Back') }}
             </h2>
-            <p class="text-xs text-slate-400 mt-1">Sign in to your account</p>
+            <p class="text-xs text-slate-400 mt-1">{{ translate['sign_in_desc'] | default('Sign in to your account') }}</p>
         </div>
 
         <!-- Better Auth OAuth Providers -->
         <div class="space-y-2 mb-6">
-            {{ oauth_buttons() | safe }}
+            {{ oauth_buttons(label_prefix=translate['continue_with'] | default('Continue with')) | safe }}
         </div>
 
         <div class="relative flex items-center justify-center my-6">
             <div class="border-t border-slate-200 dark:border-slate-800 w-full"></div>
             <span
                 class="bg-surface dark:bg-surface-dark px-3 text-xs uppercase text-slate-400 font-bold tracking-wider absolute">
-                Or with email
+                {{ translate['or_with_email'] | default('Or with email') }}
             </span>
         </div>
 
@@ -31,7 +31,7 @@
             {{ csrf_input | safe }}
             <div>
                 <label for="email"
-                    class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
+                    class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">{{ translate['email'] | default('Email Address') }}</label>
                 <input type="email" id="email" name="email"
                     class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
                     required placeholder="you@example.com">
@@ -51,12 +51,12 @@
             </div>
 
             <button type="submit" class="btn btn-primary w-full py-2.5 text-sm shadow-md mt-2">
-                {{ translate['login'] | default('Sign In') }}
+                {{ translate['sign_in'] | default(translate['login'] | default('Sign In')) }}
             </button>
 
             <div class="text-center pt-3 border-t border-slate-100 dark:border-slate-800 mt-4">
                 <p class="text-xs text-slate-500">
-                    Don't have an account? <a href="/register"
+                    {{ translate['dont_have_account'] | default("Don't have an account?") }} <a href="/register"
                         class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
                         {{ translate['create account'] | default('Create account') }}</a>
                 </p>
@@ -73,17 +73,17 @@
         try {
             const result = await Http('/login', 'POST', Object.fromEntries(formData));
             if (result.success) {
-                lila('toast', { title: 'Welcome', description: result.msg || 'Authenticated successfully!', type: 'success' });
+                lila('toast', { title: '{{ translate["welcome"] | default("Welcome") }}', description: result.msg || '{{ translate["authenticated_success"] | default("Authenticated successfully!") }}', type: 'success' });
                 if (window.Lila && typeof window.Lila.navigate === 'function') {
                     Lila.navigate('/dashboard');
                 } else {
                     window.location.replace('/dashboard');
                 }
             } else {
-                lila('toast', { title: 'Error', description: result.msg || 'Invalid credentials.', type: 'error' });
+                lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: result.msg || '{{ translate["invalid_credentials"] | default("Invalid credentials.") }}', type: 'error' });
             }
         } catch (error) {
-            lila('toast', { title: 'Error', description: error.message || 'Connection failed', type: 'error' });
+            lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: error.message || '{{ translate["connection_failed"] | default("Connection failed") }}', type: 'error' });
         }
     });
 </script>

@@ -7,7 +7,7 @@ Imports are lazy (PEP 562): ``import lila`` stays lightweight, while
 ``from lila import App, Router, Cache`` keeps working exactly as before.
 """
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 _LAZY_ATTRS = {
     "App": ("lila.core.app", "App"),

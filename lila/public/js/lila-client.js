@@ -220,6 +220,9 @@ function lilaEscapeAttr(value) {
           window.dispatchEvent(
             new CustomEvent("lila:partial-load", { detail: { url, target: targetEl } })
           );
+          window.dispatchEvent(
+            new CustomEvent("lila:load", { detail: { url, target: targetEl } })
+          );
         };
 
         if (options.transition && document.startViewTransition) {
@@ -349,6 +352,7 @@ function lilaEscapeAttr(value) {
     window.dispatchEvent(new CustomEvent("lila:navigate", { detail: { url } }));
     window.dispatchEvent(new CustomEvent("lila:page-load", { detail: pageLoadDetail }));
     document.dispatchEvent(new CustomEvent("lila:page-load", { detail: pageLoadDetail }));
+    window.dispatchEvent(new CustomEvent("lila:load", { detail: pageLoadDetail }));
   }
 
   function executeScripts(container) {
@@ -413,7 +417,8 @@ function lilaEscapeAttr(value) {
         path.startsWith("/docs") ||
         path.startsWith("/openapi") ||
         path.startsWith("/swagger") ||
-        path.startsWith("/_lila")
+        path.startsWith("/_lila") ||
+        path.startsWith("/debug")
       ) {
         return false;
       }
@@ -580,12 +585,20 @@ function lilaEscapeAttr(value) {
   }
 
   function triggerInitialLoad() {
+    try {
+      const savedTheme = localStorage.getItem("lila-theme");
+      if (savedTheme === "dark" || savedTheme === "light") {
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        document.documentElement.classList.toggle("dark", savedTheme === "dark");
+      }
+    } catch {}
     initLinkInterception();
     Lila.hydrate();
     initDevReload();
     const detail = { url: window.location.href, initial: true };
     window.dispatchEvent(new CustomEvent("lila:page-load", { detail }));
     document.dispatchEvent(new CustomEvent("lila:page-load", { detail }));
+    window.dispatchEvent(new CustomEvent("lila:load", { detail }));
   }
 
   if (document.readyState === "loading") {
@@ -950,8 +963,8 @@ if (!window.__LILA_UI_BOUND__) {
       const current = html.getAttribute("data-theme") || (html.classList.contains("dark") ? "dark" : "light");
       const next = current === "dark" ? "light" : "dark";
       html.setAttribute("data-theme", next);
-      if (next === "dark") html.classList.add("dark");
-      else html.classList.remove("dark");
+      html.classList.toggle("dark", next === "dark");
+
       try {
         localStorage.setItem("lila-theme", next);
       } catch {}

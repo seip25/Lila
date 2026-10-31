@@ -1,5 +1,5 @@
 {% extends layout | default('lila/base.jinja') %}
-{% block title %}{{title}}{% endblock %}
+{% block title %}{{ title | default(translate['dashboard'] | default('Dashboard')) }} - Lila Framework{% endblock %}
 
 {% block content %}
 <div
@@ -10,11 +10,11 @@
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
             <h3>
                 <a href="/dashboard"
-                    class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Lila</a>
+                    class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lila</a>
             </h3>
             <div class="flex items-center gap-2">
                 <span
-                    class="text-sm font-semibold px-3 py-1 bg-primary/10 text-primary rounded-full">{{user.name}}</span>
+                    class="text-sm font-semibold px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full">{{ user.name }}</span>
             </div>
         </div>
     </header>
@@ -24,15 +24,15 @@
         <!-- Sidebar Menu -->
         <aside class="md:col-span-1 flex flex-col gap-2">
             <div class="card p-4 space-y-1">
-                <h4 class="text-xs font-black uppercase text-slate-400 px-3 mb-2 tracking-wider">Menu</h4>
+                <h4 class="text-xs font-black uppercase text-slate-400 px-3 mb-2 tracking-wider">{{ translate['menu'] | default('Menu') }}</h4>
 
                 <a href="/dashboard"
-                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-primary text-white shadow-material transition-all">
-                    <span>🏠</span> {{translate['home']}}
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-sm transition-all">
+                    <span>🏠</span> {{ translate['home'] | default('Home') }}
                 </a>
                 <a href="/profile"
-                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all">
-                    <span>👤</span> {{user.name}}
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
+                    <span>👤</span> {{ user.name }}
                 </a>
                 <a href="?lang=es"
                     class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
@@ -42,11 +42,15 @@
                     class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
                     <span>🇺🇸</span> English (US)
                 </a>
+                <a href="?lang=pt"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all">
+                    <span>🇧🇷</span> Português (BR)
+                </a>
 
                 <hr class="border-slate-200 dark:border-slate-800 my-2" />
 
-                <a href="/logout" class="flex btn-secondary transition-all">
-                    {{translate['logout']}}
+                <a href="/logout" data-no-router class="flex btn-secondary transition-all text-xs justify-center">
+                    {{ translate['logout'] | default('Log Out') }}
                 </a>
             </div>
         </aside>
@@ -55,9 +59,8 @@
         <main class="md:col-span-3 flex flex-col gap-6">
             <article class="card p-8">
                 <h3 class="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight mb-4">
-                    {{translate['Welcome']}}, {{user.name}}!
+                    {{ translate['welcome'] | default('Welcome') }}, {{ user.name }}!
                 </h3>
-
             </article>
         </main>
     </div>

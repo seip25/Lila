@@ -73,6 +73,10 @@ class RoutingTests(unittest.TestCase):
         second = client.get("/api/cached", cookies={"who": "bob"})
         self.assertEqual(first.json(), {"cookie": "alice"})
         self.assertEqual(second.json(), {"cookie": "bob"})
+        self.assertIn("X-Lila-Partial", first.headers.get("vary", ""))
+        self.assertIn("Cookie", first.headers.get("vary", ""))
+        self.assertIn("X-Lila-Partial", second.headers.get("vary", ""))
+        self.assertIn("Cookie", second.headers.get("vary", ""))
 
     def test_csrf_accepts_html_form_body(self):
         token = "form-token"

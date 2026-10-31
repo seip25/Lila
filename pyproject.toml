@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lila-framework"
-version = "2.0.1"
+version = "2.0.2"
 description = "High-performance full-stack Python web framework with SPA View Transitions, Zero-Infra SQLite WAL, In-Memory/Redis/File cache, AI helper and Desktop mode."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,6 +28,8 @@ classifiers = [
 dependencies = [
     "starlette>=1.0.0,<2",
     "uvicorn>=0.53.0,<1",
+    "httptools>=0.6.0",
+    "uvloop>=0.20.0; sys_platform != 'win32'",
     "pydantic>=2.8.0",
     "pydantic[email]",
     "python-dotenv>=1.0.0",
@@ -82,6 +84,8 @@ lila-optimize = "lila.cli.optimize:main"
 lila-secret-key = "lila.cli.secret_key:app"
 lila-seo = "lila.cli.seo:app"
 lila-worker = "lila.cli.worker:main"
+lila-deploy = "lila.cli.deploy:app"
+lila-backup = "lila.cli.backup:app"
 
 [tool.setuptools.package-data]
 lila = [

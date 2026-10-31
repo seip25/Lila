@@ -384,18 +384,18 @@ class App(Starlette):
 
     async def _debug_endpoint(self, request):
         """Debug dashboard/API. Only mounted when debug=True and debug_html=True."""
-        from lila.core.debug import DebugStore
+        from lila.core.debug import DebugStore, get_system_metrics
         from lila.core.templates import render
 
         if request.method == "DELETE":
             DebugStore.clear()
             return JSONResponse({"success": True, "message": "Debug history cleared."})
         if request.query_params.get("fetch") in ("1", "true", "True"):
-            return JSONResponse(DebugStore.get_all())
+            return JSONResponse({"metrics": get_system_metrics(), "history": DebugStore.get_all()})
         return render(
             request,
             "lila/debug",
-            context={"history": DebugStore.get_all(), "metrics": DebugStore.get_system_metrics()},
+            context={"history": DebugStore.get_all(), "metrics": get_system_metrics()},
         )
 
     async def _openapi_json_endpoint(self, request):

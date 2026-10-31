@@ -1,5 +1,5 @@
 {% extends layout | default('lila/base.jinja') %}
-{% block title %}{{ title | default('Create Account') }} - Lila Framework{% endblock %}
+{% block title %}{{ title | default(translate['register'] | default('Create Account')) }} - Lila Framework{% endblock %}
 
 {% block content %}
 <main class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
@@ -7,31 +7,31 @@
         <div class="flex flex-col items-center mb-6">
             <img src="{{ public('img/lila-128.webp') }}" alt="Lila" width="48" height="48" class="bg-white p-1 rounded-2xl shadow-sm mb-2">
             <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                {{ translate['create account'] | default('Create an Account') }}
+                {{ translate['register'] | default('Create an Account') }}
             </h2>
-            <p class="text-xs text-slate-400 mt-1">Get started in seconds</p>
+            <p class="text-xs text-slate-400 mt-1">{{ translate['register_desc'] | default('Get started in seconds') }}</p>
         </div>
 
         <!-- Better Auth OAuth Providers -->
         <div class="space-y-2 mb-6">
-            {{ oauth_buttons(label_prefix="Sign up with") | safe }}
+            {{ oauth_buttons(label_prefix=translate['sign_up_with'] | default('Sign up with')) | safe }}
         </div>
 
         <div class="relative flex items-center justify-center my-6">
             <div class="border-t border-slate-200 dark:border-slate-800 w-full"></div>
             <span class="bg-surface dark:bg-surface-dark px-3 text-xs uppercase text-slate-400 font-bold tracking-wider absolute">
-                Or with email
+                {{ translate['or_with_email'] | default('Or with email') }}
             </span>
         </div>
 
         <form id="register-form" class="space-y-4">
             {{ csrf_input | safe }}
             <div>
-                <label for="name" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">{{ translate['name'] | default('Full Name') }}</label>
+                <label for="name" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">{{ translate['full_name'] | default(translate['name'] | default('Full Name')) }}</label>
                 <input type="text" id="name" name="name" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm" required placeholder="Alex Rivera">
             </div>
             <div>
-                <label for="email" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
+                <label for="email" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">{{ translate['email'] | default('Email Address') }}</label>
                 <input type="email" id="email" name="email" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm" required placeholder="you@example.com">
             </div>
             <div>
@@ -49,7 +49,7 @@
 
             <div class="text-center pt-3 border-t border-slate-100 dark:border-slate-800 mt-4">
                 <p class="text-xs text-slate-500">
-                    Already have an account? <a href="/login" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">{{ translate['login'] | default('Sign in') }}</a>
+                    {{ translate['already_have_account'] | default('Already have an account?') }} <a href="/login" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">{{ translate['sign_in'] | default(translate['login'] | default('Sign in')) }}</a>
                 </p>
             </div>
         </form>
@@ -64,17 +64,17 @@
         try {
             const result = await Http('/register', 'POST', Object.fromEntries(formData));
             if (result.success) {
-                lila('toast', { title: 'Account Created', description: result.msg || 'Welcome! Redirecting...', type: 'success' });
+                lila('toast', { title: '{{ translate["account_created"] | default("Account Created") }}', description: result.msg || '{{ translate["authenticated_success"] | default("Welcome! Redirecting...") }}', type: 'success' });
                 if (window.Lila && typeof window.Lila.navigate === 'function') {
                     Lila.navigate('/dashboard');
                 } else {
                     window.location.replace('/dashboard');
                 }
             } else {
-                lila('toast', { title: 'Error', description: result.msg || 'Registration failed.', type: 'error' });
+                lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: result.msg || '{{ translate["registration_failed"] | default("Registration failed.") }}', type: 'error' });
             }
         } catch (error) {
-            lila('toast', { title: 'Error', description: error.message || 'Connection failed', type: 'error' });
+            lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: error.message || '{{ translate["connection_failed"] | default("Connection failed") }}', type: 'error' });
         }
     });
 </script>

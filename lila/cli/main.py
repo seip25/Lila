@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import typer
 from lila.cli.scaffold import main as scaffold_main
@@ -13,10 +13,12 @@ from lila.cli.optimize import main as optimize_main
 from lila.cli.secret_key import app as secret_key_app
 from lila.cli.seo import app as seo_app
 from lila.cli.worker import app as worker_app
+from lila.cli.deploy import app as deploy_app
+from lila.cli.backup import app as backup_app
 
 app = typer.Typer(
     name="lila",
-    help="Lila Framework v2.0 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
+    help="Lila Framework v2.0.2 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
     add_completion=False
 )
 
@@ -41,6 +43,8 @@ def run(
     host: str = typer.Option(None, "--host", "-h", help="Bind address"),
     port: int = typer.Option(None, "--port", "-p", help="Port"),
     workers: int = typer.Option(1, "--workers", "-w", help="Number of worker processes"),
+    proxy_headers: bool = typer.Option(True, "--proxy-headers/--no-proxy-headers", help="Enable X-Forwarded-* proxy headers"),
+    forwarded_allow_ips: str = typer.Option("127.0.0.1", "--forwarded-allow-ips", help="Allowed IPs for proxy headers (comma-separated or '*')"),
 ):
     """Run the production server (no reload)."""
     from lila.core.config import ConfigLoader, ENV_CONFIG
@@ -59,8 +63,16 @@ def run(
         )
     import uvicorn
 
-    typer.secho(f"🚀 Lila v2.0 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
-    uvicorn.run("main:app", host=bind_host, port=bind_port, reload=False, workers=workers)
+    typer.secho(f"🚀 Lila v2.0.2 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
+    uvicorn.run(
+        "main:app",
+        host=bind_host,
+        port=bind_port,
+        reload=False,
+        workers=workers,
+        proxy_headers=proxy_headers,
+        forwarded_allow_ips=forwarded_allow_ips,
+    )
 
 
 @app.command("routes")
@@ -157,7 +169,7 @@ def doctor():
 
 
 app.add_typer(desktop_app, name="desktop", help="Desktop mode: run locally in native window or build .exe bundle.")
-app.add_typer(auth_app, name="auth", help="Generate Auth 2.0 (OAuth OAuth 2.0, login, register, dashboard).")
+app.add_typer(auth_app, name="auth", help="Generate Auth 2.0 (OAuth 2.0, login, register, dashboard).")
 app.add_typer(admin_app, name="admin", help="Setup Admin Panel 2.0 and superuser credentials.")
 app.add_typer(migrations_app, name="migrate", help="Run database migrations.")
 app.add_typer(migrations_app, name="migrations", help="Run database migrations (alias).")
@@ -172,7 +184,8 @@ def optimize():
 app.add_typer(secret_key_app, name="secret-key", help="Generate and rotate SECRET_KEY in .env.")
 app.add_typer(seo_app, name="seo", help="Generate sitemap.xml and robots.txt.")
 app.add_typer(worker_app, name="worker", help="Run background task worker process.")
+app.add_typer(deploy_app, name="deploy", help="Generate production deployment configurations (systemd, Nginx, Windows).")
+app.add_typer(backup_app, name="backup", help="Hot atomic SQLite database backup using sqlite3.backup().")
 
 if __name__ == "__main__":
     app()
-

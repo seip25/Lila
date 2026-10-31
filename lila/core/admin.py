@@ -1,18 +1,24 @@
-"""Lila Framework v2.0.x Admin 2.0 Engine.
+"""Lila Framework v2.0.2 Admin 2.0 Engine.
 
 - Uses the project's database connection (not the global default DB).
 - Creates the ``admins`` table through the normal model/migration flow.
 - No SQL errors are exposed to the browser.
 - Server-side sanitized JSON for the CRUD table (no script breakout/XSS).
+- Coerces FormData/JSON payloads safely across SQLite and MySQL.
 """
 
 import os
 import re
 import glob
 import json
+import datetime
 from typing import List, Optional, Any, Dict
 
 from sqlalchemy import Column, Integer, String, TIMESTAMP, func, select
+from sqlalchemy.sql.sqltypes import (
+    BigInteger, SmallInteger, Float, Numeric, Boolean, DateTime, Date
+)
+from sqlalchemy.exc import IntegrityError, StatementError
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
@@ -27,6 +33,7 @@ from lila.core.middleware import admin_required
 from lila.core.base_model import BaseModel
 from lila.core.config import ENV_CONFIG
 from lila.core.request import Request as LilaRequest
+from lila.core.debug import get_system_metrics
 
 try:
     import psutil
@@ -87,35 +94,10 @@ def pluralize(name: str) -> str:
 
 
 def get_admin_metrics() -> dict:
-    """Returns real process/system metrics. Missing psutil is reported honestly."""
-    cache_stats = Cache.stats()
-    if HAS_PSUTIL and psutil is not None:
-        try:
-            proc = psutil.Process(os.getpid())
-            mem_rss = round(proc.memory_info().rss / (1024 * 1024), 2)
-            cpu_proc = round(proc.cpu_percent(interval=0), 1)
-            vmem = psutil.virtual_memory()
-            return {
-                "process_memory_mb": mem_rss,
-                "process_cpu": cpu_proc,
-                "system_used_mb": round((vmem.total - vmem.available) / (1024 * 1024), 2),
-                "system_total_mb": round(vmem.total / (1024 * 1024), 2),
-                "system_cpu": round(psutil.cpu_percent(interval=0), 1),
-                "cache": cache_stats,
-                "psutil_available": True,
-            }
-        except Exception:
-            pass
-
-    return {
-        "process_memory_mb": None,
-        "process_cpu": None,
-        "system_used_mb": None,
-        "system_total_mb": None,
-        "system_cpu": None,
-        "cache": cache_stats,
-        "psutil_available": False,
-    }
+    """Returns real process/system metrics with unified keys and cache stats."""
+    metrics = get_system_metrics()
+    metrics["cache"] = Cache.stats()
+    return metrics
 
 
 def render_admin_menu(models: Optional[list] = None, request: Optional[Request] = None) -> str:
@@ -200,39 +182,114 @@ def _sanitize_record(model, record: dict) -> dict:
     return {k: v for k, v in (record or {}).items() if k not in private}
 
 
-def _coerce_payload(model, data: dict) -> dict:
-    """Whitelists model columns and coerces common scalar types."""
-    columns = {col.name: col for col in model.__table__.columns}
-    private = set(getattr(model, "__private_fields__", ()))
-    payload: dict = {}
-    for key, value in (data or {}).items():
-        if key not in columns or key in ("id",):
+def _coerce_payload_for_model(model_cls: Any, payload: dict, is_update: bool = False) -> dict:
+    """Whitelists model columns and coerces common scalar types for SQLite/MySQL CRUD."""
+    columns = {col.name: col for col in model_cls.__table__.columns}
+    private = set(getattr(model_cls, "__private_fields__", ()))
+    result: dict = {}
+
+    for key, value in (payload or {}).items():
+        if key in ("id", "created_at", "updated_at") or key not in columns:
             continue
         if key in private and key != "password":
             continue
-        if key in ("created_at", "updated_at"):
-            continue
-        column = columns[key]
-        py_type = getattr(column.type, "python_type", None)
-        if value == "" and py_type in (int, float):
-            value = None
-        elif value not in (None, "") and py_type is int:
-            try:
-                value = int(value)
-            except (TypeError, ValueError):
+
+        col = columns[key]
+        col_type = col.type
+        has_default = col.default is not None or col.server_default is not None
+        is_nullable = bool(col.nullable)
+
+        # Empty string handling (e.g. from FormData)
+        if value == "":
+            if key == "password":
+                if is_update:
+                    # Omit to keep current hash
+                    continue
+                else:
+                    if has_default:
+                        continue
+                    if is_nullable:
+                        result[key] = None
+                        continue
+                    result[key] = ""
+                    continue
+
+            if has_default:
+                if not is_update:
+                    continue
+                elif is_nullable:
+                    result[key] = None
+                    continue
+                else:
+                    continue
+            elif is_nullable:
+                result[key] = None
                 continue
-        elif value not in (None, "") and py_type is float:
-            try:
-                value = float(value)
-            except (TypeError, ValueError):
+            else:
+                result[key] = ""
                 continue
-        elif value not in (None, "") and py_type is bool:
-            value = str(value).lower() in ("1", "true", "yes", "on")
-        # Let DB defaults apply for empty optional/defaulted numeric fields.
-        if value is None and (column.default is not None or column.server_default is not None):
+
+        # Handle non-empty password
+        if key == "password":
+            val_str = str(value)
+            if not (val_str.startswith("$argon2") or val_str.startswith("$scrypt$")):
+                val_str = PasswordHasher.hash(val_str)
+            result[key] = val_str
             continue
-        payload[key] = value
-    return payload
+
+        # Type coercion
+        if isinstance(col_type, (Integer, BigInteger, SmallInteger)):
+            if isinstance(value, str):
+                v_clean = value.strip().lower()
+                if v_clean in ("true", "yes", "on"):
+                    result[key] = 1
+                elif v_clean in ("false", "no", "off"):
+                    result[key] = 0
+                else:
+                    try:
+                        result[key] = int(value)
+                    except (ValueError, TypeError):
+                        raise ValueError(f"Invalid integer value for column '{key}': {value}")
+            elif isinstance(value, bool):
+                result[key] = 1 if value else 0
+            else:
+                try:
+                    result[key] = int(value)
+                except (ValueError, TypeError):
+                    raise ValueError(f"Invalid integer value for column '{key}': {value}")
+        elif isinstance(col_type, (Float, Numeric)):
+            try:
+                result[key] = float(value)
+            except (ValueError, TypeError):
+                raise ValueError(f"Invalid float value for column '{key}': {value}")
+        elif isinstance(col_type, Boolean):
+            if isinstance(value, str):
+                result[key] = value.strip().lower() in ("1", "true", "yes", "on")
+            else:
+                result[key] = bool(value)
+        elif isinstance(col_type, (DateTime, TIMESTAMP)):
+            if isinstance(value, str):
+                try:
+                    result[key] = datetime.datetime.fromisoformat(value)
+                except Exception:
+                    result[key] = value
+            else:
+                result[key] = value
+        elif isinstance(col_type, Date):
+            if isinstance(value, str):
+                try:
+                    result[key] = datetime.date.fromisoformat(value)
+                except Exception:
+                    result[key] = value
+            else:
+                result[key] = value
+        else:
+            result[key] = value
+
+    return result
+
+
+_coerce_payload = _coerce_payload_for_model
 
 
 def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any:
@@ -332,10 +389,46 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
                 col.name for col in current_model.__table__.columns
                 if col.name not in private and col.name != "password"
             ]
+
+            form_columns = []
+            for col in current_model.__table__.columns:
+                if col.name in ("id", "created_at", "updated_at"):
+                    continue
+                if col.name in private and col.name != "password":
+                    continue
+
+                col_type = col.type
+                if col.name == "password":
+                    input_type = "password"
+                elif col.name == "active":
+                    input_type = "active_select"
+                elif isinstance(col_type, Boolean):
+                    input_type = "boolean_select"
+                elif isinstance(col_type, (Integer, BigInteger, SmallInteger, Float, Numeric)):
+                    input_type = "number"
+                elif isinstance(col_type, (DateTime, TIMESTAMP)):
+                    input_type = "datetime-local"
+                elif isinstance(col_type, Date):
+                    input_type = "date"
+                else:
+                    input_type = "text"
+
+                has_default = col.default is not None or col.server_default is not None
+                required = not col.nullable and not has_default
+
+                form_columns.append({
+                    "name": col.name,
+                    "input_type": input_type,
+                    "required": required,
+                    "nullable": bool(col.nullable),
+                    "has_default": bool(has_default),
+                })
+
             context = {
                 "model_name": current_name,
                 "model_plural": current_plural,
                 "headers": headers,
+                "form_columns": form_columns,
                 "items_json": _jsonable(items),
                 "menu": render_admin_menu(models, request),
             }
@@ -362,13 +455,17 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
                 data = await request.json()
             except Exception:
                 return JSONResponse({"success": False, "message": "Invalid JSON body"}, status_code=400)
-            payload = _coerce_payload(current_model, data)
-            if "password" in payload and payload["password"]:
-                payload["password"] = await PasswordHasher.hash_async(str(payload["password"]))
             try:
+                payload = _coerce_payload_for_model(current_model, data, is_update=False)
                 created = await current_model.insert_async(**payload)
-            except Exception as exc:
-                return JSONResponse({"success": False, "message": str(exc)}, status_code=400)
+            except (IntegrityError, StatementError, ValueError, Exception) as exc:
+                Logger.error(f"[Lila Admin] Create failed for {current_name}: {exc}", exception=exc)
+                msg = (
+                    "Database integrity error (duplicate or constraint violation)."
+                    if isinstance(exc, IntegrityError)
+                    else ("Invalid value provided." if isinstance(exc, ValueError) else "Failed to create record.")
+                )
+                return JSONResponse({"success": False, "message": msg}, status_code=400)
             return JSONResponse({"success": True, "data": _sanitize_record(current_model, created)}, status_code=201)
 
         @router.put(f"{prefix}/api/{current_plural}/{{id:int}}", csrf=True)
@@ -378,18 +475,19 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
                 data = await request.json()
             except Exception:
                 return JSONResponse({"success": False, "message": "Invalid JSON body"}, status_code=400)
-            payload = _coerce_payload(current_model, data)
-            if "password" in payload:
-                if payload["password"]:
-                    payload["password"] = await PasswordHasher.hash_async(str(payload["password"]))
-                else:
-                    payload.pop("password", None)
-            if not payload:
-                return JSONResponse({"success": False, "message": "No editable fields provided"}, status_code=400)
             try:
+                payload = _coerce_payload_for_model(current_model, data, is_update=True)
+                if not payload:
+                    return JSONResponse({"success": False, "message": "No editable fields provided"}, status_code=400)
                 ok = await current_model.update_async(id, **payload)
-            except Exception as exc:
-                return JSONResponse({"success": False, "message": str(exc)}, status_code=400)
+            except (IntegrityError, StatementError, ValueError, Exception) as exc:
+                Logger.error(f"[Lila Admin] Update failed for {current_name} #{id}: {exc}", exception=exc)
+                msg = (
+                    "Database integrity error (duplicate or constraint violation)."
+                    if isinstance(exc, IntegrityError)
+                    else ("Invalid value provided." if isinstance(exc, ValueError) else "Failed to update record.")
+                )
+                return JSONResponse({"success": False, "message": msg}, status_code=400)
             if not ok:
                 return JSONResponse({"success": False, "message": "Record not found"}, status_code=404)
             return {"success": True, "id": id}
@@ -422,4 +520,3 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
         _mount_model_crud(model)
 
     return router
-

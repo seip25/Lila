@@ -27,39 +27,81 @@
     <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800">
         <span class="text-[10px] font-bold uppercase text-slate-400">Process RAM</span>
-        <div class="text-xl font-black">{{ metrics.process_ram_mb }} MB</div>
+        <div id="metric-proc-ram" class="text-xl font-black">{{ metrics.process_ram_mb }} MB</div>
       </div>
       <div class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800">
         <span class="text-[10px] font-bold uppercase text-slate-400">System RAM</span>
-        <div class="text-xl font-black">{{ metrics.system_ram_percent }}%</div>
+        <div id="metric-sys-ram" class="text-xl font-black">{{ metrics.system_ram_percent }}%</div>
       </div>
       <div class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800">
         <span class="text-[10px] font-bold uppercase text-slate-400">CPU</span>
-        <div class="text-xl font-black">{{ metrics.cpu_percent }}%</div>
+        <div id="metric-cpu" class="text-xl font-black">{{ metrics.cpu_percent }}%</div>
       </div>
       <div class="p-4 rounded-xl bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800">
         <span class="text-[10px] font-bold uppercase text-slate-400">Threads</span>
-        <div class="text-xl font-black">{{ metrics.threads }}</div>
+        <div id="metric-threads" class="text-xl font-black">{{ metrics.threads }}</div>
       </div>
     </section>
 
-    <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+    <article class="bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <!-- Filter and Sort Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Status Filter -->
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Status:</span>
+            <select id="filter-status" onchange="applyFiltersAndSort()" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              <option value="all">All</option>
+              <option value="2xx">2xx Success</option>
+              <option value="3xx">3xx Redirect</option>
+              <option value="4xx">4xx Client Error</option>
+              <option value="5xx">5xx Server Error</option>
+            </select>
+          </div>
+
+          <!-- Method Filter -->
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Method:</span>
+            <select id="filter-method" onchange="applyFiltersAndSort()" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              <option value="all">All</option>
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+              <option value="PATCH">PATCH</option>
+            </select>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Sort:</span>
+            <select id="sort-by" onchange="applyFiltersAndSort()" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              <option value="newest">Newest First</option>
+              <option value="slowest">Slowest (duration_ms DESC)</option>
+              <option value="ram">Highest RAM (ram_mb DESC)</option>
+              <option value="status">Status Code (DESC)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Total Errors Badge -->
+        <div class="flex items-center gap-2">
+          <span id="error-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            0 errors
+          </span>
+        </div>
+      </div>
+
       <div id="routes" class="overflow-x-auto"></div>
     </article>
   </main>
 
   <script src="{{ public('js/lila-client.js') }}"></script>
   <script>
-    const INITIAL_HISTORY = {{ history | tojson }};
+    let rawHistory = {{ history | tojson }};
     let timer = null;
-
-    async function deleteDebug() {
-      if (!confirm('Clear all in-memory telemetry?')) return;
-      await fetch('/debug/', { method: 'DELETE', headers: { 'X-CSRF-Token': '{{ csrf_token }}' } });
-      updateTable();
-    }
-
     let debugTable = null;
+
     const tableOptions = {
       columns: [
         { title: 'Time', key: 'time' },
@@ -67,6 +109,7 @@
         { title: 'Path', key: 'path' },
         { title: 'Status', key: 'status' },
         { title: 'Duration (ms)', key: 'duration_ms' },
+        { title: 'RAM (MB)', key: 'ram_mb' },
         { title: 'IP', key: 'ip' }
       ],
       rowsPerPage: 10,
@@ -74,19 +117,90 @@
       pagination: true
     };
 
+    function applyFiltersAndSort() {
+      const statusFilter = document.getElementById('filter-status')?.value || 'all';
+      const methodFilter = document.getElementById('filter-method')?.value || 'all';
+      const sortBy = document.getElementById('sort-by')?.value || 'newest';
+
+      let items = [...rawHistory];
+
+      // Total errors count (>= 400)
+      const errorCount = items.filter(i => Number(i.status) >= 400).length;
+      const errorBadge = document.getElementById('error-badge');
+      if (errorBadge) {
+        errorBadge.textContent = `${errorCount} error${errorCount === 1 ? '' : 's'}`;
+        if (errorCount > 0) {
+          errorBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400';
+        } else {
+          errorBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+        }
+      }
+
+      // Filter by status
+      if (statusFilter !== 'all') {
+        const prefix = statusFilter[0]; // '2', '3', '4', '5'
+        items = items.filter(i => String(i.status || '').startsWith(prefix));
+      }
+
+      // Filter by method
+      if (methodFilter !== 'all') {
+        items = items.filter(i => String(i.method || '').toUpperCase() === methodFilter);
+      }
+
+      // Sorting
+      if (sortBy === 'slowest') {
+        items.sort((a, b) => (Number(b.duration_ms) || 0) - (Number(a.duration_ms) || 0));
+      } else if (sortBy === 'ram') {
+        items.sort((a, b) => (Number(b.ram_mb) || 0) - (Number(a.ram_mb) || 0));
+      } else if (sortBy === 'status') {
+        items.sort((a, b) => (Number(b.status) || 0) - (Number(a.status) || 0));
+      }
+      // 'newest' maintains default insertion order (appendleft in deque)
+
+      if (debugTable) {
+        debugTable.updateData(items);
+      } else {
+        debugTable = new ResponsiveDataTable('routes', { ...tableOptions, data: items });
+      }
+    }
+
+    async function deleteDebug() {
+      if (!confirm('Clear all in-memory telemetry?')) return;
+      await fetch('/debug/', { method: 'DELETE', headers: { 'X-CSRF-Token': '{{ csrf_token }}' } });
+      rawHistory = [];
+      applyFiltersAndSort();
+    }
+
     async function updateTable() {
+      if (!document.getElementById('routes')) {
+        if (timer) clearInterval(timer);
+        return;
+      }
       try {
         const response = await fetch('/debug/?fetch=true');
         if (!response.ok) return;
-        const history = await response.json();
-        if (debugTable) debugTable.updateData(history);
-        else debugTable = new ResponsiveDataTable('routes', { ...tableOptions, data: history });
+        const payload = await response.json();
+        rawHistory = Array.isArray(payload) ? payload : (payload.history || []);
+
+        const metrics = payload.metrics;
+        if (metrics) {
+          const elProc = document.getElementById('metric-proc-ram');
+          if (elProc && metrics.process_ram_mb !== undefined) elProc.textContent = `${metrics.process_ram_mb} MB`;
+          const elSys = document.getElementById('metric-sys-ram');
+          if (elSys && metrics.system_ram_percent !== undefined) elSys.textContent = `${metrics.system_ram_percent}%`;
+          const elCpu = document.getElementById('metric-cpu');
+          if (elCpu && metrics.cpu_percent !== undefined) elCpu.textContent = `${metrics.cpu_percent}%`;
+          const elThr = document.getElementById('metric-threads');
+          if (elThr && metrics.threads !== undefined) elThr.textContent = metrics.threads;
+        }
+
+        applyFiltersAndSort();
       } catch (err) {
         console.error('Debug update error:', err);
       }
     }
 
-    debugTable = new ResponsiveDataTable('routes', { ...tableOptions, data: INITIAL_HISTORY });
+    applyFiltersAndSort();
     timer = setInterval(updateTable, 5000);
   </script>
 </body>

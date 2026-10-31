@@ -150,10 +150,64 @@ jinja_env.globals["translate"] = Translate.get_dict()
 jinja_env.globals["t"] = Translate.t
 
 
+def _inspect_app_routes(app_obj: Any) -> Dict[str, bool]:
+    """Inspects routes recursively for common paths."""
+    flags = {
+        "has_docs": False,
+        "has_admin": False,
+        "has_auth": False,
+        "debug_html": False,
+    }
+    if not app_obj:
+        return flags
+
+    routes = getattr(app_obj, "routes", None)
+    if routes is None and hasattr(app_obj, "raw_routes"):
+        routes = getattr(app_obj, "raw_routes", None)
+    if not routes:
+        return flags
+
+    visited = set()
+
+    def check_routes(route_list, prefix=""):
+        if not route_list:
+            return
+        for r in route_list:
+            path = getattr(r, "path", "")
+            full_path = f"{prefix.rstrip('/')}/{path.lstrip('/')}".rstrip('/')
+            if not full_path:
+                full_path = "/"
+
+            key = (id(r), full_path)
+            if key in visited:
+                continue
+            visited.add(key)
+
+            if full_path in ("/docs", "/docs/"):
+                flags["has_docs"] = True
+            if full_path in ("/admin", "/admin/") or full_path.startswith("/admin/"):
+                flags["has_admin"] = True
+            if full_path in ("/login", "/login/", "/auth/login", "/auth/login/"):
+                flags["has_auth"] = True
+            if full_path in ("/debug", "/debug/"):
+                flags["debug_html"] = True
+
+            sub = getattr(r, "routes", None)
+            if sub is None and hasattr(r, "app"):
+                sub = getattr(r.app, "routes", None)
+            if sub:
+                check_routes(sub, prefix=full_path)
+
+    check_routes(routes)
+    return flags
+
+
 def get_base_context(
     request: Request,
+    csrf: bool = True,
     lang_default: Optional[str] = None,
     files_translate: Optional[list] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """Generates the standard template context."""
     app_url = str(ENV_CONFIG.get("APP_URL", "") or "").rstrip("/")
@@ -163,19 +217,30 @@ def get_base_context(
     current_lang = (lang_default or Translate.lang(request))[:2].lower()
     trans_dict = Translate.get_dict(current_lang)
 
+    app_obj = getattr(request, "app", None)
+    if not app_obj and hasattr(request, "scope") and isinstance(request.scope, dict):
+        app_obj = request.scope.get("app")
+    route_flags = _inspect_app_routes(app_obj)
+
+    debug_val = is_debug()
+    debug_html_val = route_flags["debug_html"] if app_obj else debug_val
+
     return {
         "request": request,
         "title": ENV_CONFIG.get("TITLE_PROJECT", "Lila Application"),
         "description": ENV_CONFIG.get("DESCRIPTION_PROJECT", ENV_CONFIG.get("DESCRIPTION_DEFAULT", "")),
         "keywords": ENV_CONFIG.get("KEYWORDS_DEFAULT", ""),
         "author": ENV_CONFIG.get("AUTHOR_DEFAULT", ""),
-        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0"),
+        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.2"),
         "lang": current_lang,
         "translate": trans_dict,
         "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),
         "app_url": app_url,
-        "debug": is_debug(),
-        "debug_html": is_debug(),
+        "debug": debug_val,
+        "debug_html": debug_html_val,
+        "has_docs": route_flags["has_docs"],
+        "has_admin": route_flags["has_admin"],
+        "has_auth": route_flags["has_auth"],
         "layout": DEFAULT_LAYOUT,
         "csrf_token": "",
     }
@@ -212,7 +277,7 @@ def render(
 ) -> HTMLResponse:
     """Renders an HTML template with unified context, CSRF and SPA partial support."""
     target_template = template_name or template or "index"
-    ctx = get_base_context(request, lang_default=lang_default, files_translate=files_translate)
+    ctx = get_base_context(request, csrf=csrf, lang_default=lang_default, files_translate=files_translate)
     if layout:
         ctx["layout"] = layout
     if context:

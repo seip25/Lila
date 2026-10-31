@@ -1,5 +1,5 @@
 {% extends layout | default('lila/base.jinja') %}
-{% block title %}{{translate['Invalid or expired token']}}{% endblock %}
+{% block title %}{{ translate['invalid or expired token'] | default('Invalid or expired token') }} - Lila Framework{% endblock %}
 
 {% block content %}
 <main
@@ -11,25 +11,28 @@
         </div>
 
         <h3 class="text-2xl font-black text-red-500 mb-4">
-            {{translate['Invalid or expired token']}}
+            {{ translate['invalid or expired token'] | default('Invalid or expired token') }}
         </h3>
 
         <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
-            {{translate['Your password reset link is invalid or has expired.']}}
+            {{ translate['your password reset link is invalid or has expired.'] | default('Your password reset link is invalid or has expired.') }}
         </p>
 
-        <a href="/forgot-password" class="btn-primary w-full justify-center">
-            {{translate['Request new password reset link']}}
+        <a href="/forgot-password" class="btn btn-primary w-full justify-center">
+            {{ translate['request new password reset link'] | default('Request a new password reset link') }}
         </a>
     </div>
 
     <!-- Language Selector -->
     <div class="mt-8 w-full max-w-md flex justify-center gap-2">
-        <a href="?lang=es" class="btn-secondary">
+        <a href="?lang=es" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">
             <span>🇪🇸</span> Español
         </a>
-        <a href="?lang=en" class="btn-secondary">
+        <a href="?lang=en" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">
             <span>🇺🇸</span> English
+        </a>
+        <a href="?lang=pt" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">
+            <span>🇧🇷</span> Português
         </a>
     </div>
 </main>
