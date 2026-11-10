@@ -34,6 +34,16 @@ async def cached(request: Request):
     return {"cookie": request.cookies.get("who", "none")}
 
 
+@router.get("/cached-items/{item_id:int}", cache=60)
+async def cached_item(request: Request, item_id: int):
+    return {"id": item_id}
+
+
+@router.get("/optional-no-default")
+async def optional_no_default(request: Request, q: str | None):
+    return {"q": q}
+
+
 @router.post("/form-csrf", csrf=True)
 async def form_csrf(request: Request):
     form = await request.form()
@@ -77,6 +87,15 @@ class RoutingTests(unittest.TestCase):
         self.assertIn("Cookie", first.headers.get("vary", ""))
         self.assertIn("X-Lila-Partial", second.headers.get("vary", ""))
         self.assertIn("Cookie", second.headers.get("vary", ""))
+
+    def test_route_cache_keys_on_concrete_path(self):
+        self.assertEqual(client.get("/api/cached-items/1").json(), {"id": 1})
+        self.assertEqual(client.get("/api/cached-items/2").json(), {"id": 2})
+
+    def test_optional_param_without_default_is_none(self):
+        response = client.get("/api/optional-no-default")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json(), {"q": None})
 
     def test_csrf_accepts_html_form_body(self):
         token = "form-token"

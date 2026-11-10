@@ -25,6 +25,20 @@ def _cacheable(value: Any) -> bool:
     return isinstance(value, (dict, list, str, int, float, bool))
 
 
+def _detached(value: Any) -> Any:
+    """Returns a copy of cached rows so callers cannot mutate the shared cache.
+
+    The memory driver stores Python objects by reference; without this, code
+    like ``rows[0]["name"] = "x"`` would leak into every other request until
+    the TTL expires.
+    """
+    if isinstance(value, list):
+        return [dict(item) if isinstance(item, dict) else item for item in value]
+    if isinstance(value, dict):
+        return dict(value)
+    return value
+
+
 async def run_deduplicated(cache_key: Optional[str], fetch_coro: Callable[[], Any]) -> Any:
     """Runs an async fetch with single-flight deduplication and short TTL caching.
 
@@ -36,11 +50,11 @@ async def run_deduplicated(cache_key: Optional[str], fetch_coro: Callable[[], An
 
     cached_res = await Cache.get_async(cache_key)
     if cached_res is not None:
-        return cached_res
+        return _detached(cached_res)
 
     existing = _PENDING_QUERIES.get(cache_key)
     if existing is not None and not existing.done():
-        return await asyncio.shield(existing)
+        return _detached(await asyncio.shield(existing))
 
     ttl = max(1, int(ENV_CONFIG.get("MODEL_CACHE_TTL", 5) or 5))
 
@@ -55,7 +69,7 @@ async def run_deduplicated(cache_key: Optional[str], fetch_coro: Callable[[], An
     # Consume exceptions if every waiter goes away, to avoid noisy warnings.
     task.add_done_callback(lambda t: None if t.cancelled() else t.exception())
     try:
-        return await asyncio.shield(task)
+        return _detached(await asyncio.shield(task))
     finally:
         if _PENDING_QUERIES.get(cache_key) is task:
             _PENDING_QUERIES.pop(cache_key, None)
@@ -116,6 +130,30 @@ class BaseModel(Base):
         Cache.delete(f"{cls._cache_prefix()}:*")
 
     @classmethod
+    def _column(cls, name: str):
+        """Returns the mapped column attribute or None (never methods/properties)."""
+        if name not in cls.__table__.columns:
+            return None
+        attr = getattr(cls, name, None)
+        return cls.__table__.columns[name] if attr is None else attr
+
+    @classmethod
+    def _filter_columns(cls, filters: Dict[str, Any]):
+        """Maps keyword filters to columns. Unknown keys raise instead of being
+        silently ignored (a typo must never turn into "return every row")."""
+        cols = []
+        unknown = []
+        for key, value in filters.items():
+            col = cls._column(key)
+            if col is None:
+                unknown.append(key)
+            else:
+                cols.append((col, value))
+        if unknown:
+            raise ValueError(f"Unknown filter column(s) for {cls.__name__}: {', '.join(unknown)}")
+        return cols
+
+    @classmethod
     def _select_columns(cls, target_select: Optional[str]):
         if not target_select:
             return []
@@ -123,8 +161,9 @@ class BaseModel(Base):
         cols = []
         unknown = []
         for name in names:
-            if hasattr(cls, name):
-                cols.append(getattr(cls, name))
+            col = cls._column(name)
+            if col is not None:
+                cols.append(col)
             else:
                 unknown.append(name)
         if unknown:
@@ -164,12 +203,11 @@ class BaseModel(Base):
                 if cls._delete_logic and hasattr(cls, cls._active_field):
                     stmt = stmt.where(getattr(cls, cls._active_field) == 1)
 
-                for key, value in filters.items():
-                    if hasattr(cls, key):
-                        stmt = stmt.where(getattr(cls, key) == value)
+                for col, value in cls._filter_columns(filters):
+                    stmt = stmt.where(col == value)
 
-                if order_by and hasattr(cls, order_by):
-                    order_col = getattr(cls, order_by)
+                order_col = cls._column(order_by) if order_by else None
+                if order_col is not None:
                     stmt = stmt.order_by(order_col.desc() if desc else order_col.asc())
 
                 stmt = stmt.offset(offset).limit(limit)
@@ -260,9 +298,8 @@ class BaseModel(Base):
             stmt = select(func.count(pk_col))
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-            for key, value in filters.items():
-                if hasattr(cls, key):
-                    stmt = stmt.where(getattr(cls, key) == value)
+            for col, value in cls._filter_columns(filters):
+                stmt = stmt.where(col == value)
             result = await session.execute(stmt)
             return result.scalar() or 0
 
@@ -292,9 +329,8 @@ class BaseModel(Base):
             query = session.query(cls)
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
-            for key, value in filters.items():
-                if hasattr(cls, key):
-                    query = query.filter(getattr(cls, key) == value)
+            for col, value in cls._filter_columns(filters):
+                query = query.filter(col == value)
             rows = query.offset(offset).limit(limit).all()
             return [row.to_dict() for row in rows]
 

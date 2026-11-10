@@ -47,6 +47,30 @@ class MigrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await Widget.delete_async(created["id"]))
         self.assertEqual(await Widget.get_all_async(), [])
 
+    async def test_filters_order_and_cache_isolation(self):
+        class Gadget(BaseModel):
+            __tablename__ = "gadgets_test"
+            _connection = self.db
+            id = Column(Integer, primary_key=True, autoincrement=True)
+            name = Column(String(50), nullable=False)
+            active = Column(Integer, nullable=False, default=1)
+
+        await self.db.migrate_async()
+        await Gadget.insert_async(name="b")
+        await Gadget.insert_async(name="a")
+        rows = await Gadget.get_all_async(order_by="name")
+        self.assertEqual([r["name"] for r in rows], ["a", "b"])
+        # Mutating a result must not leak into the shared read cache.
+        rows[0]["name"] = "mutated"
+        again = await Gadget.get_all_async(order_by="name")
+        self.assertEqual(again[0]["name"], "a")
+        # Unknown filters / methods are rejected instead of returning all rows.
+        with self.assertRaises(ValueError):
+            await Gadget.get_all_async(nmae="a")
+        with self.assertRaises(ValueError):
+            await Gadget.get_all_async(to_dict="a")
+        self.assertEqual(await Gadget.count_async(name="a"), 1)
+
     async def test_migrate_adds_missing_column(self):
         class Widget2(BaseModel):
             __tablename__ = "widgets_cols"
