@@ -115,7 +115,7 @@
 
       <h3 class="text-xl font-bold mt-8 mb-3">How it Works</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
-        Include <code class="code-inline">lila/base.jinja</code> in your templates. The runtime automatically intercepts internal links, loads destination HTML in the background, smoothly cross-fades content inside <code class="code-inline">&lt;div id="lila-outlet" data-lila-outlet&gt;</code>, and executes scripts:
+        Page templates rendered with <code class="code-inline">render()</code> are wrapped in <code class="code-inline">lila/base.jinja</code> automatically (see <a href="templates.html">Templates</a>). The runtime automatically intercepts internal links, loads destination HTML in the background, smoothly cross-fades content inside <code class="code-inline">&lt;div id="lila-outlet" data-lila-outlet&gt;</code>, and executes scripts:
       </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6">
@@ -141,6 +141,19 @@
 &lt;script src="{{ public('js/lila-client.js') }}"&gt;&lt;/script&gt;</code></pre>
         </div>
       </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">Navigation lifecycle</h3>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-6">
+        <li><code>lila:before-swap</code> — fired before the page content is replaced (page-scoped sockets/timers clean up here).</li>
+        <li>The <code>&lt;title&gt;</code>, meta tags, canonical, <code>&lt;html lang&gt;</code> and every <code>[data-lila-head]</code> tag
+          (styles/scripts/JSON-LD from <code>render()</code>) are synchronized. Identical tags are kept, so libraries are not downloaded twice.</li>
+        <li>Scripts run in document order: an external <code>&lt;script src&gt;</code> finishes loading before the next inline script runs.</li>
+        <li><code>lila:page-load</code> / <code>lila:navigate</code> / <code>lila:load</code> — fired after the swap (use <code>Lila.onPageLoad(fn)</code>).</li>
+        <li>Page scripts run on every visit: use <code>var</code>/<code>function</code> for globals and call init code directly
+          (<code>DOMContentLoaded</code> only fires on the first full load).</li>
+        <li>Hover prefetch is de-duplicated and never stores redirected responses (e.g. an expired session redirecting to <code>/login</code>).
+          Same-page <code>#hash</code> links scroll natively.</li>
+      </ul>
 
       <h3 class="text-xl font-bold mt-8 mb-3">UI Components Reference</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -174,6 +187,7 @@
         <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
           <h4 class="text-base font-bold mb-2">3. ResponsiveDataTable</h4>
           <p class="text-xs text-slate-500 mb-3">Renders a desktop table on large screens and converts automatically into mobile card views on small screens.</p>
+          <p class="text-xs text-slate-500 mb-3">From Jinja, without JavaScript: <code>{{ datatable(users, ["id", "name", ("email", "E-mail")], edit="openEditModal") }}</code> (unique id, auto-initialized; see <a href="templates.html">Templates</a>). Tables release their resize listener when an SPA navigation removes them.</p>
           <pre><code class="language-javascript">new ResponsiveDataTable('containerId', {
   data: users,
   columns: [
@@ -187,6 +201,27 @@
   edit: (e, item) => openEditModal(item),
   delete: (e, item) => deleteRecord(item)
 });</code></pre>
+        </div>
+
+        <!-- Carousel -->
+        <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
+          <h4 class="text-base font-bold mb-2">Carousel</h4>
+          <p class="text-xs text-slate-500 mb-3">Scroll-snap carousel styled with Tailwind: touch swipe, arrows, indicators, keyboard, autoplay (paused on hover/focus/hidden tab), loop and <code>prefers-reduced-motion</code>. Elements with <code>data-lila-carousel</code> are initialized automatically after every navigation; from Jinja use <code>{{ carousel(slides, autoplay=5000) }}</code>.</p>
+          <pre><code class="language-html">&lt;div class=&quot;carousel relative rounded-2xl overflow-hidden&quot; data-lila-carousel data-autoplay=&quot;5000&quot; data-loop=&quot;true&quot;&gt;
+  &lt;div class=&quot;carousel-track&quot;&gt;
+    &lt;div class=&quot;carousel-item basis-full md:basis-1/2 h-64&quot;&gt;Slide 1&lt;/div&gt;
+    &lt;div class=&quot;carousel-item basis-full md:basis-1/2 h-64&quot;&gt;Slide 2&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;button class=&quot;carousel-prev absolute left-3 top-1/2&quot;&gt;&amp;lsaquo;&lt;/button&gt;
+  &lt;button class=&quot;carousel-next absolute right-3 top-1/2&quot;&gt;&amp;rsaquo;&lt;/button&gt;
+  &lt;div class=&quot;carousel-indicators absolute bottom-3 inset-x-0 flex justify-center gap-2&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  var slider = document.querySelector(&#x27;[data-lila-carousel]&#x27;)._lila_carousel;
+  // slider.next(); slider.prev(); slider.go(2); slider.stop(); slider.start();
+  // Manual init for dynamic markup: lila(&#x27;carousel&#x27;, { selector: &#x27;.my-carousel&#x27;, autoplay: 4000 });
+&lt;/script&gt;</code></pre>
         </div>
 
         <!-- Command Palette -->

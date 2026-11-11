@@ -217,6 +217,13 @@ async def logout(request: Request):
         <code>max_age=86400</code> (default), <code>secure</code>, <code>http_only</code>,
         <code>same_site="lax"</code>, <code>path="/"</code>, <code>domain</code>.
       </p>
+      <p>
+        The lifetime passed to <code>Session.set()</code> is stored inside the signed cookie, so
+        <code>Session.get()</code> honours it automatically (a 30-day "remember me" session no longer expires
+        after one day). Pass <code>max_age</code> to <code>Session.get()</code> only to enforce a <b>shorter</b>
+        lifetime. Cookies written by Lila 2.0.0 remain readable (1-day lifetime). With the memory cache,
+        server-side session payloads are evicted last when the LRU is full.
+      </p>
 
       <h2>v1 Compatibility Helpers (sync)</h2>
       <p>

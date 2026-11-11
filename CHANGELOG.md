@@ -5,7 +5,49 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Automatic layouts**: page templates contain only their HTML. `render()`
+  wraps them in the default layout and builds the `<head>` from new keyword
+  arguments: `title` (translation keys are translated), `description`,
+  `keywords`, `author`, `image`, `icon`, `canonical`, `robots`, `og_type`,
+  `jsonld`, `meta`, `styles`, `scripts`, `head`, `body_class`; `layout=False`
+  renders fragments. Shared `lila/head.jinja` for custom layouts;
+  `TITLE_TEMPLATE` in `.env`. Templates using `{% extends %}` are unchanged.
+- Jinja helpers `datatable()` (embedded rows or `url=`, unique id, sensitive
+  keys excluded) and `carousel()` (autoplay, loop, indicators, swipe,
+  keyboard), auto-initialized by `lila-client.js` after each navigation.
+- `sudo lila deploy setup`: interactive Linux install (`.env` production
+  values, systemd, Nginx with `nginx -t` rollback, Certbot, health check),
+  `--dry-run` and `--yes`. `SERVICE_NAME` in `.env`.
+- `WebSocketHub.can_join` to authorize client room joins; `lilaWS` gains
+  `once()`, `connected`, `persist` and relative URLs.
+
+### Changed
+
+- Auth scaffold, `index`, `404` and `lila crud` templates use the automatic
+  layout; their routes pass `title`/`robots`.
+- `/js/ws.js` is served from the installed package (like `lila-client.js`);
+  `lila deploy` proxies both to the app instead of aliasing stale copies.
+- `render(scripts=...)` tags load in order (no `defer`) so inline page
+  scripts can use them.
+
 ### Fixed
+
+- SPA router: `[data-lila-head]` tags and `<html lang>` are synchronized,
+  external scripts finish loading before the next inline script runs,
+  prefetch is de-duplicated and never caches redirects, same-page `#hash`
+  links scroll natively, `lila:before-swap` event added.
+- `ws.js`: no reconnect after `disconnect()` (pending timer), bounded
+  offline queue, no duplicate room joins, no reconnect loop on 1008/1009,
+  sockets closed when the SPA leaves their page.
+- `WebSocketHub.disconnect` is idempotent (handlers ran twice after a
+  failed send); room names/counts are limited.
+- `ResponsiveDataTable` releases its resize listener when removed by an SPA
+  navigation; `lila crud` pages work on repeated SPA visits.
+- `lila deploy`: `WorkingDirectory` without quotes (systemd), `www.` server
+  names.
+- Sync `get_all()` supports `order_by`/`desc`.
 
 - Route cache keys now use the concrete request path: `/items/1` and `/items/2`
   no longer share the same cached response.

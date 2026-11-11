@@ -218,6 +218,7 @@ users = User.get_all()
 user_emails = User.get_all(select="id,email")
 
 # 3. Filter by fields, order and paginate
+# (filters/order_by/select accept table columns only; an unknown filter raises ValueError)
 recent_users = User.get_all(limit=10, offset=0, order_by="name", active=1)
 
 # 4. Fetch one record by primary key

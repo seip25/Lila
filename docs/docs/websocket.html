@@ -227,73 +227,88 @@ async def raw_socket(websocket: WebSocket):
           </div>
         </div>
         <div class="editor-content bg-gray-900 dark:bg-black">
-          <pre><code class="language-html">
-&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-  &lt;title&gt;Real-Time Chat&lt;/title&gt;
-  &lt;script src="{{ public('js/tailwind.js') }}"&gt;&lt;/script&gt;
-  &lt;script src="{{ public('js/ws.js') }}"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body class="bg-slate-900 text-slate-100 p-6 font-sans flex justify-center"&gt;
-  &lt;div class="w-full max-w-xl bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4"&gt;
-    &lt;div class="flex items-center justify-between border-b border-slate-700 pb-3"&gt;
-      &lt;h3 class="font-bold"&gt;Chat Room (&lt;span id="room-label" class="text-blue-400"&gt;#general&lt;/span&gt;)&lt;/h3&gt;
-      &lt;span id="status-indicator" class="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-400 font-mono"&gt;Connecting...&lt;/span&gt;
-    &lt;/div&gt;
-
-    &lt;div id="messages" class="h-64 overflow-y-auto bg-slate-950 p-4 rounded-xl space-y-2 text-sm"&gt;&lt;/div&gt;
-
-    &lt;form onsubmit="sendMessage(event)" class="flex gap-2"&gt;
-      &lt;input type="text" id="msg" placeholder="Type a message..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2" required /&gt;
-      &lt;button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-xl"&gt;Send&lt;/button&gt;
-    &lt;/form&gt;
+          <pre><code class="language-html">{# resources/html/chat.jinja — rendered with:
+   render(request, &quot;chat&quot;, title=&quot;Chat&quot;, scripts=[&quot;js/ws.js&quot;]) #}
+&lt;div class=&quot;w-full max-w-xl mx-auto bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4 text-slate-100&quot;&gt;
+  &lt;div class=&quot;flex items-center justify-between border-b border-slate-700 pb-3&quot;&gt;
+    &lt;h3 class=&quot;font-bold&quot;&gt;Chat Room (&lt;span class=&quot;text-blue-400&quot;&gt;#general&lt;/span&gt;)&lt;/h3&gt;
+    &lt;span id=&quot;status-indicator&quot; class=&quot;text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-400 font-mono&quot;&gt;Connecting...&lt;/span&gt;
   &lt;/div&gt;
 
-  &lt;script&gt;
-    const ws = lilaWS('ws://' + location.host + '/ws/chat');
+  &lt;div id=&quot;messages&quot; class=&quot;h-64 overflow-y-auto bg-slate-950 p-4 rounded-xl space-y-2 text-sm&quot;&gt;&lt;/div&gt;
 
-    ws.on('connect', () => {
-      document.getElementById('status-indicator').className = 'text-xs px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 font-mono';
-      document.getElementById('status-indicator').innerText = 'Connected';
-      ws.emit('join_channel', { room: 'general', username: 'Alice' });
-    });
+  &lt;form onsubmit=&quot;sendMessage(event)&quot; class=&quot;flex gap-2&quot;&gt;
+    &lt;input type=&quot;text&quot; id=&quot;msg&quot; placeholder=&quot;Type a message...&quot; class=&quot;flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2&quot; required /&gt;
+    &lt;button type=&quot;submit&quot; class=&quot;bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-xl&quot;&gt;Send&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/div&gt;
 
-    ws.on('disconnect', () => {
-      document.getElementById('status-indicator').className = 'text-xs px-2 py-1 rounded bg-rose-500/20 text-rose-400 font-mono';
-      document.getElementById('status-indicator').innerText = 'Disconnected';
-    });
+&lt;script&gt;
+  // `var`: this script runs again on every SPA visit.
+  // Relative URL -&gt; ws:// or wss:// automatically. The socket is closed when
+  // the SPA router leaves this page (use { persist: true } to keep it).
+  var chat = lilaWS(&#x27;/ws/chat&#x27;);
 
-    ws.on('new_message', (data) => {
-      const box = document.getElementById('messages');
-      const row = document.createElement('div');
+  chat.on(&#x27;connect&#x27;, () =&gt; {
+    document.getElementById(&#x27;status-indicator&#x27;).className = &#x27;text-xs px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 font-mono&#x27;;
+    document.getElementById(&#x27;status-indicator&#x27;).innerText = &#x27;Connected&#x27;;
+    chat.emit(&#x27;join_channel&#x27;, { room: &#x27;general&#x27;, username: &#x27;Alice&#x27; });
+  });
 
-      const user = document.createElement('b');
-      user.className = 'text-blue-400';
-      user.textContent = data.user;          // textContent, not innerHTML
+  chat.on(&#x27;disconnect&#x27;, () =&gt; {
+    document.getElementById(&#x27;status-indicator&#x27;).className = &#x27;text-xs px-2 py-1 rounded bg-rose-500/20 text-rose-400 font-mono&#x27;;
+    document.getElementById(&#x27;status-indicator&#x27;).innerText = &#x27;Disconnected&#x27;;
+  });
 
-      const time = document.createElement('span');
-      time.className = 'text-xs text-slate-500';
-      time.textContent = `[${data.time}]`;
+  chat.on(&#x27;new_message&#x27;, (data) =&gt; {
+    const box = document.getElementById(&#x27;messages&#x27;);
+    const row = document.createElement(&#x27;div&#x27;);
+    const user = document.createElement(&#x27;b&#x27;);
+    user.className = &#x27;text-blue-400&#x27;;
+    user.textContent = data.user;          // textContent, not innerHTML
+    const text = document.createElement(&#x27;span&#x27;);
+    text.textContent = `: ${data.text}`;
+    row.append(user, text);
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  });
 
-      const text = document.createElement('span');
-      text.textContent = `: ${data.text}`;
+  function sendMessage(e) {
+    e.preventDefault();
+    const input = document.getElementById(&#x27;msg&#x27;);
+    chat.emit(&#x27;send_message&#x27;, { room: &#x27;general&#x27;, username: &#x27;Alice&#x27;, text: input.value });
+    input.value = &#x27;&#x27;;
+  }
+&lt;/script&gt;</code></pre>
+        </div>
+      </div>
 
-      row.append(user, ' ', time, text);
-      box.appendChild(row);
-      box.scrollTop = box.scrollHeight;
-    });
+      <h4 class="mt-6 font-semibold">Client behaviour</h4>
+      <ul class="list-disc pl-6 space-y-1 text-sm">
+        <li>Relative URLs (<code>'/ws/chat'</code>) and <code>http(s)://</code> URLs are converted to <code>ws(s)://</code>.</li>
+        <li>Reconnects with exponential backoff + jitter, and immediately when the browser goes back <code>online</code>.
+          No reconnect after <code>disconnect()</code> or when the server closes with 1003/1008/1009/1011
+          (<code>noReconnectCodes</code> option).</li>
+        <li>Messages emitted while offline are queued (max 500) and sent on reconnect; rooms are re-joined once.</li>
+        <li>SPA aware: sockets created by a page are closed on <code>lila:before-swap</code>; pass
+          <code>{ persist: true }</code> for an app-wide socket (e.g. in your layout).</li>
+        <li><code>/js/ws.js</code> is always served from the installed Lila package, so upgrades fix old copies in <code>public/js</code>.</li>
+      </ul>
 
-    function sendMessage(e) {
-      e.preventDefault();
-      const input = document.getElementById('msg');
-      ws.emit('send_message', { room: 'general', username: 'Alice', text: input.value });
-      input.value = '';
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-            </code></pre>
+      <h4 class="mt-6 font-semibold">Authorizing rooms</h4>
+      <p class="text-sm">Clients can send <code>{"event": "join", "data": "room"}</code>. Protect private rooms with
+        <code>@hub.can_join</code>; denied joins receive a <code>join:denied</code> event. Room names are limited to 128
+        characters and 50 rooms per connection.</p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-4">
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">from lila.core.websocket import ws
+
+@ws.can_join
+async def allow_join(websocket, room: str) -&gt; bool:
+    if not room.startswith(&quot;user:&quot;):
+        return True
+    user = websocket.scope.get(&quot;state&quot;, {}).get(&quot;user&quot;)   # set it in your own auth handshake
+    return bool(user) and room == f&quot;user:{user[&#x27;id&#x27;]}&quot;</code></pre>
         </div>
       </div>
 
@@ -341,15 +356,20 @@ async def hub_example(ws, websocket, sock, data):
     await ws.emit(websocket, "event", data)          # Send to a single socket
     ws.join_room(websocket, "room_name")             # Join socket to a channel
     ws.leave_room(websocket, "room_name")            # Remove socket from a channel
+    ws.can_join(lambda websocket, room: True)        # Authorize client "join" events
     await ws.handle_connection(websocket)            # Full receive loop (or router.ws_hub)
             </code></pre>
           <pre><code class="language-javascript">
 // Client JavaScript (lilaWS)
-const sock = lilaWS('ws://domain/ws');            // Connect to the server
+const sock = lilaWS('/ws');                       // Connect (ws:// or wss:// automatically)
+const app = lilaWS('/ws', { persist: true });     // Survives SPA navigations
 sock.on('event', (data) => { /* ... */ });        // Handle a server event
 sock.emit('event', { key: 'value' });             // Send an event to the server
 sock.join('room_name');                           // Join a channel
 sock.leave('room_name');                          // Leave a channel
+sock.once('event', (data) => { /* ... */ });      // One-time listener
+sock.connected;                                   // true when open
+sock.disconnect();                                // Close, no auto-reconnect
             </code></pre>
         </div>
       </div>

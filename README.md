@@ -31,6 +31,9 @@ reachable, and a file cache fallback.
 - 🚀 **SPA without Node.js**: `lila-client.js` uses the native View Transitions API,
   hover prefetching, persistent islands (`data-persist="true"`) and Tailwind UI
   components (toast, snackbar, command palette, drawer, tabs, carousel, DataTable).
+- 🧩 **Templates without boilerplate**: a page is just its HTML. `render()` adds the
+  layout, `<title>`, description, Open Graph, JSON-LD, icon, styles and scripts;
+  `{{ datatable(...) }}` and `{{ carousel(...) }}` build components from Jinja.
 - 💾 **Zero infrastructure by default**: Async SQLite with WAL, an in-memory LRU
   cache, and `CACHE_DRIVER="file"` for a persistent fallback. `CACHE_DRIVER="redis"`
   is used only when the Redis package is installed **and the server answers**;
@@ -120,6 +123,35 @@ async def get_user(request: Request, id: int):
 async def create_user(request: Request, data: UserCreate):
     return {"success": True, "email": data.email}
 ```
+
+### Pages: just HTML, the layout is automatic
+
+```python
+from lila.core.templates import render
+
+@router.get("/dashboard", auth=True)
+async def dashboard(request: Request):
+    user = request.state.user
+    return render(
+        request, "authenticated/dashboard", {"user": user, "orders": await Order.get_all_async()},
+        title="dashboard",               # translation key -> "Dashboard - My App"
+        description="Your orders",
+        robots="noindex",
+        jsonld={"@context": "https://schema.org", "@type": "WebPage", "name": "Dashboard"},
+        scripts=["js/chart.js"],
+    )
+```
+
+```jinja
+{# resources/html/authenticated/dashboard.jinja — no extends, no blocks #}
+<main class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+  <h1 class="text-3xl font-black">{{ translate['welcome'] }}, {{ user.name }}!</h1>
+  {{ datatable(orders, ["id", ("total", "Total"), "status"], rows_per_page=10) }}
+  {{ carousel([{"image": "img/promo.webp", "title": "Sale"}], autoplay=5000) }}
+</main>
+```
+
+Templates written for 2.0.0 with `{% extends %}` keep working unchanged.
 
 ### Models and migrations
 
@@ -223,6 +255,7 @@ application-data directory.
 | `lila seo` | `public/sitemap.xml` + `robots.txt` (served at `/sitemap.xml`). |
 | `lila worker` | Redis JSON task worker (`pip install lila-framework[redis]`). |
 | `lila deploy` | Generate systemd + Nginx + Windows Server files in `deploy/`. |
+| `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
 | `lila desktop dev/build` | Native window / PyInstaller executable. |
 

@@ -107,8 +107,10 @@ async def old(request): ...
 - `model=Model` validates JSON/form bodies; the model is injected into the
   matching parameter and available at `request.state.data`.
 - `csrf=True`/`@csrf` accepts `X-CSRF-Token`, JSON `_csrf` or a form `_csrf`.
-- `cache=N` is **per identity** (cookie/Authorization fingerprint) by default;
-  use `cache_public=True` only for public content.
+  Route `csrf=True` is checked before body validation.
+- `cache=N` is **per identity** (cookie/Authorization fingerprint) and per
+  concrete path + query; use `cache_public=True` only for public content.
+- `q: Optional[str]` without a default receives `None` when missing.
 - `auth=True` requires a session; API paths get 401, pages get a 303 redirect.
 
 ---
@@ -136,7 +138,13 @@ class Product(BaseModel):
 - `lila migrate` creates tables **and adds missing columns**; `--refresh` drops
   tables (confirmation required unless `--yes`).
 - Cache invalidation is per process and also sent to Redis when configured; the
-  model read cache defaults to `MODEL_CACHE_TTL=5`.
+  model read cache defaults to `MODEL_CACHE_TTL=5`. Cached reads are returned as
+  copies (mutating a result never changes the cache).
+- Filters, `order_by` and `select` accept only table columns; an unknown filter
+  raises `ValueError`. `update_async` skips soft-deleted rows unless the payload
+  sets the active field (`update_async(id, active=1)` restores).
+- `router.rest_crud_generate(Model, auth=True, max_limit=500)` only writes table
+  columns (never the primary key or `__private_fields__`).
 
 ---
 
@@ -147,7 +155,9 @@ class Product(BaseModel):
 - `Cache.stats()`, `incr/incr_async`, `clear(include_sessions=False)`.
 - Route caches include the request identity, so authenticated pages do not leak.
 - `Session` payloads over ~3 KB are stored server-side (Redis or memory) with a
-  signed `sid:` cookie.
+  signed `sid:` cookie. The memory LRU evicts expired and non-session keys first.
+- `Session.get` honours the `max_age` given to `Session.set` (stored in the signed
+  cookie); pass `max_age` to `get` only to enforce a shorter lifetime.
 
 ---
 
@@ -173,14 +183,55 @@ class Product(BaseModel):
 
 ## 7. Templates & Client
 
-- `render(request, "index", context={...}, csrf=True, lang_default=None)`.
-  `.html` names are accepted; `.jinja` is preferred.
-- Every render sets a CSRF cookie and a `<meta name="csrf-token">` via
-  `lila/tailwind.jinja`; `Http()` reads it, so SPA navigation keeps CSRF working.
+Page templates contain **only their HTML**. `render()` wraps them in the
+default layout (`lila/base.jinja`) and builds the `<head>`:
+
+```python
+return render(
+    request, "authenticated/dashboard", {"user": user},
+    title="dashboard",                 # translation key or text -> "Dashboard - <TITLE_PROJECT>"
+    description="Your panel",
+    image="img/og.png", canonical=True, robots="noindex",
+    jsonld={"@context": "https://schema.org", "@type": "WebPage"},
+    meta={"theme-color": "#1a73e8"}, styles=["css/app.css"], scripts=["js/chart.js"],
+    head='<link rel="preconnect" href="https://cdn.example">',   # raw, trusted
+    layout=None,                       # None = default, "x/layout.jinja", False = fragment
+)
+```
+
+```jinja
+{# resources/html/authenticated/dashboard.jinja — no extends/blocks needed #}
+<main class="max-w-7xl mx-auto p-8">
+  <h1>{{ translate['welcome'] }}, {{ user.name }}!</h1>
+  {{ datatable(rows, ["id", "name", ("email", "E-mail")], edit="onEdit") }}
+  {{ carousel(slides, autoplay=5000) }}
+</main>
+```
+
+- Precedence: `.env` defaults < `SEO_CONFIG`/`@seo` < `context` < `render()` kwargs.
+  `TITLE_TEMPLATE="{title} - {project}"` formats `<title>`.
+- A page may still declare `{% block head %}`/`{% block scripts %}`; they are moved
+  to the layout. Templates with `{% extends %}` or `<html>` are not wrapped (v2.0.0
+  templates keep working). Includes/macros are never wrapped.
+- Custom layouts: `{% include "lila/head.jinja" %}` in `<head>`, `data-layout` on
+  `<body>`, `[data-lila-outlet]` around `{% block content %}`.
+- Head tags from `styles=`/`scripts=`/`jsonld=` carry `data-lila-head`; the SPA
+  router swaps them (and `<html lang>`) on navigation and runs scripts in order.
+- Every render sets a CSRF cookie and `<meta name="csrf-token">`; `Http()` reads it.
+- `datatable(data | url=..., columns, id=None, rows_per_page, search, pagination,
+  edit="fnName", delete="fnName", exclude=("password","token","hash"))` — unique
+  id, rows embedded as escaped JSON (or loaded with `Http(url)`), auto-initialized.
+- `carousel(slides, autoplay=0, loop=True, arrows=True, indicators=True,
+  item_class="basis-full")` — scroll-snap, swipe, keyboard, pauses on hover.
 - `lila-client.js`: View Transitions, prefetch, `data-persist`, toast/snackbar,
-  command palette, drawer, tabs, carousel and `ResponsiveDataTable`.
-- `data-partial-target` extracts the `[data-lila-outlet]` fragment (no full HTML
-  injection).
+  command palette, drawer, tabs, carousel and `ResponsiveDataTable`. Page scripts
+  re-run on SPA navigation: use `var`/functions (not top-level `let`/`const`) and
+  call init code directly instead of `DOMContentLoaded`.
+- `ws.js`: `lilaWS("/ws")` (relative URLs ok), auto reconnect with backoff, rooms,
+  bounded offline queue; closed automatically when the SPA leaves the page unless
+  `{ persist: true }`. Server side: `@hub.can_join` authorizes room joins.
+- `/js/lila-client.js` and `/js/ws.js` are always served from the installed package.
+- `data-partial-target` extracts the `[data-lila-outlet]` fragment.
 - `Http(url, method, body, bodyForm, headers)` attaches CSRF, parses JSON/text and
   exposes `error.status`/`error.data`.
 - Assets: `public()` maps `lila optimize` output and appends `?v=mtime`.
@@ -204,7 +255,11 @@ class Product(BaseModel):
 - `lila worker` — Redis JSON tasks (`LILA_TASK_MODULES` allowlist, retries,
   dead-letter queue).
 - `lila deploy` — generates systemd app/worker units, Nginx static+proxy config
-  and Windows Server starter scripts in `deploy/`.
+  and Windows Server starter scripts in `deploy/` (`SERVICE_NAME` from `.env`).
+- `sudo "$(which lila)" deploy setup` — interactive Linux install: asks (S/N)
+  to set `DEBUG=False`, `HOST=127.0.0.1`, a new `SECRET_KEY`, `APP_URL`; installs
+  the systemd service, the Nginx site (rolled back if `nginx -t` fails) and
+  Certbot HTTPS; health-checks the port. `--dry-run`, `--yes`.
 - `lila backup` — online SQLite backup with retention; refuses non-SQLite DBs.
 - `lila desktop dev/build` — bundles `main`, `app`, Lila templates/assets;
   binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, and stores data under the
@@ -219,8 +274,10 @@ python -m unittest discover -s tests -v
 ```
 
 Tests cover routing/422, cache isolation, CSRF forms, sessions, seed secrets,
-schema column additions, admin coercion, deploy/backup generation, locale parity,
-native metrics, desktop locking/bridge and safe `main.py` patching.
+schema column additions, admin coercion, deploy/backup generation, the deploy
+setup wizard, auto-layout templates and component helpers, WebSocketHub,
+REST CRUD, locale parity, native metrics, desktop locking/bridge and safe
+`main.py` patching.
 
 ---
 

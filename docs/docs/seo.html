@@ -216,10 +216,13 @@ app = App(routes=[router])</code></pre>
 
             <h3>3. Template Integration</h3>
             <p>
-                <code>render()</code> injects the resolved SEO object into the Jinja2 context, and also
-                overrides the base <code>title</code>/<code>description</code>/<code>keywords</code>/<code>author</code>
-                values when the SEO object provides them. Access it in your layout
-                (<code>resources/html/lila/base.jinja</code>):
+                The default layout already renders everything through <code>lila/head.jinja</code>:
+                <code>&lt;title&gt;</code> (formatted with <code>TITLE_TEMPLATE</code>), description, keywords, author,
+                canonical, robots, Open Graph/Twitter tags, favicon and JSON-LD. Values from <code>@seo</code>/<code>SEO_CONFIG</code>
+                can be overridden per call: <code>render(request, "page", title="...", description="...", image="img/og.png",
+                canonical=True, jsonld={...})</code>. Precedence: <code>.env</code> &lt; <code>SEO_CONFIG</code>/<code>@seo</code> &lt;
+                <code>context</code> &lt; <code>render()</code> keywords. In a custom layout include
+                <code>{% include "lila/head.jinja" %}</code>, or use the <code>seo</code> dict directly as below:
             </p>
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">

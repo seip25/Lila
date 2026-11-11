@@ -445,7 +445,8 @@ lila optimize
                     a Bash starter and a Windows Server PowerShell starter. The generated
                     Nginx config enables WebSocket proxying, forwarded headers and
                     <code>gzip_static on</code> for the pre-compressed assets produced by
-                    <code>lila optimize</code>.
+                    <code>lila optimize</code>. See <a href="production.html">Production</a> for the
+                    interactive <code>sudo lila deploy setup</code> assistant.
                 </p>
             </div>
 
@@ -459,9 +460,9 @@ lila optimize
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
-
-# Generate deploy/start_lila.sh, deploy/<domain>.nginx.conf and systemd unit
+                    <pre><code class="language-bash">
+# Generate deploy/start_lila.sh, deploy/&lt;domain&gt;.nginx.conf and systemd unit
+# (service name: --service-name, else SERVICE_NAME in .env, else folder name)
 lila deploy --domain example.com --port 8000
 
 # Also generate the Redis worker unit (requires CACHE_DRIVER=redis)
@@ -469,8 +470,13 @@ lila deploy --domain example.com --with-worker
 
 # Override Unix service user/group and output directory
 lila deploy --user www-data --group www-data --out-dir deploy
-</code>
-</pre>
+
+# Guided install on a Linux server (asks S/N before each change):
+# .env for production, systemd service, Nginx site, Certbot HTTPS, health check
+sudo "$(which lila)" deploy setup
+sudo "$(which lila)" deploy setup --dry-run   # only print the commands
+sudo "$(which lila)" deploy setup --yes       # accept defaults (needs APP_URL)
+</code></pre>
                 </div>
             </div>
 

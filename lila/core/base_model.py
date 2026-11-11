@@ -334,12 +334,21 @@ class BaseModel(Base):
         limit: int = 1000,
         select: Optional[str] = None,
         offset: int = 0,
+        order_by: Optional[str] = None,
+        desc: bool = False,
         **filters,
     ) -> list:
         conn = cls.get_connection()
         if conn.is_async:
             return cls._run_sync(
-                cls.get_all_async(select_cols=select_cols or select, limit=limit, offset=offset, **filters)
+                cls.get_all_async(
+                    select_cols=select_cols or select,
+                    limit=limit,
+                    offset=offset,
+                    order_by=order_by,
+                    desc=desc,
+                    **filters,
+                )
             )
         with conn.transaction_sync() as session:
             query = session.query(cls)
@@ -347,6 +356,9 @@ class BaseModel(Base):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
             for col, value in cls._filter_columns(filters):
                 query = query.filter(col == value)
+            order_col = cls._column(order_by) if order_by else None
+            if order_col is not None:
+                query = query.order_by(order_col.desc() if desc else order_col.asc())
             rows = query.offset(offset).limit(limit).all()
             return [row.to_dict() for row in rows]
 
