@@ -237,6 +237,15 @@ return render(
   "errors"?, "redirect"?, "html"?}`.
 - Links inside `data-persist` elements take the server's `class`/`aria-current`
   after each navigation (active menu items stay correct).
+- UI attributes (no JS needed): `data-drawer="#id"` + `data-drawer-panel
+  data-orientation="left|right|top|bottom"` (`data-size`, `data-drawer-close`),
+  `data-dropdown="#menu"`, `data-toggle-class` (+`data-toggle-target`),
+  `data-toggle-hidden`, `data-remove`, `data-password-toggle`, `data-tab-target`,
+  `data-scroll`, `data-copy` (+`data-copy-message`), `data-confirm`,
+  `data-autosubmit`, `form[data-navigate]`, `data-char-count`, `data-filter`,
+  `<time data-local-time data-format="relative">`, `data-toggle="theme"`,
+  `data-modal-target`/`data-close-modal`. Escape closes drawers/dropdowns; SPA
+  navigation closes them too. JS: `Lila.drawer(el, "open")`, `Lila.copy(text)`.
 - `lila-client.js`: View Transitions, prefetch, `data-persist`, toast/snackbar,
   command palette, drawer, tabs, carousel and `ResponsiveDataTable`. Page scripts
   re-run on SPA navigation: use `var`/functions (not top-level `let`/`const`) and

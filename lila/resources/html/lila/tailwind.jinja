@@ -123,7 +123,8 @@
     background-color: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(4px);
     opacity: 0;
-    pointer-events: auto;
+    /* A closed (transparent) backdrop must never block clicks on the page. */
+    pointer-events: none;
     transition: opacity 0.3s ease;
   }
 

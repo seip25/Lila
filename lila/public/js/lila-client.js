@@ -846,38 +846,14 @@ function lila(component, options) {
     }
   }
 
-  // 5. Drawer
+  // 5. Drawer: lila('drawer', { id, action: 'open'|'close'|'toggle', orientation })
   if (component === "drawer") {
     cleanupOrphanedBackdrops();
-    const id = options && options.id;
-    const action = (options && options.action) || "toggle";
+    const id = options && String(options.id || "").replace(/^#/, "");
     if (!id) return;
     const drawerEl = document.getElementById(id);
     if (!drawerEl) return;
-
-    let overlay = document.querySelector(`.drawer-backdrop[data-for="${id}"]`);
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.className = "drawer-backdrop fixed inset-0 z-[9998] bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none";
-      overlay.setAttribute("data-for", id);
-      document.body.appendChild(overlay);
-      overlay.addEventListener("click", () => lila("drawer", { id, action: "close" }));
-    }
-
-    const isOpen = drawerEl.classList.contains("open");
-    if (action === "open" || (action === "toggle" && !isOpen)) {
-      drawerEl.classList.add("open");
-      drawerEl.classList.remove("translate-x-full", "-translate-x-full");
-      overlay.classList.add("open", "opacity-100", "pointer-events-auto");
-      overlay.classList.remove("opacity-0", "pointer-events-none");
-      document.body.style.overflow = "hidden";
-    } else if (action === "close" || (action === "toggle" && isOpen)) {
-      drawerEl.classList.remove("open");
-      drawerEl.classList.add(drawerEl.getAttribute("data-side") === "left" ? "-translate-x-full" : "translate-x-full");
-      overlay.classList.remove("open", "opacity-100", "pointer-events-auto");
-      overlay.classList.add("opacity-0", "pointer-events-none");
-      document.body.style.overflow = "";
-    }
+    return lilaDrawer(drawerEl, (options && options.action) || "toggle", options || {});
   }
 
   // 6. Carousel
@@ -959,6 +935,360 @@ function cleanupOrphanedBackdrops() {
     const targetId = b.getAttribute("data-for");
     if (!document.getElementById(targetId)) b.remove();
   });
+}
+
+/**
+ * Drawer with orientation. Markup:
+ *
+ *   <button data-drawer="#menu">Menu</button>
+ *   <aside id="menu" data-drawer-panel data-orientation="left" data-size="18rem" class="bg-white dark:bg-slate-900 p-6">
+ *     <button data-drawer-close>&times;</button> ...
+ *   </aside>
+ *
+ * data-orientation: left | right (default) | top | bottom (aliases: up, down,
+ * start, end). Closes with the backdrop, Escape, [data-drawer-close] and on SPA
+ * navigation. Focus moves into the drawer and back to the trigger.
+ */
+const LILA_DRAWER_SIDES = { left: "left", start: "left", right: "right", end: "right", top: "top", up: "top", bottom: "bottom", down: "bottom" };
+
+function lilaDrawerSide(el, options) {
+  const raw = String((options && (options.orientation || options.side)) || el.getAttribute("data-orientation") || el.getAttribute("data-side") || "right").toLowerCase();
+  return LILA_DRAWER_SIDES[raw] || "right";
+}
+
+function lilaPrepareDrawer(el, side) {
+  if (el._lilaDrawerSide === side) return;
+  el._lilaDrawerSide = side;
+  el.classList.add("drawer");
+  el.classList.remove("translate-x-full", "-translate-x-full");
+  const size = el.getAttribute("data-size");
+  const horizontal = side === "left" || side === "right";
+  Object.assign(el.style, {
+    position: "fixed",
+    zIndex: "9999",
+    top: side === "bottom" ? "auto" : "0",
+    bottom: side === "top" ? "auto" : "0",
+    left: side === "right" ? "auto" : "0",
+    right: side === "left" ? "auto" : "0",
+    width: horizontal ? (size || "20rem") : "100%",
+    maxWidth: horizontal ? "85vw" : "100%",
+    height: horizontal ? "100%" : (size || "auto"),
+    maxHeight: horizontal ? "100%" : "85vh",
+    overflowY: "auto",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    boxShadow: "0 0 24px rgba(0, 0, 0, 0.15)",
+  });
+  el.setAttribute("role", el.getAttribute("role") || "dialog");
+  el.setAttribute("aria-modal", "true");
+  if (!el.classList.contains("open")) {
+    el.style.transform = lilaDrawerHidden(side);
+    el.setAttribute("aria-hidden", "true");
+    el.inert = true;
+  }
+}
+
+function lilaDrawerHidden(side) {
+  return { left: "translateX(-100%)", right: "translateX(100%)", top: "translateY(-100%)", bottom: "translateY(100%)" }[side];
+}
+
+function lilaDrawer(el, action = "toggle", options = {}) {
+  const id = el.id;
+  const side = lilaDrawerSide(el, options);
+  lilaPrepareDrawer(el, side);
+
+  let overlay = el._lilaOverlay && el._lilaOverlay.isConnected ? el._lilaOverlay
+    : id ? document.querySelector(`.drawer-backdrop[data-for="${CSS.escape(id)}"]`) : null;
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.className = "drawer-backdrop fixed inset-0 z-[9998] bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none";
+    overlay.style.pointerEvents = "none";
+    if (id) overlay.setAttribute("data-for", id);
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", () => lilaDrawer(el, "close"));
+  }
+  el._lilaOverlay = overlay;
+
+  const isOpen = el.classList.contains("open");
+  const open = action === "open" || (action === "toggle" && !isOpen);
+  if (open && !isOpen) {
+    el._lilaReturnFocus = document.activeElement;
+    el.classList.add("open");
+    el.style.transform = "none";
+    el.inert = false;
+    el.setAttribute("aria-hidden", "false");
+    overlay.classList.add("open", "opacity-100", "pointer-events-auto");
+    overlay.classList.remove("opacity-0", "pointer-events-none");
+    overlay.style.pointerEvents = "auto";
+    document.body.style.overflow = "hidden";
+    if (id) document.querySelectorAll(`[data-drawer="#${CSS.escape(id)}"], [data-drawer="${CSS.escape(id)}"], [data-drawer-target="${CSS.escape(id)}"]`)
+      .forEach((t) => t.setAttribute("aria-expanded", "true"));
+    const focusable = el.querySelector("[autofocus], a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex='-1'])");
+    if (focusable) setTimeout(() => focusable.focus(), 50);
+    el.dispatchEvent(new CustomEvent("lila:drawer-open", { bubbles: true }));
+  } else if (!open && isOpen) {
+    el.classList.remove("open");
+    el.style.transform = lilaDrawerHidden(side);
+    el.setAttribute("aria-hidden", "true");
+    el.inert = true;
+    overlay.classList.remove("open", "opacity-100", "pointer-events-auto");
+    overlay.classList.add("opacity-0", "pointer-events-none");
+    overlay.style.pointerEvents = "none";
+    if (!document.querySelector(".drawer.open")) document.body.style.overflow = "";
+    if (id) document.querySelectorAll(`[data-drawer="#${CSS.escape(id)}"], [data-drawer="${CSS.escape(id)}"], [data-drawer-target="${CSS.escape(id)}"]`)
+      .forEach((t) => t.setAttribute("aria-expanded", "false"));
+    if (el._lilaReturnFocus && el._lilaReturnFocus.isConnected) el._lilaReturnFocus.focus();
+    el.dispatchEvent(new CustomEvent("lila:drawer-close", { bubbles: true }));
+  }
+  return el;
+}
+
+/**
+ * Small declarative utilities (all optional, no setup):
+ *   data-dropdown="#menu"            toggle a menu; closes on outside click / Escape
+ *   data-toggle-class="a b" [data-toggle-target="#el"]   toggle classes (default: itself)
+ *   data-remove ["#el"]              remove an element (default: closest [data-removable] or parent)
+ *   data-password-toggle="#input"    show / hide a password
+ *   data-tab-target="panelId"        tabs (.tabs > .tab-trigger + .tab-content)
+ *   data-scroll="#id" | data-scroll  smooth scroll to an element (or the top)
+ *   data-autosubmit[="ms"]           submit the form on change / after typing
+ *   form[data-navigate]              GET form -> SPA navigation with the query string
+ *   data-char-count="#counter"       "n / maxlength" counter
+ *   data-filter="#list"              filter list items by text
+ *   <time data-local-time datetime="..." data-format="date|time|datetime|relative">
+ *   data-copy="text | #selector" [data-copy-message="Copied!"]
+ */
+function lilaTargets(value, fallback) {
+  if (typeof value === "string" && value.trim()) return Array.from(document.querySelectorAll(value));
+  return fallback ? [fallback] : [];
+}
+
+function lilaCloseDropdowns(except) {
+  document.querySelectorAll("[data-dropdown][aria-expanded='true']").forEach((trigger) => {
+    if (trigger === except) return;
+    trigger.setAttribute("aria-expanded", "false");
+    lilaTargets(trigger.getAttribute("data-dropdown")).forEach((menu) => {
+      menu.hidden = true;
+      menu.classList.add("hidden");
+    });
+  });
+}
+
+async function lilaCopyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Non-secure origins (http://) have no clipboard API: legacy fallback.
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch {}
+    area.remove();
+    return ok;
+  }
+}
+
+function lilaUpdateCharCount(field) {
+  const counter = document.querySelector(field.getAttribute("data-char-count"));
+  if (!counter) return;
+  const max = field.getAttribute("maxlength");
+  counter.textContent = max ? `${field.value.length} / ${max}` : String(field.value.length);
+  counter.classList.toggle("text-red-500", !!max && field.value.length >= Number(max));
+}
+
+function lilaApplyFilter(input) {
+  const term = input.value.trim().toLowerCase();
+  lilaTargets(input.getAttribute("data-filter")).forEach((list) => {
+    const items = list.querySelectorAll("[data-filter-item]").length
+      ? list.querySelectorAll("[data-filter-item]")
+      : list.children;
+    let visible = 0;
+    Array.from(items).forEach((item) => {
+      const match = !term || item.textContent.toLowerCase().includes(term);
+      item.hidden = !match;
+      if (match) visible++;
+    });
+    const empty = list.querySelector("[data-filter-empty]") || document.querySelector(`[data-filter-empty="${CSS.escape(input.getAttribute("data-filter"))}"]`);
+    if (empty) empty.hidden = visible > 0;
+  });
+}
+
+function lilaFormatTime(el) {
+  const raw = el.getAttribute("datetime") || el.getAttribute("data-local-time") || el.textContent;
+  const date = new Date(raw);
+  if (!raw || isNaN(date.getTime())) return;
+  const lang = document.documentElement.lang || undefined;
+  const format = el.getAttribute("data-format") || "datetime";
+  if (format === "relative") {
+    const diff = (date.getTime() - Date.now()) / 1000;
+    const units = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60], ["second", 1]];
+    const [unit, secs] = units.find(([, s]) => Math.abs(diff) >= s) || ["second", 1];
+    try {
+      el.textContent = new Intl.RelativeTimeFormat(lang, { numeric: "auto" }).format(Math.round(diff / secs), unit);
+    } catch { el.textContent = date.toLocaleString(lang); }
+  } else {
+    const opts = format === "date" ? { dateStyle: "medium" } : format === "time" ? { timeStyle: "short" } : { dateStyle: "medium", timeStyle: "short" };
+    try { el.textContent = new Intl.DateTimeFormat(lang, opts).format(date); } catch { el.textContent = date.toLocaleString(lang); }
+  }
+  if (!el.title) el.title = date.toISOString();
+}
+
+function lilaInitUtilities(root = document) {
+  root.querySelectorAll("[data-char-count]").forEach(lilaUpdateCharCount);
+  root.querySelectorAll("time[data-local-time], [data-local-time]").forEach(lilaFormatTime);
+  root.querySelectorAll("[data-filter]").forEach((input) => { if (input.value) lilaApplyFilter(input); });
+  root.querySelectorAll("[data-drawer-panel], [data-orientation].drawer").forEach((panel) => lilaPrepareDrawer(panel, lilaDrawerSide(panel)));
+}
+
+if (typeof window !== "undefined" && !window.__LILA_UTILS_BOUND__) {
+  window.__LILA_UTILS_BOUND__ = true;
+
+  document.addEventListener("click", (e) => {
+    if (e.button !== 0) return;
+    const t = e.target;
+
+    const drawerTrigger = t.closest("[data-drawer]:not([data-drawer-panel])");
+    if (drawerTrigger) {
+      e.preventDefault();
+      const panel = document.querySelector(drawerTrigger.getAttribute("data-drawer").startsWith("#")
+        ? drawerTrigger.getAttribute("data-drawer")
+        : `#${CSS.escape(drawerTrigger.getAttribute("data-drawer"))}`);
+      if (panel) lilaDrawer(panel, drawerTrigger.getAttribute("data-drawer-action") || "toggle",
+        drawerTrigger.hasAttribute("data-orientation") ? { orientation: drawerTrigger.getAttribute("data-orientation") } : {});
+      return;
+    }
+    const drawerClose = t.closest("[data-drawer-close]");
+    if (drawerClose) {
+      const panel = drawerClose.closest(".drawer") || document.querySelector(drawerClose.getAttribute("data-drawer-close"));
+      if (panel) { e.preventDefault(); lilaDrawer(panel, "close"); }
+      return;
+    }
+    // Links inside an open drawer close it when they navigate.
+    const drawerLink = t.closest(".drawer.open a[href]:not([href^='#'])");
+    if (drawerLink && !drawerLink.hasAttribute("data-keep-open")) lilaDrawer(drawerLink.closest(".drawer"), "close");
+
+    const dropdownTrigger = t.closest("[data-dropdown]");
+    if (dropdownTrigger) {
+      e.preventDefault();
+      const open = dropdownTrigger.getAttribute("aria-expanded") !== "true";
+      lilaCloseDropdowns(dropdownTrigger);
+      dropdownTrigger.setAttribute("aria-expanded", String(open));
+      lilaTargets(dropdownTrigger.getAttribute("data-dropdown")).forEach((menu) => {
+        menu.hidden = !open;
+        menu.classList.toggle("hidden", !open);
+      });
+      return;
+    }
+    if (!t.closest("[data-dropdown-menu], [data-dropdown-keep]")) lilaCloseDropdowns(null);
+
+    const classToggler = t.closest("[data-toggle-class]");
+    if (classToggler) {
+      const classes = classToggler.getAttribute("data-toggle-class").split(/\s+/).filter(Boolean);
+      lilaTargets(classToggler.getAttribute("data-toggle-target"), classToggler)
+        .forEach((el) => classes.forEach((c) => el.classList.toggle(c)));
+      if (classToggler.tagName === "A") e.preventDefault();
+      return;
+    }
+
+    const remover = t.closest("[data-remove]");
+    if (remover) {
+      e.preventDefault();
+      const targets = lilaTargets(remover.getAttribute("data-remove"), remover.closest("[data-removable]") || remover.parentElement);
+      targets.forEach((el) => {
+        el.style.transition = "opacity 200ms ease";
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 200);
+      });
+      return;
+    }
+
+    const pwd = t.closest("[data-password-toggle]");
+    if (pwd) {
+      e.preventDefault();
+      lilaTargets(pwd.getAttribute("data-password-toggle")).forEach((input) => {
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        pwd.setAttribute("aria-pressed", String(show));
+        const label = pwd.getAttribute(show ? "data-hide-text" : "data-show-text");
+        if (label) pwd.textContent = label;
+      });
+      return;
+    }
+
+    const tab = t.closest("[data-tab-target]");
+    if (tab) {
+      e.preventDefault();
+      lila("tab", { id: tab.getAttribute("data-tab-target").replace(/^#/, "") });
+      return;
+    }
+
+    const scroller = t.closest("[data-scroll]");
+    if (scroller) {
+      e.preventDefault();
+      const target = scroller.getAttribute("data-scroll");
+      const el = target ? document.querySelector(target) : null;
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    lilaCloseDropdowns(null);
+    document.querySelectorAll(".drawer.open").forEach((d) => lilaDrawer(d, "close"));
+  });
+
+  document.addEventListener("input", (e) => {
+    const el = e.target;
+    if (!el || !el.hasAttribute) return;
+    if (el.hasAttribute("data-char-count")) lilaUpdateCharCount(el);
+    if (el.hasAttribute("data-filter")) lilaApplyFilter(el);
+    const form = el.form;
+    const auto = el.hasAttribute("data-autosubmit") ? el : form && form.hasAttribute("data-autosubmit") ? form : null;
+    if (auto && form && /^(text|search|email|number|tel|url)$/.test(el.type || "") ) {
+      const delay = Number(auto.getAttribute("data-autosubmit")) || 400;
+      clearTimeout(form._lilaAutoTimer);
+      form._lilaAutoTimer = setTimeout(() => form.requestSubmit(), delay);
+    }
+  });
+
+  document.addEventListener("change", (e) => {
+    const el = e.target;
+    const form = el && el.form;
+    if (!form) return;
+    if (/^(text|search|email|number|tel|url|password)$/.test(el.type || "") || el.tagName === "TEXTAREA") return;
+    if (el.hasAttribute("data-autosubmit") || form.hasAttribute("data-autosubmit")) form.requestSubmit();
+  });
+
+  // GET forms with data-navigate: filters/search as SPA navigation.
+  document.addEventListener("submit", (e) => {
+    const form = e.target;
+    if (!form.hasAttribute || !form.hasAttribute("data-navigate") || form.hasAttribute("data-lila-form")) return;
+    e.preventDefault();
+    const params = new URLSearchParams();
+    for (const [key, value] of new FormData(form).entries()) {
+      if (value !== "" && typeof value === "string") params.append(key, value);
+    }
+    const base = form.getAttribute("action") || window.location.pathname;
+    const url = params.toString() ? `${base}?${params}` : base;
+    if (window.Lila && Lila.navigate) Lila.navigate(url, { scroll: form.getAttribute("data-scroll-top") !== "false" });
+    else window.location.href = url;
+  });
+
+  window.addEventListener("lila:before-swap", () => {
+    lilaCloseDropdowns(null);
+    document.querySelectorAll(".drawer.open").forEach((d) => lilaDrawer(d, "close"));
+    document.body.style.overflow = "";
+  });
+  window.addEventListener("lila:page-load", () => lilaInitUtilities());
+  window.addEventListener("lila:partial-load", (e) => lilaInitUtilities((e.detail && e.detail.target) || document));
+  if (document.readyState !== "loading") lilaInitUtilities();
+  else document.addEventListener("DOMContentLoaded", () => lilaInitUtilities());
 }
 
 /**
@@ -1232,13 +1562,19 @@ if (!window.__LILA_UI_BOUND__) {
         if (el) textToCopy = el.value !== undefined ? el.value : (el.innerText || el.textContent);
       }
       if (textToCopy) {
-        navigator.clipboard.writeText(textToCopy.trim()).then(() => {
-          lila("toast", {
-            title: "Copied",
-            description: textToCopy.length > 40 ? textToCopy.substring(0, 40) + "..." : textToCopy,
-            type: "success",
-            duration: 2500,
-          });
+        lilaCopyText(textToCopy.trim()).then((ok) => {
+          const custom = copyTrigger.getAttribute("data-copy-message");
+          if (copyTrigger.hasAttribute("data-copy-silent")) return;
+          if (custom) {
+            lila("snackbar", { message: ok ? custom : "Copy failed", type: ok ? "success" : "error", duration: 2000 });
+          } else {
+            lila("toast", {
+              title: ok ? "Copied" : "Copy failed",
+              description: textToCopy.length > 40 ? textToCopy.substring(0, 40) + "..." : textToCopy,
+              type: ok ? "success" : "error",
+              duration: 2500,
+            });
+          }
         });
       }
       return;
@@ -1486,7 +1822,11 @@ function lilaSwap(el, result) {
   else if (mode === "append") target.insertAdjacentHTML("beforeend", html);
   else if (mode === "prepend") target.insertAdjacentHTML("afterbegin", html);
   else target.innerHTML = html;
-  if (mode !== "text") lilaInitComponents(mode === "outer" ? document : target);
+  if (mode !== "text") {
+    const root = mode === "outer" ? document : target;
+    lilaInitComponents(root);
+    lilaInitUtilities(root);
+  }
 }
 
 function lilaRefresh(selector) {
@@ -1985,4 +2325,6 @@ if (typeof window !== "undefined") {
   window.Lila.submit = (form, submitter) => lilaSubmitForm(typeof form === "string" ? document.querySelector(form) : form, submitter);
   window.Lila.action = (el) => lilaRunAction(typeof el === "string" ? document.querySelector(el) : el);
   window.Lila.refresh = lilaRefresh;
+  window.Lila.drawer = (el, action, opts) => lilaDrawer(typeof el === "string" ? document.querySelector(el) : el, action, opts);
+  window.Lila.copy = lilaCopyText;
 }

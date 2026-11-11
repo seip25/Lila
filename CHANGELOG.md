@@ -26,6 +26,12 @@ All notable changes to Lila Framework. The format follows
   `data-reload`, `data-target`/`data-swap`, `data-refresh`, `data-callback`,
   `data-toggle-hidden`; 422 errors are shown under each field. The auth
   scaffold templates no longer contain page scripts.
+- UI attributes: `data-drawer` + `data-drawer-panel data-orientation=
+  "left|right|top|bottom"` (focus handling, Escape, closes on navigation),
+  `data-dropdown`, `data-toggle-class`, `data-remove`, `data-password-toggle`,
+  `data-tab-target`, `data-scroll`, `data-autosubmit`, `form[data-navigate]`,
+  `data-char-count`, `data-filter`, `<time data-local-time>`;
+  `data-copy` works on http:// and accepts `data-copy-message`.
 - Plain-HTML carousel: `data-carousel`, `data-carousel-slide`,
   `data-carousel-autoplay|loop|arrows|indicators|pause`;
   `lila('carousel', ...)` returns controllers.
@@ -59,6 +65,9 @@ All notable changes to Lila Framework. The format follows
 - `lila deploy`: `WorkingDirectory` without quotes (systemd), `www.` server
   names.
 - Sync `get_all()` supports `order_by`/`desc`.
+- A closed drawer's transparent backdrop kept intercepting every click on the
+  page (`.drawer-backdrop` had `pointer-events: auto`); left drawers opened on
+  the right.
 - Admin sidebar: the active item follows SPA navigation (persisted links are
   synchronized), no nested duplicate `#admin-sidebar`, active matching works
   with custom prefixes and does not confuse `/user` with `/users`.

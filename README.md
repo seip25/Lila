@@ -171,6 +171,12 @@ HTML5 validation, CSRF, disabled buttons with a spinner, messages from the API
 (`success`, `message`/`msg`, 422 `errors` per field), redirects and table refreshes
 are handled by `lila-client.js`.
 
+Everyday UI without page scripts: `data-drawer` (left/right/top/bottom),
+`data-dropdown`, `data-copy`, `data-confirm`, `data-toggle-class`, `data-remove`,
+`data-password-toggle`, `data-filter`, `data-char-count`, `data-autosubmit`,
+`data-tab-target`, `data-carousel`, `<time data-local-time>` — see the
+[client docs](https://seip25.github.io/Lila/docs/client.html).
+
 ### Models and migrations
 
 ```python
