@@ -14,8 +14,21 @@ from lila.core.responses import orjson_dumps, orjson_loads
 from lila.core.cache import Cache, has_redis
 
 
+MAX_ROOM_NAME = 128
+MAX_ROOMS_PER_CLIENT = 50
+
+
 class WebSocketHub:
-    """Core WebSocket Hub supporting declarative events and rooms."""
+    """Core WebSocket Hub supporting declarative events and rooms.
+
+    Client-initiated ``join`` requests go through :meth:`can_join` (allow all
+    by default). Protect private rooms such as ``user:42``::
+
+        @hub.can_join
+        async def allow(websocket, room):
+            user = websocket.scope.get("session_user")
+            return not room.startswith("user:") or room == f"user:{user['id']}"
+    """
 
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
@@ -28,6 +41,7 @@ class WebSocketHub:
         self.loop = None
         self._pubsub_started = False
         self._send_locks: Dict[WebSocket, asyncio.Lock] = {}
+        self.join_guard: Optional[Callable] = None
 
     def _ensure_pubsub(self) -> None:
         """Starts the Redis listener lazily (Redis may be configured after import)."""
@@ -91,6 +105,30 @@ class WebSocketHub:
         self.disconnect_handlers.append(fn)
         return fn
 
+    def can_join(self, fn: Callable):
+        """Decorator: ``fn(websocket, room) -> bool`` authorizes client joins."""
+        self.join_guard = fn
+        return fn
+
+    async def _client_join(self, websocket: WebSocket, room_name: str) -> bool:
+        if not room_name or len(room_name) > MAX_ROOM_NAME:
+            return False
+        rooms = self.client_rooms.get(websocket, set())
+        if room_name not in rooms and len(rooms) >= MAX_ROOMS_PER_CLIENT:
+            return False
+        if self.join_guard is not None:
+            try:
+                allowed = self.join_guard(websocket, room_name)
+                if asyncio.iscoroutine(allowed):
+                    allowed = await allowed
+            except Exception as err:
+                Logger.error(f"WebSocket can_join guard error: {err}")
+                allowed = False
+            if not allowed:
+                return False
+        self.join_room(websocket, room_name)
+        return True
+
     async def connect(self, websocket: WebSocket, room: Optional[str] = None) -> None:
         """Accepts connection and tracks in active set."""
         await websocket.accept()
@@ -116,7 +154,11 @@ class WebSocketHub:
                 Logger.error(f"WebSocket on_connect handler error: {e}")
 
     def disconnect(self, websocket: WebSocket) -> None:
-        """Removes websocket from active connections and rooms."""
+        """Removes websocket from active connections and rooms (idempotent:
+        on_disconnect handlers run once even if a failed send already
+        disconnected the client)."""
+        if websocket not in self.active_connections:
+            return
         self.active_connections.discard(websocket)
         self._send_locks.pop(websocket, None)
         rooms_to_leave = set(self.client_rooms.pop(websocket, set()))
@@ -257,8 +299,8 @@ class WebSocketHub:
 
                 if event == "join":
                     room_name = str(data or "")
-                    if room_name:
-                        self.join_room(websocket, room_name)
+                    if not await self._client_join(websocket, room_name):
+                        await self.emit(websocket, "join:denied", room_name[:MAX_ROOM_NAME])
                     continue
 
                 if event == "leave":

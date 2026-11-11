@@ -38,5 +38,5 @@
 <link rel="stylesheet" href="{{ href }}" data-lila-head />{% endfor %}
 {{ p.jsonld | default('') }}
 {% for src in p.scripts | default([]) %}
-<script src="{{ src }}" defer data-lila-head></script>{% endfor %}
+<script src="{{ src }}" data-lila-head></script>{% endfor %}
 {{ p.head | default('') }}

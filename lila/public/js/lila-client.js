@@ -210,10 +210,10 @@ function lilaEscapeAttr(value) {
           const outlet = parsed.querySelector("[data-lila-outlet]");
           if (outlet) fragment = outlet.innerHTML;
         } catch {}
-        const applyPartial = () => {
+        const applyPartial = async () => {
           Lila.unmountNonPersistent(targetEl);
           targetEl.innerHTML = fragment;
-          executeScripts(targetEl);
+          await executeScripts(targetEl);
           Lila.hydrate(targetEl);
           if (options.pushUrl) {
             window.history.pushState({}, "", url);
@@ -229,7 +229,7 @@ function lilaEscapeAttr(value) {
         if (options.transition && document.startViewTransition) {
           await document.startViewTransition(applyPartial).finished;
         } else {
-          applyPartial();
+          await applyPartial();
         }
         return true;
       } catch {
@@ -265,11 +265,9 @@ function lilaEscapeAttr(value) {
         const nextDoc = parser.parseFromString(html, "text/html");
 
         if (document.startViewTransition) {
-          await document.startViewTransition(() => {
-            swapDocument(nextDoc, targetUrl, options);
-          }).finished;
+          await document.startViewTransition(() => swapDocument(nextDoc, targetUrl, options)).finished;
         } else {
-          swapDocument(nextDoc, targetUrl, options);
+          await swapDocument(nextDoc, targetUrl, options);
         }
       } catch {
         window.location.href = url;
@@ -277,7 +275,11 @@ function lilaEscapeAttr(value) {
     },
   };
 
-  function swapDocument(nextDoc, url, options) {
+  async function swapDocument(nextDoc, url, options) {
+    // Lets page-scoped resources (LilaWS sockets, timers) clean up before the
+    // outlet is replaced. Listeners registered by the *next* page are added
+    // after this event, so they are not affected.
+    window.dispatchEvent(new CustomEvent("lila:before-swap", { detail: { url } }));
     const currentPersistNodes = new Map();
     const currentPersistElements = document.querySelectorAll('[data-persist="true"]');
 
@@ -289,7 +291,7 @@ function lilaEscapeAttr(value) {
     Lila.unmountNonPersistent();
 
     document.title = nextDoc.title || document.title;
-    updateHeadTags(nextDoc);
+    await updateHeadTags(nextDoc);
 
     const nextPersistElements = nextDoc.querySelectorAll('[data-persist="true"]');
     nextPersistElements.forEach((nextEl, index) => {
@@ -315,7 +317,7 @@ function lilaEscapeAttr(value) {
 
     if (canSwapOutletOnly) {
       currentOutlet.innerHTML = nextOutlet.innerHTML;
-      executeScripts(currentOutlet);
+      await executeScripts(currentOutlet);
       Lila.hydrate(currentOutlet);
     } else {
       // Sync body attributes (classes, styles, layout) so standalone pages like admin login stay centered
@@ -333,7 +335,7 @@ function lilaEscapeAttr(value) {
         }
       }
 
-      executeScripts(document.body);
+      await executeScripts(document.body);
       Lila.hydrate();
     }
 
@@ -356,25 +358,46 @@ function lilaEscapeAttr(value) {
     window.dispatchEvent(new CustomEvent("lila:load", { detail: pageLoadDetail }));
   }
 
-  function executeScripts(container) {
+  function cloneScript(oldScript) {
+    const script = document.createElement("script");
+    for (const attr of Array.from(oldScript.attributes)) {
+      script.setAttribute(attr.name, attr.value);
+    }
+    script.textContent = oldScript.textContent;
+    return script;
+  }
+
+  // Inserts a script and resolves once it ran. External scripts are awaited so
+  // the next inline script can use the library (dynamic scripts are async).
+  function runScript(script, insert) {
+    const isExternal = script.hasAttribute("src");
+    const type = (script.getAttribute("type") || "").toLowerCase();
+    const executable = !type || type === "module" || type.includes("javascript");
+    if (!isExternal || !executable) {
+      insert(script);
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      script.async = false;
+      script.addEventListener("load", resolve, { once: true });
+      script.addEventListener("error", resolve, { once: true });
+      insert(script);
+    });
+  }
+
+  async function executeScripts(container) {
     const scripts = Array.from(container.querySelectorAll("script"));
     for (const oldScript of scripts) {
       if (oldScript.getAttribute("data-persist") === "true") continue;
       const src = oldScript.getAttribute("src") || "";
       if (src.includes("lila-client.js")) continue;
-
-      const newScript = document.createElement("script");
-      for (const attr of Array.from(oldScript.attributes)) {
-        newScript.setAttribute(attr.name, attr.value);
-      }
-      newScript.textContent = oldScript.textContent;
-      if (oldScript.parentNode) {
-        oldScript.parentNode.replaceChild(newScript, oldScript);
-      }
+      if (!oldScript.parentNode) continue;
+      const newScript = cloneScript(oldScript);
+      await runScript(newScript, (el) => oldScript.parentNode && oldScript.parentNode.replaceChild(el, oldScript));
     }
   }
 
-  function updateHeadTags(nextDoc) {
+  async function updateHeadTags(nextDoc) {
     const currentMeta = document.head.querySelectorAll("meta[name], meta[property]");
     currentMeta.forEach((el) => el.remove());
 
@@ -392,16 +415,11 @@ function lilaEscapeAttr(value) {
       if (nextKeys.has(el.outerHTML)) keep.add(el.outerHTML);
       else el.remove();
     });
+    const pendingScripts = [];
     nextHeadTags.forEach((el) => {
       if (keep.has(el.outerHTML)) return;
-      if (el.tagName === "SCRIPT") {
-        const script = document.createElement("script");
-        for (const attr of Array.from(el.attributes)) script.setAttribute(attr.name, attr.value);
-        script.textContent = el.textContent;
-        document.head.appendChild(script);
-      } else {
-        document.head.appendChild(document.importNode(el, true));
-      }
+      if (el.tagName === "SCRIPT") pendingScripts.push(el);
+      else document.head.appendChild(document.importNode(el, true));
     });
 
     const nextLang = nextDoc.documentElement.getAttribute("lang");
@@ -417,6 +435,10 @@ function lilaEscapeAttr(value) {
       }
     } else if (currentCanonical) {
       currentCanonical.remove();
+    }
+
+    for (const el of pendingScripts) {
+      await runScript(cloneScript(el), (script) => document.head.appendChild(script));
     }
   }
 
@@ -919,32 +941,198 @@ function cleanupOrphanedBackdrops() {
   });
 }
 
+/**
+ * Carousel (scroll-snap + Tailwind). Markup:
+ *
+ *   <div class="carousel" data-lila-carousel data-autoplay="5000" data-loop="true">
+ *     <div class="carousel-track">
+ *       <div class="carousel-item basis-full md:basis-1/2">...</div>
+ *     </div>
+ *     <button class="carousel-prev">‹</button><button class="carousel-next">›</button>
+ *     <div class="carousel-indicators"></div>
+ *   </div>
+ *
+ * Or from Jinja: {{ carousel(slides, autoplay=5000) }}. Auto-initialized on
+ * every page load / SPA navigation; native touch swipe via scroll-snap.
+ */
 function initSingleCarousel(carousel, opts = {}) {
-  if (carousel._lila_initialized) return;
+  if (carousel._lila_initialized) return carousel._lila_carousel;
+  const track = carousel.querySelector(".carousel-track");
+  if (!track) return null;
+  const items = Array.from(track.querySelectorAll(".carousel-item, .carousel-card"));
+  if (items.length === 0) return null;
   carousel._lila_initialized = true;
 
-  const track = carousel.querySelector(".carousel-track");
-  if (!track) return;
-  const items = Array.from(track.querySelectorAll(".carousel-item, .carousel-card"));
-  if (items.length === 0) return;
+  const data = carousel.dataset || {};
+  const autoplay = Number(opts.autoplay !== undefined ? opts.autoplay : data.autoplay || 0);
+  const loop = String(opts.loop !== undefined ? opts.loop : data.loop !== undefined ? data.loop : "true") !== "false";
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const prevBtn = carousel.querySelector(".carousel-prev");
   const nextBtn = carousel.querySelector(".carousel-next");
-  let indicatorsContainer = carousel.querySelector(".carousel-indicators");
-  let currentSlideIndex = 0;
+  let indicators = carousel.querySelector(".carousel-indicators");
+  let current = 0;
+  let timer = null;
+  let paused = false;
 
-  function scrollToSlide(index) {
-    if (index < 0) index = 0;
-    if (index >= items.length) index = items.length - 1;
-    currentSlideIndex = index;
-    const targetItem = items[index];
-    if (targetItem) {
-      track.scrollTo({ left: targetItem.offsetLeft - track.offsetLeft, behavior: "smooth" });
+  carousel.setAttribute("role", carousel.getAttribute("role") || "region");
+  carousel.setAttribute("aria-roledescription", "carousel");
+  if (!carousel.hasAttribute("tabindex")) carousel.setAttribute("tabindex", "0");
+  items.forEach((item, i) => {
+    item.setAttribute("role", "group");
+    item.setAttribute("aria-roledescription", "slide");
+    item.setAttribute("aria-label", `${i + 1} / ${items.length}`);
+  });
+
+  const dots = [];
+  if (indicators && opts.indicators !== false) {
+    indicators.innerHTML = "";
+    items.forEach((_, i) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "carousel-dot w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 transition-all cursor-pointer";
+      dot.setAttribute("aria-label", `Slide ${i + 1}`);
+      dot.addEventListener("click", () => go(i));
+      indicators.appendChild(dot);
+      dots.push(dot);
+    });
+  }
+
+  function paint() {
+    dots.forEach((dot, i) => {
+      const active = i === current;
+      dot.classList.toggle("bg-blue-600", active);
+      dot.classList.toggle("w-6", active);
+      dot.classList.toggle("bg-slate-300", !active);
+      dot.setAttribute("aria-current", active ? "true" : "false");
+    });
+    if (!loop) {
+      if (prevBtn) prevBtn.disabled = current === 0;
+      if (nextBtn) nextBtn.disabled = current >= items.length - 1;
     }
   }
 
-  if (prevBtn) prevBtn.addEventListener("click", () => scrollToSlide(currentSlideIndex - 1));
-  if (nextBtn) nextBtn.addEventListener("click", () => scrollToSlide(currentSlideIndex + 1));
+  function go(index) {
+    if (loop) index = (index + items.length) % items.length;
+    else index = Math.max(0, Math.min(index, items.length - 1));
+    current = index;
+    track.scrollTo({ left: items[index].offsetLeft - track.offsetLeft, behavior: reduceMotion ? "auto" : "smooth" });
+    paint();
+  }
+
+  // Keep the active index in sync with manual swipes / trackpad scrolling.
+  let scrollRaf = 0;
+  track.addEventListener("scroll", () => {
+    cancelAnimationFrame(scrollRaf);
+    scrollRaf = requestAnimationFrame(() => {
+      const left = track.scrollLeft + track.offsetLeft;
+      let best = 0;
+      let bestDist = Infinity;
+      items.forEach((item, i) => {
+        const dist = Math.abs(item.offsetLeft - left);
+        if (dist < bestDist) { bestDist = dist; best = i; }
+      });
+      if (best !== current) { current = best; paint(); }
+    });
+  }, { passive: true });
+
+  if (prevBtn) prevBtn.addEventListener("click", () => { go(current - 1); restart(); });
+  if (nextBtn) nextBtn.addEventListener("click", () => { go(current + 1); restart(); });
+  carousel.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); restart(); }
+    if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); restart(); }
+  });
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+  function start() {
+    stop();
+    if (!autoplay || reduceMotion || items.length < 2) return;
+    timer = setInterval(() => {
+      // Removed by an SPA navigation: release the timer.
+      if (!carousel.isConnected) { stop(); return; }
+      if (!paused && !document.hidden) go(current + 1);
+    }, Math.max(1500, autoplay));
+  }
+  function restart() { if (timer) start(); }
+
+  carousel.addEventListener("mouseenter", () => { paused = true; });
+  carousel.addEventListener("mouseleave", () => { paused = false; });
+  carousel.addEventListener("focusin", () => { paused = true; });
+  carousel.addEventListener("focusout", () => { paused = false; });
+
+  paint();
+  start();
+
+  const api = { go, next: () => go(current + 1), prev: () => go(current - 1), start, stop, get index() { return current; } };
+  carousel._lila_carousel = api;
+  return api;
+}
+
+/**
+ * Declarative components (Jinja helpers ``datatable()`` / ``carousel()``).
+ * Runs on the first load, after each SPA navigation and partial swap.
+ */
+function lilaResolveFn(value) {
+  if (typeof value === "function") return value;
+  if (typeof value !== "string" || !value) return false;
+  return value.split(".").reduce((obj, key) => (obj ? obj[key] : undefined), window) || false;
+}
+
+function lilaInitDataTable(el) {
+  if (el._lila_datatable) return el._lila_datatable;
+  const cfgEl = document.getElementById(`${el.id}-config`);
+  let cfg = {};
+  try {
+    cfg = cfgEl ? JSON.parse(cfgEl.textContent || "{}") : {};
+  } catch (err) {
+    console.error("[LILA DATATABLE] Invalid config for", el.id, err);
+    return null;
+  }
+  const options = Object.assign({}, cfg);
+  delete options.url;
+  delete options.dataKey;
+  ["edit", "delete"].forEach((key) => {
+    if (options[key]) options[key] = lilaResolveFn(options[key]);
+  });
+
+  const build = (rows) => {
+    options.data = Array.isArray(rows) ? rows : [];
+    el._lila_datatable = new ResponsiveDataTable(el, options);
+    el.dispatchEvent(new CustomEvent("lila:datatable-ready", { detail: el._lila_datatable, bubbles: true }));
+    return el._lila_datatable;
+  };
+
+  if (cfg.url && typeof Http === "function") {
+    el._lila_datatable = true; // guard against double init while loading
+    Http(cfg.url)
+      .then((res) => {
+        const rows = cfg.dataKey ? cfg.dataKey.split(".").reduce((o, k) => (o ? o[k] : undefined), res) : res;
+        build(Array.isArray(rows) ? rows : (res && Array.isArray(res.data) ? res.data : []));
+      })
+      .catch((err) => {
+        el._lila_datatable = null;
+        el.innerHTML = '<p class="p-6 text-center text-sm text-red-500">Could not load data.</p>';
+        console.error("[LILA DATATABLE]", err);
+      });
+    return null;
+  }
+  return build(cfg.data || []);
+}
+
+function lilaInitComponents(root = document) {
+  root.querySelectorAll("[data-lila-carousel]").forEach((el) => initSingleCarousel(el));
+  root.querySelectorAll("[data-lila-datatable]").forEach((el) => lilaInitDataTable(el));
+}
+
+if (typeof window !== "undefined") {
+  window.lilaInitComponents = lilaInitComponents;
+  const runInit = (e) => lilaInitComponents((e && e.detail && e.detail.target) || document);
+  window.addEventListener("lila:page-load", runInit);
+  window.addEventListener("lila:partial-load", runInit);
+  if (document.readyState !== "loading") lilaInitComponents();
+  else document.addEventListener("DOMContentLoaded", () => lilaInitComponents());
 }
 
 if (!window.__LILA_UI_BOUND__) {
@@ -1071,6 +1259,11 @@ class ResponsiveDataTable {
       if (wasMobile !== this.isMobile) this.updateTable();
     };
     window.addEventListener("resize", this._onResize);
+    // SPA navigation removed the table: drop the global resize listener.
+    this._onPageLoad = () => {
+      if (this.container && !this.container.isConnected) this.destroy();
+    };
+    window.addEventListener("lila:page-load", this._onPageLoad);
     this.init();
   }
 
@@ -1078,6 +1271,10 @@ class ResponsiveDataTable {
     if (this._onResize) {
       window.removeEventListener("resize", this._onResize);
       this._onResize = null;
+    }
+    if (this._onPageLoad) {
+      window.removeEventListener("lila:page-load", this._onPageLoad);
+      this._onPageLoad = null;
     }
     if (this.container) this.container.innerHTML = "";
   }

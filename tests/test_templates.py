@@ -76,7 +76,7 @@ class TemplateTests(unittest.TestCase):
         self.assertIn('property="og:locale" content="es_AR"', head)
         self.assertIn('name="theme-color" content="#fff"', head)
         self.assertIn('<link rel="canonical" href="http://testserver/page"', head)
-        self.assertIn('<script src="/js/x.js" defer data-lila-head>', head)
+        self.assertIn('<script src="/js/x.js" data-lila-head>', head)
         self.assertIn('href="https://cdn.example/x.css"', head)
         # JSON-LD cannot break out of its <script>
         self.assertIn("application/ld+json", head)
@@ -101,6 +101,24 @@ class TemplateTests(unittest.TestCase):
     def test_full_documents_are_not_wrapped(self):
         src = "<!DOCTYPE html><html><body>x</body></html>"
         self.assertEqual(_wrap_page_source(src), src)
+
+    def test_datatable_helper(self):
+        from lila.core.templates import datatable, carousel
+
+        html = str(datatable([{"id": 1, "name": "</script>", "password": "x"}], ["id", "name"], edit="onEdit"))
+        self.assertIn("data-lila-datatable", html)
+        self.assertNotIn("password", html)
+        self.assertNotIn("</script>\"", html)
+        self.assertIn("\\u003c/script\\u003e", html)
+        a, b = str(datatable([])), str(datatable([]))
+        self.assertNotEqual(a.split('"')[1], b.split('"')[1])  # unique ids
+        remote = str(datatable(url="/api/users", columns=["id"], id="users"))
+        self.assertIn('id="users"', remote)
+        self.assertIn('"url": "/api/users"', remote)
+        slides = str(carousel([{"title": "<b>", "image": "img/a.png"}, "txt"], autoplay=3000))
+        self.assertIn("data-lila-carousel", slides)
+        self.assertIn('data-autoplay="3000"', slides)
+        self.assertIn("&lt;b&gt;", slides)
 
     def test_404_uses_layout(self):
         res = client.get("/nope", headers={"accept": "text/html"})

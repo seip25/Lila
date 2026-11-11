@@ -269,6 +269,181 @@ def _t_ctx(ctx, key, *args, **kwargs):
     return Translate.t(key, **kwargs)
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# UI component helpers: {{ datatable(...) }} / {{ carousel(...) }}
+# ──────────────────────────────────────────────────────────────────────────────
+_SAFE_ID_RE = re.compile(r"[^A-Za-z0-9_-]")
+
+
+def _component_id(prefix: str, given: Optional[str]) -> str:
+    if given:
+        return _SAFE_ID_RE.sub("-", str(given))[:64]
+    import secrets
+
+    return f"{prefix}-{secrets.token_hex(4)}"
+
+
+def _json_for_script(data: Any) -> str:
+    """JSON safe to embed inside <script type="application/json">."""
+    raw = json.dumps(data, ensure_ascii=False, default=str)
+    for char, repl in (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026"), ("\u2028", "\\u2028"), ("\u2029", "\\u2029")):
+        raw = raw.replace(char, repl)
+    return raw
+
+
+def _rows(data: Any) -> List[Any]:
+    rows = []
+    for row in data or []:
+        if hasattr(row, "to_dict"):
+            row = row.to_dict()
+        elif hasattr(row, "model_dump"):
+            row = row.model_dump(mode="json")
+        rows.append(row)
+    return rows
+
+
+def datatable(
+    data: Any = None,
+    columns: Any = None,
+    *,
+    url: Optional[str] = None,
+    data_key: Optional[str] = None,
+    id: Optional[str] = None,
+    rows_per_page: int = 10,
+    search: bool = True,
+    pagination: bool = True,
+    summary_fields: Optional[List[str]] = None,
+    id_key: str = "id",
+    breakpoint: int = 768,
+    edit: Optional[str] = None,
+    delete: Optional[str] = None,
+    exclude: Any = ("password", "token", "hash"),
+    css_class: str = "",
+) -> Markup:
+    """Renders a ResponsiveDataTable from Jinja with an automatic unique id.
+
+    ``{{ datatable(users, ["id", "name", ("email", "E-mail")]) }}`` embeds the
+    rows; ``{{ datatable(url="/api/users", columns=[...]) }}`` loads them with
+    ``Http()``. ``edit``/``delete`` are names of global JS functions
+    ``(event, item) => ...``. Sensitive keys in ``exclude`` are never embedded.
+    """
+    table_id = _component_id("lila-dt", id)
+    blocked = set(exclude or ())
+    rows = [
+        {k: v for k, v in row.items() if k not in blocked} if isinstance(row, dict) else row
+        for row in _rows(data)
+    ]
+
+    cols: List[Dict[str, str]] = []
+    if columns:
+        for col in columns:
+            if isinstance(col, dict):
+                key = str(col.get("key", ""))
+                cols.append({"key": key, "title": str(col.get("title", key))})
+            elif isinstance(col, (list, tuple)):
+                cols.append({"key": str(col[0]), "title": str(col[1] if len(col) > 1 else col[0])})
+            else:
+                cols.append({"key": str(col), "title": str(col).replace("_", " ").title()})
+    elif rows and isinstance(rows[0], dict):
+        cols = [{"key": k, "title": k.replace("_", " ").title()} for k in rows[0].keys()]
+    cols = [c for c in cols if c["key"] and c["key"] not in blocked]
+
+    config: Dict[str, Any] = {
+        "columns": cols,
+        "rowsPerPage": int(rows_per_page),
+        "search": bool(search),
+        "pagination": bool(pagination),
+        "idKey": id_key,
+        "breakpoint": int(breakpoint),
+        "summaryFields": summary_fields or ([cols[0]["key"]] if cols else [id_key]),
+    }
+    if url:
+        config["url"] = url
+        if data_key:
+            config["dataKey"] = data_key
+    else:
+        config["data"] = rows
+    if edit:
+        config["edit"] = str(edit)
+    if delete:
+        config["delete"] = str(delete)
+
+    return Markup(
+        f'<div id="{table_id}" class="{html.escape(css_class)}" data-lila-datatable></div>'
+        f'<script type="application/json" id="{table_id}-config">{_json_for_script(config)}</script>'
+    )
+
+
+def carousel(
+    slides: Any,
+    *,
+    id: Optional[str] = None,
+    autoplay: int = 0,
+    loop: bool = True,
+    arrows: bool = True,
+    indicators: bool = True,
+    item_class: str = "basis-full",
+    height: str = "h-64 md:h-96",
+    css_class: str = "",
+) -> Markup:
+    """Renders a Tailwind carousel (auto-initialized by lila-client.js).
+
+    ``slides`` items may be dicts ``{"image", "alt", "title", "text", "href"}``,
+    plain strings (escaped text) or ``Markup`` (trusted HTML). Use
+    ``item_class="basis-full md:basis-1/3"`` to show several cards per view.
+    """
+    cid = _component_id("lila-carousel", id)
+    esc = html.escape
+    parts = []
+    for slide in slides or []:
+        if isinstance(slide, Markup):
+            inner = str(slide)
+        elif isinstance(slide, dict):
+            image = slide.get("image")
+            src = _asset_url(image) if image else ""
+            img = (
+                f'<img src="{esc(src)}" alt="{esc(str(slide.get("alt") or slide.get("title") or ""))}" '
+                f'loading="lazy" class="absolute inset-0 w-full h-full object-cover" />'
+                if src else ""
+            )
+            caption = ""
+            if slide.get("title") or slide.get("text"):
+                caption = (
+                    '<div class="absolute inset-x-0 bottom-0 p-6 pb-10 bg-gradient-to-t from-slate-950/80 to-transparent text-white">'
+                    + (f'<h3 class="text-xl font-black">{esc(str(slide["title"]))}</h3>' if slide.get("title") else "")
+                    + (f'<p class="text-sm opacity-90 mt-1">{esc(str(slide["text"]))}</p>' if slide.get("text") else "")
+                    + "</div>"
+                )
+            inner = f'<div class="relative w-full h-full bg-slate-200 dark:bg-slate-800">{img}{caption}</div>'
+            if slide.get("href"):
+                inner = f'<a href="{esc(str(slide["href"]))}" class="block w-full h-full">{inner}</a>'
+        else:
+            inner = f'<div class="w-full h-full flex items-center justify-center p-6">{esc(str(slide))}</div>'
+        parts.append(f'<div class="carousel-item {esc(item_class)} {esc(height)} pr-0 overflow-hidden">{inner}</div>')
+
+    arrow_cls = (
+        "absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 dark:bg-slate-900/80 "
+        "shadow-md backdrop-blur flex items-center justify-center text-xl font-bold cursor-pointer "
+        "hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 transition"
+    )
+    controls = ""
+    if arrows:
+        controls += (
+            f'<button type="button" class="carousel-prev {arrow_cls} left-3" aria-label="Previous">&lsaquo;</button>'
+            f'<button type="button" class="carousel-next {arrow_cls} right-3" aria-label="Next">&rsaquo;</button>'
+        )
+    if indicators:
+        controls += '<div class="carousel-indicators absolute bottom-3 inset-x-0 z-10 flex justify-center gap-2"></div>'
+
+    return Markup(
+        f'<div id="{cid}" class="carousel relative overflow-hidden rounded-2xl {esc(css_class)}" data-lila-carousel '
+        f'data-autoplay="{int(autoplay)}" data-loop="{"true" if loop else "false"}">'
+        f'<div class="carousel-track">{"".join(parts)}</div>{controls}</div>'
+    )
+
+
+jinja_env.globals["datatable"] = datatable
+jinja_env.globals["carousel"] = carousel
 jinja_env.globals["oauth_buttons"] = _oauth_buttons_ctx
 jinja_env.globals["lang"] = lambda: str(ENV_CONFIG.get("LANG_DEFAULT", "en"))
 jinja_env.globals["translate"] = Translate.get_dict()
