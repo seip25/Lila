@@ -11,6 +11,6 @@ router = Router(middlewares=[login_required])
 async def dashboard_page(request: Request):
     session_data = await Session.get(request, "auth")
     context = {"user": session_data}
-    return render(request=request, template="authenticated/dashboard", context=context)
+    return render(request=request, template="authenticated/dashboard", context=context, title="dashboard", robots="noindex")
 
 routes = router.get_routes()

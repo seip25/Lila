@@ -5,7 +5,72 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Automatic layouts**: page templates contain only their HTML. `render()`
+  wraps them in the default layout and builds the `<head>` from new keyword
+  arguments: `title` (translation keys are translated), `description`,
+  `keywords`, `author`, `image`, `icon`, `canonical`, `robots`, `og_type`,
+  `jsonld`, `meta`, `styles`, `scripts`, `head`, `body_class`; `layout=False`
+  renders fragments. Shared `lila/head.jinja` for custom layouts;
+  `TITLE_TEMPLATE` in `.env`. Templates using `{% extends %}` are unchanged.
+- Jinja helpers `datatable()` (embedded rows or `url=`, unique id, sensitive
+  keys excluded) and `carousel()` (autoplay, loop, indicators, swipe,
+  keyboard), auto-initialized by `lila-client.js` after each navigation.
+- `sudo lila deploy setup`: interactive Linux install (`.env` production
+  values, systemd, Nginx with `nginx -t` rollback, Certbot, health check),
+  `--dry-run` and `--yes`. `SERVICE_NAME` in `.env`.
+- Declarative forms and actions in `lila-client.js`: `data-lila-form`,
+  `data-action`, `data-snackbar`/`data-toast`/`[data-message]`, `data-match`,
+  `data-loading-text`, `data-timeout`, `data-redirect`, `data-reset`,
+  `data-reload`, `data-target`/`data-swap`, `data-refresh`, `data-callback`,
+  `data-toggle-hidden`; 422 errors are shown under each field. The auth
+  scaffold templates no longer contain page scripts.
+- UI attributes: `data-drawer` + `data-drawer-panel data-orientation=
+  "left|right|top|bottom"` (focus handling, Escape, closes on navigation),
+  `data-dropdown`, `data-toggle-class`, `data-remove`, `data-password-toggle`,
+  `data-tab-target`, `data-scroll`, `data-autosubmit`, `form[data-navigate]`,
+  `data-char-count`, `data-filter`, `<time data-local-time>`;
+  `data-copy` works on http:// and accepts `data-copy-message`.
+- Plain-HTML carousel: `data-carousel`, `data-carousel-slide`,
+  `data-carousel-autoplay|loop|arrows|indicators|pause`;
+  `lila('carousel', ...)` returns controllers.
+- `sudo lila deploy setup` offers `chown`/`chmod` fixes (project owner, Nginx
+  access to `public/`, `.env` 600) and never rotates `SECRET_KEY`.
+- `WebSocketHub.can_join` to authorize client room joins; `lilaWS` gains
+  `once()`, `connected`, `persist` and relative URLs.
+
+### Changed
+
+- Auth scaffold, `index`, `404` and `lila crud` templates use the automatic
+  layout; their routes pass `title`/`robots`.
+- `/js/ws.js` is served from the installed package (like `lila-client.js`);
+  `lila deploy` proxies both to the app instead of aliasing stale copies.
+- `render(scripts=...)` tags load in order (no `defer`) so inline page
+  scripts can use them.
+
 ### Fixed
+
+- SPA router: `[data-lila-head]` tags and `<html lang>` are synchronized,
+  external scripts finish loading before the next inline script runs,
+  prefetch is de-duplicated and never caches redirects, same-page `#hash`
+  links scroll natively, `lila:before-swap` event added.
+- `ws.js`: no reconnect after `disconnect()` (pending timer), bounded
+  offline queue, no duplicate room joins, no reconnect loop on 1008/1009,
+  sockets closed when the SPA leaves their page.
+- `WebSocketHub.disconnect` is idempotent (handlers ran twice after a
+  failed send); room names/counts are limited.
+- `ResponsiveDataTable` releases its resize listener when removed by an SPA
+  navigation; `lila crud` pages work on repeated SPA visits.
+- `lila deploy`: `WorkingDirectory` without quotes (systemd), `www.` server
+  names.
+- Sync `get_all()` supports `order_by`/`desc`.
+- A closed drawer's transparent backdrop kept intercepting every click on the
+  page (`.drawer-backdrop` had `pointer-events: auto`); left drawers opened on
+  the right.
+- Admin sidebar: the active item follows SPA navigation (persisted links are
+  synchronized), no nested duplicate `#admin-sidebar`, active matching works
+  with custom prefixes and does not confuse `/user` with `/users`.
 
 - Route cache keys now use the concrete request path: `/items/1` and `/items/2`
   no longer share the same cached response.
@@ -20,6 +85,17 @@ All notable changes to Lila Framework. The format follows
   returned every row).
 - Cached model reads are returned as copies, so mutating a result no longer
   pollutes the shared in-memory cache.
+- `Session.get` honours the `max_age` used in `Session.set` (the lifetime is
+  stored inside the signed cookie); a 30-day session no longer expires after
+  one day. Cookies from 2.0.0 remain readable.
+- Memory LRU evicts expired and non-session entries before sessions, and
+  `incr` (rate-limit counters) is bounded by `CACHE_MAX_ITEMS`.
+- File cache prefix deletes (`model:<table>:*`) only remove that table's
+  entries instead of wiping the whole file cache on every write.
+- Route `csrf=True` is verified before body validation, so requests without a
+  token get 403 instead of validation details.
+- `update_async`/`update` skip soft-deleted rows unless the payload restores
+  the active field explicitly.
 
 ## [2.0.0] — 2026-10-31
 

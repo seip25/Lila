@@ -71,6 +71,13 @@ class MigrationTests(unittest.IsolatedAsyncioTestCase):
             await Gadget.get_all_async(to_dict="a")
         self.assertEqual(await Gadget.count_async(name="a"), 1)
 
+        # Soft-deleted rows are not updated unless restored explicitly.
+        target = rows[1]["id"]
+        self.assertTrue(await Gadget.delete_async(target))
+        self.assertFalse(await Gadget.update_async(target, name="ghost"))
+        self.assertTrue(await Gadget.update_async(target, active=1))
+        self.assertEqual((await Gadget.get_by_id_async(target))["name"], "b")
+
     async def test_migrate_adds_missing_column(self):
         class Widget2(BaseModel):
             __tablename__ = "widgets_cols"

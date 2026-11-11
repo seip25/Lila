@@ -111,13 +111,16 @@ def render_admin_menu(
     current_path = request.url.path if request else base
 
     def _link(path: str, label: str, icon: str) -> str:
-        active = current_path == path or (path != "/admin" and current_path.startswith(path))
+        # Exact match, or a sub-page of a model ("/admin/users/3"), never a
+        # prefix of another name ("/admin/user" must not match "/admin/users").
+        active = current_path == path or (path != base and current_path.startswith(path + "/"))
         cls_name = (
             "flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all "
             + ("bg-blue-600 text-white shadow-sm" if active
                else "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100")
         )
-        return f'<a href="{path}" class="{cls_name}"><span>{icon}</span> <span>{label}</span></a>'
+        current = ' aria-current="page"' if active else ""
+        return f'<a href="{path}" class="{cls_name}"{current}><span>{icon}</span> <span>{label}</span></a>'
 
     nav_links = [_link(base, "Dashboard", "📊")]
     if models:
@@ -129,7 +132,9 @@ def render_admin_menu(
     nav_links.append('<div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-4 pb-1">System</div>')
     nav_links.append(f'<a href="{base}/logout" data-no-router class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"><span>🚪</span> <span>Sign Out</span></a>')
     return (
-        '<aside id="admin-sidebar" data-persist="true" class="w-64 flex-shrink-0 p-4 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 min-h-screen flex flex-col justify-between">'
+        # The templates wrap this in <aside id="admin-sidebar" data-persist="true">;
+        # a nested element with the same id/persist flag confused the SPA swap.
+        '<div class="admin-menu w-full md:w-64 flex-shrink-0 p-4 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 min-h-screen flex flex-col justify-between">'
         '<div>'
         '<div class="flex items-center gap-3 px-3 py-3 mb-6 border-b border-slate-100 dark:border-slate-800">'
         '<img src="/img/lila-128.webp" alt="Lila" class="w-8 h-8 rounded-lg shadow-sm">'
@@ -138,7 +143,7 @@ def render_admin_menu(
         '</div>'
         f'<nav class="flex flex-col gap-1">{"".join(nav_links)}</nav>'
         '</div>'
-        '</aside>'
+        '</div>'
     )
 
 

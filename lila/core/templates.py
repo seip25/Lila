@@ -1,6 +1,11 @@
 """Lila Framework v2.0.x Template Engine.
 
 Jinja2 environment with:
+- Automatic layouts: a page template only contains its HTML. ``render()``
+  wraps it in ``layout`` (``lila/base.jinja`` by default) and fills title,
+  description, Open Graph, JSON-LD, icon, styles and scripts from keyword
+  arguments, ``@seo`` or ``SEO_CONFIG``. Templates using ``{% extends %}``
+  keep working unchanged.
 - Dual template resolution (project resources first, bundled framework templates second)
 - SPA partial rendering (the client swaps the ``[data-lila-outlet]`` content)
 - Global CSRF token/meta cookie on every HTML render
@@ -14,7 +19,8 @@ import html
 import traceback
 from typing import Optional, Dict, Any, List
 
-from jinja2 import Environment, FileSystemLoader, ChoiceLoader, pass_context
+from jinja2 import Environment, FileSystemLoader, ChoiceLoader, BaseLoader, pass_context
+from markupsafe import Markup
 
 from lila.core.config import ENV_CONFIG, get_base_path, get_data_path, is_debug
 from lila.core.request import Request
@@ -41,8 +47,64 @@ def _get_template_loaders() -> ChoiceLoader:
     return ChoiceLoader(loaders)
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Auto-layout pages
+# ──────────────────────────────────────────────────────────────────────────────
+PAGE_PREFIX = "@page:"
+
+# Top-level blocks a page may still declare; they are moved next to the
+# generated ``content`` block (line numbers are preserved for error messages).
+_PAGE_BLOCK_RE = re.compile(
+    r"{%-?\s*block\s+(head|scripts|title|styles)\s*-?%}.*?{%-?\s*endblock(?:\s+\1)?\s*-?%}",
+    re.DOTALL,
+)
+_FULL_TEMPLATE_RE = re.compile(r"{%-?\s*extends\s|<html[\s>]|<!doctype", re.IGNORECASE)
+
+
+def _wrap_page_source(source: str) -> str:
+    """Turns a plain HTML page into ``{% extends layout %}`` + blocks.
+
+    The result is compiled once and cached by Jinja (auto-reloaded in debug).
+    """
+    if _FULL_TEMPLATE_RE.search(source):
+        return source
+    extra_blocks: List[str] = []
+
+    def _extract(match: "re.Match[str]") -> str:
+        extra_blocks.append(match.group(0))
+        return "\n" * match.group(0).count("\n")
+
+    body = _PAGE_BLOCK_RE.sub(_extract, source)
+    return (
+        "{% extends layout %}{% block content %}"
+        + body
+        + "{% endblock %}"
+        + "".join(extra_blocks)
+    )
+
+
+class LilaPageLoader(BaseLoader):
+    """Delegates to the normal loaders; ``@page:<name>`` gets auto-wrapped.
+
+    Only the template passed to ``render()`` is wrapped, never includes,
+    macros or layouts, so components keep rendering as plain fragments.
+    """
+
+    def __init__(self, inner: BaseLoader):
+        self.inner = inner
+
+    def get_source(self, environment, template):
+        if template.startswith(PAGE_PREFIX):
+            source, filename, uptodate = self.inner.get_source(environment, template[len(PAGE_PREFIX):])
+            return _wrap_page_source(source), filename, uptodate
+        return self.inner.get_source(environment, template)
+
+    def list_templates(self):
+        return self.inner.list_templates()
+
+
 jinja_env = Environment(
-    loader=_get_template_loaders(),
+    loader=LilaPageLoader(_get_template_loaders()),
     auto_reload=is_debug(),
     autoescape=True,
     trim_blocks=True,
@@ -207,6 +269,181 @@ def _t_ctx(ctx, key, *args, **kwargs):
     return Translate.t(key, **kwargs)
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# UI component helpers: {{ datatable(...) }} / {{ carousel(...) }}
+# ──────────────────────────────────────────────────────────────────────────────
+_SAFE_ID_RE = re.compile(r"[^A-Za-z0-9_-]")
+
+
+def _component_id(prefix: str, given: Optional[str]) -> str:
+    if given:
+        return _SAFE_ID_RE.sub("-", str(given))[:64]
+    import secrets
+
+    return f"{prefix}-{secrets.token_hex(4)}"
+
+
+def _json_for_script(data: Any) -> str:
+    """JSON safe to embed inside <script type="application/json">."""
+    raw = json.dumps(data, ensure_ascii=False, default=str)
+    for char, repl in (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026"), ("\u2028", "\\u2028"), ("\u2029", "\\u2029")):
+        raw = raw.replace(char, repl)
+    return raw
+
+
+def _rows(data: Any) -> List[Any]:
+    rows = []
+    for row in data or []:
+        if hasattr(row, "to_dict"):
+            row = row.to_dict()
+        elif hasattr(row, "model_dump"):
+            row = row.model_dump(mode="json")
+        rows.append(row)
+    return rows
+
+
+def datatable(
+    data: Any = None,
+    columns: Any = None,
+    *,
+    url: Optional[str] = None,
+    data_key: Optional[str] = None,
+    id: Optional[str] = None,
+    rows_per_page: int = 10,
+    search: bool = True,
+    pagination: bool = True,
+    summary_fields: Optional[List[str]] = None,
+    id_key: str = "id",
+    breakpoint: int = 768,
+    edit: Optional[str] = None,
+    delete: Optional[str] = None,
+    exclude: Any = ("password", "token", "hash"),
+    css_class: str = "",
+) -> Markup:
+    """Renders a ResponsiveDataTable from Jinja with an automatic unique id.
+
+    ``{{ datatable(users, ["id", "name", ("email", "E-mail")]) }}`` embeds the
+    rows; ``{{ datatable(url="/api/users", columns=[...]) }}`` loads them with
+    ``Http()``. ``edit``/``delete`` are names of global JS functions
+    ``(event, item) => ...``. Sensitive keys in ``exclude`` are never embedded.
+    """
+    table_id = _component_id("lila-dt", id)
+    blocked = set(exclude or ())
+    rows = [
+        {k: v for k, v in row.items() if k not in blocked} if isinstance(row, dict) else row
+        for row in _rows(data)
+    ]
+
+    cols: List[Dict[str, str]] = []
+    if columns:
+        for col in columns:
+            if isinstance(col, dict):
+                key = str(col.get("key", ""))
+                cols.append({"key": key, "title": str(col.get("title", key))})
+            elif isinstance(col, (list, tuple)):
+                cols.append({"key": str(col[0]), "title": str(col[1] if len(col) > 1 else col[0])})
+            else:
+                cols.append({"key": str(col), "title": str(col).replace("_", " ").title()})
+    elif rows and isinstance(rows[0], dict):
+        cols = [{"key": k, "title": k.replace("_", " ").title()} for k in rows[0].keys()]
+    cols = [c for c in cols if c["key"] and c["key"] not in blocked]
+
+    config: Dict[str, Any] = {
+        "columns": cols,
+        "rowsPerPage": int(rows_per_page),
+        "search": bool(search),
+        "pagination": bool(pagination),
+        "idKey": id_key,
+        "breakpoint": int(breakpoint),
+        "summaryFields": summary_fields or ([cols[0]["key"]] if cols else [id_key]),
+    }
+    if url:
+        config["url"] = url
+        if data_key:
+            config["dataKey"] = data_key
+    else:
+        config["data"] = rows
+    if edit:
+        config["edit"] = str(edit)
+    if delete:
+        config["delete"] = str(delete)
+
+    return Markup(
+        f'<div id="{table_id}" class="{html.escape(css_class)}" data-lila-datatable></div>'
+        f'<script type="application/json" id="{table_id}-config">{_json_for_script(config)}</script>'
+    )
+
+
+def carousel(
+    slides: Any,
+    *,
+    id: Optional[str] = None,
+    autoplay: int = 0,
+    loop: bool = True,
+    arrows: bool = True,
+    indicators: bool = True,
+    item_class: str = "basis-full",
+    height: str = "h-64 md:h-96",
+    css_class: str = "",
+) -> Markup:
+    """Renders a Tailwind carousel (auto-initialized by lila-client.js).
+
+    ``slides`` items may be dicts ``{"image", "alt", "title", "text", "href"}``,
+    plain strings (escaped text) or ``Markup`` (trusted HTML). Use
+    ``item_class="basis-full md:basis-1/3"`` to show several cards per view.
+    """
+    cid = _component_id("lila-carousel", id)
+    esc = html.escape
+    parts = []
+    for slide in slides or []:
+        if isinstance(slide, Markup):
+            inner = str(slide)
+        elif isinstance(slide, dict):
+            image = slide.get("image")
+            src = _asset_url(image) if image else ""
+            img = (
+                f'<img src="{esc(src)}" alt="{esc(str(slide.get("alt") or slide.get("title") or ""))}" '
+                f'loading="lazy" class="absolute inset-0 w-full h-full object-cover" />'
+                if src else ""
+            )
+            caption = ""
+            if slide.get("title") or slide.get("text"):
+                caption = (
+                    '<div class="absolute inset-x-0 bottom-0 p-6 pb-10 bg-gradient-to-t from-slate-950/80 to-transparent text-white">'
+                    + (f'<h3 class="text-xl font-black">{esc(str(slide["title"]))}</h3>' if slide.get("title") else "")
+                    + (f'<p class="text-sm opacity-90 mt-1">{esc(str(slide["text"]))}</p>' if slide.get("text") else "")
+                    + "</div>"
+                )
+            inner = f'<div class="relative w-full h-full bg-slate-200 dark:bg-slate-800">{img}{caption}</div>'
+            if slide.get("href"):
+                inner = f'<a href="{esc(str(slide["href"]))}" class="block w-full h-full">{inner}</a>'
+        else:
+            inner = f'<div class="w-full h-full flex items-center justify-center p-6">{esc(str(slide))}</div>'
+        parts.append(f'<div class="carousel-item {esc(item_class)} {esc(height)} pr-0 overflow-hidden">{inner}</div>')
+
+    arrow_cls = (
+        "absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 dark:bg-slate-900/80 "
+        "shadow-md backdrop-blur flex items-center justify-center text-xl font-bold cursor-pointer "
+        "hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 transition"
+    )
+    controls = ""
+    if arrows:
+        controls += (
+            f'<button type="button" class="carousel-prev {arrow_cls} left-3" aria-label="Previous">&lsaquo;</button>'
+            f'<button type="button" class="carousel-next {arrow_cls} right-3" aria-label="Next">&rsaquo;</button>'
+        )
+    if indicators:
+        controls += '<div class="carousel-indicators absolute bottom-3 inset-x-0 z-10 flex justify-center gap-2"></div>'
+
+    return Markup(
+        f'<div id="{cid}" class="carousel relative overflow-hidden rounded-2xl {esc(css_class)}" data-lila-carousel '
+        f'data-autoplay="{int(autoplay)}" data-loop="{"true" if loop else "false"}">'
+        f'<div class="carousel-track">{"".join(parts)}</div>{controls}</div>'
+    )
+
+
+jinja_env.globals["datatable"] = datatable
+jinja_env.globals["carousel"] = carousel
 jinja_env.globals["oauth_buttons"] = _oauth_buttons_ctx
 jinja_env.globals["lang"] = lambda: str(ENV_CONFIG.get("LANG_DEFAULT", "en"))
 jinja_env.globals["translate"] = Translate.get_dict()
@@ -313,7 +550,9 @@ def get_base_context(
         "has_admin": route_flags["has_admin"],
         "has_auth": route_flags["has_auth"],
         "layout": DEFAULT_LAYOUT,
+        "layout_id": "default",
         "csrf_token": "",
+        "page": {},
     }
 
 
@@ -333,6 +572,127 @@ def _resolve_template_name(target: str, extension: str) -> List[str]:
     return list(dict.fromkeys(names))
 
 
+_JSONLD_ESCAPES = {"<": "\\u003c", ">": "\\u003e", "&": "\\u0026", " ": "\\u2028", " ": "\\u2029"}
+
+
+def _jsonld_markup(data: Any) -> Markup:
+    """Serializes JSON-LD safely for a ``<script>`` tag (no ``</script>`` breakout)."""
+    items = data if isinstance(data, (list, tuple)) else [data]
+    tags = []
+    for item in items:
+        if not item:
+            continue
+        raw = item if isinstance(item, str) else json.dumps(item, ensure_ascii=False, default=str)
+        for char, repl in _JSONLD_ESCAPES.items():
+            raw = raw.replace(char, repl)
+        tags.append(f'<script type="application/ld+json" data-lila-head>{raw}</script>')
+    return Markup("".join(tags))
+
+
+def _as_list(value: Any) -> List[Any]:
+    if not value:
+        return []
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    return [value]
+
+
+def _asset_url(value: str) -> str:
+    text = str(value)
+    if text.startswith(("http://", "https://", "//", "data:")):
+        return text
+    return public(text)
+
+
+def _meta_items(meta: Any) -> List[Dict[str, str]]:
+    """Accepts ``{"theme-color": "#fff", "og:locale": "es"}`` or a list of dicts."""
+    if not meta:
+        return []
+    if isinstance(meta, dict):
+        items = []
+        for key, value in meta.items():
+            attr = "property" if str(key).startswith(("og:", "article:", "fb:")) else "name"
+            items.append({attr: str(key), "content": str(value)})
+        return items
+    return [dict(item) for item in meta if isinstance(item, dict)]
+
+
+def _format_title(title: Optional[str], project: str) -> str:
+    project = str(project or "")
+    if not title:
+        return project or "Lila"
+    title = str(title)
+    if not project or title == project or project in title:
+        return title
+    fmt = str(ENV_CONFIG.get("TITLE_TEMPLATE", "{title} - {project}") or "{title} - {project}")
+    try:
+        return fmt.format(title=title, project=project)
+    except Exception:
+        return f"{title} - {project}"
+
+
+def _build_page(
+    request: Request,
+    ctx: Dict[str, Any],
+    explicit: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Merges ENV defaults < SEO_CONFIG/@seo < context < render() kwargs."""
+    trans = ctx.get("translate") or {}
+    seo_meta = dict(ctx.get("seo") or getattr(request.state, "seo", None) or {})
+    project = str(ENV_CONFIG.get("TITLE_PROJECT", "") or "")
+
+    def pick(key: str, default: Any = None) -> Any:
+        value = explicit.get(key)
+        if value is None and key in ("title", "description", "keywords", "author", "image", "icon"):
+            # Context values (``context={"title": ...}``) override .env defaults.
+            ctx_value = ctx.get(key)
+            base_value = ctx.get(f"__base_{key}")
+            if ctx_value not in (None, "") and ctx_value != base_value:
+                value = ctx_value
+        if value is None:
+            value = seo_meta.get(key)
+        return default if value is None else value
+
+    def tr(value: Any) -> Any:
+        # render(title="dashboard") -> translated "Dashboard"/"Panel".
+        if isinstance(value, str) and value in trans:
+            return trans[value]
+        return value
+
+    title = tr(pick("title"))
+    description = tr(pick("description", ctx.get("description") or ""))
+    image = pick("image")
+    app_url = str(ctx.get("app_url") or "").rstrip("/")
+    canonical = pick("canonical")
+    if canonical is True:
+        canonical = f"{app_url}{request.url.path}"
+    if image and not str(image).startswith(("http://", "https://", "//")):
+        image = f"{app_url}{_asset_url(image)}"
+
+    icon = pick("icon", "favicon.ico")
+    page = {
+        "title": title,
+        "full_title": _format_title(title, project),
+        "description": description,
+        "keywords": pick("keywords", ctx.get("keywords") or ""),
+        "author": pick("author", ctx.get("author") or ""),
+        "image": image,
+        "icon": _asset_url(icon) if icon else "",
+        "canonical": canonical,
+        "robots": pick("robots"),
+        "og_type": pick("og_type", "website"),
+        "site_name": project,
+        "url": f"{app_url}{request.url.path}",
+        "meta": _meta_items(pick("meta")),
+        "jsonld": _jsonld_markup(pick("jsonld")) if pick("jsonld") else Markup(""),
+        "styles": [_asset_url(item) for item in _as_list(pick("styles"))],
+        "scripts": [_asset_url(item) for item in _as_list(pick("scripts"))],
+        "head": Markup(pick("head") or ""),
+        "body_class": pick("body_class"),
+    }
+    return page
+
+
 def render(
     request: Request,
     template_name: Optional[str] = None,
@@ -341,32 +701,91 @@ def render(
     csrf: bool = False,
     status_code: int = 200,
     template: Optional[str] = None,
-    layout: Optional[str] = None,
+    layout: Any = None,
     headers: Optional[dict] = None,
     lang_default: Optional[str] = None,
     files_translate: Optional[list] = None,
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    keywords: Optional[str] = None,
+    author: Optional[str] = None,
+    image: Optional[str] = None,
+    icon: Optional[str] = None,
+    canonical: Any = None,
+    robots: Optional[str] = None,
+    og_type: Optional[str] = None,
+    jsonld: Any = None,
+    meta: Any = None,
+    styles: Any = None,
+    scripts: Any = None,
+    head: Optional[str] = None,
+    body_class: Optional[str] = None,
 ) -> HTMLResponse:
-    """Renders an HTML template with unified context, CSRF and SPA partial support."""
+    """Renders an HTML page with automatic layout, SEO head, CSRF and SPA support.
+
+    A page template only needs its HTML (no ``{% extends %}``/``{% block %}``)::
+
+        return render(request, "dashboard", {"user": user},
+                      title="dashboard", description="Your panel",
+                      jsonld={"@context": "https://schema.org", "@type": "WebPage"},
+                      scripts=["js/chart.js"])
+
+    ``layout=None`` uses the default layout (``set_default_layout``), a string
+    picks another layout and ``layout=False`` renders the template as-is.
+    ``head`` is raw trusted HTML; every other value is escaped.
+    """
     target_template = template_name or template or "index"
     ctx = get_base_context(request, csrf=csrf, lang_default=lang_default, files_translate=files_translate)
-    if layout:
+    for key in ("title", "description", "keywords", "author"):
+        ctx[f"__base_{key}"] = ctx.get(key)
+    use_layout = layout is not False
+    if isinstance(layout, str) and layout:
         ctx["layout"] = layout
     if context:
         ctx.update(context)
+    if not ctx.get("layout"):
+        ctx["layout"] = DEFAULT_LAYOUT
+    ctx["layout_id"] = "default" if ctx["layout"] == "lila/base.jinja" else str(ctx["layout"])
 
     seo_meta = ctx.get("seo") or getattr(request.state, "seo", None)
-    if seo_meta:
-        ctx["seo"] = seo_meta
-        for key in ("title", "description", "keywords", "author"):
-            if seo_meta.get(key):
-                ctx[key] = seo_meta[key]
-    else:
-        ctx.setdefault("seo", {})
+    ctx["seo"] = dict(seo_meta or {})
+
+    page = _build_page(
+        request,
+        ctx,
+        {
+            "title": title,
+            "description": description,
+            "keywords": keywords,
+            "author": author,
+            "image": image,
+            "icon": icon,
+            "canonical": canonical,
+            "robots": robots,
+            "og_type": og_type,
+            "jsonld": jsonld,
+            "meta": meta,
+            "styles": styles,
+            "scripts": scripts,
+            "head": head,
+            "body_class": body_class,
+        },
+    )
+    ctx["page"] = page
+    # Backwards-compatible variables used by v2.0.0 templates.
+    if page["title"]:
+        ctx["title"] = page["title"]
+    ctx["description"] = page["description"]
+    ctx["keywords"] = page["keywords"]
+    ctx["author"] = page["author"]
+    for key in ("title", "description", "keywords", "author"):
+        ctx.pop(f"__base_{key}", None)
 
     # CSRF token is available on every page so SPA navigations keep working.
     csrf_token = CSRF.generate(request)
     ctx["csrf_token"] = csrf_token
-    ctx["csrf_input"] = (
+    ctx["csrf_input"] = Markup(
         f'<input type="hidden" name="_csrf" id="csrf" value="{html.escape(csrf_token)}" />'
     )
 
@@ -375,22 +794,25 @@ def render(
         last_error = None
         for candidate in _resolve_template_name(target_template, extension):
             try:
-                tmpl = jinja_env.get_template(candidate)
+                tmpl = jinja_env.get_template(f"{PAGE_PREFIX}{candidate}" if use_layout else candidate)
                 break
             except Exception as exc:
                 last_error = exc
+                if not _is_missing_template(exc):
+                    raise
         if tmpl is None:
             raise last_error or RuntimeError(f"Template not found: {target_template}")
 
         body = tmpl.render(ctx)
         debug_enabled = bool(getattr(getattr(request, "app", None), "_is_debug", is_debug()))
-        if debug_enabled and request.headers.get("x-lila-partial") != "1" and 'name="lila-debug"' not in body:
+        is_partial = request.headers.get("x-lila-partial") == "1"
+        if debug_enabled and not is_partial and 'name="lila-debug"' not in body:
             marker = '<meta name="lila-debug" content="1">'
             if "</head>" in body:
                 body = body.replace("</head>", marker + "</head>", 1)
             else:
                 body = marker + body
-        if debug_enabled and request.headers.get("x-lila-partial") != "1" and "__lilaDevReload" not in body:
+        if debug_enabled and not is_partial and "__lilaDevReload" not in body:
             lower = body.lower()
             close_body = lower.rfind("</body>")
             if close_body >= 0:
@@ -399,7 +821,7 @@ def render(
                 body += _DEV_RELOAD_SCRIPT
 
         response_headers = dict(headers or {})
-        if request.headers.get("x-lila-partial") == "1":
+        if is_partial:
             response_headers["X-Lila-Partial"] = "1"
         if debug_enabled:
             response_headers.setdefault("Cache-Control", "no-store")
@@ -429,6 +851,14 @@ def render(
                 status_code=500,
             )
         return HTMLResponse("<h1>Internal Server Error</h1>", status_code=500)
+
+
+def _is_missing_template(exc: Exception) -> bool:
+    from jinja2 import TemplateNotFound
+
+    # Only a missing page name falls through to the next candidate
+    # (.html -> .jinja); syntax errors are raised immediately.
+    return isinstance(exc, TemplateNotFound)
 
 
 def render_markdown(

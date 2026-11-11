@@ -81,7 +81,7 @@ router = Router()
 @router.get("/{route_name}")
 async def {route_name}_index(request: Request):
     """Render the management page with ResponsiveDataTable for {model_name}"""
-    return render(request=request, template="{route_name}/index", csrf=True)
+    return render(request, "{route_name}/index", csrf=True, title="{model_name} Management")
 
 # Merged routes for inclusion
 routes = router.get_routes() + api_{route_name}_router.get_routes()
@@ -207,17 +207,8 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
         )
     form_fields_html = "\n".join(form_fields)
 
-    return f'''<!DOCTYPE html>
-<html lang="{{{{ lang | default('en') }}}}" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{model_name} Management | Lila</title>
-  <link rel="icon" type="image/x-icon" href="{{{{ public('favicon.ico') }}}}" />
-  {{% include "lila/tailwind.jinja" %}}
-</head>
-<body class="bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
-  <div id="lila-outlet" data-lila-outlet class="max-w-6xl w-full mx-auto px-4 py-8 flex-1 space-y-6">
+    return f'''{{# Page template: render() wraps it in the default layout automatically. #}}
+<div class="max-w-6xl w-full mx-auto px-4 py-8 flex-1 space-y-6">
     <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
       <div>
         <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -257,11 +248,11 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
         </div>
       </form>
     </dialog>
-  </div>
 
-  <script src="{{{{ public('js/lila-client.js') }}}}"></script>
   <script>
-    let dt = null;
+    // ``var``/function declarations: the SPA router re-runs this script on
+    // every visit, ``let``/``const`` at top level would throw on the 2nd visit.
+    var dt = null;
 
     function renderTable(data) {{
       dt = new ResponsiveDataTable('datatable-container', {{
@@ -345,10 +336,10 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
       }}
     }});
 
-    document.addEventListener('DOMContentLoaded', fetchData);
+    // Runs on full loads and SPA navigations (DOMContentLoaded only fires once).
+    fetchData();
   </script>
-</body>
-</html>
+</div>
 '''
 
 def add_route_import_to_main(route_name: str, model_name: str) -> bool:

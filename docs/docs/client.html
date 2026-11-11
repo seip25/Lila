@@ -115,7 +115,7 @@
 
       <h3 class="text-xl font-bold mt-8 mb-3">How it Works</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
-        Include <code class="code-inline">lila/base.jinja</code> in your templates. The runtime automatically intercepts internal links, loads destination HTML in the background, smoothly cross-fades content inside <code class="code-inline">&lt;div id="lila-outlet" data-lila-outlet&gt;</code>, and executes scripts:
+        Page templates rendered with <code class="code-inline">render()</code> are wrapped in <code class="code-inline">lila/base.jinja</code> automatically (see <a href="templates.html">Templates</a>). The runtime automatically intercepts internal links, loads destination HTML in the background, smoothly cross-fades content inside <code class="code-inline">&lt;div id="lila-outlet" data-lila-outlet&gt;</code>, and executes scripts:
       </p>
 
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6">
@@ -141,6 +141,176 @@
 &lt;script src="{{ public('js/lila-client.js') }}"&gt;&lt;/script&gt;</code></pre>
         </div>
       </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">Navigation lifecycle</h3>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-6">
+        <li><code>lila:before-swap</code> — fired before the page content is replaced (page-scoped sockets/timers clean up here).</li>
+        <li>The <code>&lt;title&gt;</code>, meta tags, canonical, <code>&lt;html lang&gt;</code> and every <code>[data-lila-head]</code> tag
+          (styles/scripts/JSON-LD from <code>render()</code>) are synchronized. Identical tags are kept, so libraries are not downloaded twice.</li>
+        <li>Persisted elements (<code>data-persist="true"</code>, e.g. a sidebar) keep their DOM, but their links take the
+          <code>class</code>/<code>aria-current</code> rendered for the new page, so the active item follows navigation.</li>
+        <li>Scripts run in document order: an external <code>&lt;script src&gt;</code> finishes loading before the next inline script runs.</li>
+        <li><code>lila:page-load</code> / <code>lila:navigate</code> / <code>lila:load</code> — fired after the swap (use <code>Lila.onPageLoad(fn)</code>).</li>
+        <li>Page scripts run on every visit: use <code>var</code>/<code>function</code> for globals and call init code directly
+          (<code>DOMContentLoaded</code> only fires on the first full load).</li>
+        <li>Hover prefetch is de-duplicated and never stores redirected responses (e.g. an expired session redirecting to <code>/login</code>).
+          Same-page <code>#hash</code> links scroll natively.</li>
+      </ul>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">HTML attributes reference</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">Everything below works without writing JavaScript, survives SPA navigations and is re-applied to content inserted with <code>data-target</code> or partials. Escape closes drawers and dropdowns.</p>
+      <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 mb-6">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500"><tr><th class="px-3 py-2">Group</th><th class="px-3 py-2">Attribute</th><th class="px-3 py-2">What it does</th></tr></thead>
+          <tbody>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>a[href]</code></td><td class="px-3 py-2">Internal links use the SPA router (View Transitions + hover prefetch). Opt out: data-no-router, data-no-prefetch.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>data-persist=&quot;true&quot;</code></td><td class="px-3 py-2">Element kept across navigations (players, sidebars); its links get the new page&#x27;s active classes.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>data-partial-target=&quot;#sel&quot;</code></td><td class="px-3 py-2">Link loads only the [data-lila-outlet] fragment into #sel (+ data-transition, data-push-url).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>form[data-lila-form]</code></td><td class="px-3 py-2">Validate + send with Http() + feedback (see Forms &amp; actions).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-action=&quot;/api/x&quot;</code></td><td class="px-3 py-2">Button/link request: data-method, data-body, data-include, data-confirm, data-target, data-refresh, data-callback.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-match=&quot;field&quot;</code></td><td class="px-3 py-2">Confirmation field must equal another field (data-match-message).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-autosubmit[=&quot;ms&quot;]</code></td><td class="px-3 py-2">On a form or field: submit on change; text inputs wait ms after typing (default 400).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>form[data-navigate]</code></td><td class="px-3 py-2">GET form (filters/search) → SPA navigation to action?query.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-char-count=&quot;#counter&quot;</code></td><td class="px-3 py-2">Writes &quot;n / maxlength&quot; into #counter (red at the limit).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-password-toggle=&quot;#input&quot;</code></td><td class="px-3 py-2">Shows/hides a password (data-show-text / data-hide-text, aria-pressed).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Feedback</td><td class="px-3 py-2 whitespace-nowrap"><code>data-confirm=&quot;Text&quot;</code></td><td class="px-3 py-2">Native confirm() before a click/submit continues.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Feedback</td><td class="px-3 py-2 whitespace-nowrap"><code>data-copy=&quot;text | #sel&quot;</code></td><td class="px-3 py-2">Copies text or an element&#x27;s value/text (fallback on http://); data-copy-message, data-copy-silent.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer=&quot;#id&quot;</code></td><td class="px-3 py-2">Toggles a drawer (data-drawer-action=&quot;open|close&quot;). Old data-drawer-target=&quot;id&quot; still works.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer-panel + data-orientation</code></td><td class="px-3 py-2">Drawer panel: left | right | top | bottom (aliases up/down/start/end), data-size=&quot;20rem&quot;.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer-close</code></td><td class="px-3 py-2">Closes the drawer it is in (or the selector given).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-dropdown=&quot;#menu&quot;</code></td><td class="px-3 py-2">Toggles a menu; closes on outside click, Escape and navigation. Mark the menu data-dropdown-menu to keep it open on inner clicks.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-modal-target=&quot;#dialog&quot; / data-close-modal</code></td><td class="px-3 py-2">Opens (showModal) / closes a &lt;dialog&gt;.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle-class=&quot;a b&quot;</code></td><td class="px-3 py-2">Toggles classes on data-toggle-target (default: the element itself).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle-hidden=&quot;#sel&quot;</code></td><td class="px-3 py-2">Shows/hides elements (hidden attribute or .hidden), sets aria-expanded.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-remove[=&quot;#sel&quot;]</code></td><td class="px-3 py-2">Fades out and removes an element (default: closest [data-removable] or the parent).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-tab-target=&quot;panelId&quot;</code></td><td class="px-3 py-2">Tabs: .tabs container with .tab-trigger buttons and .tab-content panels.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-scroll[=&quot;#id&quot;]</code></td><td class="px-3 py-2">Smooth scroll to an element (or to the top).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle=&quot;theme&quot;</code></td><td class="px-3 py-2">Light/dark switch, remembered in localStorage.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-filter=&quot;#list&quot;</code></td><td class="px-3 py-2">Filters the list&#x27;s children (or [data-filter-item]) by text; [data-filter-empty=&quot;#list&quot;] shows when nothing matches.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>&lt;time data-local-time datetime=&quot;…&quot;&gt;</code></td><td class="px-3 py-2">Formats dates in the visitor&#x27;s locale: data-format=&quot;date|time|datetime|relative&quot;.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Components</td><td class="px-3 py-2 whitespace-nowrap"><code>data-carousel / data-carousel-slide</code></td><td class="px-3 py-2">Carousel from plain HTML (see Carousel).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Components</td><td class="px-3 py-2 whitespace-nowrap"><code>{{ datatable(...) }} / {{ carousel(...) }}</code></td><td class="px-3 py-2">Jinja helpers, auto-initialized.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 class="font-bold mt-6 mb-2">Drawers in any direction</h4>
+      <pre><code class="language-html">&lt;button data-drawer=&quot;#mobile-menu&quot; aria-expanded=&quot;false&quot;&gt;☰&lt;/button&gt;
+
+&lt;aside id=&quot;mobile-menu&quot; data-drawer-panel data-orientation=&quot;left&quot; data-size=&quot;18rem&quot;
+       class=&quot;bg-white dark:bg-slate-900 p-6&quot;&gt;
+  &lt;button data-drawer-close aria-label=&quot;Close&quot;&gt;&amp;times;&lt;/button&gt;
+  &lt;nav&gt;&lt;a href=&quot;/&quot;&gt;Home&lt;/a&gt;&lt;a href=&quot;/docs&quot;&gt;Docs&lt;/a&gt;&lt;/nav&gt;   &lt;!-- links close it --&gt;
+&lt;/aside&gt;
+
+&lt;!-- bottom sheet --&gt;
+&lt;button data-drawer=&quot;#filters&quot;&gt;Filters&lt;/button&gt;
+&lt;section id=&quot;filters&quot; data-drawer-panel data-orientation=&quot;bottom&quot; class=&quot;bg-white p-6 rounded-t-2xl&quot;&gt;...&lt;/section&gt;</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">JS: <code>Lila.drawer('#mobile-menu', 'open')</code> or <code>lila('drawer', { id: 'mobile-menu', action: 'close', orientation: 'top' })</code>. Events: <code>lila:drawer-open</code>, <code>lila:drawer-close</code>. Focus moves into the drawer and back to the trigger.</p>
+
+      <h4 class="font-bold mt-6 mb-2">Everyday helpers</h4>
+      <pre><code class="language-html">&lt;!-- dropdown --&gt;
+&lt;div class=&quot;relative&quot;&gt;
+  &lt;button data-dropdown=&quot;#user-menu&quot;&gt;Account ▾&lt;/button&gt;
+  &lt;ul id=&quot;user-menu&quot; hidden class=&quot;absolute right-0 mt-2 card p-2&quot;&gt;
+    &lt;li&gt;&lt;a href=&quot;/profile&quot;&gt;Profile&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;/logout&quot; data-no-router&gt;Log out&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;!-- live search over a list + &quot;no results&quot; --&gt;
+&lt;input type=&quot;search&quot; data-filter=&quot;#products&quot; placeholder=&quot;Search...&quot;&gt;
+&lt;ul id=&quot;products&quot;&gt;&lt;li&gt;Coffee&lt;/li&gt;&lt;li&gt;Tea&lt;/li&gt;&lt;/ul&gt;
+&lt;p data-filter-empty=&quot;#products&quot; hidden&gt;No results&lt;/p&gt;
+
+&lt;!-- filters that navigate (SPA) as you type/change --&gt;
+&lt;form action=&quot;/products&quot; method=&quot;get&quot; data-navigate data-autosubmit=&quot;300&quot;&gt;
+  &lt;input type=&quot;search&quot; name=&quot;q&quot;&gt;&lt;select name=&quot;sort&quot;&gt;&lt;option&gt;new&lt;/option&gt;&lt;option&gt;price&lt;/option&gt;&lt;/select&gt;
+&lt;/form&gt;
+
+&lt;!-- password + counter + copy --&gt;
+&lt;input id=&quot;pwd&quot; type=&quot;password&quot; name=&quot;password&quot;&gt;
+&lt;button type=&quot;button&quot; data-password-toggle=&quot;#pwd&quot; data-show-text=&quot;Show&quot; data-hide-text=&quot;Hide&quot;&gt;Show&lt;/button&gt;
+&lt;textarea name=&quot;bio&quot; maxlength=&quot;160&quot; data-char-count=&quot;#bio-count&quot;&gt;&lt;/textarea&gt;&lt;small id=&quot;bio-count&quot;&gt;&lt;/small&gt;
+&lt;button data-copy=&quot;#api-key&quot; data-copy-message=&quot;Copied!&quot;&gt;Copy key&lt;/button&gt;
+
+&lt;!-- dismissible alert, class toggle, smooth scroll, local dates --&gt;
+&lt;div class=&quot;alert&quot; data-removable&gt;Saved! &lt;button data-remove aria-label=&quot;Close&quot;&gt;&amp;times;&lt;/button&gt;&lt;/div&gt;
+&lt;button data-toggle-class=&quot;hidden&quot; data-toggle-target=&quot;#advanced&quot;&gt;Advanced&lt;/button&gt;
+&lt;button data-scroll&gt;↑ Top&lt;/button&gt;
+&lt;time data-local-time datetime=&quot;{{ order.created_at }}&quot; data-format=&quot;relative&quot;&gt;&lt;/time&gt;</code></pre>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">Forms &amp; actions without JavaScript</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+        Add <code>data-lila-form</code> to a form (or any of <code>data-snackbar</code>, <code>data-toast</code>,
+        <code>data-target</code>, <code>data-redirect</code>) and <code>lila-client.js</code> sends it with <code>Http()</code>:
+      </p>
+      <ol class="list-decimal pl-6 space-y-1 text-sm mb-4">
+        <li>Native HTML5 validation runs first (<code>required</code>, <code>type</code>, <code>min</code>/<code>max</code>,
+          <code>minlength</code>, <code>pattern</code>...) plus <code>data-match="other_field"</code> for confirmations.</li>
+        <li>Method from <code>method</code> (or <code>data-method</code> for PUT/PATCH/DELETE), URL from <code>action</code>.
+          Fields are sent as JSON (<code>Object.fromEntries(new FormData(form))</code>, repeated names become arrays); forms with
+          files are sent as <code>multipart/form-data</code>. The CSRF token is attached automatically.</li>
+        <li>Every submit button is disabled while the request runs; the clicked one shows a spinner (and
+          <code>data-loading-text</code>). Buttons are re-enabled when the answer arrives, on network errors and after
+          <code>data-timeout</code> ms (default 20000, the request is aborted).</li>
+        <li>The answer is normalized: <code>success</code>/<code>ok</code> false or an HTTP error = error; message from
+          <code>message</code>, <code>msg</code>, <code>detail</code> or <code>error</code>. 422 <code>errors</code>
+          (<code>[{"field": "message"}]</code>) are shown under each field (or in <code>[data-error-for="field"]</code>).</li>
+        <li>Feedback: <code>data-snackbar</code>, <code>data-toast="Success title"</code> (+ <code>data-toast-error</code>) and/or a
+          <code>[data-message]</code> element inside the form that is shown with success/error styles.</li>
+        <li>On success: <code>data-redirect="/path"</code> (or a <code>redirect</code> field in the JSON, SPA navigation unless
+          <code>data-no-router</code>; <code>data-redirect-delay</code> ms), <code>data-reset</code> (whole form) or
+          <code>data-reset="password,password_2"</code>, <code>data-reload</code>, <code>data-target="#sel"</code> +
+          <code>data-swap="inner|outer|append|prepend|text"</code> with an HTML answer or <code>{"html": "..."}</code>,
+          <code>data-refresh="#datatable-id"</code> (re-fetches a <code>datatable(url=...)</code>).</li>
+        <li><code>data-callback="fnName"</code> calls <code>window.fnName(data, element, result)</code> on success and error.
+          Events <code>lila:request</code>, <code>lila:success</code> and <code>lila:error</code> bubble from the element.</li>
+      </ol>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6">
+        <div class="editor-content bg-gray-900 p-4">
+          <pre><code class="language-html">&lt;form action=&quot;/register&quot; method=&quot;post&quot; data-lila-form
+      data-toast=&quot;Account created&quot; data-toast-error=&quot;Error&quot; data-redirect=&quot;/dashboard&quot;&gt;
+  &lt;input name=&quot;name&quot; required minlength=&quot;2&quot;&gt;
+  &lt;input name=&quot;email&quot; type=&quot;email&quot; required&gt;
+  &lt;input name=&quot;password&quot; type=&quot;password&quot; required minlength=&quot;8&quot;&gt;
+  &lt;input name=&quot;password_2&quot; type=&quot;password&quot; required
+         data-match=&quot;password&quot; data-match-message=&quot;Passwords do not match&quot;&gt;
+  &lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;terms&quot; value=&quot;1&quot; data-unchecked=&quot;0&quot;&gt; Accept&lt;/label&gt;
+
+  &lt;div data-message hidden&gt;&lt;/div&gt;               &lt;!-- optional inline message --&gt;
+  &lt;button type=&quot;submit&quot; data-loading-text=&quot;Creating...&quot;&gt;Create account&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+        </div>
+      </div>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+        Buttons and links use the same pipeline with <code>data-action</code> (links with <code>data-action</code> are never
+        handled by the SPA router). <code>data-confirm</code> asks first; <code>data-body</code> is JSON;
+        <code>data-include="#form-or-container"</code> merges its fields.
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6">
+        <div class="editor-content bg-gray-900 p-4">
+          <pre><code class="language-html">&lt;button data-action=&quot;/api/items/3&quot; data-method=&quot;DELETE&quot; data-confirm=&quot;Delete item #3?&quot;
+        data-snackbar data-refresh=&quot;#items-table&quot;&gt;Delete&lt;/button&gt;
+
+&lt;a href=&quot;#&quot; data-action=&quot;/api/stats&quot; data-method=&quot;GET&quot; data-target=&quot;#stats&quot;&gt;Refresh stats&lt;/a&gt;
+&lt;div id=&quot;stats&quot;&gt;&lt;/div&gt;
+
+&lt;button data-action=&quot;/api/publish&quot; data-body=&#x27;{&quot;id&quot;: 7}&#x27; data-callback=&quot;afterPublish&quot;&gt;Publish&lt;/button&gt;
+&lt;script&gt;
+  function afterPublish(data, button, result) { if (result.ok) button.remove(); }
+&lt;/script&gt;
+
+&lt;!-- Show / hide an element (hidden attribute or .hidden class) --&gt;
+&lt;button data-toggle-hidden=&quot;#danger-zone&quot; aria-expanded=&quot;false&quot;&gt;Delete account&lt;/button&gt;
+&lt;div id=&quot;danger-zone&quot; hidden&gt;...&lt;/div&gt;</code></pre>
+        </div>
+      </div>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">
+        From JavaScript: <code>Lila.submit(form)</code>, <code>Lila.action(button)</code>, <code>Lila.refresh("#table")</code>.
+        Add <code>data-native</code> to a form to keep the browser's normal submit. The auth scaffold
+        (<code>lila auth</code>) uses only these attributes, without page scripts.
+      </p>
 
       <h3 class="text-xl font-bold mt-8 mb-3">UI Components Reference</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -174,6 +344,7 @@
         <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
           <h4 class="text-base font-bold mb-2">3. ResponsiveDataTable</h4>
           <p class="text-xs text-slate-500 mb-3">Renders a desktop table on large screens and converts automatically into mobile card views on small screens.</p>
+          <p class="text-xs text-slate-500 mb-3">From Jinja, without JavaScript: <code>{{ datatable(users, ["id", "name", ("email", "E-mail")], edit="openEditModal") }}</code> (unique id, auto-initialized; see <a href="templates.html">Templates</a>). Tables release their resize listener when an SPA navigation removes them.</p>
           <pre><code class="language-javascript">new ResponsiveDataTable('containerId', {
   data: users,
   columns: [
@@ -187,6 +358,36 @@
   edit: (e, item) => openEditModal(item),
   delete: (e, item) => deleteRecord(item)
 });</code></pre>
+        </div>
+
+        <!-- Carousel -->
+        <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
+          <h4 class="text-base font-bold mb-2">Carousel</h4>
+          <p class="text-xs text-slate-500 mb-3">Scroll-snap carousel styled with Tailwind: touch swipe, arrows, indicators, keyboard (← →), autoplay (paused on hover/focus/hidden tab), loop and <code>prefers-reduced-motion</code>. Initialized automatically on the first load and after every SPA navigation. Three ways to create one:</p>
+          <p class="text-xs font-bold mt-3 mb-1">a) Plain HTML with data attributes (track, arrows and dots are generated)</p>
+          <pre><code class="language-html">&lt;div data-carousel
+     data-carousel-autoplay=&quot;4000&quot;     &lt;!-- ms, 0 = off (default) --&gt;
+     data-carousel-loop=&quot;true&quot;         &lt;!-- wrap around (default true) --&gt;
+     data-carousel-arrows=&quot;true&quot;       &lt;!-- prev/next buttons (default true) --&gt;
+     data-carousel-indicators=&quot;true&quot;   &lt;!-- dots (default true) --&gt;
+     data-carousel-pause=&quot;true&quot;        &lt;!-- pause on hover (default true) --&gt;
+     class=&quot;h-72 rounded-2xl&quot;&gt;
+  &lt;div data-carousel-slide&gt;&lt;img src=&quot;/img/1.webp&quot; alt=&quot;&quot; class=&quot;w-full h-full object-cover&quot;&gt;&lt;/div&gt;
+  &lt;div data-carousel-slide&gt;&lt;img src=&quot;/img/2.webp&quot; alt=&quot;&quot; class=&quot;w-full h-full object-cover&quot;&gt;&lt;/div&gt;
+  &lt;!-- several per view: give the slide a basis class --&gt;
+  &lt;div data-carousel-slide class=&quot;basis-full md:basis-1/3 p-2&quot;&gt;&lt;div class=&quot;card h-full&quot;&gt;Card&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          <p class="text-xs text-slate-500 mt-2">Optional own controls inside the carousel: <code>data-carousel-prev</code>, <code>data-carousel-next</code>, <code>data-carousel-indicators</code>, <code>data-carousel-track</code>. (HTML comments inside the tag above are only explanatory.)</p>
+          <p class="text-xs font-bold mt-3 mb-1">b) From Jinja</p>
+          <pre><code class="language-html">{{ carousel([{&quot;image&quot;: &quot;img/1.webp&quot;, &quot;title&quot;: &quot;Fast&quot;, &quot;text&quot;: &quot;...&quot;, &quot;href&quot;: &quot;/docs&quot;}], autoplay=5000) }}</code></pre>
+          <p class="text-xs font-bold mt-3 mb-1">c) From JavaScript</p>
+          <pre><code class="language-javascript">// Markup added dynamically (or classes .carousel/.carousel-track/.carousel-item):
+var sliders = lila(&#x27;carousel&#x27;, { selector: &#x27;.my-carousel&#x27;, autoplay: 4000, loop: false }); // array
+var slider = lila(&#x27;carousel&#x27;, { el: document.getElementById(&#x27;hero&#x27;) });                   // one
+
+slider.next(); slider.prev(); slider.go(2); slider.stop(); slider.start();
+slider.index;  slider.length;
+document.getElementById(&#x27;hero&#x27;).addEventListener(&#x27;lila:carousel-change&#x27;, (e) =&gt; console.log(e.detail.index));</code></pre>
         </div>
 
         <!-- Command Palette -->

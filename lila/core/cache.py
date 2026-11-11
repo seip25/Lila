@@ -238,12 +238,45 @@ class Cache:
     def _deserialize(raw: bytes) -> Any:
         return orjson_loads(raw)
 
+    @staticmethod
+    def _file_namespace(key: str) -> str:
+        """First two ``:`` segments (``model:products``) hashed into the file
+        name, so ``delete("model:products:*")`` only touches that table."""
+        parts = key.split(":")
+        ns = ":".join(parts[:2]) if len(parts) > 2 else parts[0]
+        return hashlib.sha256(ns.encode("utf-8")).hexdigest()[:12]
+
     @classmethod
     def _file_path(cls, key: str) -> Optional[str]:
         if not cls._file_dir:
             return None
         digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
-        return os.path.join(cls._file_dir, f"{digest}.json")
+        return os.path.join(cls._file_dir, f"{cls._file_namespace(key)}-{digest}.json")
+
+    @classmethod
+    def _file_delete_prefix(cls, prefix: str) -> None:
+        """Deletes file-cache entries whose key starts with ``prefix``."""
+        if not cls._file_dir or not os.path.isdir(cls._file_dir):
+            return
+        parts = prefix.split(":")
+        # "model:products:" -> namespace known, only scan those files.
+        name_prefix = ""
+        if len(parts) > 2:
+            name_prefix = cls._file_namespace(prefix) + "-"
+        for name in os.listdir(cls._file_dir):
+            if not name.endswith(".json") or (name_prefix and not name.startswith(name_prefix)):
+                continue
+            path = os.path.join(cls._file_dir, name)
+            try:
+                with open(path, "r", encoding="utf-8") as fh:
+                    stored_key = str(json.load(fh).get("key", ""))
+            except Exception:
+                continue
+            if stored_key.startswith(prefix):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
 
     @classmethod
     def _file_get(cls, key: str) -> Any:
@@ -301,19 +334,59 @@ class Cache:
         return None
 
     @classmethod
+    def _memory_make_room(cls, now: float) -> None:
+        """Evicts entries when the LRU is full (caller holds the lock).
+
+        Expired entries go first, then the oldest *non-session* entries, so a
+        burst of route/model cache writes never logs users out. Sessions are
+        evicted only when nothing else is left.
+        """
+        if len(cls._DATA) < cls._MAX_ITEMS:
+            return
+        expired = [k for k, (_, exp) in cls._DATA.items() if exp <= now]
+        for k in expired:
+            cls._DATA.pop(k, None)
+        if len(cls._DATA) < cls._MAX_ITEMS:
+            return
+        overflow = len(cls._DATA) - cls._MAX_ITEMS + 1
+        victims = []
+        for k in cls._DATA:
+            if not k.startswith("session:"):
+                victims.append(k)
+                if len(victims) >= overflow:
+                    break
+        for k in victims:
+            cls._DATA.pop(k, None)
+        while len(cls._DATA) >= cls._MAX_ITEMS:
+            cls._DATA.popitem(last=False)
+
+    @classmethod
     def _memory_set(cls, key: str, value: Any, ttl: int) -> bool:
         now = time.time()
         expiry = now + ttl if ttl > 0 else float("inf")
         with cls._lock:
-            if len(cls._DATA) >= cls._MAX_ITEMS:
-                expired = [k for k, (_, exp) in cls._DATA.items() if exp <= now]
-                for k in expired:
-                    cls._DATA.pop(k, None)
-                while len(cls._DATA) >= cls._MAX_ITEMS:
-                    cls._DATA.popitem(last=False)
+            if key not in cls._DATA:
+                cls._memory_make_room(now)
             cls._DATA[key] = (value, expiry)
             cls._DATA.move_to_end(key)
         return True
+
+    @classmethod
+    def _memory_incr(cls, key: str, ttl: int) -> int:
+        with cls._lock:
+            now = time.time()
+            current = cls._DATA.get(key)
+            if current is not None and current[1] > now:
+                new_value = int(current[0]) + 1
+                cls._DATA[key] = (new_value, current[1])
+                cls._DATA.move_to_end(key)
+                return new_value
+            if current is None:
+                # Bounded: many distinct IPs cannot grow the dict forever.
+                cls._memory_make_room(now)
+            cls._DATA[key] = (1, now + ttl if ttl > 0 else float("inf"))
+            cls._DATA.move_to_end(key)
+            return 1
 
     # --------------------------------------------------------------------------
     # Sync operations
@@ -394,8 +467,7 @@ class Cache:
                 cls._DATA.pop(key, None)
         if cls._file_dir:
             if "*" in key:
-                # Deleting by prefix would need an index; preserve sessions.
-                cls._file_clear(include_sessions=key.startswith("session:"))
+                cls._file_delete_prefix(key.split("*", 1)[0])
             else:
                 cls._file_delete(key)
 
@@ -468,17 +540,7 @@ class Cache:
             new_value = (int(current) if current is not None else 0) + 1
             cls._file_set(key, new_value, ttl)
             return new_value
-        with cls._lock:
-            now = time.time()
-            current = cls._DATA.get(key)
-            if current is not None and current[1] > now:
-                new_value = int(current[0]) + 1
-                cls._DATA[key] = (new_value, current[1])
-                cls._DATA.move_to_end(key)
-                return new_value
-            cls._DATA[key] = (1, now + ttl)
-            cls._DATA.move_to_end(key)
-            return 1
+        return cls._memory_incr(key, ttl)
 
     # --------------------------------------------------------------------------
     # Async operations
@@ -558,7 +620,7 @@ class Cache:
                 cls._DATA.pop(key, None)
         if cls._file_dir:
             if "*" in key:
-                cls._file_clear(include_sessions=key.startswith("session:"))
+                cls._file_delete_prefix(key.split("*", 1)[0])
             else:
                 cls._file_delete(key)
 
@@ -607,17 +669,7 @@ class Cache:
                     cls._mark_redis_down(exc)
         if driver == "file":
             return cls.incr(key, ttl)
-        with cls._lock:
-            now = time.time()
-            current = cls._DATA.get(key)
-            if current is not None and current[1] > now:
-                new_value = int(current[0]) + 1
-                cls._DATA[key] = (new_value, current[1])
-                cls._DATA.move_to_end(key)
-                return new_value
-            cls._DATA[key] = (1, now + ttl)
-            cls._DATA.move_to_end(key)
-            return 1
+        return cls._memory_incr(key, ttl)
 
     @classmethod
     async def close_async(cls) -> None:

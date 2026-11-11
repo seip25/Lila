@@ -27,7 +27,7 @@ class DeleteAccountModel(BaseModel):
 async def profile_page(request: Request):
     session_data = await Session.get(request, "auth")
     context = {"user": session_data}
-    return render(request=request, template="authenticated/profile", context=context, csrf=True)
+    return render(request=request, template="authenticated/profile", context=context, csrf=True, title="profile", robots="noindex")
 
 
 @router.post("/profile", model=UpdateProfileModel)

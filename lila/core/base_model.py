@@ -170,6 +170,23 @@ class BaseModel(Base):
             raise ValueError(f"Unknown column(s) for {cls.__name__}: {', '.join(unknown)}")
         return cols
 
+    @classmethod
+    def _update_stmt(cls, id_val: Any, payload: dict):
+        """UPDATE ... WHERE pk = id, skipping soft-deleted rows.
+
+        Soft-deleted rows can still be restored explicitly by including the
+        active field in the payload (e.g. ``update_async(id, active=1)``).
+        """
+        pk_col = getattr(cls, cls._primary_key)
+        stmt = update(cls).where(pk_col == id_val)
+        if (
+            cls._delete_logic
+            and cls._column(cls._active_field) is not None
+            and cls._active_field not in payload
+        ):
+            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+        return stmt.values(**payload)
+
     # ──────────────────────────────────────────────────────────────────────────
     # Async CRUD
     # ──────────────────────────────────────────────────────────────────────────
@@ -267,8 +284,7 @@ class BaseModel(Base):
             return False
 
         async with conn.transaction() as session:
-            pk_col = getattr(cls, cls._primary_key)
-            stmt = update(cls).where(pk_col == id_val).values(**payload)
+            stmt = cls._update_stmt(id_val, payload)
             result = await session.execute(stmt)
             updated = result.rowcount > 0
 
@@ -318,12 +334,21 @@ class BaseModel(Base):
         limit: int = 1000,
         select: Optional[str] = None,
         offset: int = 0,
+        order_by: Optional[str] = None,
+        desc: bool = False,
         **filters,
     ) -> list:
         conn = cls.get_connection()
         if conn.is_async:
             return cls._run_sync(
-                cls.get_all_async(select_cols=select_cols or select, limit=limit, offset=offset, **filters)
+                cls.get_all_async(
+                    select_cols=select_cols or select,
+                    limit=limit,
+                    offset=offset,
+                    order_by=order_by,
+                    desc=desc,
+                    **filters,
+                )
             )
         with conn.transaction_sync() as session:
             query = session.query(cls)
@@ -331,6 +356,9 @@ class BaseModel(Base):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
             for col, value in cls._filter_columns(filters):
                 query = query.filter(col == value)
+            order_col = cls._column(order_by) if order_by else None
+            if order_col is not None:
+                query = query.order_by(order_col.desc() if desc else order_col.asc())
             rows = query.offset(offset).limit(limit).all()
             return [row.to_dict() for row in rows]
 
@@ -370,8 +398,7 @@ class BaseModel(Base):
         if not payload:
             return False
         with conn.transaction_sync() as session:
-            pk_col = getattr(cls, cls._primary_key)
-            stmt = update(cls).where(pk_col == id_val).values(**payload)
+            stmt = cls._update_stmt(id_val, payload)
             res = session.execute(stmt)
             ok = res.rowcount > 0
         cls.invalidate_cache()

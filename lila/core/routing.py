@@ -429,7 +429,16 @@ class Router:
                     kwargs[qk] = param.default
                 # Missing optional/None params fall back to the Python default.
 
-            # 5. Body parsing and Pydantic validation
+            # 5. CSRF verification BEFORE body validation, so requests without a
+            # token never receive validation details (Starlette caches the
+            # parsed JSON/form, the body is read only once).
+            if csrf and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+                if not await CSRF.verify_async(request):
+                    return JSONResponse(
+                        {"success": False, "message": "Invalid or missing CSRF token"}, status_code=403
+                    )
+
+            # 6. Body parsing and Pydantic validation
             if active_model is not None:
                 content_type = request.headers.get("content-type", "").lower()
                 data: Any = {}
@@ -472,13 +481,6 @@ class Router:
                     Logger.warning(f"Malformed payload on {norm_path}: {err}")
                     return JSONResponse(
                         {"success": False, "message": "Malformed payload"}, status_code=400
-                    )
-
-            # 6. CSRF verification (after body parsing)
-            if csrf and request.method in ("POST", "PUT", "DELETE", "PATCH"):
-                if not await CSRF.verify_async(request):
-                    return JSONResponse(
-                        {"success": False, "message": "Invalid or missing CSRF token"}, status_code=403
                     )
 
             # 7. Query model (GET only)

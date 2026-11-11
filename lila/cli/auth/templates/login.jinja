@@ -1,7 +1,3 @@
-{% extends layout | default('lila/base.jinja') %}
-{% block title %}{{ title | default(translate['sign_in'] | default('Sign In')) }} - Lila Framework{% endblock %}
-
-{% block content %}
 <main
     class="min-h-screen bg-bg-body dark:bg-bg-body-dark flex flex-col justify-center items-center px-4 py-12 transition-colors duration-300 font-sans">
     <div class="card w-full max-w-md p-8 shadow-lg">
@@ -27,7 +23,9 @@
             </span>
         </div>
 
-        <form id="login-form" class="space-y-4">
+        <form id="login-form" class="space-y-4" action="/login" method="post" data-lila-form
+            data-toast="{{ translate['welcome'] | default('Welcome') }}" data-toast-error="{{ translate['error'] | default('Error') }}"
+            data-redirect="/dashboard">
             {{ csrf_input | safe }}
             <div>
                 <label for="email"
@@ -50,7 +48,7 @@
                     required placeholder="••••••••">
             </div>
 
-            <button type="submit" class="btn btn-primary w-full py-2.5 text-sm shadow-md mt-2">
+            <button type="submit" class="btn btn-primary w-full py-2.5 text-sm shadow-md mt-2" data-loading-text="{{ translate['loading'] | default('Signing in...') }}">
                 {{ translate['sign_in'] | default(translate['login'] | default('Sign In')) }}
             </button>
 
@@ -64,27 +62,3 @@
         </form>
     </div>
 </main>
-
-<script>
-    document.getElementById('login-form').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        try {
-            const result = await Http('/login', 'POST', Object.fromEntries(formData));
-            if (result.success) {
-                lila('toast', { title: '{{ translate["welcome"] | default("Welcome") }}', description: result.msg || '{{ translate["authenticated_success"] | default("Authenticated successfully!") }}', type: 'success' });
-                if (window.Lila && typeof window.Lila.navigate === 'function') {
-                    Lila.navigate('/dashboard');
-                } else {
-                    window.location.replace('/dashboard');
-                }
-            } else {
-                lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: result.msg || '{{ translate["invalid_credentials"] | default("Invalid credentials.") }}', type: 'error' });
-            }
-        } catch (error) {
-            lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: error.message || '{{ translate["connection_failed"] | default("Connection failed") }}', type: 'error' });
-        }
-    });
-</script>
-{% endblock %}

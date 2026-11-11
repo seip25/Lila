@@ -155,7 +155,6 @@
           <div class="editor-content bg-gray-900 dark:bg-black">
             <pre><code class="language-python">
 from lila.core.templates import render
-from lila.core.responses import Response
 from lila.core.routing import Router
 from lila.core.request import Request
 
@@ -163,27 +162,115 @@ router = Router()
 
 @router.get("/")
 async def home(request: Request):
-    """Home page"""
-    
-    context = {
-        "title": "Lila Framework",
-        "message": "Hello from Lila!"
-    }
-    response = render(
-        request, 
-        "index.html", # HTML template name in resources/html/
-        context=context
+    """Home page: the template only contains its HTML."""
+    return render(
+        request,
+        "index",                         # resources/html/index.jinja
+        {"message": "Hello from Lila!"},
+        title="Lila Framework",          # &lt;title&gt;, og:title
+        description="Full-stack Python",
     )
-    # Renders the 'index' template
-    
-    return response
 
-routes=router.get_routes()
+routes = router.get_routes()
 </code>
 </pre>
           </div>
         </div>
       </div>
+
+      <h3>Automatic layout: pages are just HTML</h3>
+      <p>
+        A page template does not need <code>{% extends %}</code>, <code>{% block title %}</code>
+        or <code>{% block content %}</code>. <code>render()</code> wraps it in the default layout
+        (<code>lila/base.jinja</code>, change it with <code>set_default_layout()</code>) and builds the
+        whole <code>&lt;head&gt;</code> from its keyword arguments, <code>@seo</code>/<code>SEO_CONFIG</code> and
+        <code>.env</code>. The wrapped template is compiled once and cached by Jinja.
+      </p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">resources/html/authenticated/dashboard.jinja</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">&lt;main class=&quot;max-w-7xl mx-auto px-4 py-8 space-y-6&quot;&gt;
+  &lt;h1 class=&quot;text-3xl font-black&quot;&gt;{{ translate[&#x27;welcome&#x27;] }}, {{ user.name }}!&lt;/h1&gt;
+  {% include &quot;components/stats.jinja&quot; %}   {# includes are never wrapped #}
+&lt;/main&gt;
+
+{# Optional: extra tags for &lt;head&gt; / end of &lt;body&gt; are moved to the layout #}
+{% block head %}&lt;meta name=&quot;theme-color&quot; content=&quot;#1a73e8&quot; data-lila-head&gt;{% endblock %}</code></pre>
+        </div>
+      </div>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">app/routes/dashboard.py</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">@router.get(&quot;/dashboard&quot;, auth=True)
+async def dashboard(request: Request):
+    return render(
+        request,
+        &quot;authenticated/dashboard&quot;,
+        {&quot;user&quot;: request.state.user},
+        title=&quot;dashboard&quot;,          # a translation key is translated -&gt; &quot;Panel de Control - My App&quot;
+        description=&quot;Your panel&quot;,
+        robots=&quot;noindex&quot;,
+        canonical=True,             # True = APP_URL + current path
+        image=&quot;img/og.png&quot;,         # og:image / twitter:image (absolute URL generated)
+        jsonld={&quot;@context&quot;: &quot;https://schema.org&quot;, &quot;@type&quot;: &quot;WebPage&quot;, &quot;name&quot;: &quot;Dashboard&quot;},
+        meta={&quot;theme-color&quot;: &quot;#1a73e8&quot;, &quot;og:locale&quot;: &quot;es_AR&quot;},
+        styles=[&quot;css/dashboard.css&quot;],
+        scripts=[&quot;js/chart.js&quot;],    # loaded in &lt;head&gt;, before the page&#x27;s inline scripts
+    )</code></pre>
+        </div>
+      </div>
+      <ul class="list-disc pl-6 space-y-1 text-sm">
+        <li>Precedence: <code>.env</code> defaults &lt; <code>SEO_CONFIG</code>/<code>@seo</code> &lt; <code>context</code> &lt; <code>render()</code> keywords.</li>
+        <li><code>&lt;title&gt;</code> uses <code>TITLE_TEMPLATE</code> from <code>.env</code> (default <code>"{title} - {project}"</code>, project = <code>TITLE_PROJECT</code>).</li>
+        <li><code>layout=None</code> uses the default layout, <code>layout="admin/layout.jinja"</code> another one and <code>layout=False</code> renders the template as a fragment.</li>
+        <li>Templates that already use <code>{% extends %}</code> or contain <code>&lt;html&gt;</code>/<code>&lt;!DOCTYPE&gt;</code> are rendered unchanged, so 2.0.0 templates keep working.</li>
+        <li>Tags produced by <code>styles</code>, <code>scripts</code> and <code>jsonld</code> carry <code>data-lila-head</code>: the SPA router swaps them (and <code>&lt;html lang&gt;</code>) on every navigation. Add <code>data-lila-head</code> to your own page-specific head tags.</li>
+        <li><code>head="..."</code> is inserted as raw HTML (trusted developer input); every other value is escaped. JSON-LD is serialized so it cannot close its <code>&lt;script&gt;</code>.</li>
+        <li>Page scripts run again on every SPA visit: declare globals with <code>var</code>/<code>function</code> (not top-level <code>let</code>/<code>const</code>) and call init code directly instead of waiting for <code>DOMContentLoaded</code>.</li>
+      </ul>
+
+      <h4 class="mt-6 font-semibold">Custom layouts</h4>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">resources/html/layouts/app.jinja</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;{{ lang }}&quot; data-theme=&quot;light&quot;&gt;
+&lt;head&gt;
+  {% include &quot;lila/head.jinja&quot; %}   {# title, meta, OG, JSON-LD, icon, Tailwind, CSRF meta #}
+  {% block head %}{% endblock %}
+&lt;/head&gt;
+&lt;body data-layout=&quot;app&quot; class=&quot;{{ page.body_class or &#x27;min-h-screen bg-bg-body dark:bg-bg-body-dark&#x27; }}&quot;&gt;
+  &lt;nav data-persist=&quot;true&quot; id=&quot;main-nav&quot;&gt;...&lt;/nav&gt;
+  &lt;div data-lila-outlet&gt;{% block content %}{% endblock %}&lt;/div&gt;
+  &lt;script src=&quot;{{ public(&#x27;js/lila-client.js&#x27;) }}&quot;&gt;&lt;/script&gt;
+  {% block scripts %}{% endblock %}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </div>
+      </div>
+      <p>Use it per page with <code>render(..., layout="layouts/app.jinja")</code> or globally with
+        <code>set_default_layout("layouts/app.jinja")</code>.</p>
 
       <h3>The <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render</code> Function</h3>
       <p>
@@ -216,11 +303,15 @@ def render(
     csrf: bool = False,
     status_code: int = 200,
     template: str | None = None,      # alias for template_name
-    layout: str | None = None,
+    layout: str | bool | None = None, # None = default layout, False = no layout
     headers: dict | None = None,
     lang_default: str | None = None,
     files_translate: list | None = None,   # accepted for v1 compatibility
-) -> HTMLResponse: ...
+    *,
+    title=None, description=None, keywords=None, author=None,
+    image=None, icon=None, canonical=None, robots=None, og_type=None,
+    jsonld=None, meta=None, styles=None, scripts=None, head=None, body_class=None,
+) -&gt; HTMLResponse: ...
 
 # render_markdown is also available:
 def render_markdown(request, markdown_path, context=None, css_files=None, js_files=None): ...
@@ -264,9 +355,24 @@ def render_markdown(request, markdown_path, context=None, css_files=None, js_fil
         <li class="flex flex-col md:flex-row md:items-start">
           <strong>status_code / headers / layout:</strong>
           <p>
-            Response status (default 200), extra response headers, and a layout override for the
-            <code>layout</code> context variable.
+            Response status (default 200), extra response headers and the layout: <code>None</code> = default
+            layout, a template name = that layout, <code>False</code> = render the template as a fragment.
           </p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>title / description / keywords / author:</strong>
+          <p>SEO texts. A value that is a translation key (<code>"dashboard"</code>) is translated to the request language.</p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>image / icon / canonical / robots / og_type:</strong>
+          <p>Open Graph image (relative paths become absolute), favicon (default <code>favicon.ico</code>), canonical URL
+            (<code>True</code> = current URL), robots directive and <code>og:type</code> (default <code>website</code>).</p>
+        </li>
+        <li class="flex flex-col md:flex-row md:items-start">
+          <strong>jsonld / meta / styles / scripts / head / body_class:</strong>
+          <p>JSON-LD dict or list, extra <code>&lt;meta&gt;</code> (<code>og:*</code> keys use <code>property</code>), stylesheet
+            and script URLs (relative paths go through <code>public()</code>), raw trusted HTML for <code>&lt;head&gt;</code> and the
+            <code>&lt;body&gt;</code> class of the default layout.</p>
         </li>
         <li class="flex flex-col md:flex-row md:items-start">
           <strong>files_translate (list):</strong>
@@ -343,7 +449,8 @@ def get_base_context(request, lang_default=None, files_translate=None):
         "csrf_token": "",
     }
 
-# render() then adds: csrf_token, csrf_input and (when @seo was used) "seo".
+# render() then adds: csrf_token, csrf_input, "seo" and "page" (the resolved
+# title/full_title/description/image/jsonld/styles/scripts used by lila/head.jinja).
       </code></pre>
         </div>
       </div>
@@ -418,6 +525,61 @@ def get_base_context(request, lang_default=None, files_translate=None):
 
 
       </div>
+
+      <h3 class="mt-8 text-2xl font-semibold">Components from Jinja: datatable() and carousel()</h3>
+      <p>Both helpers generate a unique id automatically, escape every value and are initialized by
+        <code>lila-client.js</code> on the first load and after each SPA navigation.</p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">DataTable</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">{# rows embedded in the page (password/token/hash keys are never embedded) #}
+{{ datatable(users, [&quot;id&quot;, &quot;name&quot;, (&quot;email&quot;, &quot;E-mail&quot;)], rows_per_page=10, edit=&quot;onEditUser&quot;, delete=&quot;onDeleteUser&quot;) }}
+
+{# or loaded with Http() — data_key reads {&quot;data&quot;: [...]} style responses #}
+{{ datatable(url=&quot;/api/users&quot;, columns=[&quot;id&quot;, &quot;name&quot;], data_key=&quot;data&quot;, id=&quot;users-table&quot;) }}
+
+&lt;script&gt;
+  function onEditUser(event, item) { location.href = &quot;/users/&quot; + item.id; }
+  function onDeleteUser(event, item) { /* Http(`/api/users/${item.id}`, &quot;DELETE&quot;) */ }
+&lt;/script&gt;</code></pre>
+        </div>
+      </div>
+      <p class="text-sm">Options: <code>id</code>, <code>rows_per_page</code>, <code>search</code>, <code>pagination</code>,
+        <code>summary_fields</code> (mobile card summary), <code>id_key</code>, <code>breakpoint</code>, <code>exclude</code>,
+        <code>css_class</code>. Model instances and Pydantic objects are converted automatically. The instance is
+        available as <code>document.getElementById(id)._lila_datatable</code> and a <code>lila:datatable-ready</code> event is fired.</p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
+          <span class="editor-title text-gray-300 dark:text-gray-400">Carousel</span>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">{{ carousel([
+    {&quot;image&quot;: &quot;img/slide-1.webp&quot;, &quot;title&quot;: &quot;Fast&quot;, &quot;text&quot;: &quot;Starlette + Pydantic v2&quot;, &quot;href&quot;: &quot;/docs&quot;},
+    {&quot;image&quot;: &quot;img/slide-2.webp&quot;, &quot;title&quot;: &quot;Simple&quot;},
+  ], autoplay=5000) }}
+
+{# several cards per view #}
+{{ carousel(products_html, item_class=&quot;basis-full sm:basis-1/2 lg:basis-1/3 pr-4&quot;, height=&quot;h-80&quot;, indicators=False) }}</code></pre>
+        </div>
+      </div>
+      <p class="text-sm">Slides can be dicts (<code>image</code>, <code>alt</code>, <code>title</code>, <code>text</code>,
+        <code>href</code>), plain text or <code>Markup</code> (trusted HTML). Options: <code>autoplay</code> (ms, 0 = off),
+        <code>loop</code>, <code>arrows</code>, <code>indicators</code>, <code>item_class</code>, <code>height</code>,
+        <code>css_class</code>, <code>id</code>. Touch swipe uses native scroll-snap, arrow keys work when focused, autoplay
+        pauses on hover/focus/hidden tabs and respects <code>prefers-reduced-motion</code>. JS API:
+        <code>el._lila_carousel.next()/prev()/go(i)/stop()</code>.</p>
 
       <h3 class="mt-8 text-2xl font-semibold">CSRF Protection in Templates</h3>
       <p>

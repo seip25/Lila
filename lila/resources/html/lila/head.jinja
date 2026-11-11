@@ -1,0 +1,42 @@
+{#- Shared <head> for every Lila layout. Values come from render(...) kwargs,
+    @seo / SEO_CONFIG and .env defaults (see templates.render). Page-specific
+    tags carry data-lila-head so the SPA router swaps them on navigation. -#}
+{%- set p = page or {} -%}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light dark" />
+{% if lila_head_title is not defined or lila_head_title %}
+<title>{{ p.full_title | default(title) | default('Lila') }}</title>{% endif %}
+{% if p.description %}
+<meta name="description" content="{{ p.description }}" />{% endif %}
+{% if p.keywords %}
+<meta name="keywords" content="{{ p.keywords }}" />{% endif %}
+{% if p.author %}
+<meta name="author" content="{{ p.author }}" />{% endif %}
+{% if p.robots %}
+<meta name="robots" content="{{ p.robots }}" />{% endif %}
+{% if p.canonical %}
+<link rel="canonical" href="{{ p.canonical }}" />{% endif %}
+<meta property="og:title" content="{{ p.title or p.full_title }}" />
+<meta property="og:type" content="{{ p.og_type | default('website') }}" />
+{% if p.url %}
+<meta property="og:url" content="{{ p.canonical or p.url }}" />{% endif %}
+{% if p.site_name %}
+<meta property="og:site_name" content="{{ p.site_name }}" />{% endif %}
+{% if p.description %}
+<meta property="og:description" content="{{ p.description }}" />{% endif %}
+{% if p.image %}
+<meta property="og:image" content="{{ p.image }}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="{{ p.image }}" />{% endif %}
+{% for m in p.meta | default([]) %}
+<meta {% for k, v in m.items() %}{{ k }}="{{ v }}" {% endfor %}/>{% endfor %}
+{% if p.icon %}
+<link rel="icon" href="{{ p.icon }}" />{% endif %}
+{% include "lila/tailwind.jinja" %}
+{% for href in p.styles | default([]) %}
+<link rel="stylesheet" href="{{ href }}" data-lila-head />{% endfor %}
+{{ p.jsonld | default('') }}
+{% for src in p.scripts | default([]) %}
+<script src="{{ src }}" data-lila-head></script>{% endfor %}
+{{ p.head | default('') }}
