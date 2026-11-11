@@ -361,7 +361,9 @@ class Router:
                     fingerprint_src = f"{request.headers.get('cookie', '')}|{request.headers.get('authorization', '')}"
                     identity = hashlib.sha256(fingerprint_src.encode("utf-8", errors="ignore")).hexdigest()[:16]
                 lang = request.headers.get("accept-language", "")[:24]
-                cache_key = f"route:{request.method}:{norm_path}:{request.url.query}:{identity}:{lang}"
+                # Use the concrete path (not the route pattern) so /items/1 and
+                # /items/2 never share a cache entry.
+                cache_key = f"route:{request.method}:{request.url.path}:{request.url.query}:{identity}:{lang}"
                 cached = await Cache.get_async(cache_key)
                 if cached is not None:
                     if isinstance(cached, (dict, list)):
@@ -419,6 +421,10 @@ class Router:
                         return _param_error(qk, str(err) or "Invalid value")
                 elif param.required and not param.is_optional:
                     return _param_error(qk, "Field required")
+                elif param.required:
+                    # ``q: Optional[str]`` without a default: inject None
+                    # instead of failing with a TypeError (500).
+                    kwargs[qk] = None
                 elif param.default is not None:
                     kwargs[qk] = param.default
                 # Missing optional/None params fall back to the Python default.
@@ -463,8 +469,9 @@ class Router:
                     translated = Translate.format_errors(val_err, request=request)
                     return JSONResponse.validation_error(val_err, translated_errors=translated)
                 except Exception as err:
+                    Logger.warning(f"Malformed payload on {norm_path}: {err}")
                     return JSONResponse(
-                        {"success": False, "message": f"Malformed payload: {str(err)}"}, status_code=400
+                        {"success": False, "message": "Malformed payload"}, status_code=400
                     )
 
             # 6. CSRF verification (after body parsing)
@@ -600,13 +607,48 @@ class Router:
 
         self.routes.append(WebSocketRoute(norm_path, endpoint=_endpoint))
 
-    def rest_crud_generate(self, model_sql: Any, base_route: Optional[str] = None, auth: bool = False):
-        """Generates clean, full async REST endpoints for an ActiveRecord model."""
+    def rest_crud_generate(
+        self,
+        model_sql: Any,
+        base_route: Optional[str] = None,
+        auth: bool = False,
+        max_limit: int = 500,
+    ):
+        """Generates clean, full async REST endpoints for an ActiveRecord model.
+
+        Writes only accept real table columns (never the primary key nor
+        ``__private_fields__``), list endpoints clamp ``limit`` and database
+        errors are logged instead of being returned to the client.
+        """
         route_name = base_route or model_sql.__tablename__
         route_prefix = f"/{route_name.strip('/')}"
+        pk_name = getattr(model_sql, "_primary_key", "id")
+        private = set(getattr(model_sql, "__private_fields__", ()) or ())
+        writable = {
+            col.name
+            for col in model_sql.__table__.columns
+            if col.name != pk_name and not col.primary_key and col.name not in private
+        }
+
+        async def _payload(request: Request):
+            try:
+                data = await request.json()
+            except Exception:
+                return None, JSONResponse({"success": False, "message": "Invalid JSON body"}, status_code=400)
+            if not isinstance(data, dict):
+                return None, JSONResponse({"success": False, "message": "JSON object expected"}, status_code=400)
+            unknown = sorted(k for k in data if k not in writable)
+            if unknown:
+                return None, JSONResponse(
+                    {"success": False, "message": f"Unknown or read-only field(s): {', '.join(unknown)}"},
+                    status_code=422,
+                )
+            return data, None
 
         @self.get(route_prefix, auth=auth)
         async def list_records(request: Request, limit: int = 100, offset: int = 0):
+            limit = max(1, min(int(limit), int(max_limit)))
+            offset = max(0, int(offset))
             return await model_sql.get_all_async(limit=limit, offset=offset)
 
         @self.get(f"{route_prefix}/{{id:int}}", auth=auth)
@@ -618,26 +660,28 @@ class Router:
 
         @self.post(route_prefix, auth=auth)
         async def create_record(request: Request):
-            try:
-                data = await request.json()
-            except Exception:
-                return JSONResponse({"success": False, "message": "Invalid JSON body"}, status_code=400)
+            data, error = await _payload(request)
+            if error is not None:
+                return error
             try:
                 created = await model_sql.insert_async(**data)
             except Exception as exc:
-                return JSONResponse({"success": False, "message": str(exc)}, status_code=400)
+                Logger.error(f"REST create on {route_prefix} failed: {exc}", exception=exc)
+                return JSONResponse({"success": False, "message": "Could not create record"}, status_code=400)
             return JSONResponse({"success": True, "data": created}, status_code=201)
 
         @self.put(f"{route_prefix}/{{id:int}}", auth=auth)
         async def update_record(request: Request, id: int):
-            try:
-                data = await request.json()
-            except Exception:
-                return JSONResponse({"success": False, "message": "Invalid JSON body"}, status_code=400)
+            data, error = await _payload(request)
+            if error is not None:
+                return error
+            if not data:
+                return JSONResponse({"success": False, "message": "Empty payload"}, status_code=422)
             try:
                 ok = await model_sql.update_async(id, **data)
             except Exception as exc:
-                return JSONResponse({"success": False, "message": str(exc)}, status_code=400)
+                Logger.error(f"REST update on {route_prefix} failed: {exc}", exception=exc)
+                return JSONResponse({"success": False, "message": "Could not update record"}, status_code=400)
             if not ok:
                 return JSONResponse({"success": False, "message": "Record not found"}, status_code=404)
             return {"success": True, "id": id}

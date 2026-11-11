@@ -3,6 +3,24 @@
 All notable changes to Lila Framework. The format follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+
+- Route cache keys now use the concrete request path: `/items/1` and `/items/2`
+  no longer share the same cached response.
+- `q: Optional[str]` (no default) receives `None` when missing instead of
+  raising a 500.
+- Malformed request bodies no longer echo the internal exception to clients.
+- `rest_crud_generate`: rejects primary key, `__private_fields__` and unknown
+  fields (422), clamps `limit` (`max_limit=500`) and logs DB errors instead of
+  returning `str(exc)`.
+- `BaseModel` filters/`order_by`/`select` only resolve real table columns;
+  unknown filter names raise `ValueError` instead of being ignored (which
+  returned every row).
+- Cached model reads are returned as copies, so mutating a result no longer
+  pollutes the shared in-memory cache.
+
 ## [2.0.0] — 2026-10-31
 
 Lila 2.0 is the lightweight full-stack release: Starlette + Pydantic v2 +

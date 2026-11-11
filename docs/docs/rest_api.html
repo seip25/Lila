@@ -195,7 +195,10 @@ def rest_crud_generate(
     model_sql,                 # BaseModel subclass
     base_route: str | None = None,   # defaults to model_sql.__tablename__
     auth: bool = False,              # require a session on every route
+    max_limit: int = 500,            # upper bound for ?limit= on the list route
 ): ...
+# POST/PUT only accept real table columns: the primary key, __private_fields__
+# and unknown keys are rejected with 422. Database errors are logged, never returned.
                     </code></pre>
                 </div>
             </div>
@@ -204,7 +207,7 @@ def rest_crud_generate(
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="editor-content">
                     <pre><code class="language-bash">
-GET    /api/users              → await User.get_all_async(limit=100, offset=0)
+GET    /api/users              → await User.get_all_async(limit=100, offset=0)  (limit clamped to max_limit)
 GET    /api/users/{id}         → await User.get_by_id_async(id)   (404 if missing)
 POST   /api/users              → await User.insert_async(**json_body)      (201)
 PUT    /api/users/{id}         → await User.update_async(id, **json_body)  (404 if missing)
