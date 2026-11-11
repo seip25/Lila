@@ -105,6 +105,60 @@ class Mailer:
         """Sends an HTML email without blocking the event loop."""
         return await asyncio.to_thread(cls._send_sync, to, subject, body_html, body_text, from_email)
 
+    # ── Jinja templates ──────────────────────────────────────────────────────
+    @classmethod
+    def render_template(cls, template: str, context: Optional[dict] = None,
+                        lang: Optional[str] = None) -> tuple:
+        """Renders ``resources/html/emails/<template>.jinja`` → ``(subject, html, text)``.
+
+        Templates usually ``{% extends "emails/base.jinja" %}`` (inline styles,
+        works in Gmail/Outlook) and may set ``{% set subject = "..." %}``.
+        """
+        from lila.core.templates import jinja_env, public
+        from lila.core.translate import Translate
+
+        name = template if template.endswith((".jinja", ".html")) else f"{template}.jinja"
+        if not name.startswith("emails/"):
+            name = f"emails/{name}"
+        current_lang = (lang or str(ENV_CONFIG.get("LANG_DEFAULT", "en")))[:2].lower()
+        app_url = str(ENV_CONFIG.get("APP_URL", "") or "").rstrip("/")
+        ctx = {
+            "app_url": app_url,
+            "project": ENV_CONFIG.get("TITLE_PROJECT", "Lila"),
+            "lang": current_lang,
+            "translate": Translate.get_dict(current_lang),
+            "absolute": lambda path: f"{app_url}{public(path)}" if not str(path).startswith("http") else path,
+        }
+        ctx.update(context or {})
+        tmpl = jinja_env.get_template(name)
+        module = tmpl.make_module(ctx)
+        html_body = str(module)
+        subject = str(ctx.get("subject") or getattr(module, "subject", "") or ctx["project"])
+        return subject, html_body, _html_to_text(html_body)
+
+    @classmethod
+    async def send_template(cls, to: Union[str, List[str]], template: str, context: Optional[dict] = None,
+                            subject: Optional[str] = None, lang: Optional[str] = None,
+                            queue: bool = False, from_email: Optional[str] = None) -> Union[bool, int]:
+        """Renders a Jinja email and sends it.
+
+        ``queue=True`` stores it in the SQLite task queue (retries with
+        backoff, survives restarts) and returns the task id; otherwise sends
+        now in a thread and returns True/False.
+        """
+        rendered_subject, html_body, text_body = await asyncio.to_thread(
+            cls.render_template, template, context, lang
+        )
+        final_subject = subject or rendered_subject
+        if queue:
+            from lila.core.tasks import enqueue
+
+            return await enqueue("lila.core.mailer:send_queued_email",
+                                 kwargs={"to": to, "subject": final_subject, "body_html": html_body,
+                                         "body_text": text_body, "from_email": from_email},
+                                 retries=int(ENV_CONFIG.get("MAIL_RETRIES", 4) or 4), timeout=60)
+        return await cls.send_email(to, final_subject, html_body, text_body, from_email)
+
     @classmethod
     def send_background(
         cls,
@@ -116,3 +170,23 @@ class Mailer:
     ) -> BackgroundTask:
         """Returns a Starlette BackgroundTask for post-response execution."""
         return BackgroundTask(cls._send_sync, to, subject, body_html, body_text, from_email)
+
+
+def _html_to_text(html_body: str) -> str:
+    """Plain-text alternative (better deliverability, readable in any client)."""
+    import html as _html
+    import re
+
+    text = re.sub(r"(?is)<(script|style|head).*?</\1>", "", html_body)
+    text = re.sub(r"(?i)<br\s*/?>|</p>|</h[1-6]>|</tr>|</li>|</div>", "\n", text)
+    text = re.sub(r'(?is)<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>', r"\2 (\1)", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = _html.unescape(text)
+    lines = [line.strip() for line in text.splitlines()]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+
+
+def send_queued_email(to, subject, body_html, body_text=None, from_email=None):
+    """Task used by ``Mailer.send_template(..., queue=True)``; raising makes the queue retry."""
+    if not Mailer._send_sync(to, subject, body_html, body_text, from_email):
+        raise RuntimeError("SMTP send failed")

@@ -78,6 +78,7 @@ class Database:
         self.SessionLocal = None
         self._connected: bool = False
         self._sync_loop = None
+        self._write_locks: dict = {}
 
     def _resolve_default_config(self) -> None:
         if self._explicit_config:
@@ -322,6 +323,23 @@ class Database:
         finally:
             await session.close()
 
+    @asynccontextmanager
+    async def write_transaction(self):
+        """Transaction for writes. On SQLite, writes of this process are queued
+        behind an asyncio lock (SQLite has a single writer): no "database is
+        locked" retries under bursts, while reads stay concurrent (WAL)."""
+        if self.type != "sqlite":
+            async with self.transaction() as session:
+                yield session
+            return
+        loop = asyncio.get_running_loop()
+        lock = self._write_locks.get(id(loop))
+        if lock is None:
+            lock = self._write_locks[id(loop)] = asyncio.Lock()
+        async with lock:
+            async with self.transaction() as session:
+                yield session
+
     @contextmanager
     def transaction_sync(self):
         """Sync context manager managing commit/rollback lifecycle."""
@@ -529,6 +547,15 @@ class Database:
     async def close_async(self) -> None:
         """Closes connections and disposes async/sync engines."""
         try:
+            if self.engine is not None and self.type == "sqlite" and self.is_async and self._connected:
+                # Refresh the query planner statistics (cheap, recommended on close).
+                try:
+                    from sqlalchemy import text as sa_text
+
+                    async with self.engine.connect() as conn:
+                        await conn.execute(sa_text("PRAGMA optimize"))
+                except Exception:
+                    pass
             if self.engine is not None:
                 if self.is_async:
                     await self.engine.dispose()

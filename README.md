@@ -39,8 +39,14 @@ reachable, and a file cache fallback.
   cache, and `CACHE_DRIVER="file"` for a persistent fallback. `CACHE_DRIVER="redis"`
   is used only when the Redis package is installed **and the server answers**;
   otherwise Lila logs once and falls back to memory.
-- 🗄️ **Real migrations**: `lila migrate` creates missing tables **and adds missing
-  columns**. `--refresh` now really drops tables and asks for confirmation.
+- 🗄️ **Real migrations**: `lila migrate` creates tables, adds and renames columns
+  and creates indexes; `--plan` shows the diff first and risky changes are only reported.
+- ⏱️ **Background work without Redis**: `@task` queue and `@every`/`@cron` jobs on
+  their own SQLite files, Jinja email templates, Server-Sent Events.
+- 🔐 **Roles & permissions, API keys and rotating JWT refresh tokens** built in.
+- 📈 **Lean in production**: `lila css build` (compiled Tailwind, no Node),
+  precompressed static files, ETag/304, cache memory budget, Granian support,
+  `lila bench`, protected `/health` and Prometheus `/metrics`.
 - 🤖 **AI helper** (`core/ia.py`): OpenAI, DeepSeek and Gemini with explicit PII
   masking/restoration, prompt cache and per-IP rate limits.
 - 🔐 **Auth 2.0**: cookie sessions without sensitive fields, Argon2id, CSRF for
@@ -279,6 +285,10 @@ application-data directory.
 | `lila seo` | `public/sitemap.xml` + `robots.txt` (served at `/sitemap.xml`). |
 | `lila worker` | Redis JSON task worker (`pip install lila-framework[redis]`). |
 | `lila deploy` | Generate systemd + Nginx + Windows Server files in `deploy/`. |
+| `lila css build` | Compiled, minified Tailwind CSS for production (no Node.js). |
+| `lila bench URL` | Requests/s, latency percentiles and server RSS. |
+| `lila tasks` / `lila schedule` | SQLite task queue and `@every`/`@cron` jobs. |
+| `lila i18n check` | Translation keys missing per language. |
 | `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
 | `lila desktop dev/build` | Native window / PyInstaller executable. |

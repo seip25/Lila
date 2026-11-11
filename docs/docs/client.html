@@ -157,6 +157,8 @@
           Same-page <code>#hash</code> links scroll natively.</li>
       </ul>
 
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>lila-client.js</code> is loaded in the <code>&lt;head&gt;</code> of the default layout, so inline page scripts can call <code>lila()</code>, <code>Http()</code>, <code>lilaSSE()</code> or <code>lilaWS()</code> on the first load too. Live updates without WebSockets: <a href="sse.html">Server-Sent Events</a> (<code>data-sse</code>).</p>
+
       <h3 class="text-xl font-bold mt-8 mb-3">HTML attributes reference</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">Everything below works without writing JavaScript, survives SPA navigations and is re-applied to content inserted with <code>data-target</code> or partials. Escape closes drawers and dropdowns.</p>
       <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 mb-6">

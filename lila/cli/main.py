@@ -14,6 +14,8 @@ from lila.cli.secret_key import app as secret_key_app
 from lila.cli.seo import app as seo_app
 from lila.cli.worker import app as worker_app
 from lila.cli.deploy import app as deploy_app
+from lila.cli.css import app as css_app
+from lila.cli.bench import bench as bench_command
 from lila.cli.backup import app as backup_app
 
 app = typer.Typer(
@@ -45,6 +47,8 @@ def run(
     workers: int = typer.Option(1, "--workers", "-w", help="Number of worker processes"),
     proxy_headers: bool = typer.Option(True, "--proxy-headers/--no-proxy-headers", help="Enable X-Forwarded-* proxy headers"),
     forwarded_allow_ips: str = typer.Option("127.0.0.1", "--forwarded-allow-ips", help="Allowed IPs for proxy headers (comma-separated or '*')"),
+    server: str = typer.Option("", "--server", help="uvicorn (default) or granian (pip install granian). Also LILA_SERVER in .env."),
+    max_rss: int = typer.Option(0, "--max-rss", help="granian only: restart a worker above this RSS in MB (0 = off)."),
 ):
     """Run the production server (no reload)."""
     from lila.core.config import ConfigLoader, ENV_CONFIG
@@ -61,6 +65,23 @@ def run(
             "Use CACHE_DRIVER=redis for shared state.",
             fg=typer.colors.YELLOW,
         )
+    server = (server or str(ENV_CONFIG.get("LILA_SERVER", "uvicorn") or "uvicorn")).lower()
+    if server == "granian":
+        try:
+            from granian import Granian
+            from granian.constants import Interfaces
+        except ImportError:
+            typer.secho("❌ granian is not installed: pip install granian", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+        os.environ["LILA_PROXY_HEADERS"] = "1" if proxy_headers else "0"
+        os.environ["LILA_FORWARDED_ALLOW_IPS"] = forwarded_allow_ips
+        typer.secho(f"🚀 Lila on http://{bind_host}:{bind_port} (granian, {workers} worker(s))", fg=typer.colors.CYAN)
+        options = dict(address=bind_host, port=bind_port, interface=Interfaces.ASGI, workers=workers)
+        if max_rss:
+            options["workers_max_rss"] = max_rss
+        Granian("lila.core.granian_entry:app", **options).serve()
+        return
+
     import uvicorn
 
     typer.secho(f"🚀 Lila v2.0.0 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
@@ -100,6 +121,137 @@ def routes():
     for path, methods in sorted(rows):
         typer.echo(f"  {methods:<20} {path}")
     typer.echo(f"\n{len(rows)} routes.")
+
+
+i18n_app = typer.Typer(help="Translation tools.")
+
+
+@i18n_app.command("check")
+def i18n_check(
+    strict: bool = typer.Option(False, "--strict", help="Exit with code 1 when keys are missing (CI)."),
+    limit: int = typer.Option(15, "--limit", help="Max keys listed per language."),
+):
+    """List translation keys used in templates/code that a language lacks."""
+    from lila.core.i18n_check import check
+
+    report = check(".")
+    typer.secho(f"🌍 {report['used']} keys used · languages: {', '.join(report['languages'])}", fg=typer.colors.CYAN)
+    problems = 0
+    for lang, keys in report["missing"].items():
+        problems += len(keys)
+        typer.secho(f"  ❌ {lang}: {len(keys)} missing", fg=typer.colors.RED)
+        for key in keys[:limit]:
+            typer.echo(f"     - {key}")
+        if len(keys) > limit:
+            typer.echo(f"     … +{len(keys) - limit}")
+    for lang, keys in report["parity"].items():
+        typer.secho(f"  ⚠️  {lang}: {len(keys)} keys exist in other app/locales files but not here", fg=typer.colors.YELLOW)
+        for key in keys[:limit]:
+            typer.echo(f"     - {key}")
+    if not report["missing"] and not report["parity"]:
+        typer.secho("  ✅ Every used key exists in every language.", fg=typer.colors.GREEN)
+    if strict and problems:
+        raise typer.Exit(code=1)
+
+
+app.add_typer(i18n_app, name="i18n", help="Translation tools (lila i18n check).")
+
+tasks_app = typer.Typer(help="SQLite task queue (app/data/lila_tasks.db).")
+
+
+@tasks_app.command("stats")
+def tasks_stats():
+    """Count tasks by status."""
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    data = lila_tasks.stats()
+    typer.echo("  " + ("  ".join(f"{k}: {v}" for k, v in sorted(data.items())) or "queue is empty"))
+
+
+@tasks_app.command("list")
+def tasks_list(status: str = typer.Option("", "--status", "-s", help="queued|running|done|dead"),
+               limit: int = typer.Option(30, "--limit", "-n")):
+    """List recent tasks."""
+    import datetime as _dt
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    for row in lila_tasks.list_tasks(status or None, limit):
+        when = _dt.datetime.fromtimestamp(row["run_at"]).strftime("%Y-%m-%d %H:%M:%S")
+        error = (row["last_error"] or "").splitlines()[0][:60] if row["last_error"] else ""
+        typer.echo(f"  #{row['id']:<6} {row['status']:<8} {row['attempts']}/{row['max_attempts']}  {when}  {row['name']}  {error}")
+
+
+@tasks_app.command("retry")
+def tasks_retry(task_id: int):
+    """Queue a dead (or done) task again."""
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    typer.echo("✅ queued again" if lila_tasks.retry(task_id) else "❌ task not found or still pending")
+
+
+@tasks_app.command("purge")
+def tasks_purge(status: str = typer.Option("done", "--status", "-s")):
+    """Delete finished tasks (default: done)."""
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    typer.echo(f"🧹 removed {lila_tasks.purge(status)} task(s)")
+
+
+schedule_app = typer.Typer(help="Scheduled jobs (@every / @cron).")
+
+
+def _load_schedule():
+    import importlib
+    from lila.core.config import ConfigLoader
+
+    ConfigLoader.load()
+    os.environ["SCHEDULER_ENABLED"] = "false"
+    if os.getcwd() not in sys.path:
+        sys.path.insert(0, os.getcwd())
+    importlib.import_module("main")
+    from lila.core import scheduler
+
+    return scheduler
+
+
+@schedule_app.command("list")
+def schedule_list():
+    """Show registered jobs, their schedule and last run."""
+    import datetime as _dt
+
+    scheduler = _load_schedule()
+    runs = scheduler.last_runs()
+    if not scheduler.jobs():
+        typer.echo("No @every/@cron jobs registered (import their module from main.py).")
+    for job in scheduler.jobs():
+        info = runs.get(job.name) or {}
+        last = _dt.datetime.fromtimestamp(info["last_run"]).strftime("%Y-%m-%d %H:%M") if info.get("last_run") else "never"
+        typer.echo(f"  {job.name:<45} {job.describe():<28} last: {last} ({info.get('last_status') or '-'})")
+
+
+@schedule_app.command("run")
+def schedule_run(name: str):
+    """Run one job now (name as shown by `lila schedule list`)."""
+    import asyncio
+
+    scheduler = _load_schedule()
+    job = next((j for j in scheduler.jobs() if j.name == name or j.name.endswith(f":{name}")), None)
+    if job is None:
+        typer.secho(f"❌ job '{name}' not found", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    typer.echo(f"▶️  {job.name}: {asyncio.run(scheduler.run_job(job))}")
+
+
+app.add_typer(tasks_app, name="tasks", help="SQLite task queue: stats, list, retry, purge.")
+app.add_typer(schedule_app, name="schedule", help="Scheduled jobs: list, run.")
 
 
 @app.command("doctor")
@@ -163,6 +315,35 @@ def doctor():
     if ENV_CONFIG.get_bool("DEBUG", False):
         typer.secho("  ⚠️ DEBUG=True. Disable it in production.", fg=typer.colors.YELLOW)
 
+    from lila.core.config import validate_settings
+
+    cfg_errors, cfg_warnings = validate_settings()
+    for message in cfg_errors:
+        typer.secho(f"  ❌ .env: {message}", fg=typer.colors.RED)
+        ok = False
+    for message in cfg_warnings:
+        typer.secho(f"  ⚠️ .env: {message}", fg=typer.colors.YELLOW)
+    if not cfg_errors:
+        typer.secho("  ✅ .env values are valid", fg=typer.colors.GREEN)
+
+    try:
+        from lila.core.i18n_check import check as i18n_report
+
+        report = i18n_report(".")
+        missing = sum(len(v) for v in report["missing"].values())
+        if missing:
+            langs = ", ".join(f"{k} ({len(v)})" for k, v in report["missing"].items())
+            typer.secho(f"  ⚠️ Translations: missing keys in {langs}. Run `lila i18n check`.", fg=typer.colors.YELLOW)
+        else:
+            typer.secho(f"  ✅ Translations complete ({report['used']} keys used)", fg=typer.colors.GREEN)
+    except Exception as exc:
+        typer.secho(f"  ⚠️ Could not check translations: {exc}", fg=typer.colors.YELLOW)
+
+    if os.path.isfile(os.path.join("public", "css", "lila.css")):
+        typer.secho("  ✅ Compiled Tailwind CSS found (public/css/lila.css)", fg=typer.colors.GREEN)
+    elif not ENV_CONFIG.get_bool("DEBUG", False):
+        typer.secho("  ⚠️ No compiled CSS: run `lila css build` (pages load the 270 KB Tailwind runtime).", fg=typer.colors.YELLOW)
+
     if not ok:
         raise typer.Exit(code=1)
     typer.secho("\n✅ Project looks healthy.", fg=typer.colors.GREEN)
@@ -185,6 +366,8 @@ app.add_typer(secret_key_app, name="secret-key", help="Generate and rotate SECRE
 app.add_typer(seo_app, name="seo", help="Generate sitemap.xml and robots.txt.")
 app.add_typer(worker_app, name="worker", help="Run background task worker process.")
 app.add_typer(deploy_app, name="deploy", help="Generate production deployment configurations (systemd, Nginx, Windows).")
+app.command("bench", help="Benchmark a running server (req/s, latency, RSS).")(bench_command)
+app.add_typer(css_app, name="css", help="Compile Tailwind CSS for production (no Node.js).")
 app.add_typer(backup_app, name="backup", help="Hot atomic SQLite database backup using sqlite3.backup().")
 
 if __name__ == "__main__":

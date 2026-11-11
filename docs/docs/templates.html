@@ -260,7 +260,7 @@ async def dashboard(request: Request):
   {% include &quot;lila/head.jinja&quot; %}   {# title, meta, OG, JSON-LD, icon, Tailwind, CSRF meta #}
   {% block head %}{% endblock %}
 &lt;/head&gt;
-&lt;body data-layout=&quot;app&quot; class=&quot;{{ page.body_class or &#x27;min-h-screen bg-bg-body dark:bg-bg-body-dark&#x27; }}&quot;&gt;
+&lt;body data-layout=&quot;app&quot; class=&quot;{{ page_meta.body_class or &#x27;min-h-screen bg-bg-body dark:bg-bg-body-dark&#x27; }}&quot;&gt;
   &lt;nav data-persist=&quot;true&quot; id=&quot;main-nav&quot;&gt;...&lt;/nav&gt;
   &lt;div data-lila-outlet&gt;{% block content %}{% endblock %}&lt;/div&gt;
   &lt;script src=&quot;{{ public(&#x27;js/lila-client.js&#x27;) }}&quot;&gt;&lt;/script&gt;
@@ -449,7 +449,7 @@ def get_base_context(request, lang_default=None, files_translate=None):
         "csrf_token": "",
     }
 
-# render() then adds: csrf_token, csrf_input, "seo" and "page" (the resolved
+# render() then adds: csrf_token, csrf_input, "seo" and "page_meta" (the resolved
 # title/full_title/description/image/jsonld/styles/scripts used by lila/head.jinja).
       </code></pre>
         </div>
@@ -580,6 +580,74 @@ def get_base_context(request, lang_default=None, files_translate=None):
         <code>css_class</code>, <code>id</code>. Touch swipe uses native scroll-snap, arrow keys work when focused, autoplay
         pauses on hover/focus/hidden tabs and respects <code>prefers-reduced-motion</code>. JS API:
         <code>el._lila_carousel.next()/prev()/go(i)/stop()</code>.</p>
+
+      <h3 class="mt-8 text-2xl font-semibold">Forms from Pydantic models</h3>
+      <p><code>{{ form(Model, ...) }}</code> builds a <code>data-lila-form</code> whose inputs mirror the validation rules, so the browser and the server always agree.</p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Python</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">from typing import Literal, Optional
+from pydantic import BaseModel, EmailStr, Field
+
+class Signup(BaseModel):
+    name: str = Field(min_length=2, max_length=50, title=&quot;Full name&quot;)
+    email: EmailStr
+    age: Optional[int] = Field(default=None, ge=18, le=120)
+    password: str = Field(min_length=8)
+    password_2: str = Field(json_schema_extra={&quot;ui&quot;: {&quot;match&quot;: &quot;password&quot;, &quot;label&quot;: &quot;Repeat password&quot;}})
+    plan: Literal[&quot;free&quot;, &quot;pro&quot;] = &quot;free&quot;
+    bio: Optional[str] = Field(default=None, json_schema_extra={&quot;ui&quot;: {&quot;widget&quot;: &quot;textarea&quot;}})
+    terms: bool = False
+
+@router.get(&quot;/signup&quot;)
+async def signup_page(request: Request):
+    return render(request, &quot;signup&quot;, {&quot;Signup&quot;: Signup}, title=&quot;register&quot;)
+
+@router.post(&quot;/api/signup&quot;, model=Signup, csrf=True)
+async def signup(request: Request, data: Signup):
+    ...
+    return {&quot;success&quot;: True, &quot;message&quot;: &quot;Welcome!&quot;, &quot;redirect&quot;: &quot;/dashboard&quot;}</code></pre>
+        </div>
+      </div>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">resources/html/signup.jinja</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">{{ form(Signup, action=&quot;/api/signup&quot;, submit=&quot;register&quot;, snackbar=True, columns=2) }}</code></pre>
+        </div>
+      </div>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><code>EmailStr</code> → <code>type="email"</code>, <code>min_length/max_length</code> → <code>minlength/maxlength</code>, <code>ge/le</code> → <code>min/max</code>, <code>int/float</code> → number, <code>Literal</code>/<code>Enum</code> → select, <code>bool</code> → checkbox, dates → date inputs, password fields → <code>type="password"</code>.</li>
+        <li><code>json_schema_extra={"ui": {...}}</code>: <code>widget</code> (<code>textarea</code>/<code>hidden</code>), <code>label</code>, <code>help</code>, <code>placeholder</code>, <code>type</code>, <code>match</code>.</li>
+        <li>Options: <code>values</code>, <code>errors</code>, <code>fields</code>/<code>exclude</code>, <code>method</code>, <code>snackbar</code>, <code>toast</code>, <code>redirect</code>, <code>reset</code>, <code>target</code>, <code>columns</code>, <code>attrs</code>. The CSRF field is included and 422 errors appear under each field.</li>
+      </ul>
+
+      <h3 class="mt-8 text-2xl font-semibold">UI components, pagination and images</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Jinja</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">{{ ui.input(&quot;email&quot;, &quot;email&quot;, type=&quot;email&quot;, required=True, error=errors.email) }}
+{{ ui.select(&quot;country&quot;, {&quot;ar&quot;: &quot;Argentina&quot;, &quot;es&quot;: &quot;España&quot;}, &quot;Country&quot;, value=user.country) }}
+{{ ui.textarea(&quot;bio&quot;, &quot;Bio&quot;, rows=3) }}
+{{ ui.checkbox(&quot;newsletter&quot;, &quot;Send me news&quot;, checked=True) }}
+{{ ui.button(&quot;save&quot;, type=&quot;submit&quot;) }}  {{ ui.link(&quot;Cancel&quot;, &quot;/profile&quot;, variant=&quot;secondary&quot;) }}
+{{ ui.alert(&quot;Saved!&quot;, type=&quot;success&quot;, dismissible=True) }}  {{ ui.badge(&quot;Active&quot;, color=&quot;green&quot;) }}
+{{ ui.modal(&quot;confirm&quot;, &quot;Delete item?&quot;, &quot;This cannot be undone.&quot;) }}   {# open with data-modal-target=&quot;#confirm&quot; #}
+
+{{ pagination(page) }}                                   {# page = await Model.paginate_async(...) #}
+
+{{ image(&quot;img/hero.jpg&quot;, alt=&quot;Our team&quot;, widths=[480, 960, 1440], sizes=&quot;(min-width: 768px) 50vw, 100vw&quot;) }}
+
+{% if can(&quot;posts.edit&quot;) %}...{% endif %}  {% if has_role(&quot;admin&quot;) %}...{% endif %}</code></pre>
+        </div>
+      </div>
+      <p class="text-sm">Labels and texts that are translation keys are translated. <code>image()</code> creates WebP variants once in <code>public/img/_r/</code> with Pillow (<code>pip install "lila-framework[images]"</code>), never upscales, writes <code>width</code>/<code>height</code> (no layout shift) and lazy-loads. Without Pillow it uses the original file.</p>
+      <p class="text-sm"><b>Note:</b> the SEO data used by the layout is available as <code>page_meta</code>; <code>page</code> is free for your own data (pagination).</p>
 
       <h3 class="mt-8 text-2xl font-semibold">CSRF Protection in Templates</h3>
       <p>

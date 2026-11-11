@@ -312,6 +312,9 @@ class Router:
         sanitize_xss: bool = False,
         summary: Optional[str] = None,
         openapi: Optional[bool] = None,
+        roles: Optional[List[str]] = None,
+        permissions: Optional[List[str]] = None,
+        api_key: Union[bool, List[str]] = False,
     ) -> None:
         norm_path = self._normalize_path(path)
         methods = [m.upper() for m in methods]
@@ -352,6 +355,21 @@ class Router:
 
                     return RedirectResponse("/login", status_code=303)
                 request.state.user = user
+
+            # 2b. API keys (Authorization: Bearer lila_... / X-API-Key) and roles/permissions
+            if api_key:
+                from lila.core.api_keys import authenticate_request
+
+                scopes = api_key if isinstance(api_key, (list, tuple)) else []
+                denied = await authenticate_request(request, scopes)
+                if denied is not None:
+                    return denied
+            if roles or permissions:
+                from lila.core.permissions import check_access
+
+                denied = await check_access(request, roles or (), permissions or ())
+                if denied is not None:
+                    return denied
 
             # 3. Response cache (per identity by default)
             cache_key = None

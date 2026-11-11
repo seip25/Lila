@@ -125,6 +125,97 @@ class JWT:
         data["exp"] = now + timedelta(minutes=minutes)
         return jwt.encode(data, sec, algorithm="HS256")
 
+    # ── Access + refresh token pairs ────────────────────────────────────────
+    _REFRESH_SCHEMA = """
+    CREATE TABLE IF NOT EXISTS jwt_refresh (
+        jti TEXT PRIMARY KEY,
+        family TEXT NOT NULL,
+        subject TEXT,
+        expires_at REAL NOT NULL,
+        used_at REAL,
+        revoked INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS ix_jwt_refresh_family ON jwt_refresh (family);
+    """
+
+    @classmethod
+    def _store(cls):
+        from lila.core import system_db
+
+        return system_db.connect("lila_system", cls._REFRESH_SCHEMA)
+
+    @classmethod
+    def issue_pair(cls, payload: dict, access_minutes: int = 15, refresh_days: int = 30,
+                   family: Optional[str] = None) -> dict:
+        """Short-lived access token + long-lived refresh token (rotated on use).
+
+        ``{"access_token", "refresh_token", "token_type": "bearer", "expires_in"}``.
+        Refresh state lives in ``app/data/lila_system.db`` (shared by workers,
+        survives restarts); only the token id is stored, never the token.
+        """
+        import time as _time
+
+        data = {k: v for k, v in dict(payload).items() if k not in ("exp", "iat", "jti", "typ", "fam")}
+        access = JWT.encode({**data, "typ": "access"}, minutes=access_minutes)
+        jti = secrets.token_urlsafe(16)
+        fam = family or secrets.token_urlsafe(12)
+        refresh = JWT.encode({**data, "typ": "refresh", "jti": jti, "fam": fam}, minutes=refresh_days * 1440)
+        subject = str(data.get("user_id", data.get("sub", "")))
+        cls._store().execute(
+            "INSERT INTO jwt_refresh (jti, family, subject, expires_at) VALUES (?, ?, ?, ?)",
+            (jti, fam, subject, _time.time() + refresh_days * 86400),
+        )
+        return {"access_token": access, "refresh_token": refresh, "token_type": "bearer",
+                "expires_in": access_minutes * 60}
+
+    @classmethod
+    def refresh(cls, refresh_token: str, access_minutes: int = 15, refresh_days: int = 30) -> Optional[dict]:
+        """Exchanges a refresh token for a new pair. A refresh token works once:
+        re-using an old one (stolen token) revokes the whole family."""
+        import time as _time
+
+        data = JWT.decode(refresh_token)
+        if not data or data.get("typ") != "refresh" or not data.get("jti"):
+            return None
+        store = cls._store()
+        row = store.execute("SELECT family, used_at, revoked, expires_at FROM jwt_refresh WHERE jti = ?",
+                            (data["jti"],)).fetchone()
+        if row is None or row["revoked"] or row["expires_at"] < _time.time():
+            return None
+        if row["used_at"] is not None:
+            store.execute("UPDATE jwt_refresh SET revoked = 1 WHERE family = ?", (row["family"],))
+            return None
+        cur = store.execute("UPDATE jwt_refresh SET used_at = ? WHERE jti = ? AND used_at IS NULL",
+                            (_time.time(), data["jti"]))
+        if cur.rowcount != 1:  # lost a race with a concurrent refresh
+            return None
+        claims = {k: v for k, v in data.items() if k not in ("exp", "iat", "jti", "typ", "fam")}
+        return cls.issue_pair(claims, access_minutes, refresh_days, family=row["family"])
+
+    @classmethod
+    async def refresh_async(cls, refresh_token: str, access_minutes: int = 15, refresh_days: int = 30) -> Optional[dict]:
+        return await asyncio.to_thread(cls.refresh, refresh_token, access_minutes, refresh_days)
+
+    @classmethod
+    def revoke(cls, refresh_token: str) -> bool:
+        """Logout: revokes the token's family (every token issued from that login)."""
+        data = JWT.decode(refresh_token)
+        if not data or data.get("typ") != "refresh":
+            return False
+        cur = cls._store().execute("UPDATE jwt_refresh SET revoked = 1 WHERE family = ?", (data.get("fam"),))
+        return cur.rowcount > 0
+
+    @classmethod
+    def revoke_user(cls, subject: Any) -> int:
+        """Revokes every refresh token of a user (password change, "log out everywhere")."""
+        return cls._store().execute("UPDATE jwt_refresh SET revoked = 1 WHERE subject = ?", (str(subject),)).rowcount
+
+    @classmethod
+    def prune(cls) -> int:
+        import time as _time
+
+        return cls._store().execute("DELETE FROM jwt_refresh WHERE expires_at < ?", (_time.time(),)).rowcount
+
     @staticmethod
     def decode(token_str: str, secret: Optional[str] = None) -> Optional[dict]:
         sec = secret or _get_secret()

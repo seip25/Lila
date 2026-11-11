@@ -7,7 +7,6 @@ partial-column serialization that never triggers lazy-load errors.
 import asyncio
 from typing import Optional, List, Dict, Any, Callable
 from sqlalchemy import select, update, delete, func
-from sqlalchemy.orm import load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from lila.core.config import ENV_CONFIG
@@ -117,6 +116,12 @@ class BaseModel(Base):
                 data[col.name] = self.__dict__[col.name]
         return data
 
+    @staticmethod
+    def _write(conn):
+        """Write transaction (serialized per process on SQLite when supported)."""
+        writer = getattr(conn, "write_transaction", None)
+        return writer() if writer is not None else conn.transaction()
+
     @classmethod
     def _cache_prefix(cls) -> str:
         return f"model:{cls.__tablename__}"
@@ -137,10 +142,48 @@ class BaseModel(Base):
         attr = getattr(cls, name, None)
         return cls.__table__.columns[name] if attr is None else attr
 
+    _FILTER_OPS = {
+        "eq": lambda c, v: c == v,
+        "ne": lambda c, v: c != v,
+        "gt": lambda c, v: c > v,
+        "gte": lambda c, v: c >= v,
+        "lt": lambda c, v: c < v,
+        "lte": lambda c, v: c <= v,
+        "in": lambda c, v: c.in_(list(v)),
+        "not_in": lambda c, v: c.not_in(list(v)),
+        "like": lambda c, v: c.like(v),
+        "ilike": lambda c, v: c.ilike(v),
+        "contains": lambda c, v: c.ilike(f"%{v}%"),
+        "startswith": lambda c, v: c.ilike(f"{v}%"),
+        "endswith": lambda c, v: c.ilike(f"%{v}"),
+        "isnull": lambda c, v: c.is_(None) if v else c.is_not(None),
+    }
+
+    @classmethod
+    def _filter_clauses(cls, filters: Dict[str, Any]):
+        """``name="x"``, ``price__gte=10``, ``id__in=[1, 2]``, ``email__contains="@gmail"``...
+
+        Unknown columns or operators raise ``ValueError`` (a typo must never
+        turn into "return every row").
+        """
+        clauses = []
+        unknown = []
+        for key, value in filters.items():
+            name, _, op = key.partition("__")
+            op = op or "eq"
+            col = cls._column(name)
+            builder = cls._FILTER_OPS.get(op)
+            if col is None or builder is None:
+                unknown.append(key)
+                continue
+            clauses.append(builder(col, value))
+        if unknown:
+            raise ValueError(f"Unknown filter(s) for {cls.__name__}: {', '.join(unknown)}")
+        return clauses
+
     @classmethod
     def _filter_columns(cls, filters: Dict[str, Any]):
-        """Maps keyword filters to columns. Unknown keys raise instead of being
-        silently ignored (a typo must never turn into "return every row")."""
+        """Backwards-compatible equality filters as ``(column, value)`` pairs."""
         cols = []
         unknown = []
         for key, value in filters.items():
@@ -152,6 +195,34 @@ class BaseModel(Base):
         if unknown:
             raise ValueError(f"Unknown filter column(s) for {cls.__name__}: {', '.join(unknown)}")
         return cols
+
+    @classmethod
+    def _read_columns(cls, target_select: Optional[str]):
+        """Table columns to read: the requested ones, or all non-private columns."""
+        private = set(getattr(cls, "__private_fields__", ()) or ())
+        if target_select:
+            cols = cls._select_columns(target_select)
+            return [cls.__table__.columns[c.key] if hasattr(c, "key") and c.key in cls.__table__.columns else c
+                    for c in cols if getattr(c, "key", None) not in private]
+        return [c for c in cls.__table__.columns if c.name not in private]
+
+    @classmethod
+    def _read_stmt(cls, target_select=None, filters=None, order_by=None, desc=False):
+        """Core SELECT returning plain rows: no ORM objects, no lazy loads,
+        private columns never leave the database."""
+        from sqlalchemy import select as sa_select
+
+        stmt = sa_select(*cls._read_columns(target_select))
+        if cls._delete_logic and cls._column(cls._active_field) is not None:
+            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+        for clause in cls._filter_clauses(filters or {}):
+            stmt = stmt.where(clause)
+        order_col = cls._column(order_by) if order_by else None
+        if order_by and order_col is None:
+            raise ValueError(f"Unknown order_by column for {cls.__name__}: {order_by}")
+        if order_col is not None:
+            stmt = stmt.order_by(order_col.desc() if desc else order_col.asc())
+        return stmt
 
     @classmethod
     def _select_columns(cls, target_select: Optional[str]):
@@ -209,30 +280,58 @@ class BaseModel(Base):
         )
 
         async def _fetch():
+            stmt = cls._read_stmt(target_select, filters, order_by, desc).offset(offset).limit(limit)
             async with conn.transaction() as session:
-                from sqlalchemy import select as sa_select
-
-                stmt = sa_select(cls)
-                cols = cls._select_columns(target_select)
-                if cols:
-                    stmt = stmt.options(load_only(*cols))
-
-                if cls._delete_logic and hasattr(cls, cls._active_field):
-                    stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-
-                for col, value in cls._filter_columns(filters):
-                    stmt = stmt.where(col == value)
-
-                order_col = cls._column(order_by) if order_by else None
-                if order_col is not None:
-                    stmt = stmt.order_by(order_col.desc() if desc else order_col.asc())
-
-                stmt = stmt.offset(offset).limit(limit)
                 result = await session.execute(stmt)
-                rows = result.scalars().all()
-                return [row.to_dict() for row in rows]
+                return [dict(row) for row in result.mappings().all()]
 
         return await run_deduplicated(cache_key, _fetch)
+
+    @classmethod
+    async def paginate_async(
+        cls,
+        page: int = 1,
+        per_page: int = 20,
+        order_by: Optional[str] = None,
+        desc: bool = False,
+        select: Optional[str] = None,
+        max_per_page: int = 100,
+        **filters,
+    ) -> Dict[str, Any]:
+        """One call for list pages and APIs::
+
+            page = await Product.paginate_async(page=2, per_page=20, order_by="name", price__gte=10)
+            # {"items": [...], "page": 2, "per_page": 20, "total": 134, "pages": 7,
+            #  "has_prev": True, "has_next": True, "prev_page": 1, "next_page": 3}
+
+        Render links with ``{{ pagination(page) }}`` in Jinja.
+        """
+        try:
+            page = max(1, int(page))
+        except (TypeError, ValueError):
+            page = 1
+        try:
+            per_page = max(1, min(int(per_page), int(max_per_page)))
+        except (TypeError, ValueError):
+            per_page = 20
+        total = await cls.count_async(**filters)
+        pages = max(1, -(-total // per_page))
+        page = min(page, pages)
+        items = await cls.get_all_async(
+            select=select, limit=per_page, offset=(page - 1) * per_page,
+            order_by=order_by, desc=desc, **filters,
+        )
+        return {
+            "items": items,
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "pages": pages,
+            "has_prev": page > 1,
+            "has_next": page < pages,
+            "prev_page": page - 1 if page > 1 else None,
+            "next_page": page + 1 if page < pages else None,
+        }
 
     @classmethod
     async def get_by_id_async(
@@ -243,29 +342,19 @@ class BaseModel(Base):
         cache_key = f"{cls._cache_prefix()}:id:{id_val}:{target_select}"
 
         async def _fetch():
+            pk_col = getattr(cls, cls._primary_key)
+            stmt = cls._read_stmt(target_select).where(pk_col == id_val).limit(1)
             async with conn.transaction() as session:
-                from sqlalchemy import select as sa_select
-
-                pk_col = getattr(cls, cls._primary_key)
-                stmt = sa_select(cls).where(pk_col == id_val)
-
-                if cls._delete_logic and hasattr(cls, cls._active_field):
-                    stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-
-                cols = cls._select_columns(target_select)
-                if cols:
-                    stmt = stmt.options(load_only(*cols))
-
                 result = await session.execute(stmt)
-                row = result.scalars().first()
-                return row.to_dict() if row else None
+                row = result.mappings().first()
+                return dict(row) if row else None
 
         return await run_deduplicated(cache_key, _fetch)
 
     @classmethod
     async def insert_async(cls, instance: Optional[Any] = None, **values) -> Dict[str, Any]:
         conn = cls.get_connection()
-        async with conn.transaction() as session:
+        async with cls._write(conn) as session:
             record = instance if instance is not None else cls(**values)
             session.add(record)
             await session.flush()
@@ -283,7 +372,7 @@ class BaseModel(Base):
         if not payload:
             return False
 
-        async with conn.transaction() as session:
+        async with cls._write(conn) as session:
             stmt = cls._update_stmt(id_val, payload)
             result = await session.execute(stmt)
             updated = result.rowcount > 0
@@ -294,7 +383,7 @@ class BaseModel(Base):
     @classmethod
     async def delete_async(cls, id_val: Any) -> bool:
         conn = cls.get_connection()
-        async with conn.transaction() as session:
+        async with cls._write(conn) as session:
             pk_col = getattr(cls, cls._primary_key)
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 stmt = update(cls).where(pk_col == id_val).values({getattr(cls, cls._active_field): 0})
@@ -314,8 +403,8 @@ class BaseModel(Base):
             stmt = select(func.count(pk_col))
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 stmt = stmt.where(getattr(cls, cls._active_field) == 1)
-            for col, value in cls._filter_columns(filters):
-                stmt = stmt.where(col == value)
+            for clause in cls._filter_clauses(filters):
+                stmt = stmt.where(clause)
             result = await session.execute(stmt)
             return result.scalar() or 0
 
@@ -354,8 +443,8 @@ class BaseModel(Base):
             query = session.query(cls)
             if cls._delete_logic and hasattr(cls, cls._active_field):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
-            for col, value in cls._filter_columns(filters):
-                query = query.filter(col == value)
+            for clause in cls._filter_clauses(filters):
+                query = query.filter(clause)
             order_col = cls._column(order_by) if order_by else None
             if order_col is not None:
                 query = query.order_by(order_col.desc() if desc else order_col.asc())

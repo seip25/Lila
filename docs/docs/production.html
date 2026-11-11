@@ -228,6 +228,13 @@ Summary
       </ul>
       <p>The rest of this page explains each step for a manual setup.</p>
 
+      <div class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm mb-6">
+        Before deploying run <code>lila css build</code> (compiled Tailwind instead of the 270 KB runtime),
+        <code>lila optimize</code> and <code>lila doctor</code>. See <a href="performance.html">Performance</a>,
+        <a href="observability.html">Health &amp; Metrics</a> and <a href="tasks.html">Tasks</a>
+        (<code>lila deploy --with-worker</code> now works with the SQLite queue, no Redis needed).
+      </div>
+
       <h3>Linux Server (with systemd)</h3>
       <p>
         To deploy your Lila application on a Linux server, it's recommended to use a virtual

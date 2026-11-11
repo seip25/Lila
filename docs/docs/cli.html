@@ -557,7 +557,9 @@ lila desktop build --name "MyDesktopApp" --onefile --windowed</code></pre>
             <div class="space-y-4 mt-8">
                 <h2>Background Task Worker</h2>
                 <p>
-                    Consume JSON tasks from Redis (<code>lila:tasks</code>). Requires the
+                    Without Redis it consumes the SQLite task queue (<code>app/data/lila_tasks.db</code>,
+                    see <a href="tasks.html">Tasks</a>); with <code>CACHE_DRIVER=redis</code> (or <code>--driver redis</code>)
+                    it consumes JSON tasks from Redis (<code>lila:tasks</code>), which requires the
                     <code>[redis]</code> extra and a reachable Redis server. Modules must be in
                     <code>LILA_TASK_MODULES</code> (default <code>app.,lila.</code>); failed tasks are
                     retried and then sent to the dead-letter queue <code>lila:tasks:dead</code>.
@@ -585,6 +587,28 @@ lila-worker start
                 </div>
             </div>
 
+            <div class="space-y-4 mt-8">
+                <h2>New commands</h2>
+                <p>Performance, background work and checks (see <a href="performance.html">Performance</a>, <a href="tasks.html">Tasks</a>, <a href="testing.html">Testing</a>).</p>
+            </div>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-bash">lila css build [--watch]            # compiled Tailwind CSS (no Node.js)
+lila css clean
+lila bench URL -c 50 -d 10 --pid N  # req/s, latency, server RSS
+lila run --server granian [--max-rss 300]
+lila migrate --plan | --drop-columns | history
+lila worker --driver sqlite -c 4    # SQLite task queue consumer
+lila tasks stats | list | retry ID | purge
+lila schedule list | run NAME
+lila i18n check [--strict]
+lila backup --compress
+lila doctor                         # now also checks .env values, translations and compiled CSS</code></pre>
+        </div>
+      </div>
         </article>
     </main>
     <script src="../js/highlight.min.js"></script>

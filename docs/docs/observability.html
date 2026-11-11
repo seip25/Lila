@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Health &amp; Metrics</title>
+  <meta name="description"
+    content="Safe /health, /health/details and Prometheus /metrics endpoints with token, loopback and one-time code protection in Lila Framework." />
+  <meta name="keywords" content="Python, WebSocket, Real-Time, Socket.io, Starlette, Lila Framework, Chat" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+  <!-- Google Fonts for Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemini: {
+              blue: '#1a73e8',
+              blueBg: '#f0f4f9',
+              blueHover: '#e1ecf8',
+              indigo: '#4f46e5',
+              purple: '#8b5cf6',
+              accent: '#4285f4',
+              darkBg: '#090d16',
+              darkCard: '#131b2e',
+              darkBorder: '#1e293b',
+              darkHover: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <header
+    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+          L
+        </div>
+        <h1
+          class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="../index.html"
+          class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          Home
+        </a>
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+          Github
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <aside
+      class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
+
+        <article
+      class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h2>Health Checks &amp; Metrics</h2>
+      <p>Designed so production never leaks data: the public endpoint says only <i>ok</i> or <i>error</i>, everything else needs a token, a direct local connection or a one-time code.</p>
+      <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 mb-6"><table class="w-full text-sm text-left"><thead class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500"><tr><th class="px-3 py-2">Endpoint</th><th class="px-3 py-2">Enabled</th><th class="px-3 py-2">Who can read it</th><th class="px-3 py-2">Content</th></tr></thead><tbody><tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2"><code>/health</code></td><td class="px-3 py-2"><code>App(health=True)</code> (default)</td><td class="px-3 py-2">everyone</td><td class="px-3 py-2"><code>{"status": "ok"}</code> 200 or <code>{"status": "error"}</code> 503 (database ping, cached 5 s)</td></tr><tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2"><code>/health/details</code></td><td class="px-3 py-2">with <code>/health</code></td><td class="px-3 py-2">token / local / OTP</td><td class="px-3 py-2">uptime, process RSS/CPU/threads/FDs, cache stats, task queue counts</td></tr><tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2"><code>/metrics</code></td><td class="px-3 py-2"><code>App(metrics=True)</code></td><td class="px-3 py-2">token / local / OTP</td><td class="px-3 py-2">Prometheus text format</td></tr></tbody></table></div>
+      <p>If your project already defines <code>/health</code> or <code>/metrics</code>, Lila does not replace them.</p>
+      <h3 class="mt-8">Access rules</h3>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><b>METRICS_TOKEN</b> set → <code>Authorization: Bearer &lt;token&gt;</code> is required (constant-time comparison). Use this for Prometheus.</li>
+        <li>No token → only <b>direct</b> loopback requests (<code>curl http://127.0.0.1:PORT/metrics</code> on the server). Requests relayed by Nginx carry forwarding headers and are refused, even if the app runs without <code>--proxy-headers</code>. Remote callers get 404.</li>
+        <li><b>METRICS_OTP=true</b> → additionally, every access needs a one-time code: the first request returns 401 and the server prints a 6-digit code in its terminal/journal (valid 5 minutes, single use, stored hashed). Repeat the request with <code>X-Lila-OTP: 123456</code> or <code>?otp=123456</code>.</li>
+      </ul>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-bash"># on the server, with METRICS_OTP=true
+curl -s http://127.0.0.1:8000/health/details            # 401 {&quot;otp_required&quot;: true}
+sudo journalctl -u my-shop -n 5 | grep &quot;One-time code&quot;   # [Lila] One-time code for /health/details: 482913
+curl -s -H &quot;X-Lila-OTP: 482913&quot; http://127.0.0.1:8000/health/details</code></pre>
+        </div>
+      </div>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">prometheus.yml</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-yaml"># prometheus.yml
+scrape_configs:
+  - job_name: lila
+    metrics_path: /metrics
+    authorization:
+      credentials: &quot;&lt;METRICS_TOKEN&gt;&quot;
+    static_configs:
+      - targets: [&quot;127.0.0.1:8000&quot;]</code></pre>
+        </div>
+      </div>
+      <h3 class="mt-8">Metrics exported</h3>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><code>lila_requests_total{method, status="2xx|3xx|4xx|5xx"}</code>, <code>lila_request_duration_seconds</code> (histogram), <code>lila_requests_in_flight</code></li>
+        <li><code>process_resident_memory_bytes</code>, <code>process_cpu_seconds_total</code>, <code>process_open_fds</code>, <code>process_threads</code>, <code>lila_uptime_seconds</code></li>
+        <li><code>lila_cache_items</code>, <code>lila_cache_memory_bytes</code>, <code>lila_tasks{status}</code>, <code>lila_database_up</code></li>
+        <li>No path, query, user or IP labels: no personal data and no cardinality explosion.</li>
+      </ul>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

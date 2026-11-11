@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Testing &amp; Project Checks</title>
+  <meta name="description"
+    content="lila.testing helpers, lila doctor, .env validation and translation checks in Lila Framework." />
+  <meta name="keywords" content="Python, WebSocket, Real-Time, Socket.io, Starlette, Lila Framework, Chat" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+  <!-- Google Fonts for Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemini: {
+              blue: '#1a73e8',
+              blueBg: '#f0f4f9',
+              blueHover: '#e1ecf8',
+              indigo: '#4f46e5',
+              purple: '#8b5cf6',
+              accent: '#4285f4',
+              darkBg: '#090d16',
+              darkCard: '#131b2e',
+              darkBorder: '#1e293b',
+              darkHover: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <header
+    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+          L
+        </div>
+        <h1
+          class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="../index.html"
+          class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          Home
+        </a>
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+          Github
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <aside
+      class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
+
+        <article
+      class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h2>Testing &amp; Project Checks</h2>
+      <h3 class="mt-8">1. <code>lila.testing</code></h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">tests/test_app.py</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">import unittest
+from lila.testing import TestClient, login, csrf_headers, temp_database, override_env
+from app.models.product import Product
+
+class ProductTests(unittest.IsolatedAsyncioTestCase):
+    async def test_crud(self):
+        async with temp_database(Product):               # throwaway SQLite, tables created
+            await Product.insert_async(name=&quot;Coffee&quot;, price=5)
+            page = await Product.paginate_async(price__gte=1)
+            self.assertEqual(page[&quot;total&quot;], 1)
+
+class ApiTests(unittest.TestCase):
+    def setUp(self):
+        self.client = TestClient()                       # imports main:app
+
+    def test_requires_login(self):
+        self.assertEqual(self.client.get(&quot;/api/me&quot;).status_code, 401)
+        login(self.client, {&quot;id&quot;: 1, &quot;email&quot;: &quot;a@b.c&quot;, &quot;role&quot;: &quot;admin&quot;})
+        self.assertEqual(self.client.get(&quot;/api/me&quot;).status_code, 200)
+
+    def test_csrf(self):
+        res = self.client.post(&quot;/api/items&quot;, json={&quot;name&quot;: &quot;x&quot;}, headers=csrf_headers(self.client))
+        self.assertEqual(res.status_code, 200)
+
+    def test_settings(self):
+        with override_env(DEBUG=&quot;False&quot;, CACHE_DRIVER=&quot;memory&quot;):
+            ...</code></pre>
+        </div>
+      </div>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><code>login(client, user, cookie="auth")</code> signs the session cookie exactly like <code>Session.set</code> (password fields stripped).</li>
+        <li><code>csrf_headers(client)</code> sets a valid signed <code>_csrf</code> cookie and returns <code>{"X-CSRF-Token": ...}</code>.</li>
+        <li><code>TestClient</code> does not raise server exceptions by default, so 500 pages can be asserted too.</li>
+        <li>Use <code>with TestClient(...) as client:</code> to run startup hooks (task consumers, scheduler, <code>/health</code>).</li>
+      </ul>
+      <h3 class="mt-8">2. <code>lila doctor</code></h3>
+      <p>Checks Python, <code>.env</code>, <code>SECRET_KEY</code>, database, templates, <b>.env values</b>, <b>translations</b> and whether the compiled Tailwind CSS exists for production.</p>
+      <h3 class="mt-8">3. .env validation</h3>
+      <p>Invalid values are reported on startup and by <code>lila doctor</code> instead of silently becoming defaults:</p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Output</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-text">[Lila config] ❌ PORT=&quot;abc&quot; must be a whole number.
+[Lila config] ❌ CACHE_DRIVER=&quot;mem&quot; must be one of: memory, redis, file.
+[Lila config] ❌ APP_URL=&quot;example.com&quot; must start with http:// or https://.
+⚠️ .env: DEBUG=True with APP_ENV=production: tracebacks and /debug would be exposed.</code></pre>
+        </div>
+      </div>
+      <p>From code: <code>from lila.core.config import validate_settings; errors, warnings = validate_settings()</code>.</p>
+      <h3 class="mt-8">4. Translations: <code>lila i18n check</code></h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Terminal</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-bash">lila i18n check            # keys used in templates/app/*.py missing per language
+lila i18n check --strict   # exit code 1 (CI)</code></pre>
+        </div>
+      </div>
+      <p>Keys are collected from <code>translate['key']</code>, <code>t('key')</code> and <code>Translate.t(key='key')</code>; a key is available when it exists in Lila's built-in locales or <code>app/locales/&lt;lang&gt;.json</code>. Keys present in one of your locale files but missing in another are listed too.</p>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

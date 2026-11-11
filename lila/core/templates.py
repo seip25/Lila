@@ -103,7 +103,30 @@ class LilaPageLoader(BaseLoader):
         return self.inner.list_templates()
 
 
+def _bytecode_cache():
+    """Compiled templates on disk (production only): faster cold starts and
+    less CPU per new worker. Disabled in debug so edits are picked up."""
+    if is_debug() or str(ENV_CONFIG.get("JINJA_BYTECODE_CACHE", "true")).lower() in ("0", "false", "no"):
+        return None
+    try:
+        from jinja2 import FileSystemBytecodeCache
+
+        class _LazyDirCache(FileSystemBytecodeCache):
+            # The folder is created on the first write, never at import time.
+            def dump_bytecode(self, bucket):
+                try:
+                    os.makedirs(self.directory, exist_ok=True)
+                    super().dump_bytecode(bucket)
+                except OSError:
+                    pass
+
+        return _LazyDirCache(get_data_path("app", "cache", "jinja"))
+    except Exception:
+        return None
+
+
 jinja_env = Environment(
+    bytecode_cache=_bytecode_cache(),
     loader=LilaPageLoader(_get_template_loaders()),
     auto_reload=is_debug(),
     autoescape=True,
@@ -160,6 +183,7 @@ def clear_asset_cache() -> None:
     global _MANIFEST_LOADED
     _PUBLIC_CACHE.clear()
     _MANIFEST_CACHE.clear()
+    _TAILWIND_CSS.clear()
     _MANIFEST_LOADED = False
 
 
@@ -247,8 +271,30 @@ def set_default_layout(layout_name: str) -> None:
     DEFAULT_LAYOUT = layout_name
 
 
+_TAILWIND_CSS: Dict[str, str] = {}
+
+
+def tailwind_css() -> str:
+    """URL of the compiled Tailwind CSS (``lila css build``) or ``""``.
+
+    ``TAILWIND_MODE``: ``auto`` (default: compiled file in production, browser
+    runtime in debug so new classes appear instantly), ``build`` (always the
+    compiled file when it exists) or ``play`` (always the runtime).
+    """
+    if "url" in _TAILWIND_CSS:
+        return _TAILWIND_CSS["url"]
+    mode = str(ENV_CONFIG.get("TAILWIND_MODE", "auto") or "auto").lower()
+    url = ""
+    if mode != "play" and (mode == "build" or not is_debug()):
+        if os.path.isfile(get_base_path("public", "css", "lila.css")):
+            url = public("css/lila.css")
+    _TAILWIND_CSS["url"] = url
+    return url
+
+
 jinja_env.globals["public"] = public
 jinja_env.globals["asset"] = asset
+jinja_env.globals["tailwind_css"] = tailwind_css
 
 
 @pass_context
@@ -442,6 +488,45 @@ def carousel(
     )
 
 
+from lila.core.ui import UI, render_form, render_pagination  # noqa: E402
+
+
+@pass_context
+def _form_ctx(ctx, model, *args, **kwargs):
+    kwargs.setdefault("csrf_input", ctx.get("csrf_input") or "")
+    kwargs.setdefault("trans", ctx.get("translate"))
+    return render_form(model, *args, **kwargs)
+
+
+@pass_context
+def _pagination_ctx(ctx, page, **kwargs):
+    kwargs.setdefault("request", ctx.get("request"))
+    kwargs.setdefault("trans", ctx.get("translate"))
+    return render_pagination(page, **kwargs)
+
+
+@pass_context
+def _can_ctx(ctx, permission):
+    from lila.core.permissions import jinja_can
+
+    return jinja_can(ctx.get("request"), permission)
+
+
+@pass_context
+def _has_role_ctx(ctx, role):
+    from lila.core.permissions import jinja_has_role
+
+    return jinja_has_role(ctx.get("request"), role)
+
+
+from lila.core.images import responsive_image  # noqa: E402
+
+jinja_env.globals["image"] = responsive_image
+jinja_env.globals["can"] = _can_ctx
+jinja_env.globals["has_role"] = _has_role_ctx
+jinja_env.globals["form"] = _form_ctx
+jinja_env.globals["pagination"] = _pagination_ctx
+jinja_env.globals["ui"] = UI()  # replaced per render by a translated instance
 jinja_env.globals["datatable"] = datatable
 jinja_env.globals["carousel"] = carousel
 jinja_env.globals["oauth_buttons"] = _oauth_buttons_ctx
@@ -542,6 +627,7 @@ def get_base_context(
         "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
         "lang": current_lang,
         "translate": trans_dict,
+        "ui": UI(trans_dict),
         "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),
         "app_url": app_url,
         "debug": debug_val,
@@ -552,7 +638,7 @@ def get_base_context(
         "layout": DEFAULT_LAYOUT,
         "layout_id": "default",
         "csrf_token": "",
-        "page": {},
+        "page_meta": {},
     }
 
 
@@ -772,7 +858,8 @@ def render(
             "body_class": body_class,
         },
     )
-    ctx["page"] = page
+    # ``page_meta`` (not ``page``): ``page`` is left free for pagination.
+    ctx["page_meta"] = page
     # Backwards-compatible variables used by v2.0.0 templates.
     if page["title"]:
         ctx["title"] = page["title"]

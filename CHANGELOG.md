@@ -5,6 +5,44 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+### Performance, background work and security
+
+### Added
+
+- **Performance**: `lila css build` (official Tailwind standalone binary,
+  SHA-256 verified, no Node) with `TAILWIND_MODE`; `LilaStaticFiles` serves
+  `.br`/`.gz` siblings and compresses text assets once; minified + compressed
+  `/js/lila-client.js` and `/js/ws.js` (94 KB → 19 KB); `App(etag=True)` weak
+  ETag/304; `CACHE_MAX_MB`; Jinja bytecode cache; `LOG_RETENTION_DAYS`;
+  `lila backup --compress`; `lila run --server granian [--max-rss]`; `lila bench`.
+- **Models**: Core-based reads (≈1.8× faster, private columns never selected),
+  rich filters (`__gte`, `__in`, `__contains`, ...), `paginate_async`,
+  `db.write_transaction()` (SQLite write queue), `PRAGMA optimize` on close.
+- **Templates**: `{{ form(PydanticModel) }}`, `ui.*` components,
+  `{{ pagination(page) }}`, `{{ image(...) }}` responsive WebP, `can()`/`has_role()`.
+- **Migrations**: `lila migrate --plan`, renames (`__renamed_columns__`),
+  indexes, `--drop-columns`, `lila migrate history` (separate `lila_system.db`).
+- **DX**: `lila.testing`, `lila i18n check`, `.env` validation at startup and in
+  `lila doctor`.
+- **Background**: SQLite task queue (`@task`, `.delay()`, `lila worker --driver
+  sqlite`, `lila tasks`), scheduler (`@every`, `@cron`, `lila schedule`),
+  `Mailer.send_template` with `emails/base.jinja`, SSE (`EventStream`,
+  `Channel`, `lilaSSE`, `data-sse`).
+- **Security**: roles/permissions (router `roles=`/`permissions=`), per-user API
+  keys (router `api_key=`), rotating JWT refresh tokens with reuse detection.
+- **Observability**: `/health`, `/health/details`, `/metrics` protected by
+  token, direct-loopback-only access and optional one-time codes (`METRICS_OTP`).
+
+### Changed
+
+- GZip level 5 by default and never applied to static paths.
+- SEO data in templates is `page_meta` (`page` is free for pagination).
+- The default layout loads `lila-client.js` in `<head>` (inline page scripts can
+  use it on the first load).
+- `lila worker` uses the SQLite queue unless `CACHE_DRIVER=redis`.
+
+### Templates, client, deploy and fixes (earlier in this cycle)
+
 ### Added
 
 - **Automatic layouts**: page templates contain only their HTML. `render()`
