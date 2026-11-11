@@ -75,7 +75,71 @@ FRAMEWORK_SCHEMA = [
     ("GITHUB_CLIENT_SECRET", "str",  ""),
     ("DISCORD_CLIENT_ID",    "str",  ""),
     ("DISCORD_CLIENT_SECRET", "str", ""),
+    # Performance / runtime
+    ("CACHE_MAX_MB",         "int",  64),
+    ("TAILWIND_MODE",        "str",  "auto"),
+    ("LOG_RETENTION_DAYS",   "int",  30),
+    ("LILA_SERVER",          "str",  "uvicorn"),
+    ("TITLE_TEMPLATE",       "str",  "{title} - {project}"),
+    ("SERVICE_NAME",         "str",  ""),
+    ("LILA_DATA_DIR",        "str",  ""),
 ]
+
+# Allowed values / formats checked by validate_settings() (and `lila doctor`).
+_CHOICES = {
+    "CACHE_DRIVER": ("memory", "redis", "file"),
+    "DB_TYPE": ("sqlite", "sqlite3", "mysql", "postgresql", "postgres"),
+    "TAILWIND_MODE": ("auto", "build", "play"),
+    "LILA_SERVER": ("uvicorn", "granian"),
+    "APP_ENV": ("development", "production", "testing", "staging"),
+}
+
+
+def validate_settings(environ: Optional[dict] = None) -> tuple:
+    """Returns ``(errors, warnings)`` with readable messages for the .env values.
+
+    Errors are values Lila cannot use (``PORT="abc"`` would silently become 0);
+    warnings are risky but valid combinations.
+    """
+    env = os.environ if environ is None else environ
+    errors = []
+    warnings = []
+    for key, type_name, _default in FRAMEWORK_SCHEMA:
+        raw = env.get(key)
+        if raw is None or str(raw).strip() == "":
+            continue
+        value = str(raw).strip()
+        if type_name == "int":
+            try:
+                int(value)
+            except ValueError:
+                errors.append(f'{key}="{value}" must be a whole number.')
+        elif type_name == "bool" and value.lower() not in ("true", "false", "1", "0", "yes", "no", "on", "off"):
+            errors.append(f'{key}="{value}" must be True or False.')
+    for key, allowed in _CHOICES.items():
+        value = str(env.get(key, "") or "").strip().lower()
+        if value and value not in allowed:
+            errors.append(f'{key}="{value}" must be one of: {", ".join(allowed)}.')
+    port = str(env.get("PORT", "") or "").strip()
+    if port.isdigit() and not (1 <= int(port) <= 65535):
+        errors.append(f"PORT={port} must be between 1 and 65535.")
+    app_url = str(env.get("APP_URL", "") or "").strip()
+    if app_url and not app_url.startswith(("http://", "https://")):
+        errors.append(f'APP_URL="{app_url}" must start with http:// or https://.')
+    if app_url.endswith("/"):
+        warnings.append("APP_URL should not end with '/'.")
+    template = str(env.get("TITLE_TEMPLATE", "") or "")
+    if template and "{title}" not in template:
+        errors.append('TITLE_TEMPLATE must contain "{title}" (e.g. "{title} - {project}").')
+    debug = str(env.get("DEBUG", "") or "").strip().lower() in ("true", "1", "yes", "on")
+    if debug and str(env.get("APP_ENV", "")).strip().lower() == "production":
+        warnings.append("DEBUG=True with APP_ENV=production: tracebacks and /debug would be exposed.")
+    if app_url.startswith("http://") and not debug and "localhost" not in app_url and "127.0.0.1" not in app_url:
+        warnings.append("APP_URL uses http:// in production: cookies will not be marked Secure.")
+    workers = str(env.get("WORKERS", "1") or "1").strip()
+    if workers not in ("1", "") and str(env.get("CACHE_DRIVER", "memory")).lower() != "redis":
+        warnings.append(f"WORKERS={workers} with CACHE_DRIVER=memory: sessions/rate limits are per worker.")
+    return errors, warnings
 
 # Defaults that must never be accepted as a real signing key.
 _PLACEHOLDER_SECRET_MARKERS = (
@@ -326,6 +390,12 @@ class ConfigLoader:
         cls._data = data
         cls._loaded = True
         cls._warn_insecure_config(data)
+        try:
+            errors, _ = validate_settings()
+            for message in errors:
+                print(f"[Lila config] ❌ {message}", file=sys.stderr)
+        except Exception:
+            pass
         return dict(cls._data)
 
     @classmethod

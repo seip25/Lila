@@ -123,6 +123,40 @@ def routes():
     typer.echo(f"\n{len(rows)} routes.")
 
 
+i18n_app = typer.Typer(help="Translation tools.")
+
+
+@i18n_app.command("check")
+def i18n_check(
+    strict: bool = typer.Option(False, "--strict", help="Exit with code 1 when keys are missing (CI)."),
+    limit: int = typer.Option(15, "--limit", help="Max keys listed per language."),
+):
+    """List translation keys used in templates/code that a language lacks."""
+    from lila.core.i18n_check import check
+
+    report = check(".")
+    typer.secho(f"🌍 {report['used']} keys used · languages: {', '.join(report['languages'])}", fg=typer.colors.CYAN)
+    problems = 0
+    for lang, keys in report["missing"].items():
+        problems += len(keys)
+        typer.secho(f"  ❌ {lang}: {len(keys)} missing", fg=typer.colors.RED)
+        for key in keys[:limit]:
+            typer.echo(f"     - {key}")
+        if len(keys) > limit:
+            typer.echo(f"     … +{len(keys) - limit}")
+    for lang, keys in report["parity"].items():
+        typer.secho(f"  ⚠️  {lang}: {len(keys)} keys exist in other app/locales files but not here", fg=typer.colors.YELLOW)
+        for key in keys[:limit]:
+            typer.echo(f"     - {key}")
+    if not report["missing"] and not report["parity"]:
+        typer.secho("  ✅ Every used key exists in every language.", fg=typer.colors.GREEN)
+    if strict and problems:
+        raise typer.Exit(code=1)
+
+
+app.add_typer(i18n_app, name="i18n", help="Translation tools (lila i18n check).")
+
+
 @app.command("doctor")
 def doctor():
     """Check the project configuration, secret, database and templates."""
@@ -183,6 +217,35 @@ def doctor():
 
     if ENV_CONFIG.get_bool("DEBUG", False):
         typer.secho("  ⚠️ DEBUG=True. Disable it in production.", fg=typer.colors.YELLOW)
+
+    from lila.core.config import validate_settings
+
+    cfg_errors, cfg_warnings = validate_settings()
+    for message in cfg_errors:
+        typer.secho(f"  ❌ .env: {message}", fg=typer.colors.RED)
+        ok = False
+    for message in cfg_warnings:
+        typer.secho(f"  ⚠️ .env: {message}", fg=typer.colors.YELLOW)
+    if not cfg_errors:
+        typer.secho("  ✅ .env values are valid", fg=typer.colors.GREEN)
+
+    try:
+        from lila.core.i18n_check import check as i18n_report
+
+        report = i18n_report(".")
+        missing = sum(len(v) for v in report["missing"].values())
+        if missing:
+            langs = ", ".join(f"{k} ({len(v)})" for k, v in report["missing"].items())
+            typer.secho(f"  ⚠️ Translations: missing keys in {langs}. Run `lila i18n check`.", fg=typer.colors.YELLOW)
+        else:
+            typer.secho(f"  ✅ Translations complete ({report['used']} keys used)", fg=typer.colors.GREEN)
+    except Exception as exc:
+        typer.secho(f"  ⚠️ Could not check translations: {exc}", fg=typer.colors.YELLOW)
+
+    if os.path.isfile(os.path.join("public", "css", "lila.css")):
+        typer.secho("  ✅ Compiled Tailwind CSS found (public/css/lila.css)", fg=typer.colors.GREEN)
+    elif not ENV_CONFIG.get_bool("DEBUG", False):
+        typer.secho("  ⚠️ No compiled CSS: run `lila css build` (pages load the 270 KB Tailwind runtime).", fg=typer.colors.YELLOW)
 
     if not ok:
         raise typer.Exit(code=1)

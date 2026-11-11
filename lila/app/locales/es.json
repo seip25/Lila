@@ -88,5 +88,8 @@
   "Too many attempts": "Demasiados intentos. Intentá más tarde.",
   "User already exists": "El usuario ya existe.",
   "User is inactive": "El usuario está inactivo.",
-  "User registered successfully": "Usuario registrado correctamente."
+  "User registered successfully": "Usuario registrado correctamente.",
+  "loading": "Cargando...",
+  "previous": "Anterior",
+  "next": "Siguiente"
 }

@@ -88,5 +88,8 @@
   "Too many attempts": "Too many attempts. Try again later.",
   "User already exists": "User already exists.",
   "User is inactive": "User is inactive.",
-  "User registered successfully": "User registered successfully."
+  "User registered successfully": "User registered successfully.",
+  "loading": "Loading...",
+  "previous": "Previous",
+  "next": "Next"
 }
