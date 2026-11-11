@@ -5,6 +5,7 @@ rate limiting/logging, and static responses get long-lived cache headers.
 """
 
 import time
+import hashlib
 import re
 import hmac
 import os
@@ -244,7 +245,12 @@ class PureASGISecurityHeadersMiddleware:
 
 
 class PureASGIGZipMiddleware:
-    """GZip wrapper that never compresses the dev SSE stream."""
+    """GZip for dynamic responses only.
+
+    Static paths are skipped: ``LilaStaticFiles`` serves precompressed files or
+    compresses text assets once and caches them (images/fonts never need it).
+    SSE streams (``text/event-stream``) are never buffered.
+    """
     __slots__ = ("app", "gzip_app")
 
     def __init__(self, app: ASGIApp, **kwargs):
@@ -252,10 +258,101 @@ class PureASGIGZipMiddleware:
         self.gzip_app = GZipMiddleware(app, **kwargs)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        if scope["type"] == "http" and scope.get("path", "").startswith("/_lila/"):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            if path.startswith("/_lila/") or _is_static_path(path):
+                await self.app(scope, receive, send)
+                return
+        await self.gzip_app(scope, receive, send)
+
+
+class PureASGIETagMiddleware:
+    """Weak ETag + ``304 Not Modified`` for small dynamic HTML/JSON GET responses.
+
+    Only single-chunk 200 responses are hashed (streams, SSE, files and static
+    assets pass through untouched), so the cost is one blake2b over a body that
+    is already in memory; unchanged pages then travel as an empty 304.
+    """
+    __slots__ = ("app", "max_size")
+
+    _TYPES = (b"text/html", b"application/json")
+
+    def __init__(self, app: ASGIApp, max_size: int = 1024 * 1024):
+        self.app = app
+        self.max_size = max_size
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if (
+            scope["type"] != "http"
+            or scope.get("method") not in ("GET", "HEAD")
+            or _is_static_path(scope.get("path", ""))
+            or scope.get("path", "").startswith("/_lila/")
+        ):
             await self.app(scope, receive, send)
             return
-        await self.gzip_app(scope, receive, send)
+
+        if_none_match = b""
+        for key, value in scope.get("headers", []):
+            if key == b"if-none-match":
+                if_none_match = value
+                break
+
+        start_message = None
+        passthrough = False
+
+        async def send_wrapper(message):
+            nonlocal start_message, passthrough
+            if passthrough:
+                await send(message)
+                return
+            if message["type"] == "http.response.start":
+                headers = message.get("headers", [])
+                ctype = b""
+                has_etag = False
+                encoded = False
+                for name, value in headers:
+                    lname = name.lower()
+                    if lname == b"content-type":
+                        ctype = value
+                    elif lname == b"etag":
+                        has_etag = True
+                    elif lname == b"content-encoding":
+                        encoded = True
+                if (
+                    message["status"] != 200
+                    or has_etag
+                    or encoded
+                    or not ctype.startswith(self._TYPES)
+                ):
+                    passthrough = True
+                    await send(message)
+                    return
+                start_message = message
+                return
+            if message["type"] == "http.response.body":
+                body = message.get("body", b"")
+                if message.get("more_body", False) or len(body) > self.max_size:
+                    passthrough = True
+                    await send(start_message)
+                    await send(message)
+                    return
+                tag = b'W/"' + hashlib.blake2b(body, digest_size=12).hexdigest().encode() + b'"'
+                headers = list(start_message.get("headers", []))
+                if if_none_match and tag in [t.strip() for t in if_none_match.split(b",")]:
+                    keep = [
+                        (k, v) for k, v in headers
+                        if k.lower() not in (b"content-length", b"content-type", b"content-encoding")
+                    ]
+                    keep.append((b"etag", tag))
+                    await send({"type": "http.response.start", "status": 304, "headers": keep})
+                    await send({"type": "http.response.body", "body": b""})
+                    return
+                headers.append((b"etag", tag))
+                start_message["headers"] = headers
+                await send(start_message)
+                await send(message)
+
+        await self.app(scope, receive, send_wrapper)
 
 
 class PureASGIStaticCacheMiddleware:

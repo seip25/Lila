@@ -103,7 +103,30 @@ class LilaPageLoader(BaseLoader):
         return self.inner.list_templates()
 
 
+def _bytecode_cache():
+    """Compiled templates on disk (production only): faster cold starts and
+    less CPU per new worker. Disabled in debug so edits are picked up."""
+    if is_debug() or str(ENV_CONFIG.get("JINJA_BYTECODE_CACHE", "true")).lower() in ("0", "false", "no"):
+        return None
+    try:
+        from jinja2 import FileSystemBytecodeCache
+
+        class _LazyDirCache(FileSystemBytecodeCache):
+            # The folder is created on the first write, never at import time.
+            def dump_bytecode(self, bucket):
+                try:
+                    os.makedirs(self.directory, exist_ok=True)
+                    super().dump_bytecode(bucket)
+                except OSError:
+                    pass
+
+        return _LazyDirCache(get_data_path("app", "cache", "jinja"))
+    except Exception:
+        return None
+
+
 jinja_env = Environment(
+    bytecode_cache=_bytecode_cache(),
     loader=LilaPageLoader(_get_template_loaders()),
     auto_reload=is_debug(),
     autoescape=True,
@@ -160,6 +183,7 @@ def clear_asset_cache() -> None:
     global _MANIFEST_LOADED
     _PUBLIC_CACHE.clear()
     _MANIFEST_CACHE.clear()
+    _TAILWIND_CSS.clear()
     _MANIFEST_LOADED = False
 
 
@@ -247,8 +271,30 @@ def set_default_layout(layout_name: str) -> None:
     DEFAULT_LAYOUT = layout_name
 
 
+_TAILWIND_CSS: Dict[str, str] = {}
+
+
+def tailwind_css() -> str:
+    """URL of the compiled Tailwind CSS (``lila css build``) or ``""``.
+
+    ``TAILWIND_MODE``: ``auto`` (default: compiled file in production, browser
+    runtime in debug so new classes appear instantly), ``build`` (always the
+    compiled file when it exists) or ``play`` (always the runtime).
+    """
+    if "url" in _TAILWIND_CSS:
+        return _TAILWIND_CSS["url"]
+    mode = str(ENV_CONFIG.get("TAILWIND_MODE", "auto") or "auto").lower()
+    url = ""
+    if mode != "play" and (mode == "build" or not is_debug()):
+        if os.path.isfile(get_base_path("public", "css", "lila.css")):
+            url = public("css/lila.css")
+    _TAILWIND_CSS["url"] = url
+    return url
+
+
 jinja_env.globals["public"] = public
 jinja_env.globals["asset"] = asset
+jinja_env.globals["tailwind_css"] = tailwind_css
 
 
 @pass_context

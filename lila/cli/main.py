@@ -14,6 +14,7 @@ from lila.cli.secret_key import app as secret_key_app
 from lila.cli.seo import app as seo_app
 from lila.cli.worker import app as worker_app
 from lila.cli.deploy import app as deploy_app
+from lila.cli.css import app as css_app
 from lila.cli.backup import app as backup_app
 
 app = typer.Typer(
@@ -185,6 +186,7 @@ app.add_typer(secret_key_app, name="secret-key", help="Generate and rotate SECRE
 app.add_typer(seo_app, name="seo", help="Generate sitemap.xml and robots.txt.")
 app.add_typer(worker_app, name="worker", help="Run background task worker process.")
 app.add_typer(deploy_app, name="deploy", help="Generate production deployment configurations (systemd, Nginx, Windows).")
+app.add_typer(css_app, name="css", help="Compile Tailwind CSS for production (no Node.js).")
 app.add_typer(backup_app, name="backup", help="Hot atomic SQLite database backup using sqlite3.backup().")
 
 if __name__ == "__main__":

@@ -2,8 +2,13 @@
 <meta name="csrf-token" content="{{ csrf_token | default('') }}">
 {% if debug %}<meta name="lila-debug" content="1">{% endif %}
 
-<!-- Tailwind CSS Play runtime (zero build step). For maximum performance in
-     production you can replace this with a precompiled CSS and keep Play in dev. -->
+{% set _compiled_css = tailwind_css() %}
+{% if _compiled_css %}
+<!-- Compiled with `lila css build` (minified, no runtime). -->
+<link rel="stylesheet" href="{{ _compiled_css }}">
+{% else %}
+<!-- Tailwind CSS browser runtime (zero build step, used in development).
+     Run `lila css build` before deploying to serve a small compiled CSS. -->
 <script src="{{ public('js/tailwind.js') }}"></script>
 
 <style type="text/tailwindcss">
@@ -530,3 +535,4 @@
     }
   }
 </style>
+{% endif %}

@@ -51,14 +51,64 @@ def has_redis() -> bool:
     return HAS_REDIS_PKG
 
 
+def _estimate_size(value: Any) -> int:
+    """Approximate bytes kept in RAM for a cached value (cheap, not exact)."""
+    if isinstance(value, (bytes, bytearray)):
+        return len(value) + 33
+    if isinstance(value, str):
+        return len(value) + 49
+    if isinstance(value, (int, float, bool)) or value is None:
+        return 28
+    try:
+        # Python objects take roughly 2-3x their JSON size in memory.
+        return len(orjson_dumps(value)) * 3
+    except Exception:
+        return 512
+
+
+class _SizedLRU(OrderedDict):
+    """OrderedDict that keeps a running total of the approximate entry sizes."""
+
+    def __init__(self, *args, **kwargs):
+        self.sizes: dict = {}
+        self.total_bytes = 0
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, key, item):
+        size = _estimate_size(item[0]) + len(key) + 64
+        self.total_bytes += size - self.sizes.get(key, 0)
+        self.sizes[key] = size
+        super().__setitem__(key, item)
+
+    def __delitem__(self, key):
+        super().__delitem__(key)
+        self.total_bytes -= self.sizes.pop(key, 0)
+
+    def pop(self, key, *default):
+        if key in self:
+            self.total_bytes -= self.sizes.pop(key, 0)
+        return super().pop(key, *default)
+
+    def popitem(self, last=True):
+        key, item = super().popitem(last=last)
+        self.total_bytes -= self.sizes.pop(key, 0)
+        return key, item
+
+    def clear(self):
+        super().clear()
+        self.sizes.clear()
+        self.total_bytes = 0
+
+
 class Cache:
     """Zero-infra in-memory LRU cache with optional Redis/file drivers."""
 
     _driver: str = "memory"
     _configured: bool = False
     _options: dict = {}
-    _DATA: "OrderedDict[str, tuple[Any, float]]" = OrderedDict()
+    _DATA: "_SizedLRU" = _SizedLRU()
     _MAX_ITEMS: int = 10000
+    _MAX_BYTES: int = 64 * 1024 * 1024
     _DEFAULT_TTL: int = 300
 
     _redis_sync = None
@@ -84,6 +134,9 @@ class Cache:
         cls._MAX_ITEMS = max(
             1, int(cls._options.get("max_items", ENV_CONFIG.get("CACHE_MAX_ITEMS", 10000)) or 10000)
         )
+        # RAM budget of the memory driver (approximate), CACHE_MAX_MB=64 by default.
+        max_mb = float(cls._options.get("max_mb", ENV_CONFIG.get("CACHE_MAX_MB", 64)) or 64)
+        cls._MAX_BYTES = max(1024, int(max_mb * 1024 * 1024))
         cls._DEFAULT_TTL = max(0, int(cls._options.get("default_ttl", ENV_CONFIG.get("CACHE_DEFAULT_TTL", 300)) or 300))
 
         if driver == "redis" and not has_redis():
@@ -334,30 +387,37 @@ class Cache:
         return None
 
     @classmethod
-    def _memory_make_room(cls, now: float) -> None:
+    def _memory_make_room(cls, now: float, incoming: int = 0) -> None:
         """Evicts entries when the LRU is full (caller holds the lock).
 
         Expired entries go first, then the oldest *non-session* entries, so a
         burst of route/model cache writes never logs users out. Sessions are
         evicted only when nothing else is left.
         """
-        if len(cls._DATA) < cls._MAX_ITEMS:
+        def full() -> bool:
+            return len(cls._DATA) >= cls._MAX_ITEMS or cls._DATA.total_bytes + incoming > cls._MAX_BYTES
+
+        if not full():
             return
         expired = [k for k, (_, exp) in cls._DATA.items() if exp <= now]
         for k in expired:
             cls._DATA.pop(k, None)
-        if len(cls._DATA) < cls._MAX_ITEMS:
+        if not full():
             return
-        overflow = len(cls._DATA) - cls._MAX_ITEMS + 1
+        need_items = len(cls._DATA) - cls._MAX_ITEMS + 1
+        need_bytes = cls._DATA.total_bytes + incoming - cls._MAX_BYTES
         victims = []
-        for k in cls._DATA:
-            if not k.startswith("session:"):
-                victims.append(k)
-                if len(victims) >= overflow:
-                    break
+        freed = 0
+        for k in cls._DATA:  # oldest first, sessions are skipped
+            if k.startswith("session:"):
+                continue
+            victims.append(k)
+            freed += cls._DATA.sizes.get(k, 0)
+            if len(victims) >= need_items and freed >= need_bytes:
+                break
         for k in victims:
             cls._DATA.pop(k, None)
-        while len(cls._DATA) >= cls._MAX_ITEMS:
+        while cls._DATA and full():
             cls._DATA.popitem(last=False)
 
     @classmethod
@@ -366,7 +426,7 @@ class Cache:
         expiry = now + ttl if ttl > 0 else float("inf")
         with cls._lock:
             if key not in cls._DATA:
-                cls._memory_make_room(now)
+                cls._memory_make_room(now, _estimate_size(value))
             cls._DATA[key] = (value, expiry)
             cls._DATA.move_to_end(key)
         return True
@@ -709,6 +769,8 @@ class Cache:
             ),
             "memory_items": valid_items,
             "max_items": cls._MAX_ITEMS,
+            "memory_mb": round(cls._DATA.total_bytes / (1024 * 1024), 2),
+            "max_mb": round(cls._MAX_BYTES / (1024 * 1024), 2),
             "redis_available": has_redis(),
         }
 
