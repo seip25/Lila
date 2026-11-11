@@ -419,7 +419,7 @@ def run_setup(
     workers = int(p.ask("workers", "2" if cache_driver == "redis" else "1", validator=lambda v: v.isdigit() and int(v) >= 1))
     if workers > 1 and cache_driver != "redis":
         typer.secho(f"  ⚠️  {p.t('workers_warn', driver=cache_driver)}", fg=typer.colors.YELLOW)
-    with_worker = cache_driver == "redis" and p.confirm("worker_unit", False)
+    with_worker = p.confirm("worker_unit", False)
 
     use_nginx = p.confirm("nginx", True)
     install_nginx = use_nginx and not shutil.which("nginx") and p.confirm("nginx_missing", True)

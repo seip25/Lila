@@ -2017,6 +2017,110 @@ if (typeof window !== "undefined" && !window.__LILA_ACTIONS_BOUND__) {
 }
 
 /**
+ * Server-Sent Events client (pairs with lila.core.sse).
+ *
+ *   var feed = lilaSSE("/events");
+ *   feed.on("notice", (data) => lila("toast", { title: "News", description: data.message }));
+ *   feed.close();
+ *
+ * Declarative: <div data-sse="/events" data-sse-event="notice"
+ *                   data-sse-swap="append|prepend|inner|text" data-sse-toast data-sse-callback="fn">
+ * JSON payloads are parsed; {"html": "..."} is inserted as HTML, {"message"}
+ * as text. Streams opened by a page close when the SPA leaves it unless
+ * { persist: true } / data-sse-persist. The browser reconnects automatically.
+ */
+class LilaSSE {
+  constructor(url, options = {}) {
+    this.url = url;
+    this.options = Object.assign({ persist: false, withCredentials: true }, options);
+    this.listeners = new Map();
+    this.closed = false;
+    this.source = new EventSource(url, { withCredentials: this.options.withCredentials });
+    this.source.addEventListener("open", () => this._emit("open", null));
+    this.source.addEventListener("error", () => this._emit("error", null));
+    this.source.addEventListener("message", (e) => this._emit("message", this._parse(e.data)));
+    if (!this.options.persist) {
+      this._onLeave = () => this.close();
+      window.addEventListener("lila:before-swap", this._onLeave, { once: true });
+    }
+  }
+
+  _parse(raw) {
+    try { return JSON.parse(raw); } catch { return raw; }
+  }
+
+  _emit(event, data) {
+    (this.listeners.get(event) || []).forEach((cb) => {
+      try { cb(data); } catch (err) { console.error(`[LilaSSE] listener "${event}" failed:`, err); }
+    });
+  }
+
+  on(event, callback) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+      if (!["open", "error", "message"].includes(event)) {
+        this.source.addEventListener(event, (e) => this._emit(event, this._parse(e.data)));
+      }
+    }
+    this.listeners.get(event).push(callback);
+    return this;
+  }
+
+  close() {
+    if (this.closed) return;
+    this.closed = true;
+    try { this.source.close(); } catch {}
+    if (this._onLeave) window.removeEventListener("lila:before-swap", this._onLeave);
+  }
+}
+
+function lilaSSE(url, options) {
+  return new LilaSSE(url, options);
+}
+
+function lilaInitSSE(root = document) {
+  root.querySelectorAll("[data-sse]").forEach((el) => {
+    if (el._lilaSSE && !el._lilaSSE.closed) return;
+    const stream = lilaSSE(el.getAttribute("data-sse"), { persist: el.hasAttribute("data-sse-persist") });
+    el._lilaSSE = stream;
+    const event = el.getAttribute("data-sse-event") || "message";
+    stream.on(event, (data) => {
+      const mode = el.getAttribute("data-sse-swap");
+      const html = data && typeof data === "object" && typeof data.html === "string" ? data.html : null;
+      const text = typeof data === "string" ? data : data && typeof data === "object" ? (data.message || data.text || "") : String(data);
+      if (mode) {
+        if (html !== null && mode !== "text") {
+          if (mode === "append") el.insertAdjacentHTML("beforeend", html);
+          else if (mode === "prepend") el.insertAdjacentHTML("afterbegin", html);
+          else el.innerHTML = html;
+          if (typeof lilaInitComponents === "function") lilaInitComponents(el);
+        } else if (mode === "append" || mode === "prepend") {
+          const line = document.createElement("div");
+          line.textContent = text;
+          mode === "append" ? el.appendChild(line) : el.prepend(line);
+        } else {
+          el.textContent = text;
+        }
+      }
+      if (el.hasAttribute("data-sse-toast") && text) {
+        lila("toast", { title: el.getAttribute("data-sse-toast") || "", description: text, type: (data && data.type) || "info" });
+      }
+      const cb = el.getAttribute("data-sse-callback");
+      if (cb && typeof window[cb] === "function") window[cb](data, el);
+    });
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.LilaSSE = LilaSSE;
+  window.lilaSSE = lilaSSE;
+  window.addEventListener("lila:page-load", () => lilaInitSSE());
+  window.addEventListener("lila:partial-load", (e) => lilaInitSSE((e.detail && e.detail.target) || document));
+  if (document.readyState !== "loading") lilaInitSSE();
+  else document.addEventListener("DOMContentLoaded", () => lilaInitSSE());
+}
+
+/**
  * Modern ResponsiveDataTable with pure Tailwind CSS
  */
 class ResponsiveDataTable {

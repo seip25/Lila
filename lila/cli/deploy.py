@@ -331,8 +331,9 @@ def deploy(
     cache_driver = str(ENV_CONFIG.get("CACHE_DRIVER", "memory")).lower()
     if with_worker and cache_driver != "redis":
         typer.secho(
-            "⚠️  --with-worker requires CACHE_DRIVER=redis; the worker will exit otherwise.",
-            fg=typer.colors.YELLOW,
+            "ℹ️  The worker unit will consume the SQLite task queue (app/data/lila_tasks.db); "
+            "set TASKS_IN_PROCESS=false in .env so web workers leave the queue to it.",
+            fg=typer.colors.CYAN,
         )
     if workers and workers > 1 and cache_driver != "redis":
         typer.secho(

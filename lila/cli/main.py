@@ -156,6 +156,103 @@ def i18n_check(
 
 app.add_typer(i18n_app, name="i18n", help="Translation tools (lila i18n check).")
 
+tasks_app = typer.Typer(help="SQLite task queue (app/data/lila_tasks.db).")
+
+
+@tasks_app.command("stats")
+def tasks_stats():
+    """Count tasks by status."""
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    data = lila_tasks.stats()
+    typer.echo("  " + ("  ".join(f"{k}: {v}" for k, v in sorted(data.items())) or "queue is empty"))
+
+
+@tasks_app.command("list")
+def tasks_list(status: str = typer.Option("", "--status", "-s", help="queued|running|done|dead"),
+               limit: int = typer.Option(30, "--limit", "-n")):
+    """List recent tasks."""
+    import datetime as _dt
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    for row in lila_tasks.list_tasks(status or None, limit):
+        when = _dt.datetime.fromtimestamp(row["run_at"]).strftime("%Y-%m-%d %H:%M:%S")
+        error = (row["last_error"] or "").splitlines()[0][:60] if row["last_error"] else ""
+        typer.echo(f"  #{row['id']:<6} {row['status']:<8} {row['attempts']}/{row['max_attempts']}  {when}  {row['name']}  {error}")
+
+
+@tasks_app.command("retry")
+def tasks_retry(task_id: int):
+    """Queue a dead (or done) task again."""
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    typer.echo("✅ queued again" if lila_tasks.retry(task_id) else "❌ task not found or still pending")
+
+
+@tasks_app.command("purge")
+def tasks_purge(status: str = typer.Option("done", "--status", "-s")):
+    """Delete finished tasks (default: done)."""
+    from lila.core.config import ConfigLoader
+    from lila.core import tasks as lila_tasks
+
+    ConfigLoader.load()
+    typer.echo(f"🧹 removed {lila_tasks.purge(status)} task(s)")
+
+
+schedule_app = typer.Typer(help="Scheduled jobs (@every / @cron).")
+
+
+def _load_schedule():
+    import importlib
+    from lila.core.config import ConfigLoader
+
+    ConfigLoader.load()
+    os.environ["SCHEDULER_ENABLED"] = "false"
+    if os.getcwd() not in sys.path:
+        sys.path.insert(0, os.getcwd())
+    importlib.import_module("main")
+    from lila.core import scheduler
+
+    return scheduler
+
+
+@schedule_app.command("list")
+def schedule_list():
+    """Show registered jobs, their schedule and last run."""
+    import datetime as _dt
+
+    scheduler = _load_schedule()
+    runs = scheduler.last_runs()
+    if not scheduler.jobs():
+        typer.echo("No @every/@cron jobs registered (import their module from main.py).")
+    for job in scheduler.jobs():
+        info = runs.get(job.name) or {}
+        last = _dt.datetime.fromtimestamp(info["last_run"]).strftime("%Y-%m-%d %H:%M") if info.get("last_run") else "never"
+        typer.echo(f"  {job.name:<45} {job.describe():<28} last: {last} ({info.get('last_status') or '-'})")
+
+
+@schedule_app.command("run")
+def schedule_run(name: str):
+    """Run one job now (name as shown by `lila schedule list`)."""
+    import asyncio
+
+    scheduler = _load_schedule()
+    job = next((j for j in scheduler.jobs() if j.name == name or j.name.endswith(f":{name}")), None)
+    if job is None:
+        typer.secho(f"❌ job '{name}' not found", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    typer.echo(f"▶️  {job.name}: {asyncio.run(scheduler.run_job(job))}")
+
+
+app.add_typer(tasks_app, name="tasks", help="SQLite task queue: stats, list, retry, purge.")
+app.add_typer(schedule_app, name="schedule", help="Scheduled jobs: list, run.")
+
 
 @app.command("doctor")
 def doctor():

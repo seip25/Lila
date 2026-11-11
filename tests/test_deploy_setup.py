@@ -58,6 +58,7 @@ class SetupWizardTests(unittest.TestCase):
                 "",               # service name: default slug
                 "deploy",         # user
                 "",               # workers: 1
+                "n",              # background worker unit
                 "s",              # nginx
                 "s",              # https
                 "ops@example.com",

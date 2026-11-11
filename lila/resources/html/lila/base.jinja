@@ -5,6 +5,9 @@
   {% set lila_head_title = false %}
   <title>{% block title %}{{ page_meta.full_title if page_meta and page_meta.full_title else (title | default('Lila')) }}{% endblock %}</title>
   {% include "lila/head.jinja" %}
+  {# In <head> so inline page scripts can use lila(), Http(), lilaSSE()... on
+     the first load too (it is small, minified and cached; it waits for the DOM itself). #}
+  <script src="{{ public('js/lila-client.js') }}"></script>
   {% block head %}{% endblock %}
 </head>
 
@@ -15,7 +18,6 @@
     {% block content %}{% endblock %}
   </div>
 
-  <script src="{{ public('js/lila-client.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 

@@ -124,17 +124,62 @@ def run_worker() -> None:
             pass
 
 
+def run_sqlite_worker(concurrency: int = 2) -> None:
+    """Consumes the SQLite task queue (app/data/lila_tasks.db) — no Redis needed."""
+    ConfigLoader.load()
+    os.environ["TASKS_IN_PROCESS"] = "false"  # importing main must not start a second consumer set
+    try:
+        importlib.import_module("main")  # registers @task functions
+    except Exception as exc:
+        typer.secho(f"  ⚠️ Could not import main ({exc}); tasks are resolved by module path.", fg=typer.colors.YELLOW)
+    from lila.core import tasks as lila_tasks
+
+    async def _run():
+        await lila_tasks.start_consumers(concurrency)
+        typer.secho(f"⚙️  Lila SQLite worker active ({concurrency} consumer(s)). Ctrl+C to stop.", fg=typer.colors.CYAN)
+        try:
+            while True:
+                await asyncio.sleep(3600)
+        finally:
+            await lila_tasks.stop_consumers()
+
+    try:
+        asyncio.run(_run())
+    except KeyboardInterrupt:
+        typer.echo("\n🛑 Worker stopped.")
+
+
+def _driver(driver: str) -> str:
+    return (driver or str(ENV_CONFIG.get("TASK_DRIVER", "") or "") or
+            ("redis" if str(ENV_CONFIG.get("CACHE_DRIVER", "memory")).lower() == "redis" else "sqlite")).lower()
+
+
 @app.callback(invoke_without_command=True)
-def worker(ctx: typer.Context):
+def worker(
+    ctx: typer.Context,
+    driver: str = typer.Option("", "--driver", "-d", help="sqlite (default without Redis) or redis"),
+    concurrency: int = typer.Option(2, "--concurrency", "-c", help="Parallel tasks (sqlite driver)"),
+):
     """Start the worker (default command)."""
     if ctx.invoked_subcommand is None:
-        run_worker()
+        ConfigLoader.load()
+        if _driver(driver) == "redis":
+            run_worker()
+        else:
+            run_sqlite_worker(concurrency)
 
 
 @app.command("start")
-def start():
+def start(
+    driver: str = typer.Option("", "--driver", "-d", help="sqlite or redis"),
+    concurrency: int = typer.Option(2, "--concurrency", "-c"),
+):
     """Start the Lila background worker process."""
-    run_worker()
+    ConfigLoader.load()
+    if _driver(driver) == "redis":
+        run_worker()
+    else:
+        run_sqlite_worker(concurrency)
 
 
 def main():
