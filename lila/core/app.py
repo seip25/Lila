@@ -131,6 +131,8 @@ class App(Starlette):
         debug_html: bool = False,
         middleware: Optional[List[Any]] = None,
         etag: bool = True,
+        health: bool = True,
+        metrics: bool = False,
     ):
         # Ensure .env is loaded even when users import App directly (not app.config).
         ConfigLoader.load()
@@ -222,6 +224,13 @@ class App(Starlette):
 
         # 7. Middleware stack
         middleware_stack: List[Middleware] = []
+
+        self._health = bool(health)
+        self._metrics = bool(metrics)
+        if self._metrics:
+            from lila.core.observability import PureASGIMetricsMiddleware
+
+            middleware_stack.append(Middleware(PureASGIMetricsMiddleware))
 
         # Desktop mode: gate every request/WebSocket behind the local token
         # before static files or any route can respond. The token is set before
@@ -634,8 +643,26 @@ class App(Starlette):
             )
         return HTMLResponse("<h1>405 - Method Not Allowed</h1>", status_code=405, headers=allowed)
 
+    def _mount_observability(self) -> None:
+        """/health (+ /health/details, /metrics) unless the project defines them."""
+        from lila.core import observability as obs
+
+        existing = {getattr(r, "path", None) for r in self.router.routes}
+        wanted = []
+        if self._health:
+            wanted += [("/health", obs.health_endpoint), ("/health/details", obs.health_details_endpoint)]
+        if self._metrics:
+            wanted.append(("/metrics", obs.metrics_endpoint))
+        for path, endpoint in wanted:
+            if path not in existing:
+                self.router.routes.append(Route(path, endpoint=endpoint, methods=["GET"], include_in_schema=False))
+
     async def _internal_startup(self):
         """Framework services started with the app (all cheap / optional)."""
+        try:
+            self._mount_observability()
+        except Exception:
+            pass
         # Log retention: LOG_RETENTION_DAYS (default 30, 0 = keep forever).
         try:
             days = int(ENV_CONFIG.get("LOG_RETENTION_DAYS", 30) or 0)

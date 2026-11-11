@@ -505,6 +505,25 @@ def _pagination_ctx(ctx, page, **kwargs):
     return render_pagination(page, **kwargs)
 
 
+@pass_context
+def _can_ctx(ctx, permission):
+    from lila.core.permissions import jinja_can
+
+    return jinja_can(ctx.get("request"), permission)
+
+
+@pass_context
+def _has_role_ctx(ctx, role):
+    from lila.core.permissions import jinja_has_role
+
+    return jinja_has_role(ctx.get("request"), role)
+
+
+from lila.core.images import responsive_image  # noqa: E402
+
+jinja_env.globals["image"] = responsive_image
+jinja_env.globals["can"] = _can_ctx
+jinja_env.globals["has_role"] = _has_role_ctx
 jinja_env.globals["form"] = _form_ctx
 jinja_env.globals["pagination"] = _pagination_ctx
 jinja_env.globals["ui"] = UI()  # replaced per render by a translated instance

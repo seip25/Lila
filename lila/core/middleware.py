@@ -687,7 +687,7 @@ def validate_token(fn: Optional[Callable] = None, header: str = "Authorization",
                 return JSONResponse({"success": False, "message": "Missing Authorization header"}, status_code=401)
 
             data = JWT.decode(auth_value)
-            if not data:
+            if not data or data.get("typ") == "refresh":  # refresh tokens are not access tokens
                 return JSONResponse({"success": False, "message": "Invalid or expired token"}, status_code=401)
 
             req.state.jwt = data
