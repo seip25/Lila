@@ -298,6 +298,7 @@ function lilaEscapeAttr(value) {
       const key = nextEl.getAttribute("data-island") || nextEl.getAttribute("data-lila-client") || nextEl.id || `persist-${index}`;
       const activeEl = currentPersistNodes.get(key);
       if (activeEl && nextEl.parentNode) {
+        syncPersistedLinks(activeEl, nextEl);
         nextEl.parentNode.replaceChild(activeEl, nextEl);
         currentPersistNodes.delete(key);
       }
@@ -356,6 +357,21 @@ function lilaEscapeAttr(value) {
     window.dispatchEvent(new CustomEvent("lila:page-load", { detail: pageLoadDetail }));
     document.dispatchEvent(new CustomEvent("lila:page-load", { detail: pageLoadDetail }));
     window.dispatchEvent(new CustomEvent("lila:load", { detail: pageLoadDetail }));
+  }
+
+  // A persisted element (sidebar, navbar) keeps its DOM state, but its links
+  // take the class/aria-current rendered by the server for the new page, so
+  // the "active" item follows the navigation.
+  function syncPersistedLinks(currentEl, nextEl) {
+    const nextLinks = new Map();
+    nextEl.querySelectorAll("a[href]").forEach((a) => nextLinks.set(a.getAttribute("href"), a));
+    currentEl.querySelectorAll("a[href]").forEach((a) => {
+      const fresh = nextLinks.get(a.getAttribute("href"));
+      if (!fresh) return;
+      a.className = fresh.className;
+      if (fresh.hasAttribute("aria-current")) a.setAttribute("aria-current", fresh.getAttribute("aria-current"));
+      else a.removeAttribute("aria-current");
+    });
   }
 
   function cloneScript(oldScript) {
@@ -448,6 +464,7 @@ function lilaEscapeAttr(value) {
     if (anchor.hasAttribute("download")) return false;
     if (anchor.getAttribute("rel") === "external") return false;
     if (anchor.getAttribute("data-no-router") !== null) return false;
+    if (anchor.hasAttribute("data-action")) return false;
 
     const href = anchor.getAttribute("href");
     if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) {
@@ -865,8 +882,11 @@ function lila(component, options) {
 
   // 6. Carousel
   if (component === "carousel") {
-    const selector = (options && options.selector) || ".carousel";
-    document.querySelectorAll(selector).forEach((c) => initSingleCarousel(c, options));
+    // lila('carousel', { selector: '.carousel', autoplay: 4000 }) -> array of controllers
+    // lila('carousel', { el: element }) -> one controller
+    if (options && options.el) return initSingleCarousel(options.el, options);
+    const selector = (options && options.selector) || ".carousel, [data-carousel]";
+    return Array.from(document.querySelectorAll(selector)).map((c) => initSingleCarousel(c, options || {}));
   }
 
   // 7. DataTable
@@ -955,22 +975,76 @@ function cleanupOrphanedBackdrops() {
  * Or from Jinja: {{ carousel(slides, autoplay=5000) }}. Auto-initialized on
  * every page load / SPA navigation; native touch swipe via scroll-snap.
  */
+function lilaCarouselOption(carousel, opts, name, fallback) {
+  // JS option > data-carousel-<name> > data-<name> > fallback
+  if (opts && opts[name] !== undefined) return opts[name];
+  const camel = "carousel" + name.charAt(0).toUpperCase() + name.slice(1);
+  const data = carousel.dataset || {};
+  if (data[camel] !== undefined) return data[camel];
+  if (data[name] !== undefined) return data[name];
+  return fallback;
+}
+
+/**
+ * Plain-HTML carousel: only data attributes are required, the track, arrows
+ * and dots are created automatically.
+ *
+ *   <div data-carousel data-carousel-autoplay="4000" data-carousel-loop="true"
+ *        data-carousel-arrows="true" data-carousel-indicators="true" class="h-72">
+ *     <div data-carousel-slide><img src="/img/1.webp" class="w-full h-full object-cover"></div>
+ *     <div data-carousel-slide class="md:basis-1/2">Card</div>
+ *   </div>
+ */
+function lilaPrepareCarousel(carousel) {
+  carousel.classList.add("carousel", "relative", "overflow-hidden");
+  let track = carousel.querySelector(".carousel-track, [data-carousel-track]");
+  const slides = Array.from(carousel.querySelectorAll("[data-carousel-slide]"));
+  if (!track && slides.length) {
+    track = document.createElement("div");
+    track.className = "carousel-track h-full";
+    slides[0].parentNode.insertBefore(track, slides[0]);
+    slides.forEach((slide) => track.appendChild(slide));
+  }
+  if (!track) return null;
+  track.classList.add("carousel-track");
+  slides.forEach((slide) => {
+    slide.classList.add("carousel-item", "shrink-0");
+    if (!/(^|\s)(basis-|w-)/.test(slide.className)) slide.classList.add("basis-full");
+  });
+
+  const arrowCls = "absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/80 dark:bg-slate-900/80 shadow-md backdrop-blur flex items-center justify-center text-xl font-bold cursor-pointer hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 transition";
+  const wantArrows = String(lilaCarouselOption(carousel, {}, "arrows", "true")) !== "false";
+  if (wantArrows && !carousel.querySelector(".carousel-prev, [data-carousel-prev]")) {
+    carousel.insertAdjacentHTML("beforeend",
+      `<button type="button" class="carousel-prev ${arrowCls} left-3" aria-label="Previous">&lsaquo;</button>` +
+      `<button type="button" class="carousel-next ${arrowCls} right-3" aria-label="Next">&rsaquo;</button>`);
+  }
+  const wantDots = String(lilaCarouselOption(carousel, {}, "indicators", "true")) !== "false";
+  if (wantDots && !carousel.querySelector(".carousel-indicators, [data-carousel-indicators]")) {
+    carousel.insertAdjacentHTML("beforeend",
+      '<div class="carousel-indicators absolute bottom-3 inset-x-0 z-10 flex justify-center gap-2"></div>');
+  }
+  return track;
+}
+
 function initSingleCarousel(carousel, opts = {}) {
   if (carousel._lila_initialized) return carousel._lila_carousel;
-  const track = carousel.querySelector(".carousel-track");
+  const track = carousel.hasAttribute("data-carousel")
+    ? lilaPrepareCarousel(carousel)
+    : carousel.querySelector(".carousel-track, [data-carousel-track]");
   if (!track) return null;
-  const items = Array.from(track.querySelectorAll(".carousel-item, .carousel-card"));
+  const items = Array.from(track.querySelectorAll(".carousel-item, .carousel-card, [data-carousel-slide]"));
   if (items.length === 0) return null;
   carousel._lila_initialized = true;
 
-  const data = carousel.dataset || {};
-  const autoplay = Number(opts.autoplay !== undefined ? opts.autoplay : data.autoplay || 0);
-  const loop = String(opts.loop !== undefined ? opts.loop : data.loop !== undefined ? data.loop : "true") !== "false";
+  const autoplay = Number(lilaCarouselOption(carousel, opts, "autoplay", 0)) || 0;
+  const loop = String(lilaCarouselOption(carousel, opts, "loop", "true")) !== "false";
+  const pauseOnHover = String(lilaCarouselOption(carousel, opts, "pause", "true")) !== "false";
   const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const prevBtn = carousel.querySelector(".carousel-prev");
-  const nextBtn = carousel.querySelector(".carousel-next");
-  let indicators = carousel.querySelector(".carousel-indicators");
+  const prevBtn = carousel.querySelector(".carousel-prev, [data-carousel-prev]");
+  const nextBtn = carousel.querySelector(".carousel-next, [data-carousel-next]");
+  let indicators = carousel.querySelector(".carousel-indicators, [data-carousel-indicators]");
   let current = 0;
   let timer = null;
   let paused = false;
@@ -1057,16 +1131,24 @@ function initSingleCarousel(carousel, opts = {}) {
   }
   function restart() { if (timer) start(); }
 
-  carousel.addEventListener("mouseenter", () => { paused = true; });
-  carousel.addEventListener("mouseleave", () => { paused = false; });
+  if (pauseOnHover) {
+    carousel.addEventListener("mouseenter", () => { paused = true; });
+    carousel.addEventListener("mouseleave", () => { paused = false; });
+  }
   carousel.addEventListener("focusin", () => { paused = true; });
   carousel.addEventListener("focusout", () => { paused = false; });
 
   paint();
   start();
 
-  const api = { go, next: () => go(current + 1), prev: () => go(current - 1), start, stop, get index() { return current; } };
+  const api = {
+    go, next: () => go(current + 1), prev: () => go(current - 1), start, stop,
+    get index() { return current; }, get length() { return items.length; },
+  };
   carousel._lila_carousel = api;
+  track.addEventListener("scrollend", () => {
+    carousel.dispatchEvent(new CustomEvent("lila:carousel-change", { detail: { index: current }, bubbles: true }));
+  });
   return api;
 }
 
@@ -1122,7 +1204,7 @@ function lilaInitDataTable(el) {
 }
 
 function lilaInitComponents(root = document) {
-  root.querySelectorAll("[data-lila-carousel]").forEach((el) => initSingleCarousel(el));
+  root.querySelectorAll("[data-lila-carousel], [data-carousel]").forEach((el) => initSingleCarousel(el));
   root.querySelectorAll("[data-lila-datatable]").forEach((el) => lilaInitDataTable(el));
 }
 
@@ -1224,6 +1306,367 @@ if (!window.__LILA_UI_BOUND__) {
     } else if (e.key === "Escape") {
       lila("command", { action: "close" });
     }
+  });
+}
+
+/**
+ * Declarative forms & actions (htmx-style, zero JS per page).
+ *
+ *   <form action="/api/login" method="post" data-lila-form data-snackbar data-redirect="/dashboard">
+ *     <input name="email" type="email" required>
+ *     <div data-message hidden></div>
+ *     <button type="submit">Sign in</button>
+ *   </form>
+ *
+ *   <button data-action="/api/items/3" data-method="DELETE" data-confirm="Delete?"
+ *           data-toast data-refresh="#items-table">Delete</button>
+ *
+ * Flow: HTML5 validation (required/min/max/pattern...) -> buttons disabled with a
+ * spinner -> Http() with CSRF -> feedback (snackbar/toast/[data-message]),
+ * field errors from 422 responses -> redirect/reset/reload/target swap/refresh/
+ * callback. Buttons are always re-enabled (also after a timeout).
+ */
+const LILA_SPINNER =
+  '<svg class="lila-spinner animate-spin -ml-0.5 mr-2 h-4 w-4 inline-block align-[-2px]" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>';
+
+const LILA_MESSAGE_STYLES = {
+  success: "rounded-xl border px-4 py-3 text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200",
+  error: "rounded-xl border px-4 py-3 text-sm font-medium bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-800 dark:text-red-200",
+  info: "rounded-xl border px-4 py-3 text-sm font-medium bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-200",
+};
+
+function lilaAttr(el, name, fallback = null) {
+  if (!el || !el.hasAttribute(name)) return fallback;
+  const value = el.getAttribute(name);
+  return value === "" ? true : value;
+}
+
+function lilaIsOn(el, name) {
+  const value = lilaAttr(el, name);
+  return value !== null && value !== "false";
+}
+
+function lilaSetBusy(buttons, busyButton) {
+  const restore = [];
+  buttons.forEach((btn) => {
+    if (!btn || btn.disabled) return;
+    const state = { btn, html: btn.innerHTML, value: btn.value };
+    btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    if (btn === busyButton && btn.getAttribute("data-loading") !== "false") {
+      const text = btn.getAttribute("data-loading-text");
+      if (btn.tagName === "INPUT") {
+        if (text) btn.value = text;
+      } else {
+        btn.innerHTML = LILA_SPINNER + (text ? lilaEscapeHtml(text) : btn.innerHTML);
+      }
+    }
+    restore.push(state);
+  });
+  return () => restore.forEach(({ btn, html, value }) => {
+    btn.disabled = false;
+    btn.removeAttribute("aria-busy");
+    if (btn.tagName === "INPUT") btn.value = value;
+    else btn.innerHTML = html;
+  });
+}
+
+function lilaFormBody(form, submitter) {
+  const fd = new FormData(form);
+  if (submitter && submitter.name) fd.append(submitter.name, submitter.value);
+  const hasFile = Array.from(form.querySelectorAll('input[type="file"]')).some((i) => i.files && i.files.length);
+  if (hasFile || (form.getAttribute("enctype") || "").includes("multipart")) return { form: fd };
+  const data = {};
+  for (const [key, value] of fd.entries()) {
+    if (key in data) data[key] = [].concat(data[key], value); // checkbox groups / multi-select
+    else data[key] = value;
+  }
+  // Unchecked boxes with data-unchecked send a value too (e.g. "0").
+  form.querySelectorAll('input[type="checkbox"][data-unchecked]').forEach((box) => {
+    if (box.name && !box.checked && !(box.name in data)) data[box.name] = box.getAttribute("data-unchecked");
+  });
+  return { json: data };
+}
+
+function lilaResult(res, error) {
+  // Normalizes any API answer into { ok, message, data, errors, type }.
+  const data = error ? (error.data || { message: error.message }) : res;
+  let ok = !error;
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    if (data.success === false || data.ok === false || data.error === true) ok = false;
+  }
+  let message = "";
+  if (typeof data === "string") message = "";
+  else if (data && typeof data === "object") {
+    message = data.message || data.msg || data.detail || (typeof data.error === "string" ? data.error : "") || "";
+  }
+  if (!message && error) message = error.status === 422 ? "Please check the highlighted fields." : (error.message || "Request failed");
+  const errors = data && typeof data === "object" && Array.isArray(data.errors) ? data.errors : [];
+  const type = (data && typeof data === "object" && data.type) || (ok ? "success" : "error");
+  return { ok, message: String(message || ""), data, errors, type, status: error ? error.status : 200 };
+}
+
+function lilaClearFieldErrors(form) {
+  if (!form) return;
+  form.querySelectorAll("[data-lila-field-error]").forEach((el) => el.remove());
+  form.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute("aria-invalid"));
+}
+
+function lilaShowFieldErrors(form, errors) {
+  if (!form || !errors.length) return;
+  let first = null;
+  errors.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    Object.entries(item).forEach(([name, msg]) => {
+      const field = form.querySelector(`[name="${CSS.escape(name)}"]`);
+      if (!field) return;
+      field.setAttribute("aria-invalid", "true");
+      const holder = form.querySelector(`[data-error-for="${CSS.escape(name)}"]`);
+      if (holder) {
+        holder.textContent = String(msg);
+        holder.hidden = false;
+        holder.classList.remove("hidden");
+      } else {
+        const p = document.createElement("p");
+        p.setAttribute("data-lila-field-error", "");
+        p.className = "mt-1 text-xs font-medium text-red-600 dark:text-red-400";
+        p.textContent = String(msg);
+        field.insertAdjacentElement("afterend", p);
+      }
+      if (!first) first = field;
+    });
+  });
+  if (first && typeof first.focus === "function") first.focus();
+}
+
+function lilaShowMessage(el, result) {
+  const box = (() => {
+    const sel = lilaAttr(el, "data-message");
+    if (typeof sel === "string") return document.querySelector(sel);
+    return el.tagName === "FORM" ? el.querySelector("[data-message]") : null;
+  })();
+  if (!box || !result.message) return;
+  if (!box._lilaBaseClass) box._lilaBaseClass = box.className.replace(/\b(hidden|d-none)\b/g, "").trim();
+  const style = LILA_MESSAGE_STYLES[result.ok ? (result.type === "info" ? "info" : "success") : "error"];
+  box.className = `${box._lilaBaseClass} ${style}`.trim();
+  box.setAttribute("role", result.ok ? "status" : "alert");
+  box.textContent = result.message;
+  box.hidden = false;
+}
+
+function lilaFeedback(el, result) {
+  if (!result.message) return;
+  const type = result.ok ? (result.type === "info" ? "info" : "success") : "error";
+  if (lilaIsOn(el, "data-snackbar")) lila("snackbar", { message: result.message, type });
+  if (lilaIsOn(el, "data-toast")) {
+    const okTitle = lilaAttr(el, "data-toast");
+    const errTitle = lilaAttr(el, "data-toast-error");
+    const title = result.ok
+      ? (typeof okTitle === "string" ? okTitle : "OK")
+      : (typeof errTitle === "string" ? errTitle : "Error");
+    lila("toast", { title, description: result.message, type });
+  }
+  lilaShowMessage(el, result);
+}
+
+function lilaSwap(el, result) {
+  const targetSel = lilaAttr(el, "data-target");
+  if (typeof targetSel !== "string") return;
+  const target = document.querySelector(targetSel);
+  if (!target) return;
+  const data = result.data;
+  const html = typeof data === "string" ? data : data && typeof data.html === "string" ? data.html : null;
+  const mode = lilaAttr(el, "data-swap", "inner");
+  if (html === null) {
+    if (data && typeof data === "object") target.textContent = result.message || "";
+    return;
+  }
+  if (mode === "text") target.textContent = html;
+  else if (mode === "outer") target.outerHTML = html;
+  else if (mode === "append") target.insertAdjacentHTML("beforeend", html);
+  else if (mode === "prepend") target.insertAdjacentHTML("afterbegin", html);
+  else target.innerHTML = html;
+  if (mode !== "text") lilaInitComponents(mode === "outer" ? document : target);
+}
+
+function lilaRefresh(selector) {
+  // Re-renders declarative components: datatable(url=...) re-fetches its data.
+  String(selector).split(",").map((x) => x.trim()).filter(Boolean).forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      if (el.hasAttribute("data-lila-datatable")) {
+        const dt = el._lila_datatable;
+        if (dt && typeof dt.destroy === "function") dt.destroy();
+        el._lila_datatable = null;
+        lilaInitDataTable(el);
+      } else if (typeof el.refresh === "function") {
+        el.refresh();
+      }
+      el.dispatchEvent(new CustomEvent("lila:refresh", { bubbles: true }));
+    });
+  });
+}
+
+async function lilaRequest(el, { url, method, json, form, submitter }) {
+  const confirmMsg = lilaAttr(el, "data-confirm");
+  if (el.tagName === "FORM" && typeof confirmMsg === "string" && !window.confirm(confirmMsg)) return null;
+
+  const buttons = el.tagName === "FORM"
+    ? Array.from(el.querySelectorAll('button[type="submit"], button:not([type]), input[type="submit"]'))
+        .concat(el.id ? Array.from(document.querySelectorAll(`[form="${CSS.escape(el.id)}"]`)) : [])
+    : [el];
+  const busyButton = submitter || (el.tagName === "FORM" ? buttons[0] : el);
+  const release = lilaSetBusy(buttons, busyButton);
+  const timeoutMs = Number(lilaAttr(el, "data-timeout", 20000)) || 20000;
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = setTimeout(() => { if (controller) controller.abort(); release(); }, timeoutMs);
+  el.setAttribute("aria-busy", "true");
+  lilaClearFieldErrors(el.tagName === "FORM" ? el : null);
+  el.dispatchEvent(new CustomEvent("lila:request", { detail: { url, method }, bubbles: true }));
+
+  let result;
+  try {
+    const res = await Http(url, method, json || false, form || false, { "X-Lila-Action": "1" }, { signal: controller && controller.signal });
+    result = lilaResult(res, null);
+  } catch (error) {
+    if (error && error.name === "AbortError") error.message = "The server took too long to answer.";
+    result = lilaResult(null, error);
+  } finally {
+    clearTimeout(timer);
+    release();
+    el.removeAttribute("aria-busy");
+  }
+
+  if (!result.ok && el.tagName === "FORM") lilaShowFieldErrors(el, result.errors);
+  lilaFeedback(el, result);
+  el.dispatchEvent(new CustomEvent(result.ok ? "lila:success" : "lila:error", { detail: result, bubbles: true }));
+
+  const callbackName = lilaAttr(el, "data-callback");
+  if (typeof callbackName === "string") {
+    const fn = lilaResolveFn(callbackName);
+    if (typeof fn === "function") {
+      try { fn(result.data, el, result); } catch (err) { console.error("[LILA ACTION] callback error:", err); }
+    } else {
+      console.warn(`[LILA ACTION] data-callback "${callbackName}" is not a global function`);
+    }
+  }
+  if (!result.ok) return result;
+
+  lilaSwap(el, result);
+  const refresh = lilaAttr(el, "data-refresh");
+  if (typeof refresh === "string") lilaRefresh(refresh);
+  if (el.tagName === "FORM" && lilaIsOn(el, "data-reset")) {
+    // data-reset -> whole form; data-reset="password,password_2" -> only those fields
+    const names = lilaAttr(el, "data-reset");
+    if (typeof names === "string") {
+      names.split(",").map((n) => n.trim()).filter(Boolean).forEach((name) => {
+        el.querySelectorAll(`[name="${CSS.escape(name)}"]`).forEach((field) => {
+          if (field.type === "checkbox" || field.type === "radio") field.checked = field.defaultChecked;
+          else field.value = "";
+        });
+      });
+    } else {
+      el.reset();
+    }
+  }
+
+  const redirect = (typeof lilaAttr(el, "data-redirect") === "string" && lilaAttr(el, "data-redirect")) ||
+    (result.data && typeof result.data === "object" && (result.data.redirect || result.data.redirect_url));
+  if (redirect) {
+    const go = () => (window.Lila && Lila.navigate && !lilaIsOn(el, "data-no-router") ? Lila.navigate(redirect) : (window.location.href = redirect));
+    const delay = Number(lilaAttr(el, "data-redirect-delay", result.message ? 600 : 0)) || 0;
+    delay ? setTimeout(go, delay) : go();
+  } else if (lilaIsOn(el, "data-reload")) {
+    if (window.Lila && Lila.navigate) Lila.navigate(window.location.href, { replace: true, scroll: false });
+    else window.location.reload();
+  }
+  return result;
+}
+
+function lilaSubmitForm(form, submitter) {
+  if (form.getAttribute("aria-busy") === "true") return null;
+  // <input name="confirm" data-match="password" data-match-message="Passwords do not match">
+  form.querySelectorAll("[data-match]").forEach((input) => {
+    const other = form.querySelector(`[name="${CSS.escape(input.getAttribute("data-match"))}"]`);
+    const mismatch = other && other.value !== input.value;
+    input.setCustomValidity(mismatch ? (input.getAttribute("data-match-message") || "Values do not match") : "");
+  });
+  if (!lilaIsOn(form, "data-novalidate") && !form.noValidate && !form.checkValidity()) {
+    form.reportValidity();
+    return null;
+  }
+  const url = (submitter && submitter.getAttribute("formaction")) || form.getAttribute("action") || window.location.pathname;
+  const method = (lilaAttr(form, "data-method") || (submitter && submitter.getAttribute("formmethod")) || form.getAttribute("method") || "POST").toUpperCase();
+  const body = lilaFormBody(form, submitter);
+  if (method === "GET" && body.json) {
+    const qs = new URLSearchParams(body.json).toString();
+    return lilaRequest(form, { url: qs ? `${url}${url.includes("?") ? "&" : "?"}${qs}` : url, method, submitter });
+  }
+  return lilaRequest(form, { url, method, json: body.json, form: body.form, submitter });
+}
+
+function lilaRunAction(el) {
+  if (el.getAttribute("aria-busy") === "true" || el.disabled) return null;
+  const url = lilaAttr(el, "data-action");
+  if (typeof url !== "string") return null;
+  const method = String(lilaAttr(el, "data-method", "POST")).toUpperCase();
+  let json = false;
+  const raw = lilaAttr(el, "data-body");
+  if (typeof raw === "string") {
+    try { json = JSON.parse(raw); } catch { console.error("[LILA ACTION] data-body must be valid JSON:", raw); return null; }
+  }
+  const include = lilaAttr(el, "data-include");
+  if (typeof include === "string") {
+    const source = document.querySelector(include);
+    if (source) {
+      const extra = source.tagName === "FORM" ? lilaFormBody(source).json || {} :
+        Object.fromEntries(Array.from(source.querySelectorAll("[name]")).map((i) => [i.name, i.value]));
+      json = Object.assign({}, extra, json || {});
+    }
+  }
+  if (method === "GET" && json) {
+    const qs = new URLSearchParams(json).toString();
+    return lilaRequest(el, { url: `${url}${url.includes("?") ? "&" : "?"}${qs}`, method });
+  }
+  return lilaRequest(el, { url, method, json: json || (method === "GET" ? false : {}) });
+}
+
+const LILA_FORM_SELECTOR = "form[data-lila-form], form[data-snackbar], form[data-toast], form[data-target], form[data-redirect]";
+
+if (typeof window !== "undefined" && !window.__LILA_ACTIONS_BOUND__) {
+  window.__LILA_ACTIONS_BOUND__ = true;
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest ? e.target.closest(LILA_FORM_SELECTOR) : null;
+    if (!form || form.hasAttribute("data-native")) return;
+    e.preventDefault();
+    lilaSubmitForm(form, e.submitter || null);
+  });
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0) return;
+    // <button data-toggle-hidden="#panel"> shows/hides an element (hidden attr or class)
+    const toggler = e.target.closest("[data-toggle-hidden]");
+    if (toggler) {
+      e.preventDefault();
+      document.querySelectorAll(toggler.getAttribute("data-toggle-hidden")).forEach((target) => {
+        const isHidden = target.hidden || target.classList.contains("hidden");
+        target.hidden = !isHidden;
+        target.classList.toggle("hidden", !isHidden);
+        toggler.setAttribute("aria-expanded", String(isHidden));
+      });
+      return;
+    }
+    const el = e.target.closest("[data-action]:not(form)");
+    if (!el) return;
+    e.preventDefault();
+    lilaRunAction(el);
+  });
+  // Clear a field's error as soon as the user edits it.
+  document.addEventListener("input", (e) => {
+    const field = e.target;
+    if (field && field.hasAttribute && field.hasAttribute("data-match")) field.setCustomValidity("");
+    if (!field || field.getAttribute("aria-invalid") !== "true") return;
+    field.removeAttribute("aria-invalid");
+    const next = field.nextElementSibling;
+    if (next && next.hasAttribute("data-lila-field-error")) next.remove();
   });
 }
 
@@ -1472,7 +1915,7 @@ class ResponsiveDataTable {
 /**
  * Universal Http request helper with automated CSRF and prefetch cache clearance.
  */
-async function Http(url = "/", method = "GET", body = false, bodyForm = false, headers = {}) {
+async function Http(url = "/", method = "GET", body = false, bodyForm = false, headers = {}, opts = {}) {
   const csrfEl =
     document.querySelector('meta[name="csrf-token"]') ||
     document.getElementById("csrf") ||
@@ -1486,6 +1929,7 @@ async function Http(url = "/", method = "GET", body = false, bodyForm = false, h
 
   const upperMethod = String(method || "GET").toUpperCase();
   const options = { method: upperMethod, headers: mergedHeaders, credentials: "include" };
+  if (opts && opts.signal) options.signal = opts.signal;
 
   if (bodyForm) {
     if (csrfToken && bodyForm instanceof FormData && !bodyForm.has("_csrf")) {
@@ -1538,4 +1982,7 @@ if (typeof window !== "undefined") {
   window.lila = lila;
   window.Lila.ui = lila;
   window.Lila.escape = lilaEscapeHtml;
+  window.Lila.submit = (form, submitter) => lilaSubmitForm(typeof form === "string" ? document.querySelector(form) : form, submitter);
+  window.Lila.action = (el) => lilaRunAction(typeof el === "string" ? document.querySelector(el) : el);
+  window.Lila.refresh = lilaRefresh;
 }

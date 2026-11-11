@@ -68,7 +68,8 @@
           <p class="text-sm"><strong class="font-bold text-slate-500 mr-1">{{ translate['email'] | default('Email Address') }}:</strong> {{ user.email }}</p>
         </div>
 
-        <form id="update-profile-form" class="space-y-6">
+        <form id="update-profile-form" class="space-y-6" action="/profile" method="post" data-lila-form
+          data-reset="password,password_2">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label for="name"
@@ -98,7 +99,7 @@
           </div>
 
           <div class="flex items-center justify-between gap-4 pt-2">
-            <p id="message" class="text-sm font-semibold"></p>
+            <p id="message" data-message hidden></p>
             <button type="submit" class="btn btn-primary text-xs cursor-pointer">
               {{ translate['save'] | default('Save') }}
             </button>
@@ -112,12 +113,15 @@
           <p class="text-xs text-slate-500 mb-4">{{ translate['once_you_delete_your_account_there_is_no_going_back'] | default('Once you delete your account, there is no going back.') }}
           </p>
 
-          <form id="delete-account-form">
-            <button type="button" class="btn btn-secondary text-xs cursor-pointer" id="show-delete-password">
+          <form id="delete-account-form" action="/delete-account" method="post" data-lila-form
+            data-confirm="{{ translate['once_you_delete_your_account_there_is_no_going_back'] | default('Once you delete your account, there is no going back.') }}"
+            data-redirect="/register" data-no-router>
+            <button type="button" class="btn btn-secondary text-xs cursor-pointer" id="show-delete-password"
+              data-toggle-hidden="#delete-password-div" aria-expanded="false">
               {{ translate['delete account'] | default('Delete Account') }}
             </button>
 
-            <div id="delete-password-div" style="display: none" class="mt-4 space-y-4">
+            <div id="delete-password-div" hidden class="mt-4 space-y-4">
               <div class="max-w-sm">
                 <label for="delete-password"
                   class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{{ translate['password'] | default('Password') }}</label>
@@ -127,7 +131,7 @@
                 <button type="submit" class="btn btn-danger text-xs cursor-pointer">
                   {{ translate['delete account'] | default('Delete Account') }}
                 </button>
-                <p id="delete-message" class="text-sm font-semibold"></p>
+                <p id="delete-message" data-message hidden></p>
               </div>
             </div>
           </form>
@@ -136,72 +140,3 @@
     </main>
   </div>
 </div>
-
-<script>
-  document
-    .getElementById("update-profile-form")
-    .addEventListener("submit", async function (event) {
-      event.preventDefault();
-      const form = event.target;
-      const formData = new FormData(form);
-      const message = document.getElementById("message");
-      try {
-        const result = await Http("/profile", "POST", Object.fromEntries(formData));
-        if (result.success) {
-          message.className = "text-green-500 font-semibold text-sm";
-          message.textContent = result.msg;
-          document.getElementById("password").value = "";
-          document.getElementById("password_2").value = "";
-        } else {
-          message.className = "text-red-500 font-semibold text-sm";
-          message.textContent = result.msg || "{{ translate['error'] | default('An error occurred.') }}";
-        }
-      } catch (error) {
-        message.className = "text-red-500 font-semibold text-sm";
-        message.textContent = error.message || "{{ translate['connection_failed'] | default('Failed to connect to the server.') }}";
-      }
-    });
-
-  document
-    .getElementById("delete-account-form")
-    .addEventListener("submit", async function (event) {
-      event.preventDefault();
-      if (
-        !confirm(
-          '{{ translate["once_you_delete_your_account_there_is_no_going_back"] | default("Once you delete your account, there is no going back.") }}'
-        )
-      ) {
-        return;
-      }
-      const password = document.getElementById("delete-password").value;
-      const message = document.getElementById("delete-message");
-      if (!password) {
-        message.className = "text-red-500 font-semibold text-sm";
-        message.textContent =
-          '{{ translate["password"] | default("Password") }} {{ translate["is required"] | default("is required") }}';
-        return;
-      }
-      try {
-        const result = await Http("/delete-account", "POST", { password });
-        if (result.success) {
-          window.location.replace("/register");
-        } else {
-          message.className = "text-red-500 font-semibold text-sm";
-          message.textContent = result.msg || "{{ translate['error'] | default('Failed to delete account.') }}";
-        }
-      } catch (error) {
-        message.className = "text-red-500 font-semibold text-sm";
-        message.textContent = error.message || "{{ translate['connection_failed'] | default('Failed to connect to the server.') }}";
-      }
-    });
-
-  document.getElementById('show-delete-password').addEventListener('click', function (event) {
-    event.preventDefault();
-    const div = document.getElementById('delete-password-div');
-    if (div.style.display === 'none' || div.style.display === '') {
-      div.style.display = 'block';
-    } else {
-      div.style.display = 'none';
-    }
-  });
-</script>

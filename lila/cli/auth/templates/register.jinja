@@ -20,7 +20,9 @@
             </span>
         </div>
 
-        <form id="register-form" class="space-y-4">
+        <form id="register-form" class="space-y-4" action="/register" method="post" data-lila-form
+            data-toast="{{ translate['account_created'] | default('Account Created') }}" data-toast-error="{{ translate['error'] | default('Error') }}"
+            data-redirect="/dashboard">
             {{ csrf_input | safe }}
             <div>
                 <label for="name" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">{{ translate['full_name'] | default(translate['name'] | default('Full Name')) }}</label>
@@ -36,7 +38,8 @@
             </div>
             <div>
                 <label for="password_2" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">{{ translate['confirm_password'] | default('Confirm Password') }}</label>
-                <input type="password" id="password_2" name="password_2" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm" required placeholder="••••••••">
+                <input type="password" id="password_2" name="password_2" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm" required placeholder="••••••••"
+                    data-match="password" data-match-message="{{ translate['passwords not match'] | default('Passwords do not match') }}">
             </div>
 
             <button type="submit" class="btn btn-primary w-full py-2.5 text-sm shadow-md mt-2">
@@ -51,26 +54,3 @@
         </form>
     </div>
 </main>
-
-<script>
-    document.getElementById('register-form').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        try {
-            const result = await Http('/register', 'POST', Object.fromEntries(formData));
-            if (result.success) {
-                lila('toast', { title: '{{ translate["account_created"] | default("Account Created") }}', description: result.msg || '{{ translate["authenticated_success"] | default("Welcome! Redirecting...") }}', type: 'success' });
-                if (window.Lila && typeof window.Lila.navigate === 'function') {
-                    Lila.navigate('/dashboard');
-                } else {
-                    window.location.replace('/dashboard');
-                }
-            } else {
-                lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: result.msg || '{{ translate["registration_failed"] | default("Registration failed.") }}', type: 'error' });
-            }
-        } catch (error) {
-            lila('toast', { title: '{{ translate["error"] | default("Error") }}', description: error.message || '{{ translate["connection_failed"] | default("Connection failed") }}', type: 'error' });
-        }
-    });
-</script>

@@ -48,10 +48,11 @@ class SetupWizardTests(unittest.TestCase):
     def test_interactive_answers_and_planned_commands(self):
         with tempfile.TemporaryDirectory() as tmp:
             project, etc = self._project(tmp)
+            os.chmod(tmp, 0o700)                       # nginx cannot traverse
+            os.chmod(os.path.join(project, ".env"), 0o644)
             answers = iter([
                 "s",              # DEBUG -> False
                 "S",              # HOST -> 127.0.0.1
-                "si",             # new SECRET_KEY
                 "shop.example.com",
                 "",               # port: keep 8000
                 "",               # service name: default slug
@@ -60,6 +61,9 @@ class SetupWizardTests(unittest.TestCase):
                 "s",              # nginx
                 "s",              # https
                 "ops@example.com",
+                "s",              # chown project to 'deploy'
+                "s",              # chmod o+x parents + public
+                "s",              # .env -> 600
                 "s",              # proceed
             ])
             with mock.patch("lila.cli.deploy_setup.shutil.which", return_value="/usr/bin/x"):
@@ -78,12 +82,16 @@ class SetupWizardTests(unittest.TestCase):
             self.assertEqual(updates["DEBUG"], "False")
             self.assertEqual(updates["HOST"], "127.0.0.1")
             self.assertEqual(updates["APP_URL"], "https://shop.example.com")
-            self.assertEqual(len(updates["SECRET_KEY"]), 64)
+            self.assertNotIn("SECRET_KEY", updates)   # never rotated by the wizard
             cmds = "\n".join(result["commands"])
             self.assertIn("systemctl enable --now my-shop.service", cmds)
             self.assertIn("nginx -t", cmds)
             self.assertIn("certbot --nginx", cmds)
             self.assertIn("-m ops@example.com -d shop.example.com", cmds)
+            self.assertIn(f"chown -R deploy:deploy {project}", cmds)
+            self.assertIn(f"chmod o+x {tmp}", cmds)
+            self.assertIn("chmod -R o+rX", cmds)
+            self.assertIn("chmod 600", cmds)
             # dry-run never touches .env
             self.assertIn("DEBUG=True", open(os.path.join(project, ".env")).read())
             self.assertTrue(os.path.isfile(os.path.join(project, "deploy", "my-shop.service")))
