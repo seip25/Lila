@@ -44,3 +44,6 @@ dist/
 *.sublime-workspace
 .DS_Store
 Thumbs.db
+
+# Lila framework state (task queue, migration history, scheduler)
+app/data/

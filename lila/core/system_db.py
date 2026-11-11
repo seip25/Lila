@@ -24,7 +24,8 @@ _initialized: Dict[str, bool] = {}
 
 
 def system_db_path(name: str = "lila_system") -> str:
-    folder = str(ENV_CONFIG.get("LILA_DATA_DIR", "") or "") or get_data_path("app", "data")
+    # The live environment wins (tests/processes may change it after .env loaded).
+    folder = os.environ.get("LILA_DATA_DIR") or str(ENV_CONFIG.get("LILA_DATA_DIR", "") or "") or get_data_path("app", "data")
     return os.path.join(folder, f"{name}.db")
 
 
