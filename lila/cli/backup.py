@@ -21,8 +21,12 @@ def run_sqlite_backup(
     source_db_path: Optional[str] = None,
     output_path: Optional[str] = None,
     max_backups: int = 7,
+    compress: bool = False,
 ) -> dict:
-    """Executes an online zero-downtime backup of the active SQLite database."""
+    """Executes an online zero-downtime backup of the active SQLite database.
+
+    ``compress=True`` stores ``.sqlite.gz`` (SQLite files usually shrink 3-10x).
+    """
     ConfigLoader.load()
 
     db_type = str(ENV_CONFIG.get("DB_TYPE", "sqlite") or "sqlite").lower()
@@ -90,6 +94,15 @@ def run_sqlite_backup(
     finally:
         dst_conn.close()
         src_conn.close()
+    if compress:
+        import gzip
+        import shutil
+
+        gz_path = f"{dst_path}.gz"
+        with open(dst_path, "rb") as src_fh, gzip.open(gz_path, "wb", compresslevel=6) as dst_fh:
+            shutil.copyfileobj(src_fh, dst_fh, length=1024 * 1024)
+        os.remove(dst_path)
+        dst_path = gz_path
     duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
     file_size_bytes = os.path.getsize(dst_path)
     file_size_mb = round(file_size_bytes / (1024 * 1024), 2)
@@ -100,7 +113,7 @@ def run_sqlite_backup(
         backup_dir = os.path.dirname(dst_path)
         existing = []
         for fname in os.listdir(backup_dir):
-            if fname.startswith(f"backup_{base_name}_") and fname.endswith(".sqlite"):
+            if fname.startswith(f"backup_{base_name}_") and fname.endswith((".sqlite", ".sqlite.gz")):
                 full_cand = os.path.join(backup_dir, fname)
                 try:
                     existing.append((os.path.getmtime(full_cand), full_cand))
@@ -130,12 +143,13 @@ def backup(
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Target backup file or directory"),
     source: Optional[str] = typer.Option(None, "--source", "-s", help="Source SQLite file (default: from .env)"),
     max_backups: int = typer.Option(7, "--max-backups", "-m", help="Max backups to retain in target folder (default: 7)"),
+    compress: bool = typer.Option(False, "--compress", "-z", help="Store the backup gzip-compressed (.sqlite.gz)."),
 ):
     """
     Takes an online, zero-downtime hot backup of SQLite using sqlite3.Connection.backup().
     """
     try:
-        info = run_sqlite_backup(source_db_path=source, output_path=output, max_backups=max_backups)
+        info = run_sqlite_backup(source_db_path=source, output_path=output, max_backups=max_backups, compress=compress)
         typer.secho("✅ Hot SQLite Backup Complete!", fg=typer.colors.GREEN, bold=True)
         typer.echo(f"  • Source:      {info['source']}")
         typer.echo(f"  • Destination: {info['destination']}")

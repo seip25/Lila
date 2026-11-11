@@ -42,6 +42,19 @@ from lila.core.debug import PureASGIDebugMiddleware, DebugStore
 BOOT_ID = uuid.uuid4().hex
 
 
+# Optional services (scheduler, SQLite task queue...) register a startup and a
+# shutdown hook here when they are imported; the App runs them in its lifespan.
+_STARTUP_HOOKS: list = []
+_SHUTDOWN_HOOKS: list = []
+
+
+def register_lifecycle(startup=None, shutdown=None) -> None:
+    if startup is not None and startup not in _STARTUP_HOOKS:
+        _STARTUP_HOOKS.append(startup)
+    if shutdown is not None and shutdown not in _SHUTDOWN_HOOKS:
+        _SHUTDOWN_HOOKS.append(shutdown)
+
+
 def _package_public_dir() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public"))
 
@@ -231,7 +244,8 @@ class App(Starlette):
             middleware_stack.append(Middleware(CORSMiddleware, **cors_conf))
 
         if gzip:
-            gzip_conf = gzip if isinstance(gzip, dict) else {"minimum_size": 500}
+            # Level 5: ~2-3x less CPU than Starlette's default (9) for ~2-4% larger bodies.
+            gzip_conf = gzip if isinstance(gzip, dict) else {"minimum_size": 500, "compresslevel": 5}
             middleware_stack.append(Middleware(PureASGIGZipMiddleware, **gzip_conf))
 
         if etag:
@@ -269,6 +283,7 @@ class App(Starlette):
 
         @asynccontextmanager
         async def _default_lifespan(app_instance):
+            await self._internal_startup()
             for fn in startup_list:
                 res = fn()
                 if asyncio.iscoroutine(res):
@@ -286,6 +301,7 @@ class App(Starlette):
 
             @asynccontextmanager
             async def _combined_lifespan(app_instance):
+                await self._internal_startup()
                 async with user_lifespan(app_instance) as state:
                     try:
                         yield state
@@ -618,8 +634,39 @@ class App(Starlette):
             )
         return HTMLResponse("<h1>405 - Method Not Allowed</h1>", status_code=405, headers=allowed)
 
+    async def _internal_startup(self):
+        """Framework services started with the app (all cheap / optional)."""
+        # Log retention: LOG_RETENTION_DAYS (default 30, 0 = keep forever).
+        try:
+            days = int(ENV_CONFIG.get("LOG_RETENTION_DAYS", 30) or 0)
+        except (TypeError, ValueError):
+            days = 30
+        if days > 0:
+            try:
+                from lila.core.logger import delete_old_logs
+
+                await asyncio.to_thread(delete_old_logs, days)
+            except Exception:
+                pass
+        for hook in list(_STARTUP_HOOKS):
+            try:
+                res = hook(self)
+                if asyncio.iscoroutine(res):
+                    await res
+            except Exception as exc:
+                from lila.core.logger import Logger
+
+                Logger.error(f"[Lila] startup hook {getattr(hook, '__name__', hook)} failed: {exc}", exception=exc)
+
     async def _cleanup_resources(self):
-        """Closes database and cache handles on shutdown."""
+        """Stops optional services, then closes database and cache handles."""
+        for hook in list(_SHUTDOWN_HOOKS):
+            try:
+                res = hook(self)
+                if asyncio.iscoroutine(res):
+                    await res
+            except Exception:
+                pass
         try:
             from lila.core.database import db
 

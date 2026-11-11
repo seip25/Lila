@@ -15,6 +15,7 @@ from lila.cli.seo import app as seo_app
 from lila.cli.worker import app as worker_app
 from lila.cli.deploy import app as deploy_app
 from lila.cli.css import app as css_app
+from lila.cli.bench import bench as bench_command
 from lila.cli.backup import app as backup_app
 
 app = typer.Typer(
@@ -46,6 +47,8 @@ def run(
     workers: int = typer.Option(1, "--workers", "-w", help="Number of worker processes"),
     proxy_headers: bool = typer.Option(True, "--proxy-headers/--no-proxy-headers", help="Enable X-Forwarded-* proxy headers"),
     forwarded_allow_ips: str = typer.Option("127.0.0.1", "--forwarded-allow-ips", help="Allowed IPs for proxy headers (comma-separated or '*')"),
+    server: str = typer.Option("", "--server", help="uvicorn (default) or granian (pip install granian). Also LILA_SERVER in .env."),
+    max_rss: int = typer.Option(0, "--max-rss", help="granian only: restart a worker above this RSS in MB (0 = off)."),
 ):
     """Run the production server (no reload)."""
     from lila.core.config import ConfigLoader, ENV_CONFIG
@@ -62,6 +65,23 @@ def run(
             "Use CACHE_DRIVER=redis for shared state.",
             fg=typer.colors.YELLOW,
         )
+    server = (server or str(ENV_CONFIG.get("LILA_SERVER", "uvicorn") or "uvicorn")).lower()
+    if server == "granian":
+        try:
+            from granian import Granian
+            from granian.constants import Interfaces
+        except ImportError:
+            typer.secho("❌ granian is not installed: pip install granian", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+        os.environ["LILA_PROXY_HEADERS"] = "1" if proxy_headers else "0"
+        os.environ["LILA_FORWARDED_ALLOW_IPS"] = forwarded_allow_ips
+        typer.secho(f"🚀 Lila on http://{bind_host}:{bind_port} (granian, {workers} worker(s))", fg=typer.colors.CYAN)
+        options = dict(address=bind_host, port=bind_port, interface=Interfaces.ASGI, workers=workers)
+        if max_rss:
+            options["workers_max_rss"] = max_rss
+        Granian("lila.core.granian_entry:app", **options).serve()
+        return
+
     import uvicorn
 
     typer.secho(f"🚀 Lila v2.0.0 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
@@ -186,6 +206,7 @@ app.add_typer(secret_key_app, name="secret-key", help="Generate and rotate SECRE
 app.add_typer(seo_app, name="seo", help="Generate sitemap.xml and robots.txt.")
 app.add_typer(worker_app, name="worker", help="Run background task worker process.")
 app.add_typer(deploy_app, name="deploy", help="Generate production deployment configurations (systemd, Nginx, Windows).")
+app.command("bench", help="Benchmark a running server (req/s, latency, RSS).")(bench_command)
 app.add_typer(css_app, name="css", help="Compile Tailwind CSS for production (no Node.js).")
 app.add_typer(backup_app, name="backup", help="Hot atomic SQLite database backup using sqlite3.backup().")
 

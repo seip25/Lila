@@ -55,6 +55,28 @@ class BackupTests(unittest.TestCase):
             remaining_files = [f for f in os.listdir(backup_dir) if f.endswith(".sqlite")]
             self.assertLessEqual(len(remaining_files), 2, "Should keep at most max_backups")
 
+class CompressedBackupTests(unittest.TestCase):
+    def test_compressed_backup_is_restorable(self):
+        import gzip
+        import shutil
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            src_db = os.path.join(tmp_dir, "z.sqlite")
+            conn = sqlite3.connect(src_db)
+            conn.execute("CREATE TABLE t (id INTEGER PRIMARY KEY, v TEXT)")
+            conn.executemany("INSERT INTO t (v) VALUES (?)", [("x" * 200,)] * 200)
+            conn.commit()
+            conn.close()
+            info = run_sqlite_backup(source_db_path=src_db, output_path=os.path.join(tmp_dir, "b"), compress=True)
+            self.assertTrue(info["destination"].endswith(".sqlite.gz"))
+            self.assertLess(info["size_bytes"], os.path.getsize(src_db))
+            restored = os.path.join(tmp_dir, "restored.sqlite")
+            with gzip.open(info["destination"], "rb") as fh, open(restored, "wb") as out:
+                shutil.copyfileobj(fh, out)
+            check = sqlite3.connect(restored)
+            self.assertEqual(check.execute("SELECT COUNT(*) FROM t").fetchone()[0], 200)
+            check.close()
+
 
 if __name__ == "__main__":
     unittest.main()
