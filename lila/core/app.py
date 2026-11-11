@@ -593,7 +593,7 @@ class App(Starlette):
         # Prefer the project's resources/html/404.jinja; fall back to the bundled one.
         project_404 = get_base_path("resources", "html", "404.jinja")
         template_name = "404" if os.path.isfile(project_404) else "lila/404"
-        return render(request, template_name, status_code=404)
+        return render(request, template_name, status_code=404, title="not_found", robots="noindex")
 
     async def _server_error_handler(self, request, exc):
         from lila.core.logger import Logger

@@ -34,7 +34,7 @@ OAuth.mount_routes(router, user_model=User, redirect_to="/dashboard", login_url=
 @router.get("/login")
 @session_active
 async def login_page(request: Request):
-    return render(request=request, template="auth/login", csrf=True)
+    return render(request=request, template="auth/login", csrf=True, title="sign_in")
 
 
 @router.post("/login", model=LoginModel)

@@ -39,6 +39,7 @@ function lilaEscapeAttr(value) {
 
   const mountedRoots = new Map();
   const prefetchCache = new Map();
+  const prefetchInFlight = new Set();
   const PREFETCH_TTL_MS = 30000;
   const PREFETCH_MAX_ENTRIES = 50;
 
@@ -382,6 +383,30 @@ function lilaEscapeAttr(value) {
       document.head.appendChild(document.importNode(el, true));
     });
 
+    // Page-specific head assets rendered by render(styles=, scripts=, jsonld=).
+    // Identical tags are kept (no re-download / re-execution), others swapped.
+    const keep = new Set();
+    const nextHeadTags = Array.from(nextDoc.head.querySelectorAll("[data-lila-head]"));
+    const nextKeys = new Set(nextHeadTags.map((el) => el.outerHTML));
+    document.head.querySelectorAll("[data-lila-head]").forEach((el) => {
+      if (nextKeys.has(el.outerHTML)) keep.add(el.outerHTML);
+      else el.remove();
+    });
+    nextHeadTags.forEach((el) => {
+      if (keep.has(el.outerHTML)) return;
+      if (el.tagName === "SCRIPT") {
+        const script = document.createElement("script");
+        for (const attr of Array.from(el.attributes)) script.setAttribute(attr.name, attr.value);
+        script.textContent = el.textContent;
+        document.head.appendChild(script);
+      } else {
+        document.head.appendChild(document.importNode(el, true));
+      }
+    });
+
+    const nextLang = nextDoc.documentElement.getAttribute("lang");
+    if (nextLang) document.documentElement.setAttribute("lang", nextLang);
+
     const nextCanonical = nextDoc.head.querySelector("link[rel='canonical']");
     const currentCanonical = document.head.querySelector("link[rel='canonical']");
     if (nextCanonical) {
@@ -480,6 +505,13 @@ function lilaEscapeAttr(value) {
         e.preventDefault();
         return;
       }
+      // Same page + #hash: let the browser scroll to the anchor.
+      try {
+        const next = new URL(url, window.location.href);
+        if (next.hash && next.pathname === window.location.pathname && next.search === window.location.search) {
+          return;
+        }
+      } catch {}
 
       e.preventDefault();
       Lila.navigate(url);
@@ -491,13 +523,16 @@ function lilaEscapeAttr(value) {
         const anchor = e.target.closest("a");
         if (!anchor || !canPrefetch(anchor)) return;
         const url = anchor.href;
-        if (!getPrefetchedHtml(url)) {
+        if (!getPrefetchedHtml(url) && !prefetchInFlight.has(url)) {
+          prefetchInFlight.add(url);
           fetch(url, { headers: { "X-Lila-Prefetch": "1" }, credentials: "include" })
-            .then((r) => (r.ok ? r.text() : null))
+            // Never cache redirects (e.g. auth -> /login) under the original URL.
+            .then((r) => (r.ok && !r.redirected ? r.text() : null))
             .then((html) => {
               if (html) setPrefetchedHtml(url, html);
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => prefetchInFlight.delete(url));
         }
       },
       { passive: true }

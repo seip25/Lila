@@ -25,9 +25,14 @@ async def change_password_page(request: Request):
         is_valid = None
 
     if not is_valid:
-        return render(request=request, template="auth/invalid-token", status_code=400)
+        return render(request=request, template="auth/invalid-token", status_code=400, title="invalid or expired token", robots="noindex")
     return render(
-        request=request, template="auth/change-password", context={"token": token}, csrf=True
+        request=request,
+        template="auth/change-password",
+        context={"token": token},
+        csrf=True,
+        title="reset_password",
+        robots="noindex",
     )
 
 

@@ -26,7 +26,7 @@ router = Router()
 @router.get("/register")
 @session_active
 async def register_page(request: Request):
-    return render(request=request, template="auth/register", csrf=True)
+    return render(request=request, template="auth/register", csrf=True, title="register")
 
 
 @router.post("/register", model=RegisterModel)

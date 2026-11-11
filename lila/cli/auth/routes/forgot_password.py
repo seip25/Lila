@@ -18,7 +18,7 @@ router = Router()
 @router.get("/forgot-password")
 @session_active
 async def forgot_password_page(request: Request):
-    return render(request=request, template="auth/forgot-password", csrf=True)
+    return render(request=request, template="auth/forgot-password", csrf=True, title="recover_password")
 
 
 @router.post("/forgot-password")

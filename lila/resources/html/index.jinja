@@ -1,166 +1,142 @@
-<!DOCTYPE html>
-<html lang="{{ lang | default('en') }}" data-theme="light">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <meta name="description" content="{{ seo.description | default(description) | default('Lila Framework v2.0.0 - Ultra-Lightweight Full-Stack Python Framework with SPA View Transitions, AI Helper, SQLite WAL, and Desktop mode.') }}" />
-  <title>{{ seo.title | default(title) | default('Lila Framework v2.0.0 - Full-Stack Python') }}</title>
-  {% if seo.canonical %}<link rel="canonical" href="{{ seo.canonical }}" />{% endif %}
-  <link rel="icon" type="image/x-icon" href="{{ public('favicon.ico') }}" />
-  {% include "lila/tailwind.jinja" %}
-</head>
-
-<body class="min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-100 transition-colors duration-300 font-sans flex flex-col">
-
-  <div id="lila-outlet" data-lila-outlet class="flex-1 flex flex-col">
-    <!-- Navigation Header -->
-    <header class="w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-40 transition-colors">
-      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 group">
-          <img src="{{ public('img/lila-128.webp') }}" alt="Lila" width="36" height="36" class="rounded-xl shadow-sm transform group-hover:scale-105 transition-transform" />
-          <div class="flex items-center gap-2">
-            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lila</span>
-            <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">v2.0.0</span>
-          </div>
-        </a>
-
-        <div class="flex items-center gap-3">
-          {% if has_docs %}
-          <a href="/docs" data-no-router class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
-            Docs
-          </a>
-          {% endif %}
-          {% if has_admin %}
-          <a href="/admin" data-no-router class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
-            Admin
-          </a>
-          {% endif %}
-          {% if has_auth %}
-          <a href="/login" class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
-            {{ translate['login'] | default('Login') }}
-          </a>
-          {% endif %}
-          {% if debug_html %}
-          <a href="/debug/" data-no-router class="text-sm font-semibold text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/30">
-            Debug
-          </a>
-          {% endif %}
-          <button data-toggle="theme" aria-label="Toggle theme" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-            🌓
-          </button>
-        </div>
+<!-- Navigation Header -->
+<header class="w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-40 transition-colors">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 group">
+      <img src="{{ public('img/lila-128.webp') }}" alt="Lila" width="36" height="36" class="rounded-xl shadow-sm transform group-hover:scale-105 transition-transform" />
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lila</span>
+        <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">v2.0.0</span>
       </div>
-    </header>
+    </a>
 
-    <!-- Hero Section -->
-    <main class="max-w-6xl mx-auto px-4 py-16 flex-1 flex flex-col items-center justify-center text-center">
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-6">
-        <span class="animate-pulse">✨</span> Rebuilt from zero &bull; Ultra-Lightweight &bull; Pure ASGI
-      </div>
+    <div class="flex items-center gap-3">
+      {% if has_docs %}
+      <a href="/docs" data-no-router class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
+        Docs
+      </a>
+      {% endif %}
+      {% if has_admin %}
+      <a href="/admin" data-no-router class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
+        Admin
+      </a>
+      {% endif %}
+      {% if has_auth %}
+      <a href="/login" class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
+        {{ translate['login'] | default('Login') }}
+      </a>
+      {% endif %}
+      {% if debug_html %}
+      <a href="/debug/" data-no-router class="text-sm font-semibold text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+        Debug
+      </a>
+      {% endif %}
+      <button data-toggle="theme" aria-label="Toggle theme" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+        🌓
+      </button>
+    </div>
+  </div>
+</header>
 
-      <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 dark:text-white max-w-4xl leading-tight mb-6">
-        Full-Stack Python <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">SPA Experience</span> with Zero Infrastructure
-      </h1>
-
-      <p class="max-w-2xl text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-        Ultra-fast (~19MB import, ~42MB app), SQLite WAL Mode by default, View Transitions routing with <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs text-blue-600">lila-client.js</code>, unified AI helper with PII masking, OAuth 2.0, and 1-command desktop builds.
-      </p>
-
-      <!-- CTA Buttons -->
-      <div class="flex flex-wrap gap-4 justify-center mb-16">
-        {% if has_docs %}
-        <a href="/docs" data-no-router class="btn btn-primary px-6 py-3 text-sm shadow-md">
-          <span>📖</span> Explore Documentation
-        </a>
-        {% endif %}
-        <a href="/api/example" data-no-router class="btn btn-secondary px-6 py-3 text-sm">
-          <span>⚡</span> View API Example
-        </a>
-        <button onclick="lila('toast', { title: 'Lila v2.0.0 Active!', description: 'SPA View Transitions & reactive UI runtime ready.', type: 'success' })" class="btn bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-5 py-3 text-sm hover:bg-slate-200 dark:hover:bg-slate-700">
-          <span>🔔</span> Test Toast
-        </button>
-      </div>
-
-      <!-- Feature Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
-        <!-- Feature 1 -->
-        <div class="card p-6 flex flex-col gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/40 flex items-center justify-center text-xl">
-            ⚡
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">SPA View Transitions</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Zero build-step client runtime (<code class="font-mono">lila-client.js</code>) with automatic prefetch, reactive store, and Tailwind UI components.
-          </p>
-        </div>
-
-        <!-- Feature 2 -->
-        <div class="card p-6 flex flex-col gap-3">
-          <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/40 flex items-center justify-center text-xl">
-            🤖
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">AI-First Helper</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Integrated client for OpenAI, DeepSeek, and Gemini with prompt caching, rate limits, and reversible PII data masking (<code class="font-mono">[email_01]</code>).
-          </p>
-        </div>
-
-        <!-- Feature 3 -->
-        <div class="card p-6 flex flex-col gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 flex items-center justify-center text-xl">
-            🖥️
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Web to Desktop in 1 Click</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Run and bundle as a native desktop application with <code class="font-mono text-xs">lila desktop dev</code> and <code class="font-mono text-xs">lila desktop build</code>.
-          </p>
-        </div>
-
-        <!-- Feature 4 -->
-        <div class="card p-6 flex flex-col gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 flex items-center justify-center text-xl">
-            💾
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Zero Infrastructure</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Async SQLite WAL mode + in-memory LRU cache by default. Scale seamlessly to Redis, PostgreSQL, or MySQL via config options.
-          </p>
-        </div>
-
-        <!-- Feature 5 -->
-        <div class="card p-6 flex flex-col gap-3">
-          <div class="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-900/40 flex items-center justify-center text-xl">
-            🔐
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">OAuth 2.0</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Google, GitHub, and Discord OAuth with official inline SVG buttons, 1-line router mounting, and Argon2 password hashing.
-          </p>
-        </div>
-
-        <!-- Feature 6 -->
-        <div class="card p-6 flex flex-col gap-3">
-          <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/40 flex items-center justify-center text-xl">
-            🛠️
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Unified Admin 2.0</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Automatic CRUD with ResponsiveDataTable, CSV export, telemetry metrics, and cache clearing in a persistent SPA sidebar layout.
-          </p>
-        </div>
-      </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="w-full border-t border-slate-200/80 dark:border-slate-800/80 py-6 text-center text-xs text-slate-400">
-      <p>Lila Framework v2.0.0 &bull; Licensed under MIT &bull; Built with Starlette, SQLAlchemy 2.0 & Pydantic v2</p>
-    </footer>
+<!-- Hero Section -->
+<main class="max-w-6xl mx-auto px-4 py-16 flex-1 flex flex-col items-center justify-center text-center">
+  <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-6">
+    <span class="animate-pulse">✨</span> Rebuilt from zero &bull; Ultra-Lightweight &bull; Pure ASGI
   </div>
 
-  <script src="{{ public('js/lila-client.js') }}"></script>
-</body>
+  <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 dark:text-white max-w-4xl leading-tight mb-6">
+    Full-Stack Python <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">SPA Experience</span> with Zero Infrastructure
+  </h1>
 
-</html>
+  <p class="max-w-2xl text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+    Ultra-fast (~19MB import, ~42MB app), SQLite WAL Mode by default, View Transitions routing with <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs text-blue-600">lila-client.js</code>, unified AI helper with PII masking, OAuth 2.0, and 1-command desktop builds.
+  </p>
+
+  <!-- CTA Buttons -->
+  <div class="flex flex-wrap gap-4 justify-center mb-16">
+    {% if has_docs %}
+    <a href="/docs" data-no-router class="btn btn-primary px-6 py-3 text-sm shadow-md">
+      <span>📖</span> Explore Documentation
+    </a>
+    {% endif %}
+    <a href="/api/example" data-no-router class="btn btn-secondary px-6 py-3 text-sm">
+      <span>⚡</span> View API Example
+    </a>
+    <button onclick="lila('toast', { title: 'Lila v2.0.0 Active!', description: 'SPA View Transitions & reactive UI runtime ready.', type: 'success' })" class="btn bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-5 py-3 text-sm hover:bg-slate-200 dark:hover:bg-slate-700">
+      <span>🔔</span> Test Toast
+    </button>
+  </div>
+
+  <!-- Feature Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
+    <!-- Feature 1 -->
+    <div class="card p-6 flex flex-col gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/40 flex items-center justify-center text-xl">
+        ⚡
+      </div>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">SPA View Transitions</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+        Zero build-step client runtime (<code class="font-mono">lila-client.js</code>) with automatic prefetch, reactive store, and Tailwind UI components.
+      </p>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="card p-6 flex flex-col gap-3">
+      <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/40 flex items-center justify-center text-xl">
+        🤖
+      </div>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">AI-First Helper</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+        Integrated client for OpenAI, DeepSeek, and Gemini with prompt caching, rate limits, and reversible PII data masking (<code class="font-mono">[email_01]</code>).
+      </p>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="card p-6 flex flex-col gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 flex items-center justify-center text-xl">
+        🖥️
+      </div>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Web to Desktop in 1 Click</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+        Run and bundle as a native desktop application with <code class="font-mono text-xs">lila desktop dev</code> and <code class="font-mono text-xs">lila desktop build</code>.
+      </p>
+    </div>
+
+    <!-- Feature 4 -->
+    <div class="card p-6 flex flex-col gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 flex items-center justify-center text-xl">
+        💾
+      </div>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Zero Infrastructure</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+        Async SQLite WAL mode + in-memory LRU cache by default. Scale seamlessly to Redis, PostgreSQL, or MySQL via config options.
+      </p>
+    </div>
+
+    <!-- Feature 5 -->
+    <div class="card p-6 flex flex-col gap-3">
+      <div class="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-900/40 flex items-center justify-center text-xl">
+        🔐
+      </div>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">OAuth 2.0</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+        Google, GitHub, and Discord OAuth with official inline SVG buttons, 1-line router mounting, and Argon2 password hashing.
+      </p>
+    </div>
+
+    <!-- Feature 6 -->
+    <div class="card p-6 flex flex-col gap-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/40 flex items-center justify-center text-xl">
+        🛠️
+      </div>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Unified Admin 2.0</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+        Automatic CRUD with ResponsiveDataTable, CSV export, telemetry metrics, and cache clearing in a persistent SPA sidebar layout.
+      </p>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="w-full border-t border-slate-200/80 dark:border-slate-800/80 py-6 text-center text-xs text-slate-400">
+  <p>Lila Framework v2.0.0 &bull; Licensed under MIT &bull; Built with Starlette, SQLAlchemy 2.0 & Pydantic v2</p>
+</footer>
