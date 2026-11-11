@@ -1,7 +1,7 @@
 {#- Shared <head> for every Lila layout. Values come from render(...) kwargs,
     @seo / SEO_CONFIG and .env defaults (see templates.render). Page-specific
     tags carry data-lila-head so the SPA router swaps them on navigation. -#}
-{%- set p = page or {} -%}
+{%- set p = page_meta or {} -%}
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="light dark" />

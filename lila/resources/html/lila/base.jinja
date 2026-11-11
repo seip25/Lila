@@ -3,13 +3,13 @@
 
 <head>
   {% set lila_head_title = false %}
-  <title>{% block title %}{{ page.full_title if page and page.full_title else (title | default('Lila')) }}{% endblock %}</title>
+  <title>{% block title %}{{ page_meta.full_title if page_meta and page_meta.full_title else (title | default('Lila')) }}{% endblock %}</title>
   {% include "lila/head.jinja" %}
   {% block head %}{% endblock %}
 </head>
 
 <body data-layout="{{ layout_id | default('default') }}"
-  class="{{ page.body_class if page and page.body_class else 'min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col' }}">
+  class="{{ page_meta.body_class if page_meta and page_meta.body_class else 'min-h-screen bg-bg-body dark:bg-bg-body-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans flex flex-col' }}">
 
   <div id="lila-outlet" data-lila-outlet class="flex-1 flex flex-col">
     {% block content %}{% endblock %}

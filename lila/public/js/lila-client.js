@@ -1745,6 +1745,10 @@ function lilaResult(res, error) {
 function lilaClearFieldErrors(form) {
   if (!form) return;
   form.querySelectorAll("[data-lila-field-error]").forEach((el) => el.remove());
+  form.querySelectorAll("[data-error-for]").forEach((el) => {
+    el.textContent = "";
+    el.hidden = true;
+  });
   form.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute("aria-invalid"));
 }
 
@@ -2007,6 +2011,8 @@ if (typeof window !== "undefined" && !window.__LILA_ACTIONS_BOUND__) {
     field.removeAttribute("aria-invalid");
     const next = field.nextElementSibling;
     if (next && next.hasAttribute("data-lila-field-error")) next.remove();
+    const holder = field.form && field.name ? field.form.querySelector(`[data-error-for="${CSS.escape(field.name)}"]`) : null;
+    if (holder) { holder.textContent = ""; holder.hidden = true; }
   });
 }
 

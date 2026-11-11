@@ -488,6 +488,26 @@ def carousel(
     )
 
 
+from lila.core.ui import UI, render_form, render_pagination  # noqa: E402
+
+
+@pass_context
+def _form_ctx(ctx, model, *args, **kwargs):
+    kwargs.setdefault("csrf_input", ctx.get("csrf_input") or "")
+    kwargs.setdefault("trans", ctx.get("translate"))
+    return render_form(model, *args, **kwargs)
+
+
+@pass_context
+def _pagination_ctx(ctx, page, **kwargs):
+    kwargs.setdefault("request", ctx.get("request"))
+    kwargs.setdefault("trans", ctx.get("translate"))
+    return render_pagination(page, **kwargs)
+
+
+jinja_env.globals["form"] = _form_ctx
+jinja_env.globals["pagination"] = _pagination_ctx
+jinja_env.globals["ui"] = UI()  # replaced per render by a translated instance
 jinja_env.globals["datatable"] = datatable
 jinja_env.globals["carousel"] = carousel
 jinja_env.globals["oauth_buttons"] = _oauth_buttons_ctx
@@ -588,6 +608,7 @@ def get_base_context(
         "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
         "lang": current_lang,
         "translate": trans_dict,
+        "ui": UI(trans_dict),
         "t": lambda key, default=None: Translate.t(key, lang=current_lang, default=default),
         "app_url": app_url,
         "debug": debug_val,
@@ -598,7 +619,7 @@ def get_base_context(
         "layout": DEFAULT_LAYOUT,
         "layout_id": "default",
         "csrf_token": "",
-        "page": {},
+        "page_meta": {},
     }
 
 
@@ -818,7 +839,8 @@ def render(
             "body_class": body_class,
         },
     )
-    ctx["page"] = page
+    # ``page_meta`` (not ``page``): ``page`` is left free for pagination.
+    ctx["page_meta"] = page
     # Backwards-compatible variables used by v2.0.0 templates.
     if page["title"]:
         ctx["title"] = page["title"]

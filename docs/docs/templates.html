@@ -260,7 +260,7 @@ async def dashboard(request: Request):
   {% include &quot;lila/head.jinja&quot; %}   {# title, meta, OG, JSON-LD, icon, Tailwind, CSRF meta #}
   {% block head %}{% endblock %}
 &lt;/head&gt;
-&lt;body data-layout=&quot;app&quot; class=&quot;{{ page.body_class or &#x27;min-h-screen bg-bg-body dark:bg-bg-body-dark&#x27; }}&quot;&gt;
+&lt;body data-layout=&quot;app&quot; class=&quot;{{ page_meta.body_class or &#x27;min-h-screen bg-bg-body dark:bg-bg-body-dark&#x27; }}&quot;&gt;
   &lt;nav data-persist=&quot;true&quot; id=&quot;main-nav&quot;&gt;...&lt;/nav&gt;
   &lt;div data-lila-outlet&gt;{% block content %}{% endblock %}&lt;/div&gt;
   &lt;script src=&quot;{{ public(&#x27;js/lila-client.js&#x27;) }}&quot;&gt;&lt;/script&gt;
@@ -449,7 +449,7 @@ def get_base_context(request, lang_default=None, files_translate=None):
         "csrf_token": "",
     }
 
-# render() then adds: csrf_token, csrf_input, "seo" and "page" (the resolved
+# render() then adds: csrf_token, csrf_input, "seo" and "page_meta" (the resolved
 # title/full_title/description/image/jsonld/styles/scripts used by lila/head.jinja).
       </code></pre>
         </div>
