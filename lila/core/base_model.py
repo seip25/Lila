@@ -170,6 +170,23 @@ class BaseModel(Base):
             raise ValueError(f"Unknown column(s) for {cls.__name__}: {', '.join(unknown)}")
         return cols
 
+    @classmethod
+    def _update_stmt(cls, id_val: Any, payload: dict):
+        """UPDATE ... WHERE pk = id, skipping soft-deleted rows.
+
+        Soft-deleted rows can still be restored explicitly by including the
+        active field in the payload (e.g. ``update_async(id, active=1)``).
+        """
+        pk_col = getattr(cls, cls._primary_key)
+        stmt = update(cls).where(pk_col == id_val)
+        if (
+            cls._delete_logic
+            and cls._column(cls._active_field) is not None
+            and cls._active_field not in payload
+        ):
+            stmt = stmt.where(getattr(cls, cls._active_field) == 1)
+        return stmt.values(**payload)
+
     # ──────────────────────────────────────────────────────────────────────────
     # Async CRUD
     # ──────────────────────────────────────────────────────────────────────────
@@ -267,8 +284,7 @@ class BaseModel(Base):
             return False
 
         async with conn.transaction() as session:
-            pk_col = getattr(cls, cls._primary_key)
-            stmt = update(cls).where(pk_col == id_val).values(**payload)
+            stmt = cls._update_stmt(id_val, payload)
             result = await session.execute(stmt)
             updated = result.rowcount > 0
 
@@ -370,8 +386,7 @@ class BaseModel(Base):
         if not payload:
             return False
         with conn.transaction_sync() as session:
-            pk_col = getattr(cls, cls._primary_key)
-            stmt = update(cls).where(pk_col == id_val).values(**payload)
+            stmt = cls._update_stmt(id_val, payload)
             res = session.execute(stmt)
             ok = res.rowcount > 0
         cls.invalidate_cache()

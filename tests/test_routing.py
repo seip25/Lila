@@ -50,6 +50,18 @@ async def form_csrf(request: Request):
     return {"ok": True, "keys": list(form.keys())}
 
 
+from pydantic import BaseModel as PydanticModel
+
+
+class Payload(PydanticModel):
+    name: str
+
+
+@router.post("/csrf-model", csrf=True, model=Payload)
+async def csrf_model(request: Request, data: Payload):
+    return {"name": data.name}
+
+
 app = App(routes=[router], debug=False, openapi=True, security=True, rate_limit=None)
 client = TestClient(app, raise_server_exceptions=False)
 
@@ -106,6 +118,18 @@ class RoutingTests(unittest.TestCase):
             headers={"content-type": "application/x-www-form-urlencoded"},
         )
         self.assertEqual(response.status_code, 200, response.text)
+
+    def test_csrf_checked_before_validation(self):
+        response = client.post("/api/csrf-model", json={})
+        self.assertEqual(response.status_code, 403)
+        token = "tok"
+        ok = client.post(
+            "/api/csrf-model",
+            json={"name": "x", "_csrf": token},
+            cookies={"_csrf": CSRF.sign(token)},
+        )
+        self.assertEqual(ok.status_code, 200, ok.text)
+        self.assertEqual(ok.json(), {"name": "x"})
 
     def test_404_json_envelope(self):
         response = client.get("/api/nope", headers={"accept": "application/json"})

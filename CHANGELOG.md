@@ -20,6 +20,17 @@ All notable changes to Lila Framework. The format follows
   returned every row).
 - Cached model reads are returned as copies, so mutating a result no longer
   pollutes the shared in-memory cache.
+- `Session.get` honours the `max_age` used in `Session.set` (the lifetime is
+  stored inside the signed cookie); a 30-day session no longer expires after
+  one day. Cookies from 2.0.0 remain readable.
+- Memory LRU evicts expired and non-session entries before sessions, and
+  `incr` (rate-limit counters) is bounded by `CACHE_MAX_ITEMS`.
+- File cache prefix deletes (`model:<table>:*`) only remove that table's
+  entries instead of wiping the whole file cache on every write.
+- Route `csrf=True` is verified before body validation, so requests without a
+  token get 403 instead of validation details.
+- `update_async`/`update` skip soft-deleted rows unless the payload restores
+  the active field explicitly.
 
 ## [2.0.0] — 2026-10-31
 

@@ -51,6 +51,50 @@ def _serialize_payload(value: Any) -> str:
     return orjson_dumps(cleaned).decode("utf-8")
 
 
+_LEGACY_MAX_AGE = 86400
+
+
+def _envelope(cookie_payload: str, max_age: int) -> list:
+    """Signed cookie body: ``[max_age, payload]``.
+
+    Storing the lifetime inside the signed value means ``Session.get`` honours
+    the ``max_age`` used in ``Session.set`` (a 30-day session no longer expires
+    after the 1-day default of the reader).
+    """
+    return [int(max_age), cookie_payload]
+
+
+def _open_cookie(cookie_val: str, max_age: Optional[int]) -> Optional[Any]:
+    """Verifies signature + age and returns the inner payload (or None)."""
+    import time as _time
+
+    try:
+        raw, signed_at = _get_session_serializer().loads(cookie_val, return_timestamp=True)
+    except (SignatureExpired, BadSignature, Exception):
+        return None
+
+    if isinstance(raw, list) and len(raw) == 2 and isinstance(raw[0], int):
+        lifetime, payload = raw
+    else:  # cookies signed by Lila <= 2.0.0
+        lifetime, payload = _LEGACY_MAX_AGE, raw
+    if max_age is not None:
+        lifetime = min(int(lifetime), int(max_age))
+    try:
+        age = _time.time() - signed_at.timestamp()
+    except Exception:
+        return None
+    if lifetime > 0 and age > lifetime:
+        return None
+    return payload
+
+
+def _decode_payload(payload: Any) -> Any:
+    try:
+        return orjson_loads(payload)
+    except Exception:
+        return payload
+
+
 class Session:
     """Manages user sessions via signed cookies or Cache/Redis backends."""
 
@@ -90,7 +134,7 @@ class Session:
             else:
                 cookie_payload = val_bytes
 
-            signed = serializer.dumps(cookie_payload)
+            signed = serializer.dumps(_envelope(cookie_payload, max_age))
             response.set_cookie(
                 key=target_cookie,
                 value=signed,
@@ -172,7 +216,7 @@ class Session:
             else:
                 cookie_payload = val_bytes
 
-            signed = serializer.dumps(cookie_payload)
+            signed = serializer.dumps(_envelope(cookie_payload, max_age))
             response.set_cookie(
                 key=cookie_name,
                 value=signed,
@@ -195,10 +239,14 @@ class Session:
         cls,
         request: Any,
         cookie_name: str = "session",
-        max_age: int = 86400,
+        max_age: Optional[int] = None,
         key: Optional[str] = None,
     ) -> Optional[Any]:
-        """Retrieves and deserializes a session value asynchronously."""
+        """Retrieves and deserializes a session value asynchronously.
+
+        ``max_age`` defaults to the lifetime used when the session was set; pass
+        a value only to enforce a *shorter* lifetime.
+        """
         target_cookie = key or cookie_name
         cookie_val = request.cookies.get(target_cookie)
         if not cookie_val and target_cookie == "session":
@@ -206,34 +254,25 @@ class Session:
         if not cookie_val:
             return None
 
-        try:
-            raw_payload = _get_session_serializer().loads(cookie_val, max_age=max_age)
-        except (SignatureExpired, BadSignature, Exception):
+        raw_payload = _open_cookie(cookie_val, max_age)
+        if raw_payload is None:
             return None
 
         if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
-            session_id = raw_payload[4:]
-            data = await Cache.get_async(f"session:{session_id}")
+            data = await Cache.get_async(f"session:{raw_payload[4:]}")
             if data is None:
                 return None
             if isinstance(data, (bytes, bytearray)):
                 data = data.decode("utf-8", errors="ignore")
-            try:
-                return orjson_loads(data)
-            except Exception:
-                return data
-
-        try:
-            return orjson_loads(raw_payload)
-        except Exception:
-            return raw_payload
+            return _decode_payload(data)
+        return _decode_payload(raw_payload)
 
     @classmethod
     async def get(
         cls,
         request: Any,
         cookie_name: str = "session",
-        max_age: int = 86400,
+        max_age: Optional[int] = None,
         key: Optional[str] = None,
     ) -> Optional[Any]:
         return await cls.get_async(request, cookie_name=key or cookie_name, max_age=max_age)
@@ -243,7 +282,7 @@ class Session:
         cls,
         request: Any,
         cookie_name: str = "session",
-        max_age: int = 86400,
+        max_age: Optional[int] = None,
     ) -> Optional[Any]:
         """Retrieves and deserializes a session value synchronously."""
         cookie_val = request.cookies.get(cookie_name)
@@ -252,25 +291,18 @@ class Session:
         if not cookie_val:
             return None
 
-        try:
-            raw_payload = _get_session_serializer().loads(cookie_val, max_age=max_age)
-        except (SignatureExpired, BadSignature, Exception):
+        raw_payload = _open_cookie(cookie_val, max_age)
+        if raw_payload is None:
             return None
 
         if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
-            session_id = raw_payload[4:]
-            data = Cache.get(f"session:{session_id}")
+            data = Cache.get(f"session:{raw_payload[4:]}")
             if data is None:
                 return None
-            try:
-                return orjson_loads(data)
-            except Exception:
-                return data
-
-        try:
-            return orjson_loads(raw_payload)
-        except Exception:
-            return raw_payload
+            if isinstance(data, (bytes, bytearray)):
+                data = data.decode("utf-8", errors="ignore")
+            return _decode_payload(data)
+        return _decode_payload(raw_payload)
 
     @classmethod
     async def delete_async(
@@ -291,12 +323,9 @@ class Session:
         if request is not None and hasattr(request, "cookies"):
             cookie_val = request.cookies.get(target_cookie)
             if cookie_val:
-                try:
-                    raw_payload = _get_session_serializer().loads(cookie_val)
-                    if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
-                        await Cache.delete_async(f"session:{raw_payload[4:]}")
-                except Exception:
-                    pass
+                raw_payload = _open_cookie(cookie_val, None)
+                if isinstance(raw_payload, str) and raw_payload.startswith("sid:"):
+                    await Cache.delete_async(f"session:{raw_payload[4:]}")
 
         if response is not None and hasattr(response, "delete_cookie"):
             response.delete_cookie(key=target_cookie, path=path, domain=domain)
@@ -359,10 +388,10 @@ class Session:
         cls,
         request: Any,
         key: str = "auth",
-        max_age: Optional[int] = 86400,
+        max_age: Optional[int] = None,
     ) -> Optional[Any]:
         """Synchronous v1-compatible unsign helper."""
-        return cls.get_sync(request, cookie_name=key, max_age=max_age or 86400)
+        return cls.get_sync(request, cookie_name=key, max_age=max_age)
 
     @classmethod
     def getSession(cls, key: str, request: Any) -> Optional[str]:
