@@ -27,6 +27,7 @@ def generate_deploy_files(
     service_name: Optional[str] = None,
     with_worker: bool = False,
     project_dir: Optional[str] = None,
+    extra_server_names: Optional[list] = None,
 ) -> dict:
     """Generates production deployment files in output_dir and returns metadata."""
     from lila.core.config import ConfigLoader, ENV_CONFIG, get_secret_key, _is_placeholder_secret
@@ -43,6 +44,9 @@ def generate_deploy_files(
         else:
             domain = "localhost"
     domain = _safe_domain(domain)
+    server_names = " ".join(
+        dict.fromkeys([domain] + [_safe_domain(name) for name in (extra_server_names or []) if name])
+    )
 
     # 2. Resolve port
     if port is None:
@@ -60,7 +64,9 @@ def generate_deploy_files(
         cache_driver = str(ENV_CONFIG.get("CACHE_DRIVER", "memory")).lower()
         workers = 2 if cache_driver == "redis" else 1
 
-    # 5. Resolve service name
+    # 5. Resolve service name (.env SERVICE_NAME, then folder name)
+    if not service_name:
+        service_name = str(ENV_CONFIG.get("SERVICE_NAME", "") or "").strip() or None
     if not service_name:
         folder_name = os.path.basename(root_dir).lower()
         clean_name = "".join(c if c.isalnum() or c in ("-", "_") else "-" for c in folder_name).strip("-")
@@ -111,7 +117,7 @@ After=network.target
 Type=simple
 User={run_user}
 Group={run_group}
-WorkingDirectory="{root_dir}"
+WorkingDirectory={root_dir}
 Environment="PATH={venv_bin}:/usr/local/bin:/usr/bin:/bin"
 Environment="APP_ENV=production"
 ExecStart="{os.path.join(root_dir, output_dir, "start_lila.sh").replace('\\\\', '/')}"
@@ -138,7 +144,7 @@ After=network.target
 Type=simple
 User={run_user}
 Group={run_group}
-WorkingDirectory="{root_dir}"
+WorkingDirectory={root_dir}
 Environment="PATH={venv_bin}:/usr/local/bin:/usr/bin:/bin"
 Environment="APP_ENV=production"
 ExecStart={venv_bin}/lila worker
@@ -168,9 +174,21 @@ map $http_upgrade $connection_upgrade {{
 
 server {{
     listen 80;
-    server_name {domain};
+    server_name {server_names};
 
     client_max_body_size 50M;
+
+    # Lila always serves its own client scripts from the installed package
+    # (so `pip install -U lila-framework` updates them): proxy, don't alias.
+    location = /js/lila-client.js {{
+        proxy_pass http://127.0.0.1:{port};
+        proxy_set_header Host $host;
+    }}
+
+    location = /js/ws.js {{
+        proxy_pass http://127.0.0.1:{port};
+        proxy_set_header Host $host;
+    }}
 
     # Bundled/static assets (Lila mounts these paths directly).
     location ^~ /public/ {{
@@ -275,6 +293,7 @@ lila run --host 127.0.0.1 --port {port} -w {workers} --proxy-headers
 
 @app.callback(invoke_without_command=True)
 def deploy(
+    ctx: typer.Context,
     domain: Optional[str] = typer.Option(None, "--domain", "-d", help="Site domain (e.g. example.com)"),
     port: Optional[int] = typer.Option(None, "--port", "-p", help="Internal listen port (default: from .env or 3002)"),
     user: Optional[str] = typer.Option(None, "--user", "-u", help="Linux service user (default: current or www-data)"),
@@ -286,7 +305,11 @@ def deploy(
 ):
     """
     Generates production deployment files for Linux (systemd, Nginx) and Windows Server.
+
+    For a guided install on a Linux server run: sudo lila deploy setup
     """
+    if ctx.invoked_subcommand is not None:
+        return
     from lila.core.config import ConfigLoader, ENV_CONFIG, get_secret_key, _is_placeholder_secret
 
     ConfigLoader.load()
@@ -355,6 +378,22 @@ def deploy(
     typer.secho(f"     sudo nginx -t && sudo systemctl reload nginx", fg=typer.colors.WHITE, bold=True)
     typer.echo(f"\n  4. Obtain free SSL certificate with Let's Encrypt (Certbot):")
     typer.secho(f"     sudo certbot --nginx -d {dom}\n", fg=typer.colors.GREEN, bold=True)
+
+
+@app.command("setup")
+def setup(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Accept every default answer (non-interactive)."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Only print the commands, install nothing."),
+    project_dir: str = typer.Option(".", "--project-dir", help="Project root (where .env lives)."),
+):
+    """
+    Interactive Linux production setup (run with sudo): fixes .env (DEBUG,
+    HOST, SECRET_KEY, APP_URL), installs the systemd service, the Nginx site
+    and an HTTPS certificate with Certbot, asking before each change.
+    """
+    from lila.cli.deploy_setup import run_setup
+
+    run_setup(project_dir, assume_yes=yes, dry_run=dry_run)
 
 
 if __name__ == "__main__":
