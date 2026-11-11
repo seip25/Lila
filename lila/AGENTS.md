@@ -129,14 +129,24 @@ class Product(BaseModel):
     created_at = Column(TIMESTAMP, server_default=func.now())
 ```
 
-- Async: `insert_async`, `get_all_async(limit, offset, order_by, select=...)`,
-  `get_by_id_async`, `update_async`, `delete_async`, `count_async`.
+- Async: `insert_async`, `get_all_async(limit, offset, order_by, desc, select=...)`,
+  `get_by_id_async`, `update_async`, `delete_async`, `count_async`,
+  `paginate_async(page, per_page, order_by, ...)` → `{items, page, per_page, total,
+  pages, has_prev, has_next, prev_page, next_page}` (`{{ pagination(page) }}`).
+- Filters: `name="x"`, `price__gte=10`, `id__in=[...]`, `name__contains="x"`,
+  `__ne/__gt/__lt/__lte/__not_in/__like/__ilike/__startswith/__endswith/__isnull`.
+- Reads use SQLAlchemy Core (dicts, no ORM objects) and never select
+  `__private_fields__`. SQLite writes go through `db.write_transaction()` (one
+  writer per process, no "database is locked" bursts).
 - `to_dict()` returns **only loaded columns** and skips `__private_fields__`.
 - Set `__private_fields__ = ("password", "token")` on models with credentials.
 - Sync methods work outside an event loop (persistent loop); inside async code use
   the `_async` variants.
-- `lila migrate` creates tables **and adds missing columns**; `--refresh` drops
-  tables (confirmation required unless `--yes`).
+- `lila migrate` creates tables, adds columns, renames columns declared with
+  `__renamed_columns__ = {"new": "old"}` and creates indexes; `--plan` shows the
+  diff (type/NULL changes and NOT NULL columns without default are reported, not
+  applied); `--drop-columns` drops removed columns; `lila migrate history`.
+  `--refresh` drops tables (confirmation required unless `--yes`).
 - Cache invalidation is per process and also sent to Redis when configured; the
   model read cache defaults to `MODEL_CACHE_TTL=5`. Cached reads are returned as
   copies (mutating a result never changes the cache).
@@ -158,6 +168,7 @@ class Product(BaseModel):
   signed `sid:` cookie. The memory LRU evicts expired and non-session keys first.
 - `Session.get` honours the `max_age` given to `Session.set` (stored in the signed
   cookie); pass `max_age` to `get` only to enforce a shorter lifetime.
+- `CACHE_MAX_MB=64` bounds the memory driver by approximate size (sessions last).
 
 ---
 
@@ -178,6 +189,17 @@ class Product(BaseModel):
   SMTP is configured; in debug the URL is printed to the console.
 - Admin login uses the project database and an `admins` table created through
   migrations; `/debug` is only mounted with `debug=True, debug_html=True`.
+- Roles/permissions (`lila.core.permissions`): `define_roles({"admin": ["*"],
+  "editor": ["posts.*"]})`, router `roles=[...]` / `permissions=[...]`,
+  `@require_role`, `@require_permission`, `set_role_loader`, Jinja `can()` /
+  `has_role()`. Roles come from the session user (`role`/`roles`).
+- API keys (`lila.core.api_keys`): import `ApiKey` in `app/models/` so migrate
+  creates `api_keys`; `ApiKeys.create_async(user_id, name, scopes, expires_days)`
+  returns the token once (only SHA-256 stored); router `api_key=True|[scopes]`
+  (Bearer or `X-API-Key`); `revoke_async` is immediate.
+- JWT pairs: `JWT.issue_pair(payload)`, `JWT.refresh_async(token)` (rotation;
+  reuse revokes the family), `JWT.revoke`, `JWT.revoke_user`; state in
+  `app/data/lila_system.db`. `@validate_token` rejects refresh tokens.
 
 ---
 
@@ -218,6 +240,13 @@ return render(
 - Head tags from `styles=`/`scripts=`/`jsonld=` carry `data-lila-head`; the SPA
   router swaps them (and `<html lang>`) on navigation and runs scripts in order.
 - Every render sets a CSRF cookie and `<meta name="csrf-token">`; `Http()` reads it.
+- SEO data is exposed as `page_meta` (the name `page` is free for pagination).
+- `{{ form(PydanticModel, action=..., snackbar=True, redirect=...) }}` renders a
+  `data-lila-form` whose inputs mirror the model rules (`EmailStr`, `min_length`,
+  `ge/le`, `Literal`/`Enum`, `bool`, dates; `json_schema_extra={"ui": {...}}`).
+- `ui.input/select/textarea/checkbox/button/link/alert/badge/modal`,
+  `{{ pagination(page) }}`, `{{ image("img/x.jpg", widths=[480, 960]) }}`
+  (WebP variants via Pillow in `public/img/_r/`).
 - `datatable(data | url=..., columns, id=None, rows_per_page, search, pagination,
   edit="fnName", delete="fnName", exclude=("password","token","hash"))` — unique
   id, rows embedded as escaped JSON (or loaded with `Http(url)`), auto-initialized.
@@ -253,7 +282,13 @@ return render(
 - `ws.js`: `lilaWS("/ws")` (relative URLs ok), auto reconnect with backoff, rooms,
   bounded offline queue; closed automatically when the SPA leaves the page unless
   `{ persist: true }`. Server side: `@hub.can_join` authorizes room joins.
-- `/js/lila-client.js` and `/js/ws.js` are always served from the installed package.
+- `/js/lila-client.js` and `/js/ws.js` are always served from the installed package
+  (minified + compressed + ETag). The default layout loads `lila-client.js` in
+  `<head>`, so inline page scripts can call `lila()`, `Http()`, `lilaSSE()`.
+- SSE (`lila.core.sse`): `EventStream(request, async_gen)`, `Channel(name)`
+  `.stream(request, key=None)` / `.publish(data, event, to=None)` (Redis fan-out
+  when configured); browser `lilaSSE(url).on(event, fn)` or `data-sse`,
+  `data-sse-event`, `data-sse-swap`, `data-sse-toast`.
 - `data-partial-target` extracts the `[data-lila-outlet]` fragment.
 - `Http(url, method, body, bodyForm, headers)` attaches CSRF, parses JSON/text and
   exposes `error.status`/`error.data`.
@@ -270,13 +305,14 @@ return render(
 - `lila doctor`, `lila routes` — health and route introspection.
 - `lila auth`, `lila admin`, `lila model`, `lila crud` — safe `main.py` patching
   (`lila/cli/_patch.py`) with backups for overwritten scaffold files.
-- `lila migrate` — tables + columns; `--refresh --yes` to drop.
+- `lila migrate` — tables, columns, renames, indexes; `--plan`, `--drop-columns`,
+  `history`; `--refresh --yes` to drop.
 - `lila optimize` — manifest consumed by `public()`; requires `rjsmin`/`rcssmin`
   for JS/CSS (otherwise it skips instead of corrupting assets).
 - `lila seo` — discovers public GET routes, writes `public/sitemap.xml` and
   `public/robots.txt`; served at the site root.
-- `lila worker` — Redis JSON tasks (`LILA_TASK_MODULES` allowlist, retries,
-  dead-letter queue).
+- `lila worker` — SQLite task queue by default, Redis JSON tasks with
+  `CACHE_DRIVER=redis` (`LILA_TASK_MODULES` allowlist, retries, dead tasks).
 - `lila deploy` — generates systemd app/worker units, Nginx static+proxy config
   and Windows Server starter scripts in `deploy/` (`SERVICE_NAME` from `.env`).
 - `sudo "$(which lila)" deploy setup` — interactive Linux install: asks (S/N)
@@ -284,10 +320,42 @@ return render(
   only warns); offers `chown`/`chmod` fixes for the project, `public/` and `.env`;
   installs the systemd service, the Nginx site (rolled back if `nginx -t` fails)
   and Certbot HTTPS; health-checks the port. `--dry-run`, `--yes`.
-- `lila backup` — online SQLite backup with retention; refuses non-SQLite DBs.
+- `lila backup [--compress]` — online SQLite backup with retention; refuses non-SQLite DBs.
+- `lila css build [--watch]` / `lila css clean` — official Tailwind standalone
+  binary (SHA-256 verified, no Node) → `public/css/lila.css`; used in production
+  (`TAILWIND_MODE=auto|build|play`).
+- `lila run --server granian [--max-rss MB]` (or `LILA_SERVER=granian`).
+- `lila bench URL -c 50 -d 10 --pid N` — req/s, latency, server RSS.
+- `lila worker --driver sqlite|redis`, `lila tasks stats|list|retry|purge`,
+  `lila schedule list|run`, `lila i18n check [--strict]`; `lila doctor` also
+  validates `.env` values, translations and the compiled CSS.
 - `lila desktop dev/build` — bundles `main`, `app`, Lila templates/assets;
   binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, and stores data under the
   OS app-data directory when frozen.
+
+---
+
+## 8b. Background work, observability & performance
+
+- Tasks (`lila.core.tasks`): `@task(retries, timeout, backoff)` + `await fn.delay(...,
+  _in=seconds)`; queue in `app/data/lila_tasks.db` (separate SQLite), atomic claim,
+  backoff, dead tasks; consumed in-process (`TASKS_IN_PROCESS`, `TASK_CONCURRENCY`)
+  or by `lila worker --driver sqlite`. Only `LILA_TASK_MODULES` can run by name.
+- Scheduler (`lila.core.scheduler`): `@every(minutes=10)`, `@cron("0 3 * * *")`,
+  `queue=True`; one leader per machine (file lock), no overlap, last runs stored.
+- Emails: `Mailer.send_template(to, "welcome", ctx, queue=True)` renders
+  `resources/html/emails/<name>.jinja` (extends `emails/base.jinja`, `{% set subject %}`)
+  plus a text part; `Mailer.render_template` for previews/tests.
+- `App(health=True)` mounts `/health` (status only) and `/health/details`;
+  `App(metrics=True)` adds `/metrics` (Prometheus, no path/user labels). Details
+  and metrics need `METRICS_TOKEN` (Bearer) or a direct loopback request without
+  proxy headers; `METRICS_OTP=true` adds single-use codes printed in the terminal.
+- Performance defaults: `App(etag=True)` (weak ETag/304 for HTML/JSON), GZip level
+  5 only for dynamic responses, static text assets compressed once (or `.br/.gz`
+  siblings), Jinja bytecode cache in production, `LOG_RETENTION_DAYS=30`.
+- `.env` is validated (`validate_settings()`); errors are printed at startup.
+- `lila.testing`: `TestClient()` (main:app), `login(client, user)`,
+  `csrf_headers(client)`, `temp_database(*models)`, `override_env(**values)`.
 
 ---
 
@@ -297,7 +365,9 @@ return render(
 python -m unittest discover -s tests -v
 ```
 
-Tests cover routing/422, cache isolation, CSRF forms, sessions, seed secrets,
+Tests cover tasks/scheduler/SSE, permissions, API keys, refresh tokens,
+health/metrics access, static compression/ETag, migrations plan, UI helpers,
+routing/422, cache isolation, CSRF forms, sessions, seed secrets,
 schema column additions, admin coercion, deploy/backup generation, the deploy
 setup wizard, auto-layout templates and component helpers, WebSocketHub,
 REST CRUD, locale parity, native metrics, desktop locking/bridge and safe

@@ -368,6 +368,26 @@ await connection.query_async("UPDATE users SET active = 0 WHERE id = :id", param
         <a href="https://www.sqlalchemy.org/" target="_blank" class="underline text-blue-600 dark:text-blue-400 font-semibold hover:underline">SQLAlchemy
           Documentation</a>.
       </p>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-8">5. Filters, ordering and pagination</h3>
+      <p>Filters use <code>column__operator=value</code>. Unknown columns or operators raise <code>ValueError</code> (a typo never returns every row).</p>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Filters</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">await Product.get_all_async(price__gte=10, price__lt=100, order_by=&quot;price&quot;, desc=True)
+await Product.get_all_async(id__in=[1, 2, 3])
+await Product.get_all_async(name__contains=&quot;coffee&quot;)      # case-insensitive
+await Product.get_all_async(category_id__isnull=True)
+await Product.count_async(status__ne=&quot;archived&quot;)
+
+page = await Product.paginate_async(page=2, per_page=20, order_by=&quot;name&quot;, price__gte=10)
+# {&quot;items&quot;: [...], &quot;page&quot;: 2, &quot;per_page&quot;: 20, &quot;total&quot;: 134, &quot;pages&quot;: 7,
+#  &quot;has_prev&quot;: True, &quot;has_next&quot;: True, &quot;prev_page&quot;: 1, &quot;next_page&quot;: 3}</code></pre>
+        </div>
+      </div>
+      <p class="text-sm">Operators: <code>ne</code>, <code>gt</code>, <code>gte</code>, <code>lt</code>, <code>lte</code>, <code>in</code>, <code>not_in</code>, <code>like</code>, <code>ilike</code>, <code>contains</code>, <code>startswith</code>, <code>endswith</code>, <code>isnull</code>. <code>per_page</code> is capped by <code>max_per_page=100</code>. In a template: <code>{{ pagination(page) }}</code> renders the links (keeps the other query parameters).</p>
+      <p class="text-sm">Reads use SQLAlchemy Core and return dicts directly (no ORM objects, ≈1.8× faster for large lists) and never select <code>__private_fields__</code>. Results are copies, so mutating them never changes the read cache. On SQLite, writes of one process are queued behind a lock (single writer) and reads stay concurrent.</p>
     </article>
   </main>
   <script src="../js/highlight.min.js"></script>

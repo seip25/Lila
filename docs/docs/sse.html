@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="canonical" href="https://seip25.github.io/Lila/" />
+  <title>Lila Framework - Server-Sent Events</title>
+  <meta name="description"
+    content="Real-time updates with Server-Sent Events in Lila Framework: EventStream, channels, lilaSSE client and data-sse attributes." />
+  <meta name="keywords" content="Python, WebSocket, Real-Time, Socket.io, Starlette, Lila Framework, Chat" />
+  <meta name="author" content="Lila Framework Team" />
+
+  <link rel="icon" type="image/png" href="../img/lila.png" alt="Lila Framework Logo" />
+  <link rel="stylesheet" href="../css/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="../css/lila.css" />
+  <!-- Google Fonts for Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemini: {
+              blue: '#1a73e8',
+              blueBg: '#f0f4f9',
+              blueHover: '#e1ecf8',
+              indigo: '#4f46e5',
+              purple: '#8b5cf6',
+              accent: '#4285f4',
+              darkBg: '#090d16',
+              darkCard: '#131b2e',
+              darkBorder: '#1e293b',
+              darkHover: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <header
+    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
+          L
+        </div>
+        <h1
+          class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="../index.html"
+          class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          Home
+        </a>
+        <a href="https://github.com/seip25/Lila" target="_blank"
+          class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+          Github
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <aside
+      class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+  <h4>Menu</h4>
+  <a href="install.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="routes.html">Routes</a>
+  <a href="static.html">Static</a>
+  <a href="client.html">SPA &amp; View Transitions</a>
+  <a href="templates.html">Templates</a>
+  <a href="markdown.html">Markdown/HTML</a>
+  <a href="locales.html">Internationalization</a>
+  <a href="seo.html">SEO</a>
+  <a href="minify.html">Minify</a>
+  <a href="ia.html">AI Helper</a>
+  <a href="cache.html">Cache</a>
+  <a href="session.html">Session</a>
+  <a href="websocket.html">WebSockets</a>
+  <a href="upload.html">Uploads Files</a>
+  <a href="logger.html">Logger</a>
+  <a href="debug.html">Debug &amp; Profiling</a>
+  <a href="models.html">Models</a>
+  <a href="connections.html">Connections</a>
+  <a href="migrations.html">Migrations</a>
+  <a href="desktop.html">Desktop</a>
+  <a href="auth.html">Auth CLI</a>
+  <a href="admin.html">Admin Panel</a>
+  <a href="cli.html">CLI Commands</a>
+  <a href="middlewares.html">Middlewares</a>
+  <a href="scaffold.html">Scaffold CRUD</a>
+  <a href="rest_api.html">API Rest CRUD</a>
+  <a href="production.html">Production</a>
+</aside>
+
+        <article
+      class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+      <h2>Server-Sent Events (SSE)</h2>
+      <p>For one-way updates (notifications, progress bars, live dashboards) SSE is simpler than WebSockets: plain HTTP, automatic reconnection in the browser and it passes through Nginx and HTTP/2. Use <a href="websocket.html">WebSockets</a> when the browser also needs to send messages.</p>
+      <h3 class="mt-8">1. A stream from a generator</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Python</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">import asyncio
+from lila.core.sse import EventStream
+
+@router.get(&quot;/import/progress&quot;)
+async def import_progress(request: Request):
+    async def steps():
+        for pct in range(0, 101, 10):
+            yield {&quot;event&quot;: &quot;progress&quot;, &quot;data&quot;: {&quot;pct&quot;: pct}}
+            await asyncio.sleep(0.5)
+        yield {&quot;event&quot;: &quot;done&quot;, &quot;data&quot;: {&quot;message&quot;: &quot;Import finished&quot;}}
+    return EventStream(request, steps())</code></pre>
+        </div>
+      </div>
+      <h3 class="mt-8">2. Channels: publish from anywhere</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Python</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">from lila.core.sse import Channel
+from lila.core.session import Session
+
+notifications = Channel(&quot;notifications&quot;)
+
+@router.get(&quot;/events&quot;, auth=True)
+async def events(request: Request):
+    user = request.state.user
+    return notifications.stream(request, key=f&quot;user:{user[&#x27;id&#x27;]}&quot;)   # broadcasts + this user&#x27;s messages
+
+# in a route, a task or a scheduled job:
+await notifications.publish({&quot;message&quot;: &quot;New comment&quot;}, event=&quot;notice&quot;)                 # everyone
+await notifications.publish({&quot;message&quot;: &quot;Invoice paid&quot;}, event=&quot;notice&quot;, to=&quot;user:7&quot;)   # one user</code></pre>
+        </div>
+      </div>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li>Heartbeats every 15 s keep proxies from closing idle streams; disconnected clients are detected and cleaned up.</li>
+        <li>Slow clients never block others: each subscriber has a bounded queue (oldest messages dropped).</li>
+        <li>Responses are never gzipped/buffered and carry <code>X-Accel-Buffering: no</code> for Nginx.</li>
+        <li>With <code>CACHE_DRIVER=redis</code> messages reach subscribers in every worker (Redis pub/sub); otherwise they stay in the current process.</li>
+        <li>Authenticate the stream like any route (<code>auth=True</code>, <code>roles=[...]</code>).</li>
+      </ul>
+      <h3 class="mt-8">3. Browser</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">HTML</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-html">&lt;!-- No JavaScript: append messages, show toasts --&gt;
+&lt;ul data-sse=&quot;/events&quot; data-sse-event=&quot;notice&quot; data-sse-swap=&quot;append&quot; data-sse-toast=&quot;News&quot;&gt;&lt;/ul&gt;
+
+&lt;!-- Progress bar --&gt;
+&lt;div id=&quot;bar&quot; class=&quot;h-2 bg-blue-600&quot; style=&quot;width:0&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var progress = lilaSSE(&quot;/import/progress&quot;);
+  progress.on(&quot;progress&quot;, (d) =&gt; { document.getElementById(&quot;bar&quot;).style.width = d.pct + &quot;%&quot;; });
+  progress.on(&quot;done&quot;, (d) =&gt; { lila(&quot;toast&quot;, { title: &quot;OK&quot;, description: d.message, type: &quot;success&quot; }); progress.close(); });
+&lt;/script&gt;</code></pre>
+        </div>
+      </div>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><code>data-sse-swap</code>: <code>append</code>, <code>prepend</code>, <code>inner</code> or <code>text</code>. <code>{"html": "..."}</code> payloads are inserted as HTML, otherwise <code>message</code> is used as text.</li>
+        <li><code>data-sse-callback="fn"</code> calls <code>window.fn(data, element)</code>.</li>
+        <li>Streams opened by a page close when the SPA navigates away; add <code>data-sse-persist</code> / <code>{ persist: true }</code> for an app-wide stream (e.g. in your layout).</li>
+      </ul>
+    </article>
+  </main>
+
+  <script src="../js/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      hljs.highlightAll();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+  <script src="../js/lila.js"></script>
+  <script src="../js/partial.js"></script>
+</body>
+
+</html>

@@ -250,7 +250,44 @@ lila migrate --refresh --yes
           drop all tables before migrating (asks for confirmation)</li>
         <li><code
             class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">--yes</code>:
-          skip the confirmation prompt for <code>--refresh</code></li>
+          skip the confirmation prompt for <code>--refresh</code> / <code>--drop-columns</code></li>
+        <li><code>--plan</code>: show the differences between models and database, change nothing</li>
+        <li><code>--drop-columns</code>: also drop columns removed from the models (asks first)</li>
+        <li><code>lila migrate history</code>: operations applied so far</li>
+      </ul>
+
+      <h3>Plan, renames and history</h3>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">lila migrate --plan</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-text">$ lila migrate --plan
+📋 6 difference(s):
+  ✏️ rename_column      products.name                  nme → name  [safe]
+  ➕ add_column         products.stock                 INTEGER  [safe]
+  ⚡ create_index       products                       ix_products_name (name)  [safe]
+  ⚠️ alter_type         products.price                 TEXT → INTEGER  [manual]
+  ⚠️ add_column_manual  products.code                  NOT NULL without default ...  [manual]
+  🗑️ drop_column        products.legacy                in the database but not in the model  [needs --drop-columns]</code></pre>
+        </div>
+      </div>
+      <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-6 mt-4">
+        <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700"><span class="editor-title text-gray-300 dark:text-gray-400">Renaming a column</span>
+          <div class="flex space-x-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><div class="w-3 h-3 bg-yellow-500 rounded-full"></div><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+        </div>
+        <div class="editor-content bg-gray-900 dark:bg-black">
+          <pre><code class="language-python">class Product(BaseModel):
+    __tablename__ = &quot;products&quot;
+    __renamed_columns__ = {&quot;name&quot;: &quot;nme&quot;}      # new name -&gt; old name: data is kept
+    name = Column(String(120), index=True)
+    ...</code></pre>
+        </div>
+      </div>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><b>Safe</b> operations are applied by <code>lila migrate</code>: create tables, add nullable/defaulted columns, rename declared columns, create indexes.</li>
+        <li>Type and NULL changes and NOT NULL columns without a default are only reported: decide how to migrate the existing data.</li>
+        <li>History is stored in <code>app/data/lila_system.db</code>, never in your database.</li>
       </ul>
 
       <h3>From Python</h3>
