@@ -223,6 +223,20 @@ return render(
   id, rows embedded as escaped JSON (or loaded with `Http(url)`), auto-initialized.
 - `carousel(slides, autoplay=0, loop=True, arrows=True, indicators=True,
   item_class="basis-full")` — scroll-snap, swipe, keyboard, pauses on hover.
+  Plain HTML: `<div data-carousel data-carousel-autoplay="4000">` with
+  `<div data-carousel-slide>` children (track/arrows/dots generated); JS:
+  `lila('carousel', {el, autoplay})` → `.next()/.prev()/.go(i)/.stop()`.
+- Declarative forms: `<form action="/api/x" method="post" data-lila-form
+  data-snackbar|data-toast="Title" data-redirect="/next" data-reset>` — HTML5
+  validation (+ `data-match`), buttons disabled with spinner
+  (`data-loading-text`, re-enabled after `data-timeout`), CSRF via `Http()`,
+  `[data-message]` box, 422 `errors` under each field, `data-target`/`data-swap`,
+  `data-refresh="#table"`, `data-callback="fn"`. Buttons/links:
+  `data-action="/api/x" data-method="DELETE" data-confirm data-body='{...}'`.
+  `data-toggle-hidden="#el"` shows/hides. APIs answer `{"success", "message"|"msg",
+  "errors"?, "redirect"?, "html"?}`.
+- Links inside `data-persist` elements take the server's `class`/`aria-current`
+  after each navigation (active menu items stay correct).
 - `lila-client.js`: View Transitions, prefetch, `data-persist`, toast/snackbar,
   command palette, drawer, tabs, carousel and `ResponsiveDataTable`. Page scripts
   re-run on SPA navigation: use `var`/functions (not top-level `let`/`const`) and
@@ -257,9 +271,10 @@ return render(
 - `lila deploy` — generates systemd app/worker units, Nginx static+proxy config
   and Windows Server starter scripts in `deploy/` (`SERVICE_NAME` from `.env`).
 - `sudo "$(which lila)" deploy setup` — interactive Linux install: asks (S/N)
-  to set `DEBUG=False`, `HOST=127.0.0.1`, a new `SECRET_KEY`, `APP_URL`; installs
-  the systemd service, the Nginx site (rolled back if `nginx -t` fails) and
-  Certbot HTTPS; health-checks the port. `--dry-run`, `--yes`.
+  to set `DEBUG=False`, `HOST=127.0.0.1`, `APP_URL` (never rotates `SECRET_KEY`,
+  only warns); offers `chown`/`chmod` fixes for the project, `public/` and `.env`;
+  installs the systemd service, the Nginx site (rolled back if `nginx -t` fails)
+  and Certbot HTTPS; health-checks the port. `--dry-run`, `--yes`.
 - `lila backup` — online SQLite backup with retention; refuses non-SQLite DBs.
 - `lila desktop dev/build` — bundles `main`, `app`, Lila templates/assets;
   binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, and stores data under the

@@ -170,7 +170,7 @@ sudo &quot;$(which lila)&quot; deploy setup</code></pre>
 
 ? DEBUG is True in .env. Set DEBUG=False for production? [Y/n]
 ? HOST is 0.0.0.0. Bind the app to 127.0.0.1 (only Nginx can reach it)? [Y/n]
-? SECRET_KEY is empty, short or a placeholder. Generate a new one? [Y/n]
+  ⚠️  SECRET_KEY is empty, short or a placeholder. It is not changed here (...) run `lila secret-key`
 ? Domain (without http://) [shop.example.com]
 ? Also serve www.shop.example.com? [Y/n]
 ? Internal port for the app [3002]
@@ -180,6 +180,8 @@ sudo &quot;$(which lila)&quot; deploy setup</code></pre>
 ? Install the Nginx site? [Y/n]
 ? Request a free HTTPS certificate with Certbot (Let&#x27;s Encrypt)? [Y/n]
 ? E-mail for Let&#x27;s Encrypt notices [admin@shop.example.com]
+? /srv/my-shop is owned by &#x27;root&#x27; but the service runs as &#x27;deploy&#x27; (...). Run `chown -R deploy:deploy /srv/my-shop` now? [Y/n]
+? .env is readable by other users (it contains secrets). Restrict it to &#x27;deploy&#x27; (`chown deploy .env &amp;&amp; chmod 600 .env`) now? [Y/n]
 
 Summary
   • Domain   shop.example.com + www.shop.example.com
@@ -188,6 +190,9 @@ Summary
   ...
 ? Apply these changes? [Y/n]
 
+  $ chown -R deploy:deploy /srv/my-shop
+  $ chown deploy:deploy /srv/my-shop/.env
+  $ chmod 600 /srv/my-shop/.env
   $ cp deploy/my-shop.service /etc/systemd/system/my-shop.service
   $ systemctl daemon-reload
   $ systemctl enable --now my-shop.service
@@ -202,9 +207,10 @@ Summary
       </div>
       <ul class="list-disc pl-6 space-y-1 text-sm">
         <li><b>.env</b>: asks before setting <code>DEBUG=False</code>, <code>APP_ENV=production</code>,
-          <code>HOST=127.0.0.1</code>, a new <code>SECRET_KEY</code>, <code>PORT</code>, <code>SERVICE_NAME</code> and
-          <code>APP_URL</code> (https when Certbot is used). The previous file is kept as <code>.env.bak</code>.
-          A new <code>SECRET_KEY</code> signs out existing sessions.</li>
+          <code>HOST=127.0.0.1</code>, <code>PORT</code>, <code>SERVICE_NAME</code> and <code>APP_URL</code> (https when Certbot
+          is used). The previous file is kept as <code>.env.bak</code>. <code>SECRET_KEY</code> is <b>never</b> rotated by the
+          assistant (it would sign out every user): a weak key only prints a warning; run <code>lila secret-key</code> yourself
+          before the first deploy.</li>
         <li><b>systemd</b>: installs <code>&lt;service&gt;.service</code> (and <code>&lt;service&gt;-worker.service</code> when
           <code>CACHE_DRIVER=redis</code> and you ask for it), enables and restarts it.</li>
         <li><b>Nginx</b>: offers to install Nginx with apt-get, writes the site to <code>sites-available</code> + a symlink in
@@ -212,8 +218,11 @@ Summary
           <code>nginx -t</code> and <b>disables the new site again if the test fails</b>.</li>
         <li><b>HTTPS</b>: offers to install <code>certbot</code> + <code>python3-certbot-nginx</code> and requests the
           certificate with an HTTP→HTTPS redirect. Your DNS must already point to the server.</li>
-        <li><b>Checks</b>: warns when the service user does not own the project or when Nginx cannot read
-          <code>public/</code> (projects inside a private <code>/home/user</code>), then calls the app on its internal port.</li>
+        <li><b>Permissions</b>: when needed it asks to run, in the same session, <code>chown -R user:user</code> on the project
+          (the service writes the SQLite database, logs, cache and uploads), <code>chmod o+x</code> on the parent folders Nginx
+          cannot traverse plus <code>chmod -R o+rX public</code> (projects inside a private <code>/home/user</code>), and
+          <code>chown user .env &amp;&amp; chmod 600 .env</code> (also <code>.env.bak</code>). Declined fixes are printed as warnings.</li>
+        <li><b>Check</b>: finally it calls the app on its internal port.</li>
         <li>Without root it only generates <code>deploy/</code> and prints the commands. <code>--dry-run</code> does the same
           as root; <code>--yes</code> accepts every default (requires <code>APP_URL</code> with a real domain).</li>
       </ul>

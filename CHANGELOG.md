@@ -20,6 +20,17 @@ All notable changes to Lila Framework. The format follows
 - `sudo lila deploy setup`: interactive Linux install (`.env` production
   values, systemd, Nginx with `nginx -t` rollback, Certbot, health check),
   `--dry-run` and `--yes`. `SERVICE_NAME` in `.env`.
+- Declarative forms and actions in `lila-client.js`: `data-lila-form`,
+  `data-action`, `data-snackbar`/`data-toast`/`[data-message]`, `data-match`,
+  `data-loading-text`, `data-timeout`, `data-redirect`, `data-reset`,
+  `data-reload`, `data-target`/`data-swap`, `data-refresh`, `data-callback`,
+  `data-toggle-hidden`; 422 errors are shown under each field. The auth
+  scaffold templates no longer contain page scripts.
+- Plain-HTML carousel: `data-carousel`, `data-carousel-slide`,
+  `data-carousel-autoplay|loop|arrows|indicators|pause`;
+  `lila('carousel', ...)` returns controllers.
+- `sudo lila deploy setup` offers `chown`/`chmod` fixes (project owner, Nginx
+  access to `public/`, `.env` 600) and never rotates `SECRET_KEY`.
 - `WebSocketHub.can_join` to authorize client room joins; `lilaWS` gains
   `once()`, `connected`, `persist` and relative URLs.
 
@@ -48,6 +59,9 @@ All notable changes to Lila Framework. The format follows
 - `lila deploy`: `WorkingDirectory` without quotes (systemd), `www.` server
   names.
 - Sync `get_all()` supports `order_by`/`desc`.
+- Admin sidebar: the active item follows SPA navigation (persisted links are
+  synchronized), no nested duplicate `#admin-sidebar`, active matching works
+  with custom prefixes and does not confuse `/user` with `/users`.
 
 - Route cache keys now use the concrete request path: `/items/1` and `/items/2`
   no longer share the same cached response.

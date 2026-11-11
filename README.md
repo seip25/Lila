@@ -33,7 +33,8 @@ reachable, and a file cache fallback.
   components (toast, snackbar, command palette, drawer, tabs, carousel, DataTable).
 - 🧩 **Templates without boilerplate**: a page is just its HTML. `render()` adds the
   layout, `<title>`, description, Open Graph, JSON-LD, icon, styles and scripts;
-  `{{ datatable(...) }}` and `{{ carousel(...) }}` build components from Jinja.
+  `{{ datatable(...) }}` and `{{ carousel(...) }}` build components from Jinja, and
+  `data-lila-form` / `data-action` send forms and buttons without page scripts.
 - 💾 **Zero infrastructure by default**: Async SQLite with WAL, an in-memory LRU
   cache, and `CACHE_DRIVER="file"` for a persistent fallback. `CACHE_DRIVER="redis"`
   is used only when the Redis package is installed **and the server answers**;
@@ -152,6 +153,23 @@ async def dashboard(request: Request):
 ```
 
 Templates written for 2.0.0 with `{% extends %}` keep working unchanged.
+
+### Forms without JavaScript
+
+```html
+<form action="/api/contact" method="post" data-lila-form data-snackbar data-reset>
+  <input name="email" type="email" required>
+  <textarea name="text" required minlength="10"></textarea>
+  <div data-message hidden></div>
+  <button type="submit" data-loading-text="Sending...">Send</button>
+</form>
+
+<button data-action="/api/items/3" data-method="DELETE" data-confirm="Delete?" data-refresh="#items">Delete</button>
+```
+
+HTML5 validation, CSRF, disabled buttons with a spinner, messages from the API
+(`success`, `message`/`msg`, 422 `errors` per field), redirects and table refreshes
+are handled by `lila-client.js`.
 
 ### Models and migrations
 
