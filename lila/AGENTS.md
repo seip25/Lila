@@ -41,6 +41,9 @@ Lila/
 │   │   ├── files.py         # streaming uploads + WebP
 │   │   ├── mailer.py        # SMTP/TLS/SSL mailer
 │   │   ├── seo.py           # @seo decorator + SEO_CONFIG
+│   │   ├── react.py         # react_render, router.spa meta tree
+│   │   ├── vite.py          # Vite dev server / manifest tags
+│   │   ├── desktop.py       # desktop/web route targeting
 │   │   ├── controller.py    # RequestParser (v1 compatibility)
 │   │   ├── exporter.py      # CSV (formula-safe, BOM)
 │   │   ├── background.py    # Redis JSON tasks / Starlette fallback
@@ -296,6 +299,48 @@ return render(
 
 ---
 
+## 7b. React (Vite)
+
+- `lila react init [--install]` copies `package.json`, `vite.config.js`,
+  `resources/react/{main,spa}.jsx`, `resources/react/lila` (client) and
+  `app/routes/web/react_pages.py` (never overwrites without `--force`).
+  `lila react dev` runs Vite + `lila dev`; `lila react build` → `public/build`.
+- `react_render(request, "Users/Show", props, title=..., description=...,
+  jsonld=..., meta=..., canonical=True, robots=..., entry=None, root_id="app",
+  tailwind=False, skeleton=None)` renders `resources/react/pages/Users/Show.jsx`.
+  Props are public (page source): never secrets. `X-Lila-React: 1` returns the
+  JSON page (`component, props, url, version, csrf, desktop, unavailable,
+  head`); a different `X-Lila-Version` returns 409 + `X-Lila-Location`.
+- `router.spa("/app", meta={"*": {...}, "users/:id": fn, "docs/*": {...}},
+  entry=None, root_id="root", **route_kwargs)` — static segments beat `:params`
+  beat `*`; values may be `fn(request, params)` (sync/async) and may set
+  `props`/`status`. `X-Lila-Head: 1` returns `{head, props, url}`. SPA
+  catch-alls (and fallback static mounts) are always matched last.
+- Client (`@lila`): `createLilaApp({pages: import.meta.glob(...)})`,
+  `createLilaSpa(App)`, `Link`, `visit`, `http` (CSRF), `useLila()`,
+  `usePage()`, `useLilaHead(pathname)`, `DesktopOnly`, `WebOnly`, `desktopApi()`.
+  `Page.layout = (page) => <Layout>{page}</Layout>` for persistent layouts.
+- Dev assets come from `public/build/hot` (written by the Lila Vite plugin)
+  **only when DEBUG=True**; otherwise `public/build/.vite/manifest.json` is
+  required (missing → logged 500 with instructions). `VITE_DEV_SERVER`,
+  `VITE_BASE`, `ASSET_URL`, `ASSET_VERSION` override the defaults.
+- Jinja: `{{ vite("resources/react/islands.jsx") }}`.
+
+## 7c. Desktop targets
+
+- `desktop=None|True` (both), `False` (web only), `"only"` (desktop only) on
+  `@router.get/post/...`, `router.websocket`, `ws_hub`, `spa` and
+  `Router(desktop=...)`. Desktop mode = `LILA_DESKTOP=1` or a desktop token.
+- `DESKTOP_EXCLUDE` (.env) / `LILA_DESKTOP_EXCLUDE` (baked by `lila desktop
+  build --exclude/--auto-exclude`): `/payments` (path and children),
+  globs `/api/*/upload`, `name:stripe_*`. Framework assets are never excluded.
+- Removed routes are absent (404), not in `/openapi.json`; `App._lila_all_routes`
+  keeps the full list. `lila desktop routes` previews and suggests exclusions.
+- Jinja `is_desktop()`, `route_available(path)`; React `useLila().desktop`,
+  `isAvailable(href)`, `<Link>` hides unavailable targets.
+
+---
+
 ## 8. CLI
 
 - `lila init` — scaffold; **never overwrites existing files/.env**.
@@ -329,7 +374,11 @@ return render(
 - `lila worker --driver sqlite|redis`, `lila tasks stats|list|retry|purge`,
   `lila schedule list|run`, `lila i18n check [--strict]`; `lila doctor` also
   validates `.env` values, translations and the compiled CSS.
-- `lila desktop dev/build` — bundles `main`, `app`, Lila templates/assets;
+- `lila desktop routes` — desktop/web route preview; `lila desktop dev/build
+  --exclude PATTERN --auto-exclude` (build runs `lila react build` when
+  `vite.config.js` exists; `--no-react` skips it).
+- `lila react init|dev|build|status` — see 7b.
+- `lila desktop dev/build` — bundles `main`, `app` (+ `app/locales`), Lila templates/assets;
   binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, and stores data under the
   OS app-data directory when frozen.
 

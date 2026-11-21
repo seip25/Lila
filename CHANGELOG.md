@@ -5,6 +5,38 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+### React, desktop targets and fixes
+
+### Added
+
+- **React (Vite)**: `lila react init|dev|build|status`; `react_render(request,
+  "Page", props, title=, description=, jsonld=, meta=, canonical=...)` with
+  client navigation (`<Link>`, `visit`, JSON pages, `<head>` swap, history,
+  409 reload on new builds); `router.spa("/app", meta={...})` for React Router
+  apps with per-route meta (dicts or sync/async callables, `useLilaHead`);
+  `{{ vite("entry.jsx") }}` for Jinja pages. Dev uses the Vite server through
+  `public/build/hot` (only with `DEBUG=True`); production reads
+  `public/build/.vite/manifest.json` (CSS, modulepreload, hashed scripts).
+- **Desktop targets**: `desktop=False` / `desktop="only"` on routes, websockets
+  and `Router(...)`; `DESKTOP_EXCLUDE` patterns (`/x`, globs, `name:`);
+  `lila desktop build|dev --exclude --auto-exclude` (patterns baked into the
+  executable); `lila desktop routes`; removed routes are 404, hidden from
+  OpenAPI and exposed to React (`<WebOnly>`, `<DesktopOnly>`, `isAvailable`) and
+  Jinja (`is_desktop()`, `route_available()`). `lila desktop build` runs the
+  React build first; `--width/--height`.
+- `lila doctor` checks React assets and a stale `public/build/hot`.
+
+### Fixed
+
+- `public("css/lila.css")` resolved to `/css/lila.css`, which was never served:
+  the compiled Tailwind CSS (and any other `public/<dir>`) 404'd in
+  production. Top-level `public/` directories are now served at the root as
+  fallbacks (matched after application routes).
+- Desktop builds did not bundle the project's `app/locales/*.json`.
+- The JSON fallback without orjson produced spaced output (different SSE
+  payloads/ETags than with orjson).
+- Static prefixes for rate limiting/cache headers include `/css`, `/fonts`, `/build`.
+
 ### Performance, background work and security
 
 ### Added

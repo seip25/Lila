@@ -178,6 +178,29 @@ class App(Starlette):
                         )
                         break
 
+            # ``public("css/lila.css")`` and friends resolve to ``/<dir>/...``:
+            # serve every other top-level public/ directory there too (the
+            # compiled Tailwind CSS used to 404 in production). ``css`` and
+            # ``build`` are mounted even before they exist (lila css/react build).
+            if os.path.isdir(self._project_public):
+                extra = {"css", "build", "fonts"}
+                try:
+                    extra.update(
+                        name for name in os.listdir(self._project_public)
+                        if os.path.isdir(os.path.join(self._project_public, name)) and not name.startswith(".")
+                    )
+                except OSError:
+                    pass
+                for sub in sorted(extra - {"js", "img", "swagger", "uploads"}):
+                    fallback = Mount(
+                        f"/{sub}",
+                        app=LilaStaticFiles(directory=os.path.join(self._project_public, sub), check_dir=False),
+                        name=f"public_{sub}",
+                    )
+                    # Matched after every application route (never shadows /admin...).
+                    fallback.lila_fallback = True
+                    self._raw_routes.append(fallback)
+
         # 3. Uploads (project public/uploads by default, writable app-data in
         # a frozen desktop build). Do not create a bare "public" directory in
         # arbitrary working directories; the upload helper creates the
@@ -321,6 +344,12 @@ class App(Starlette):
         else:
             final_lifespan = _default_lifespan
 
+        # Desktop/web targeting (desktop=False / "only", DESKTOP_EXCLUDE) and
+        # SPA catch-alls last, so they never shadow static files or APIs.
+        self._lila_all_routes: List[BaseRoute] = list(self._raw_routes)
+        self._desktop_removed: List[BaseRoute] = []
+        self._raw_routes = self._order_routes(self._apply_targets(self._raw_routes))
+
         super().__init__(
             debug=self._is_debug,
             routes=self._raw_routes,
@@ -332,6 +361,39 @@ class App(Starlette):
     # ──────────────────────────────────────────────────────────────────────────
     # Routing helpers
     # ──────────────────────────────────────────────────────────────────────────
+    def _apply_targets(self, routes: List[BaseRoute]) -> List[BaseRoute]:
+        from lila.core import desktop as desktop_mod
+
+        kept, removed = desktop_mod.filter_routes(routes)
+        self._desktop_removed.extend(removed)
+        desktop_mod.register_unavailable(self._desktop_removed)
+        return kept
+
+    @staticmethod
+    def _route_rank(route: BaseRoute) -> int:
+        if getattr(route, "lila_catch_all", False):
+            return 2
+        return 1 if getattr(route, "lila_fallback", False) else 0
+
+    @classmethod
+    def _order_routes(cls, routes: List[BaseRoute]) -> List[BaseRoute]:
+        return sorted(routes, key=cls._route_rank)  # stable: keeps declaration order
+
+    def _append_route(self, route: BaseRoute) -> None:
+        """Adds a route after startup wiring (include_router) honouring targets."""
+        self._lila_all_routes.append(route)
+        if not self._apply_targets([route]):
+            return
+        rank = self._route_rank(route)
+        for index, existing in enumerate(self.routes):
+            if self._route_rank(existing) > rank:
+                self.routes.insert(index, route)
+                return
+        self.routes.append(route)
+
+    def _route_removed(self, path: str) -> bool:
+        return any(getattr(r, "path", None) == path for r in self._desktop_removed)
+
     def _register_route_item(self, item: Any, prefix: str = "") -> None:
         if isinstance(item, Router):
             self._routers.append(item)
@@ -352,18 +414,23 @@ class App(Starlette):
             return route
         path = f"{prefix}{route.path}"
         if isinstance(route, Route):
-            return Route(
+            clone = Route(
                 path,
                 endpoint=route.endpoint,
                 methods=list(route.methods or ["GET"]),
                 name=route.name,
                 include_in_schema=False,
             )
-        if isinstance(route, WebSocketRoute):
-            return WebSocketRoute(path, endpoint=route.endpoint, name=route.name)
-        if isinstance(route, Mount):
-            return Mount(path, app=route.app, name=route.name)
-        return route
+        elif isinstance(route, WebSocketRoute):
+            clone = WebSocketRoute(path, endpoint=route.endpoint, name=route.name)
+        elif isinstance(route, Mount):
+            clone = Mount(path, app=route.app, name=route.name)
+        else:
+            return route
+        for attr in ("lila_desktop", "lila_catch_all", "lila_fallback"):
+            if hasattr(route, attr):
+                setattr(clone, attr, getattr(route, attr))
+        return clone
 
     def include_router(self, router: Union[Router, List[BaseRoute]], prefix: str = "") -> None:
         """Include a Router or a list of Routes, optionally behind an extra prefix."""
@@ -371,7 +438,7 @@ class App(Starlette):
         if isinstance(router, Router):
             if prefix:
                 for r in router.get_routes():
-                    self.routes.append(self._clone_route_with_prefix(r, prefix))
+                    self._append_route(self._clone_route_with_prefix(r, prefix))
                 if getattr(router, "openapi", True):
                     for info in router.openapi_routes:
                         entry = dict(info)
@@ -380,18 +447,18 @@ class App(Starlette):
             else:
                 self._routers.append(router)
                 for r in router.get_routes():
-                    self.routes.append(r)
+                    self._append_route(r)
         elif isinstance(router, list):
             for r in router:
                 if isinstance(r, Router):
                     self.include_router(r, prefix=prefix)
                 elif isinstance(r, BaseRoute):
                     cloned = self._clone_route_with_prefix(r, prefix)
-                    self.routes.append(cloned)
+                    self._append_route(cloned)
                     self._register_raw_openapi(r, prefix)
         elif isinstance(router, BaseRoute):
             cloned = self._clone_route_with_prefix(router, prefix)
-            self.routes.append(cloned)
+            self._append_route(cloned)
             self._register_raw_openapi(router, prefix)
 
     def _register_raw_openapi(self, route: BaseRoute, prefix: str = "") -> None:
@@ -536,6 +603,8 @@ class App(Starlette):
 
         def add_entry(route_info: dict) -> None:
             p = route_info["path"]
+            if self._route_removed(p):
+                return
             openapi_path = _openapi_path(p)
             paths.setdefault(openapi_path, {})
             for method in route_info.get("methods", []):

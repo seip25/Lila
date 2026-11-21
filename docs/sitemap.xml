@@ -56,6 +56,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://seip25.github.io/Lila/docs/react.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://seip25.github.io/Lila/docs/documentation.html</loc>
     <lastmod>2026-10-31</lastmod>
     <priority>0.8</priority>

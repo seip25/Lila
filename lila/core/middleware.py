@@ -35,7 +35,7 @@ BLOCKED_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
-_STATIC_PREFIXES = ("/public/", "/js/", "/img/", "/swagger/", "/uploads/")
+_STATIC_PREFIXES = ("/public/", "/js/", "/img/", "/css/", "/fonts/", "/build/", "/swagger/", "/uploads/")
 _IGNORED_LOG_PREFIXES = _STATIC_PREFIXES + ("/_lila/", "/favicon", "/health")
 _SENSITIVE_QUERY_KEYS = frozenset(
     {"token", "access_token", "refresh_token", "key", "api_key", "password", "secret", "csrf", "_csrf", "code"}

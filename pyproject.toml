@@ -86,6 +86,7 @@ lila-seo = "lila.cli.seo:app"
 lila-worker = "lila.cli.worker:main"
 lila-deploy = "lila.cli.deploy:app"
 lila-backup = "lila.cli.backup:app"
+lila-react = "lila.cli.react:app"
 
 [tool.setuptools.package-data]
 lila = [

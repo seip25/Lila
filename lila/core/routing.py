@@ -276,8 +276,13 @@ class Router:
         openapi: bool = True,
         default_cache_ttl: Optional[int] = None,
         cache_cookie_keys: Optional[List[str]] = None,
+        desktop: Any = None,
     ):
+        """``desktop``: default target of every route in this router —
+        ``None``/``True`` (web + desktop), ``False`` (web only, removed from
+        desktop builds) or ``"only"`` (desktop app only)."""
         self.prefix = prefix.rstrip("/")
+        self.desktop = desktop
         self.tags = tags or []
         self.middlewares = middlewares or []
         self.openapi = openapi
@@ -315,6 +320,7 @@ class Router:
         roles: Optional[List[str]] = None,
         permissions: Optional[List[str]] = None,
         api_key: Union[bool, List[str]] = False,
+        desktop: Any = None,
     ) -> None:
         norm_path = self._normalize_path(path)
         methods = [m.upper() for m in methods]
@@ -552,6 +558,7 @@ class Router:
             return final_res
 
         route_obj = Route(norm_path, endpoint=endpoint_wrapper, methods=methods, name=name)
+        self._tag_desktop(route_obj, desktop)
         self.routes.append(route_obj)
 
         is_in_openapi = openapi if openapi is not None else self.openapi
@@ -608,24 +615,71 @@ class Router:
             return fn
         return decorator
 
-    def websocket(self, path: str):
+    def _tag_desktop(self, route: Any, desktop: Any = None) -> Any:
+        """Stores the desktop/web target on the route (read by lila.core.desktop)."""
+        value = self.desktop if desktop is None else desktop
+        if isinstance(value, str):
+            value = value.strip().lower()
+            if value not in ("only", "web"):
+                raise ValueError("desktop must be True, False, None, 'only' or 'web'")
+            value = False if value == "web" else "only"
+        route.lila_desktop = value
+        return route
+
+    def websocket(self, path: str, desktop: Any = None):
         """Standard Starlette WebSocket route decorator."""
         def decorator(fn: Callable):
             norm_path = self._normalize_path(path)
-            self.routes.append(WebSocketRoute(norm_path, endpoint=fn))
+            self.routes.append(self._tag_desktop(WebSocketRoute(norm_path, endpoint=fn), desktop))
             return fn
         return decorator
 
     ws = websocket
 
-    def ws_hub(self, path: str, hub: Any):
+    def ws_hub(self, path: str, hub: Any, desktop: Any = None):
         """Mounts a WebSocketHub automatically on this path."""
         norm_path = self._normalize_path(path)
 
         async def _endpoint(websocket):
             await hub.handle_connection(websocket)
 
-        self.routes.append(WebSocketRoute(norm_path, endpoint=_endpoint))
+        self.routes.append(self._tag_desktop(WebSocketRoute(norm_path, endpoint=_endpoint), desktop))
+
+    def spa(
+        self,
+        mount: str = "/app",
+        meta: Optional[Dict[str, Any]] = None,
+        entry: Any = None,
+        root_id: str = "root",
+        tailwind: bool = False,
+        skeleton: Optional[str] = None,
+        defaults: Optional[Dict[str, Any]] = None,
+        **route_kwargs: Any,
+    ) -> None:
+        """Serves a React (Vite) SPA under ``mount`` with per-route SEO.
+
+        ``meta`` keys are relative to the mount (``"login"``, ``"users/:id"``,
+        ``"docs/*"``) plus ``"*"`` for defaults; values are dicts or
+        ``fn(request, params)`` (sync/async) returning ``title``,
+        ``description``, ``jsonld``, ``meta``, ``robots``, ``canonical``,
+        ``image``, ``props``, ``status``... Route options such as ``auth=True``,
+        ``roles=[...]``, ``desktop=False`` or ``cache=60`` are passed through.
+        The catch-all is always matched after every other route.
+        """
+        from lila.core.react import make_spa_handler
+
+        base = "/" + mount.strip("/") if mount.strip("/") else ""
+        handler = make_spa_handler(
+            self._normalize_path(base or "/"), meta=meta, entry=entry, root_id=root_id, tailwind=tailwind,
+            skeleton=skeleton, **(defaults or {}),
+        )
+        route_kwargs.setdefault("openapi", False)
+        before = len(self.routes)
+        self.add_route(base or "/", handler, methods=["GET"], name=handler.__name__, **route_kwargs)
+        self.add_route(f"{base}/{{lila_spa_path:path}}", handler, methods=["GET"],
+                       name=f"{handler.__name__}_path", **route_kwargs)
+        for route in self.routes[before:]:
+            route.lila_catch_all = True
 
     def rest_crud_generate(
         self,

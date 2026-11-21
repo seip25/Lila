@@ -83,7 +83,8 @@ def orjson_dumps(content: Any) -> bytes:
             option=orjson.OPT_NON_STR_KEYS,
         )
     import json
-    return json.dumps(content, default=_default_encoder).encode("utf-8")
+    # Same compact UTF-8 output as orjson (SSE, ETags and caches stay stable).
+    return json.dumps(content, default=_default_encoder, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
 def orjson_loads(content: Union[str, bytes]) -> Any:

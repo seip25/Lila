@@ -17,6 +17,7 @@ from lila.cli.deploy import app as deploy_app
 from lila.cli.css import app as css_app
 from lila.cli.bench import bench as bench_command
 from lila.cli.backup import app as backup_app
+from lila.cli.react import app as react_app
 
 app = typer.Typer(
     name="lila",
@@ -344,6 +345,30 @@ def doctor():
     elif not ENV_CONFIG.get_bool("DEBUG", False):
         typer.secho("  ⚠️ No compiled CSS: run `lila css build` (pages load the 270 KB Tailwind runtime).", fg=typer.colors.YELLOW)
 
+    from lila.cli.react import is_react_project
+
+    if is_react_project():
+        from lila.core.vite import hot_file, status as vite_status
+
+        mode, detail = vite_status()
+        if mode == "build":
+            typer.secho("  ✅ React assets built (public/build manifest)", fg=typer.colors.GREEN)
+        elif mode == "dev":
+            typer.secho(f"  ✅ React pages use the Vite dev server ({detail})", fg=typer.colors.GREEN)
+        else:
+            level = typer.colors.YELLOW if ENV_CONFIG.get_bool("DEBUG", False) else typer.colors.RED
+            typer.secho("  ⚠️ React assets missing: run `lila react build` (or `lila react dev`).", fg=level)
+            if not ENV_CONFIG.get_bool("DEBUG", False):
+                ok = False
+        if os.path.isfile(hot_file()) and not ENV_CONFIG.get_bool("DEBUG", False):
+            typer.secho("  ⚠️ public/build/hot exists but DEBUG=False (ignored); delete it before deploying.", fg=typer.colors.YELLOW)
+
+    from lila.core.desktop import exclude_patterns
+
+    patterns = exclude_patterns()
+    if patterns:
+        typer.secho(f"  ✅ Desktop builds exclude: {', '.join(patterns)}", fg=typer.colors.GREEN)
+
     if not ok:
         raise typer.Exit(code=1)
     typer.secho("\n✅ Project looks healthy.", fg=typer.colors.GREEN)
@@ -369,6 +394,7 @@ app.add_typer(deploy_app, name="deploy", help="Generate production deployment co
 app.command("bench", help="Benchmark a running server (req/s, latency, RSS).")(bench_command)
 app.add_typer(css_app, name="css", help="Compile Tailwind CSS for production (no Node.js).")
 app.add_typer(backup_app, name="backup", help="Hot atomic SQLite database backup using sqlite3.backup().")
+app.add_typer(react_app, name="react", help="React + Vite: init, dev (HMR), build (public/build), status.")
 
 if __name__ == "__main__":
     app()

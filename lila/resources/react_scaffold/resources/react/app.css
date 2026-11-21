@@ -1,0 +1,11 @@
+@import "tailwindcss" source(none);
+/* Only scan the React sources (Jinja pages use `lila css build`). */
+@source "./";
+
+/* Same dark mode switch as Lila's Jinja pages (data-theme="dark"). */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --color-primary: #1a73e8;
+  --color-primary-dark: #1557b0;
+}

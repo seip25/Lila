@@ -297,6 +297,31 @@ jinja_env.globals["asset"] = asset
 jinja_env.globals["tailwind_css"] = tailwind_css
 
 
+def _vite_global(entries=None, react=True):
+    from lila.core.vite import vite
+
+    return vite(entries, react=react)
+
+
+def _is_desktop_global() -> bool:
+    from lila.core.desktop import is_desktop
+
+    return is_desktop()
+
+
+def _route_available_global(path: str) -> bool:
+    from lila.core.desktop import route_available
+
+    return route_available(path)
+
+
+# {{ vite("resources/react/islands.jsx") }} - React/Vite assets in Jinja pages.
+jinja_env.globals["vite"] = _vite_global
+# {% if not is_desktop() %}...{% endif %} / {% if route_available("/checkout") %}
+jinja_env.globals["is_desktop"] = _is_desktop_global
+jinja_env.globals["route_available"] = _route_available_global
+
+
 @pass_context
 def _oauth_buttons_ctx(ctx, *args, **kwargs):
     if len(args) < 4 and not kwargs.get("label_prefix"):
