@@ -4,6 +4,7 @@
     lila react dev       # Vite (HMR / Fast Refresh) + Lila dev server together
     lila react build     # vite build -> public/build (+ manifest) for production/desktop
     lila react types     # TypeScript interfaces from Pydantic schemas + models
+    lila react ui        # add/update the UI kit (components/ui) in an existing project
     lila react status    # which mode pages use right now (dev / build / missing)
 
 Node.js is only needed to develop and build; production servers and desktop
@@ -241,6 +242,45 @@ def build(
     for entry in entries:
         typer.echo(f"   {entry} → public/build/{manifest[entry]['file']}")
     typer.echo("   Deploy public/build with the app; Node is not needed on the server.")
+
+
+UI_PATHS = (
+    os.path.join("resources", "react", "components", "ui"),
+    os.path.join("resources", "react", "lila"),
+)
+
+
+def copy_ui(force: bool = False, quiet: bool = False) -> List[str]:
+    """Copies the UI kit (components/ui) and the @lila client files that are missing."""
+    written = []
+    for src, rel in _scaffold_files("common", parts=()):
+        if not rel.startswith(UI_PATHS):
+            continue
+        if os.path.exists(rel) and not force:
+            continue
+        os.makedirs(os.path.dirname(rel), exist_ok=True)
+        if os.path.exists(rel):
+            shutil.copy2(rel, rel + ".bak")
+        shutil.copy2(src, rel)
+        written.append(rel)
+        if not quiet:
+            typer.echo(f"   + {rel}")
+    return written
+
+
+@app.command("ui")
+def ui_command(
+    force: bool = typer.Option(False, "--force", help="Overwrite existing kit files (a .bak copy is kept)."),
+):
+    """Add (or update with --force) the UI kit in resources/react/components/ui and the @lila client."""
+    if not is_react_project():
+        typer.secho("❌ Run `lila react init` first.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    written = copy_ui(force=force)
+    css = os.path.join("resources", "react", "app.css")
+    if os.path.isfile(css) and "components/ui/ui.css" not in open(css, encoding="utf-8").read():
+        typer.secho('   ⚠️ Add  @import "./components/ui/ui.css";  to resources/react/app.css (after @source).', fg=typer.colors.YELLOW)
+    typer.secho(f"✅ UI kit ready ({len(written)} file(s) written).", fg=typer.colors.GREEN)
 
 
 def write_types(quiet: bool = False) -> bool:

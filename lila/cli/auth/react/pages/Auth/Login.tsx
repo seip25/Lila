@@ -1,33 +1,31 @@
-import { Link, useForm, useT } from "@lila";
-import { AuthCard, Field, FormMessage, OAuthButtons, Submit, type Provider } from "../../components/Auth";
+import { Link, useT } from "@lila";
+import { Form, Input, SubmitButton } from "../../components/ui";
+import { AuthCard, nextUrl, OAuthButtons, type Provider } from "../../components/Auth";
 
 // GET /login -> react_render(request, "Auth/Login", {"providers": [...]})
 // POST /login (LoginModel) -> {"success", "msg"} + session cookie
 export default function Login({ providers = [] }: { providers: Provider[] }) {
   const t = useT();
-  const form = useForm({ email: "", password: "" });
   return (
     <AuthCard title={t("login", "Welcome Back")} subtitle={t("sign_in_desc", "Sign in to your account")}>
       <OAuthButtons providers={providers} />
-      <form className="space-y-4" onSubmit={form.handleSubmit("/login", { redirect: "/dashboard" })} noValidate>
-        <FormMessage error={form.errors._form} />
-        <Field label={t("email", "Email Address")} type="email" required autoComplete="email" placeholder="you@example.com" {...form.field("email")} error={form.errors.email} />
-        <Field
-          label={t("password", "Password")}
+      <Form action="/login" initial={{ email: "", password: "" }} redirect={nextUrl("/dashboard")}>
+        <Input name="email" type="email" label={t("email", "Email Address")} required autoComplete="email" placeholder="you@example.com" />
+        <Input
+          name="password"
           type="password"
+          label={t("password", "Password")}
           required
           autoComplete="current-password"
           placeholder="••••••••"
-          {...form.field("password")}
-          error={form.errors.password}
-          aside={<Link href="/forgot-password" className="text-xs text-blue-600 hover:underline dark:text-blue-400">{t("forgot your password", "Forgot password?")}</Link>}
+          aside={<Link href="/forgot-password" className="lila-link text-xs">{t("forgot your password", "Forgot password?")}</Link>}
         />
-        <Submit processing={form.processing}>{t("sign_in", "Sign In")}</Submit>
-        <p className="mt-4 border-t border-slate-100 pt-3 text-center text-xs text-slate-500 dark:border-slate-800">
+        <SubmitButton loadingText={t("loading", "Loading...")}>{t("sign_in", "Sign In")}</SubmitButton>
+        <p className="border-t border-border pt-3 text-center text-xs text-muted-foreground">
           {t("dont_have_account", "Don't have an account?")}{" "}
-          <Link href="/register" className="font-semibold text-blue-600 hover:underline dark:text-blue-400">{t("create account", "Create account")}</Link>
+          <Link href="/register" className="lila-link font-semibold">{t("create account", "Create account")}</Link>
         </p>
-      </form>
+      </Form>
     </AuthCard>
   );
 }

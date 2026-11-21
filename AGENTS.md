@@ -326,10 +326,30 @@ return render(
   `errors._form`, `processing`, `message`, `handleSubmit(url, {redirect,
   transform, onSuccess, reset})`), `useLilaHead(pathname)`, `DesktopOnly`,
   `WebOnly`, `desktopApi()`. `react_render(translations=True|[keys])` feeds `useT()`.
+- UI kit (`resources/react/components/ui`, import from `@/components/ui`;
+  copied files, `lila react ui [--force]` adds/updates): `Button` (`variant`
+  primary|secondary|outline|ghost|danger|success|warning|info|light|dark|link,
+  `size` sm|md|lg|icon, `loading`, `href`, `url`+`method`+`confirm`),
+  `buttonVariants()`, `Form` (`action`, `initial`, `redirect`, `validate`,
+  `transform`, `successToast`, `form={useForm()}`) with `Input`/`Textarea`/
+  `Select`/`Checkbox` bound by `name`, `SubmitButton`, `FormError`,
+  `FormMessage`; `Card`, `Badge`, `Modal`, `Drawer`, `Carousel`, `Toaster` +
+  `toast.success/error/info/warning`, `ThemeToggle`/`useTheme` (`lila-theme`,
+  `data-theme`), `Spinner`, `Skeleton`, `PageSkeleton`, `ProgressBar`,
+  `DataTable` (`rows` or `url` → `page/per_page/limit/offset/search/sort/order`,
+  accepts `{items,total}`, `{data,total}` or a list; `onEdit`/`onDelete` may be
+  URL patterns like `/api/users/:id`). Styles: `components/ui/ui.css` (Lila
+  tokens and `.btn-*`, `.card`, `.form-control`, `.badge`, `.nav-link`, `.table-lila`).
+- `@lila/auth`: `AuthProvider` (GET `/api/auth/me`, POST `/login`, `/register`,
+  `/logout`), `useAuth()`, `RequireAuth` (`roles`, `redirectTo`, `page` for the
+  server login page with `?next=`), `GuestOnly`; guards render only — protect
+  APIs on the server. `@lila/router`: `createRouter(routes, {mode, basename})`
+  (basename = `router.spa` mount), `page(() => import(...))`, `<LilaHead />`.
 - `lila auth --react` — React pages `Auth/{Login,Register,ForgotPassword,
   ChangePassword,InvalidToken}` and `Account/{Dashboard,Profile}`; the route
   files are the Jinja ones with page handlers switched to `react_render`
-  (`lila.cli.auth.REACT_PAGE_REPLACEMENTS`); Jinja templates are skipped.
+  (`lila.cli.auth.REACT_PAGE_REPLACEMENTS`); Jinja templates are skipped. Every
+  `lila auth` also adds `GET /api/auth/me` (`app/routes/web/auth/me.py`).
   `Page.layout = (page) => <Layout>{page}</Layout>` for persistent layouts.
 - Dev assets come from `public/build/hot` (written by the Lila Vite plugin)
   **only when DEBUG=True**; otherwise `public/build/.vite/manifest.json` is

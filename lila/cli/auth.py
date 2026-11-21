@@ -157,11 +157,13 @@ def reactify_route(filename: str, content: str) -> str:
 
 def _create_react_pages():
     """Copies the React auth pages; sets up React (TypeScript) when missing."""
-    from lila.cli.react import init as react_init, is_react_project
+    from lila.cli.react import copy_ui, init as react_init, is_react_project
 
     if not is_react_project():
         typer.secho("  ⚛️  React is not set up yet: running `lila react init --no-routes`...", fg=typer.colors.CYAN)
         react_init(install=False, force=False, routes=False, js=False)
+    else:
+        copy_ui(quiet=True)  # the pages use components/ui and @lila (missing files only)
     base = Path(package_root) / "cli" / "auth" / "react"
     for src in sorted(base.rglob("*.tsx")):
         rel = src.relative_to(base)
@@ -187,6 +189,7 @@ def _create_auth_files(react: bool = False):
         "logout.py":          read_file("cli/auth/routes/logout.py"),
         "forgot_password.py": read_file("cli/auth/routes/forgot_password.py"),
         "change_password.py": read_file("cli/auth/routes/change_password.py"),
+        "me.py":              read_file("cli/auth/routes/me.py"),
     }
     for filename, content in files.items():
         if react:

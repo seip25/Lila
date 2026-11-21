@@ -179,5 +179,75 @@ class ReactExtrasTests(unittest.TestCase):
         self.assertIn("__lilaDevReload", body)
 
 
+def _load_me_router():
+    import importlib.util
+
+    path = os.path.join(os.path.dirname(__file__), "..", "lila", "cli", "auth", "routes", "me.py")
+    spec = importlib.util.spec_from_file_location("lila_scaffold_me", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.router
+
+
+class AuthMeTests(unittest.TestCase):
+    def test_me_endpoint_exposes_only_public_fields(self):
+        from lila.testing import login
+
+        client = TestClient(App(routes=[_load_me_router()], rate_limit=None, debug=False))
+        anonymous = client.get("/api/auth/me").json()
+        self.assertIsNone(anonymous["user"])
+        self.assertEqual(client.get("/api/auth/me").headers["cache-control"], "no-store")
+        login(client, {"user_id": 7, "email": "ana@example.com", "name": "Ana", "role": "admin", "secret_note": "x"})
+        data = client.get("/api/auth/me").json()
+        self.assertEqual(data["user"]["id"], 7)
+        self.assertEqual(data["user"]["name"], "Ana")
+        self.assertEqual(data["roles"], ["admin"])
+        self.assertNotIn("secret_note", data["user"])
+
+    def test_auth_scaffold_registers_me_route(self):
+        init = read_file("cli/auth/routes/auth_init.py")
+        self.assertIn("_me_routes", init)
+
+
+class UiKitTests(unittest.TestCase):
+    KIT = ("Button.tsx", "Form.tsx", "Card.tsx", "Badge.tsx", "Dialog.tsx", "Carousel.tsx", "Toast.tsx",
+           "Theme.tsx", "Feedback.tsx", "DataTable.tsx", "index.ts", "ui.css")
+
+    def test_kit_ships_in_both_variants(self):
+        for variant in ("ts", "js"):
+            files = {rel for _src, rel in _scaffold_files(variant)}
+            for name in self.KIT:
+                self.assertIn(os.path.join("resources", "react", "components", "ui", name), files)
+            for name in ("index.tsx", "auth.tsx", "router.tsx"):
+                self.assertIn(os.path.join("resources", "react", "lila", name), files)
+
+    def test_kit_css_uses_lila_palette(self):
+        css_path = os.path.join(os.path.dirname(__file__), "..", "lila", "resources", "react_scaffold", "common",
+                                "resources", "react", "components", "ui", "ui.css")
+        with open(css_path, encoding="utf-8") as fh:
+            css = fh.read()
+        for token in ("--lila-primary", ".btn-primary", ".form-control", ".card", "data-theme", ".badge", ".table-lila"):
+            self.assertIn(token, css)
+
+    def test_copy_ui_only_writes_missing_files(self):
+        from lila.cli.react import copy_ui
+
+        cwd = os.getcwd()
+        folder = tempfile.mkdtemp()
+        try:
+            os.chdir(folder)
+            first = copy_ui(quiet=True)
+            self.assertTrue(any(path.endswith("Button.tsx") for path in first))
+            target = os.path.join("resources", "react", "components", "ui", "Button.tsx")
+            with open(target, "w") as fh:
+                fh.write("// mine")
+            self.assertEqual(copy_ui(quiet=True), [])
+            with open(target) as fh:
+                self.assertEqual(fh.read(), "// mine")
+        finally:
+            os.chdir(cwd)
+            shutil.rmtree(folder, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

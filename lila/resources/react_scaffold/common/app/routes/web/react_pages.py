@@ -59,7 +59,9 @@ router.spa(
     meta={
         "*": {"title": "App", "description": "Lila SPA"},
         "/": {"title": "SPA Home", "jsonld": {"@context": "https://schema.org", "@type": "WebApplication", "name": "Lila SPA"}},
+        "users": {"title": "Users"},
         "users/:id": lambda request, params: {"title": f"User {params['id']}", "robots": "noindex"},
+        "account": {"title": "Account", "robots": "noindex"},
         "billing": {"title": "Billing"},
     },
 )

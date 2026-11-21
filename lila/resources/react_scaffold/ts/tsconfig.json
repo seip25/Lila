@@ -13,6 +13,7 @@
     "types": ["vite/client"],
     "paths": {
       "@lila": ["./resources/react/lila/index.tsx"],
+      "@lila/*": ["./resources/react/lila/*"],
       "@/*": ["./resources/react/*"]
     }
   },

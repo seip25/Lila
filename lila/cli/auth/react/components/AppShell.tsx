@@ -1,6 +1,7 @@
 // Layout for authenticated React pages (dashboard, profile...).
 import type { ReactNode } from "react";
-import { http, Link, usePage, useT, visit } from "@lila";
+import { http, Link, useT, visit } from "@lila";
+import { Badge, Button, ProgressBar, ThemeToggle, Toaster } from "./ui";
 import type { SessionUser } from "./Auth";
 
 const LANGS = [
@@ -11,20 +12,6 @@ const LANGS = [
 
 export default function AppShell({ user, children }: { user: SessionUser; children: ReactNode }) {
   const t = useT();
-  const { url } = usePage();
-  const item = (href: string, label: ReactNode) => (
-    <Link
-      href={href}
-      className={
-        "flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition " +
-        (url.split("?")[0] === href
-          ? "bg-blue-600 text-white shadow-sm"
-          : "text-slate-600 hover:bg-slate-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-slate-800")
-      }
-    >
-      {label}
-    </Link>
-  );
   const logout = async () => {
     try {
       await http("/logout", { method: "POST" });
@@ -33,35 +20,34 @@ export default function AppShell({ user, children }: { user: SessionUser; childr
     }
   };
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4">
+    <div className="flex min-h-screen flex-col">
+      <ProgressBar />
+      <header className="sticky top-0 z-40 border-b border-border bg-surface py-3 shadow-sm dark:bg-surface-dark">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4">
           <Link href="/dashboard" className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-black text-transparent">
             Lila
           </Link>
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-            {user.name}
-          </span>
+          <div className="flex items-center gap-2">
+            <Badge tone="primary" soft>{user.name}</Badge>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-8 px-4 py-8 md:grid-cols-4">
-        <aside className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 md:col-span-1">
-          <h2 className="mb-2 px-3 text-xs font-black uppercase tracking-wider text-slate-400">{t("menu", "Menu")}</h2>
-          {item("/dashboard", <>🏠 {t("home", "Home")}</>)}
-          {item("/profile", <>👤 {t("profile", "Profile")}</>)}
+        <aside className="card flex h-fit flex-col gap-1 p-4 md:col-span-1">
+          <h2 className="field-label mb-2 px-3">{t("menu", "Menu")}</h2>
+          <Link href="/dashboard" className="nav-link">🏠 {t("home", "Home")}</Link>
+          <Link href="/profile" className="nav-link">👤 {t("profile", "Profile")}</Link>
           {LANGS.map(([code, label]) => (
             // Full reload: the server switches the locale.
-            <a key={code} href={`?lang=${code}`} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800">
-              {label}
-            </a>
+            <a key={code} href={`?lang=${code}`} className="nav-link">{label}</a>
           ))}
-          <hr className="my-2 border-slate-200 dark:border-slate-800" />
-          <button onClick={logout} className="rounded-xl border border-blue-600 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-600 hover:text-white">
-            {t("logout", "Log Out")}
-          </button>
+          <hr className="my-2 border-border" />
+          <Button variant="secondary" size="sm" onClick={logout}>{t("logout", "Log Out")}</Button>
         </aside>
         <main className="flex flex-col gap-6 md:col-span-3">{children}</main>
       </div>
+      <Toaster />
     </div>
   );
 }

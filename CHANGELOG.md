@@ -36,6 +36,20 @@ All notable changes to Lila Framework. The format follows
 - `lila auth --react`: login, register, forgot/reset password, invalid token,
   dashboard and profile as React pages over the same JSON endpoints, throttles
   and lockouts; `OAuth.configured_providers()`.
+- **React UI kit** copied into `resources/react/components/ui` (editable, Lila
+  palette and classes, dark mode shared with Jinja via `lila-theme`): Button
+  (variants/sizes/loading, `url` actions), Form/Input/Textarea/Select/Checkbox/
+  SubmitButton/FormError/FormMessage (`validate`, 422 per field), Card, Badge,
+  Modal, Drawer (native `<dialog>`), Carousel, Toaster/toast, ThemeToggle/
+  useTheme, Spinner/Skeleton/PageSkeleton/ProgressBar and DataTable (search,
+  sort, pagination, edit/delete, server mode compatible with `paginate_async`);
+  `lila react ui [--force]`.
+- `@lila/auth` (`AuthProvider`, `useAuth`, `RequireAuth` with roles and
+  `?next=` redirects, `GuestOnly`), `@lila/router` (`createRouter`
+  browser/hash/memory, lazy `page()`, `LilaHead`); `lila auth` adds
+  `GET /api/auth/me` (public fields + roles, `no-store`) and
+  `permissions.resolve_roles`. `<Link activeClassName exact>` sets
+  `aria-current`; `lila:navigate-start/end` events.
 - `lila desktop build --installer auto|dmg|msi`: macOS `.dmg` (hdiutil, with an
   Applications link) and Windows `.msi` (WiX v4+: Program Files, Start
   menu/desktop shortcuts, icon, in-place upgrades); `--version`,

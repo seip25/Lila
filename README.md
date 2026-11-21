@@ -287,6 +287,15 @@ router.spa("/app", meta={
 React auth (login, register, forgot/reset password, dashboard, profile) on the
 same secure JSON endpoints as the Jinja version: `lila auth --react`.
 
+A UI kit is copied into `resources/react/components/ui` (your code, Lila's
+palette and `.btn-*`/`.card`/`.form-control` classes, dark mode shared with
+Jinja): `Button`, `Form` + `Input`/`Select`/`Textarea`/`Checkbox`/`SubmitButton`
+(422 errors per field), `Card`, `Badge`, `Modal`, `Drawer`, `Carousel`,
+`Toaster`/`toast`, `ThemeToggle`, `Skeleton`, `ProgressBar` and `DataTable`
+(local rows or `paginate_async` URLs). SPAs get `@lila/router`
+(`createRouter`, lazy `page()`, `LilaHead`) and `@lila/auth` (`AuthProvider`,
+`useAuth`, `RequireAuth roles=[...]`, `GuestOnly`) backed by `/api/auth/me`.
+
 ### Desktop
 
 ```bash
@@ -352,6 +361,7 @@ application-data directory.
 | `lila desktop routes` | Which routes ship in the desktop app + web-only suggestions. |
 | `lila react init/dev/build/types/status` | React + Vite (TypeScript): scaffold, HMR dev server, production build, TS types from models. |
 | `lila auth --react` | Auth pages in React (TypeScript) instead of Jinja. |
+| `lila react ui [--force]` | Add/update the React UI kit in an existing project. |
 
 `lila desktop` binds to `127.0.0.1`, enforces a generated local session token and
 allows only one instance. The frozen build stores SQLite/cache/logs in the OS

@@ -1,6 +1,7 @@
-import { DesktopOnly, Link, useLila, WebOnly } from "@lila";
+import { DesktopOnly, useLila, WebOnly } from "@lila";
 import type { ReactElement } from "react";
 import Layout from "../components/Layout";
+import { Badge, Button, Card } from "../components/ui";
 
 // Props come from Python: react_render(request, "Home", {"framework": ..., "features": [...]})
 interface HomeProps {
@@ -17,26 +18,20 @@ export default function Home({ framework, features = [] }: HomeProps) {
         Running as <strong>{desktop ? "desktop app" : "website"}</strong>. Edit{" "}
         <code>resources/react/pages/Home.tsx</code> and the page updates instantly (HMR).
       </p>
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         {features.map((feature) => (
-          <li key={feature} className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-            {feature}
-          </li>
+          <Card key={feature} title={feature} />
         ))}
-      </ul>
+      </div>
       <div className="flex flex-wrap gap-3">
-        <Link className="rounded-lg bg-primary px-4 py-2 text-white" href="/react/about">
-          About (client navigation)
-        </Link>
+        <Button href="/react/about">About (client navigation)</Button>
         {/* desktop=False route: the link disappears in the desktop build */}
-        <Link className="rounded-lg border px-4 py-2" href="/react/checkout">
-          Checkout (web only)
-        </Link>
+        <Button href="/react/checkout" variant="outline">Checkout (web only)</Button>
         <WebOnly>
-          <a className="rounded-lg border px-4 py-2" href="/app">SPA demo</a>
+          <a className="btn-outline" href="/app">SPA demo + UI kit</a>
         </WebOnly>
         <DesktopOnly>
-          <span className="rounded-lg bg-emerald-100 px-4 py-2 text-emerald-800">Native features enabled</span>
+          <Badge tone="success" soft>Native features enabled</Badge>
         </DesktopOnly>
       </div>
     </section>

@@ -45,10 +45,12 @@ export default defineConfig(({ command }) => ({
   publicDir: false,
   plugins: [lila(), react(), tailwindcss()],
   resolve: {
-    alias: {
-      "@lila": path.resolve("resources/react/lila/index.tsx"),
-      "@": path.resolve("resources/react"),
-    },
+    alias: [
+      // @lila -> client, @lila/auth and @lila/router -> resources/react/lila/*.tsx
+      { find: /^@lila$/, replacement: path.resolve("resources/react/lila/index.tsx") },
+      { find: /^@lila\/(.*)$/, replacement: path.resolve("resources/react/lila") + "/$1" },
+      { find: /^@\/(.*)$/, replacement: path.resolve("resources/react") + "/$1" },
+    ],
   },
   server: {
     host: HOST,

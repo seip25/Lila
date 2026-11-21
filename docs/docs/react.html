@@ -173,6 +173,32 @@ export default function Login() {
         endpoints (throttles, lockouts, Argon2) as the Jinja version.
       </p>
 
+      <h3 class="text-xl font-bold mt-8 mb-3">UI kit</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        <code>lila react init</code> copies the kit into <code>resources/react/components/ui</code>: it is
+        your code, styled with Lila's palette and classes (<code>.btn-*</code>, <code>.card</code>,
+        <code>.form-control</code>) and the same dark mode as the Jinja pages. Existing projects:
+        <code>lila react ui</code>.
+      </p>
+      <pre><code class="language-typescript">import { Button, Card, DataTable, Form, Input, SubmitButton, Toaster, toast } from "@/components/ui";
+
+&lt;Form action="/api/products" initial={{ name: "", price: 0 }} successToast reset&gt;
+  &lt;Input name="name" label="Name" required /&gt;          {/* 422 errors appear here */}
+  &lt;Input name="price" type="number" label="Price" /&gt;
+  &lt;SubmitButton&gt;Save&lt;/SubmitButton&gt;
+&lt;/Form&gt;
+
+&lt;DataTable url="/api/products" columns={[{ key: "name", label: "Name", sortable: true }]}
+  onEdit="/products/:id" onDelete="/api/products/:id" /&gt;   {/* paginate_async() compatible */}
+
+&lt;Button variant="danger" url="/api/cache" method="DELETE" confirm="Clear?" successMessage&gt;Clear&lt;/Button&gt;</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Also: <code>Card</code>, <code>Badge</code>, <code>Modal</code>, <code>Drawer</code>,
+        <code>Carousel</code>, <code>Toaster</code>/<code>toast</code>, <code>ThemeToggle</code>,
+        <code>Spinner</code>, <code>Skeleton</code>, <code>PageSkeleton</code>, <code>ProgressBar</code>,
+        <code>Select</code>, <code>Textarea</code>, <code>Checkbox</code>.
+      </p>
+
       <h3 class="text-xl font-bold mt-8 mb-3">3. SPA with React Router</h3>
       <pre><code class="language-python">router.spa("/app", meta={
     "*": {"title": "App", "description": "My app"},
@@ -186,6 +212,24 @@ export default function Login() {
         callables and may also return <code>props</code> and <code>status</code>. In the client,
         <code>useLilaHead(useLocation().pathname)</code> refreshes the head on navigation. The SPA
         catch-all is always matched after your API routes and static files.
+      </p>
+      <pre><code class="language-typescript">import { RouterProvider } from "react-router";
+import { createLilaSpa } from "@lila";
+import { AuthProvider, RequireAuth } from "@lila/auth";
+import { createRouter, page } from "@lila/router";
+
+const router = createRouter([{ element: &lt;AppLayout /&gt;, children: [
+  { index: true, element: &lt;Home /&gt; },
+  { path: "admin", element: &lt;RequireAuth roles={["admin"]} page redirectTo="/login" /&gt;,
+    children: [{ index: true, lazy: page(() =&gt; import("./spa/Admin")) }] },
+]}]);
+
+createLilaSpa(() =&gt; &lt;AuthProvider&gt;&lt;RouterProvider router={router} /&gt;&lt;/AuthProvider&gt;);</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        <code>AuthProvider</code> reads <code>GET /api/auth/me</code> (added by <code>lila auth</code>);
+        <code>useAuth()</code> exposes <code>user</code>, <code>login</code>, <code>logout</code> and
+        <code>hasRole</code>. Guards only decide what to render: keep <code>auth=True</code> /
+        <code>roles=[...]</code> on the API routes.
       </p>
 
       <h3 class="text-xl font-bold mt-8 mb-3">4. Dev and production</h3>

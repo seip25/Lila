@@ -12,6 +12,9 @@
 //   <DesktopOnly> <WebOnly>    render children only in the desktop app / web
 //   useLilaHead(pathname)      SPA: refresh <title>/meta/JSON-LD on navigation
 //   desktopApi()               pywebview bridge (window.pywebview.api) or null
+//
+// Also: @lila/auth (AuthProvider, useAuth, RequireAuth, GuestOnly) and
+// @lila/router (createRouter, page, LilaHead) for React Router SPAs.
 import {
   createContext,
   startTransition,
@@ -415,7 +418,15 @@ function PagesApp({ initial, pages, layout: Layout }: { initial: PagesState; pag
   stateRef.current = state;
 
   useEffect(() => {
-    const go = async (url: string, { method = "GET", data, replace = false, preserveScroll = false, headers = {} }: VisitOptions = {}) => {
+    const go = async (url: string, options: VisitOptions = {}) => {
+      window.dispatchEvent(new CustomEvent("lila:navigate-start", { detail: { url } }));
+      try {
+        return await navigate(url, options);
+      } finally {
+        window.dispatchEvent(new CustomEvent("lila:navigate-end", { detail: { url } }));
+      }
+    };
+    const navigate = async (url: string, { method = "GET", data, replace = false, preserveScroll = false, headers = {} }: VisitOptions = {}) => {
       const verb = method.toUpperCase();
       const res = await fetch(url, {
         method: verb,
@@ -556,12 +567,19 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
   preserveScroll?: boolean;
   /** Routes removed in this mode (desktop=False / desktop="only") render nothing. */
   hideIfUnavailable?: boolean;
+  /** Extra classes when the link points to the current page (aria-current="page" is always set). */
+  activeClassName?: string;
+  /** Active only on the exact path (default: also on sub-paths, except "/"). */
+  exact?: boolean;
 }
 
 /** Client navigation link for react_render pages. */
-export function Link({ href, method, data, replace, preserveScroll, hideIfUnavailable = true, onClick, children, ...props }: LinkProps) {
+export function Link({ href, method, data, replace, preserveScroll, hideIfUnavailable = true, activeClassName, exact, onClick, children, className, ...props }: LinkProps) {
   const ctx = useContext(LilaContext);
   if (hideIfUnavailable && ctx && !ctx.isAvailable(href)) return null;
+  const target = pathOf(href);
+  const currentPath = (ctx?.page.url || "").split("?")[0] || (typeof window !== "undefined" ? window.location.pathname : "");
+  const active = target !== null && (target === currentPath || (!exact && target !== "/" && currentPath.startsWith(target + "/")));
   const handle = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event);
     if (event.defaultPrevented || isModified(event) || props.target || props.download) return;
@@ -570,7 +588,8 @@ export function Link({ href, method, data, replace, preserveScroll, hideIfUnavai
     visit(href, { method, data, replace, preserveScroll });
   };
   return (
-    <a href={href} onClick={handle} {...props}>
+    <a href={href} onClick={handle} aria-current={active ? "page" : undefined}
+      className={[className, active && activeClassName].filter(Boolean).join(" ") || undefined} {...props}>
       {children}
     </a>
   );
