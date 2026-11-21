@@ -3,6 +3,8 @@
     lila react init      # package.json, vite.config.js, resources/react/*, example routes
     lila react dev       # Vite (HMR / Fast Refresh) + Lila dev server together
     lila react build     # vite build -> public/build (+ manifest) for production/desktop
+    lila react types     # TypeScript interfaces from Pydantic schemas + models
+    lila react ui        # add/update the UI kit (components/ui) in an existing project
     lila react status    # which mode pages use right now (dev / build / missing)
 
 Node.js is only needed to develop and build; production servers and desktop
@@ -44,7 +46,10 @@ def _require_npm() -> str:
 
 def is_react_project(root: str = ".") -> bool:
     """True when the project has a Vite config and a package.json."""
-    has_config = any(os.path.isfile(os.path.join(root, name)) for name in ("vite.config.js", "vite.config.mjs", "vite.config.ts"))
+    has_config = any(
+        os.path.isfile(os.path.join(root, name))
+        for name in ("vite.config.ts", "vite.config.js", "vite.config.mjs", "vite.config.mts")
+    )
     return has_config and os.path.isfile(os.path.join(root, "package.json"))
 
 
@@ -61,23 +66,34 @@ def _ensure_install(npm: str, install: bool) -> None:
         raise typer.Exit(code=result.returncode)
 
 
-def _copy_scaffold(force: bool) -> List[str]:
+def _scaffold_files(variant: str = "ts", parts: tuple = ("common",)) -> List[tuple]:
+    """``(source, relative target)`` pairs for the shared files + ts|js files."""
+    pairs = []
+    for part in (*parts, variant):
+        base = os.path.join(SCAFFOLD_DIR, part)
+        for dirpath, _dirs, files in os.walk(base):
+            if "__pycache__" in dirpath:
+                continue
+            for filename in files:
+                if filename.endswith(".pyc"):
+                    continue
+                src = os.path.join(dirpath, filename)
+                pairs.append((src, os.path.relpath(src, base)))
+    return pairs
+
+
+def _copy_scaffold(force: bool, variant: str = "ts") -> List[str]:
     written = []
-    for dirpath, _dirs, files in os.walk(SCAFFOLD_DIR):
-        for filename in files:
-            if filename.endswith((".pyc",)) or "__pycache__" in dirpath:
-                continue
-            src = os.path.join(dirpath, filename)
-            rel = os.path.relpath(src, SCAFFOLD_DIR)
-            if os.path.exists(rel) and not force:
-                typer.echo(f"   · kept {rel} (exists)")
-                continue
-            os.makedirs(os.path.dirname(rel) or ".", exist_ok=True)
-            if os.path.exists(rel):
-                shutil.copy2(rel, rel + ".bak")
-            shutil.copy2(src, rel)
-            written.append(rel)
-            typer.echo(f"   + {rel}")
+    for src, rel in _scaffold_files(variant):
+        if os.path.exists(rel) and not force:
+            typer.echo(f"   · kept {rel} (exists)")
+            continue
+        os.makedirs(os.path.dirname(rel) or ".", exist_ok=True)
+        if os.path.exists(rel):
+            shutil.copy2(rel, rel + ".bak")
+        shutil.copy2(src, rel)
+        written.append(rel)
+        typer.echo(f"   + {rel}")
     return written
 
 
@@ -101,19 +117,25 @@ def init(
     install: bool = typer.Option(False, "--install", help="Run npm install afterwards."),
     force: bool = typer.Option(False, "--force", help="Overwrite existing files (a .bak copy is kept)."),
     routes: bool = typer.Option(True, "--routes/--no-routes", help="Register the example routes in main.py."),
+    js: bool = typer.Option(False, "--js", help="JavaScript (.jsx) instead of TypeScript (.tsx, default)."),
 ):
-    """Add React + Vite to the current Lila project (never overwrites without --force)."""
+    """Add React + Vite (TypeScript by default) to the current Lila project.
+
+    Never overwrites existing files without --force."""
     if not os.path.exists("main.py"):
         typer.secho("❌ main.py not found. Run this inside a Lila project (lila init).", fg=typer.colors.RED)
         raise typer.Exit(code=1)
-    typer.secho("⚛️  Adding React + Vite to this project...", fg=typer.colors.CYAN)
-    _copy_scaffold(force)
+    variant = "js" if js else "ts"
+    typer.secho(f"⚛️  Adding React + Vite ({'JavaScript' if js else 'TypeScript'}) to this project...", fg=typer.colors.CYAN)
+    _copy_scaffold(force, variant)
     _update_gitignore()
     if routes:
         from lila.cli._patch import patch_main
 
         if patch_main("main.py", IMPORT_STMT, INCLUDE_STMT):
             typer.echo("   ~ main.py: react_router included")
+    if variant == "ts":
+        write_types(quiet=True)
     if install:
         _ensure_install(_require_npm(), True)
     typer.secho("\n✅ React is ready.", fg=typer.colors.GREEN)
@@ -135,6 +157,8 @@ def dev(
         raise typer.Exit(code=1)
     npm = _require_npm()
     _ensure_install(npm, install)
+    if os.path.isfile("tsconfig.json") and os.path.isdir("app"):
+        write_types(quiet=True)
 
     env = os.environ.copy()
     env["VITE_PORT"] = str(vite_port)
@@ -172,6 +196,8 @@ def run_build(install: bool = True, quiet: bool = False) -> bool:
     """Runs ``vite build``; returns True when a manifest was produced."""
     npm = _require_npm()
     _ensure_install(npm, install)
+    if os.path.isfile("tsconfig.json") and os.path.isdir("app"):
+        write_types(quiet=True)
     hot = os.path.join("public", "build", "hot")
     if os.path.exists(hot):
         os.remove(hot)
@@ -216,6 +242,77 @@ def build(
     for entry in entries:
         typer.echo(f"   {entry} → public/build/{manifest[entry]['file']}")
     typer.echo("   Deploy public/build with the app; Node is not needed on the server.")
+
+
+UI_PATHS = (
+    os.path.join("resources", "react", "components", "ui"),
+    os.path.join("resources", "react", "lila"),
+)
+
+
+def copy_ui(force: bool = False, quiet: bool = False) -> List[str]:
+    """Copies the UI kit (components/ui) and the @lila client files that are missing."""
+    written = []
+    for src, rel in _scaffold_files("common", parts=()):
+        if not rel.startswith(UI_PATHS):
+            continue
+        if os.path.exists(rel) and not force:
+            continue
+        os.makedirs(os.path.dirname(rel), exist_ok=True)
+        if os.path.exists(rel):
+            shutil.copy2(rel, rel + ".bak")
+        shutil.copy2(src, rel)
+        written.append(rel)
+        if not quiet:
+            typer.echo(f"   + {rel}")
+    return written
+
+
+@app.command("ui")
+def ui_command(
+    force: bool = typer.Option(False, "--force", help="Overwrite existing kit files (a .bak copy is kept)."),
+):
+    """Add (or update with --force) the UI kit in resources/react/components/ui and the @lila client."""
+    if not is_react_project():
+        typer.secho("❌ Run `lila react init` first.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    written = copy_ui(force=force)
+    css = os.path.join("resources", "react", "app.css")
+    if os.path.isfile(css) and "components/ui/ui.css" not in open(css, encoding="utf-8").read():
+        typer.secho('   ⚠️ Add  @import "./components/ui/ui.css";  to resources/react/app.css (after @source).', fg=typer.colors.YELLOW)
+    typer.secho(f"✅ UI kit ready ({len(written)} file(s) written).", fg=typer.colors.GREEN)
+
+
+def write_types(quiet: bool = False) -> bool:
+    """Regenerates resources/react/types/lila.ts (TypeScript projects)."""
+    from lila.core.config import ConfigLoader
+    from lila.core.typescript import write
+
+    ConfigLoader.load()
+    try:
+        path, counts, errors, changed = write()
+    except Exception as exc:
+        typer.secho(f"⚠️ Could not generate TypeScript types: {exc}", fg=typer.colors.YELLOW)
+        return False
+    for error in errors:
+        typer.secho(f"   ⚠️ skipped {error}", fg=typer.colors.YELLOW)
+    if not quiet or changed:
+        state = "updated" if changed else "up to date"
+        typer.secho(
+            f"🧩 {path} {state}: {counts['tables']} model(s), {counts['schemas']} schema(s)",
+            fg=typer.colors.GREEN,
+        )
+    return True
+
+
+@app.command("types")
+def types_command():
+    """Generate TypeScript interfaces (resources/react/types/lila.ts) from Pydantic schemas and models in app/."""
+    if not os.path.isdir("app"):
+        typer.secho("❌ app/ not found. Run this in the project root.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    if not write_types():
+        raise typer.Exit(code=1)
 
 
 @app.command("status")

@@ -11,5 +11,6 @@
 <body data-layout="react"{% if page_meta and page_meta.body_class %} class="{{ page_meta.body_class }}"{% endif %}>
   <div id="{{ react_root_id }}" data-lila-react>{{ react_skeleton }}</div>
   <script type="application/json" id="lila-page">{{ react_page }}</script>
+  {{ react_dev_reload | default('') }}
 </body>
 </html>

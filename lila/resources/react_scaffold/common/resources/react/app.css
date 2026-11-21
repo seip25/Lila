@@ -1,0 +1,5 @@
+@import "tailwindcss" source(none);
+/* Only scan the React sources (Jinja pages use `lila css build`). */
+@source "./";
+/* Lila palette, dark mode (data-theme="dark") and the UI kit classes. */
+@import "./components/ui/ui.css";

@@ -1,0 +1,677 @@
+/* Lila palette and components for React (same tokens/classes as the Jinja
+ pages: lila/resources/html/lila/tailwind.jinja). Edit freely: it is your code. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+
+  --color-primary: var(--primary, #1a73e8);
+  --color-primary-dark: var(--primary-dark, #1557b0);
+  --color-secondary: var(--secondary, #8b5cf6);
+  --color-secondary-dark: var(--secondary-dark, #7c3aed);
+  --color-accent: var(--accent, #06b6d4);
+  --color-surface: var(--surface, #ffffff);
+  --color-surface-dark: var(--surface-dark, #1e293b);
+  --color-bg-body: var(--bg-body, #f8fafc);
+  --color-bg-body-dark: var(--bg-body-dark, #0f172a);
+
+  --color-lila-bg: var(--lila-bg, #f8fafc);
+  --color-lila-surface: var(--lila-surface, #ffffff);
+  --color-lila-primary: var(--lila-primary, #1a73e8);
+  --color-lila-primary-hover: var(--lila-primary-hover, #1557b0);
+  --color-lila-sidebar: var(--lila-sidebar, #f1f5f9);
+}
+
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --secondary: #8b5cf6;
+  --secondary-dark: #7c3aed;
+  --accent: #06b6d4;
+  --surface: #ffffff;
+  --surface-dark: #1e293b;
+  --bg-body: #f8fafc;
+  --bg-body-dark: #0f172a;
+
+  --lila-bg: #f8fafc;
+  --lila-surface: #ffffff;
+  --lila-primary: #1a73e8;
+  --lila-primary-hover: #1557b0;
+  --lila-sidebar: #f1f5f9;
+
+  --shadow-lila-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lila-card-hover: 0 10px 25px -4px rgba(26, 115, 232, 0.12);
+  --shadow-lila-input: 0 2px 6px 0 rgba(0, 0, 0, 0.03);
+  --shadow-lila-input-focus: 0 0 0 3px rgba(26, 115, 232, 0.2);
+}
+
+:root[data-theme="dark"] {
+  --primary: #60a5fa;
+  --primary-dark: #3b82f6;
+  --secondary: #a78bfa;
+  --secondary-dark: #8b5cf6;
+  --accent: #22d3ee;
+  --surface: #1e293b;
+  --surface-dark: #0f172a;
+  --bg-body: #0b1120;
+  --bg-body-dark: #0b1120;
+
+  --lila-bg: #0b1120;
+  --lila-surface: #1e293b;
+  --lila-primary: #60a5fa;
+  --lila-primary-hover: #93c5fd;
+  --lila-sidebar: #131b2e;
+
+  --shadow-lila-card: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lila-card-hover: 0 10px 25px -4px rgba(96, 165, 250, 0.2);
+  --shadow-lila-input: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
+  --shadow-lila-input-focus: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+dialog {
+  margin: auto;
+}
+
+/* View Transitions (Smooth cross-fade + micro slide) */
+::view-transition-old(root) {
+  animation: 220ms cubic-bezier(0.4, 0, 0.2, 1) both lila-fade-out;
+}
+::view-transition-new(root) {
+  animation: 220ms cubic-bezier(0.4, 0, 0.2, 1) both lila-fade-in;
+}
+
+@keyframes lila-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-3px); }
+}
+
+@keyframes lila-fade-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button click ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: lila-ripple 600ms linear;
+  background-color: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+@keyframes lila-ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Drawer backdrops and modals */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  /* A closed (transparent) backdrop must never block clicks on the page. */
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 20rem;
+  max-width: 85vw;
+  z-index: 9999;
+  background-color: var(--lila-surface);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+/* Carousel */
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+.carousel-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+@layer components {
+  .lila-card,
+  .card {
+    background-color: var(--lila-surface);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lila-card);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  :root[data-theme="dark"] .lila-card,
+  :root[data-theme="dark"] .card {
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    box-shadow: var(--shadow-lila-card);
+  }
+
+  .text-lila {
+    color: var(--lila-primary);
+  }
+
+  :root[data-theme="dark"] .text-lila {
+    color: var(--lila-primary);
+  }
+
+  .lila-card:hover,
+  .card:hover {
+    box-shadow: var(--shadow-lila-card-hover);
+  }
+
+  .lila-link {
+    background-color: transparent;
+    color: var(--lila-primary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .lila-link:hover {
+    color: var(--lila-primary-hover);
+  }
+
+  .lila-btn,
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: 1px solid transparent;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lila-btn-primary,
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: 1px solid transparent;
+    background-color: var(--lila-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px -1px rgba(26, 115, 232, 0.3);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lila-btn-primary:hover,
+  .btn-primary:hover {
+    background-color: var(--lila-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -1px rgba(26, 115, 232, 0.4);
+  }
+
+  :root[data-theme="dark"] .lila-btn-primary,
+  :root[data-theme="dark"] .btn-primary {
+    background-color: var(--lila-primary);
+    color: #0f172a;
+  }
+
+  :root[data-theme="dark"] .lila-btn-primary:hover,
+  :root[data-theme="dark"] .btn-primary:hover {
+    background-color: var(--lila-primary-hover);
+  }
+
+  .lila-btn-secondary,
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    background-color: transparent;
+    color: var(--lila-primary);
+    border: 1.5px solid var(--lila-primary);
+    text-decoration: none;
+  }
+
+  .lila-btn-secondary:hover,
+  .btn-secondary:hover {
+    background-color: var(--lila-primary);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .lila-btn-secondary,
+  :root[data-theme="dark"] .btn-secondary {
+    color: var(--lila-primary);
+  }
+
+  :root[data-theme="dark"] .lila-btn-secondary:hover,
+  :root[data-theme="dark"] .btn-secondary:hover {
+    background-color: var(--lila-primary);
+    color: #0f172a;
+  }
+
+  .lila-btn-outline,
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    background-color: transparent;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    text-decoration: none;
+  }
+
+  .lila-btn-outline:hover,
+  .btn-outline:hover {
+    background-color: rgba(26, 115, 232, 0.04);
+    border-color: var(--lila-primary);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger,
+  .btn-error {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: none;
+    background-color: #ef4444;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .btn-danger:hover,
+  .btn-error:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .btn-danger,
+  :root[data-theme="dark"] .btn-error {
+    background-color: #f87171;
+    color: #131314;
+  }
+
+  .btn-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: none;
+    background-color: #10b981;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .btn-success:hover {
+    background-color: #059669;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .btn-success {
+    background-color: #34d399;
+    color: #131314;
+  }
+
+  .btn-warning {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: none;
+    background-color: #f59e0b;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .btn-warning:hover {
+    background-color: #d97706;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .btn-warning {
+    background-color: #fbbf24;
+    color: #131314;
+  }
+
+  .btn-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: none;
+    background-color: #06b6d4;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .btn-info:hover {
+    background-color: #0891b2;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .btn-info {
+    background-color: #22d3ee;
+    color: #131314;
+  }
+
+  .btn-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+  }
+
+  .btn-light:hover {
+    background-color: #f1f5f9;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .btn-light {
+    background-color: #1e1f20;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+  }
+
+  .btn-dark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    gap: 0.5rem;
+    outline: none;
+    border: none;
+    background-color: #0f172a;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .btn-dark:hover {
+    background-color: #1e293b;
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme="dark"] .btn-dark {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .form-control,
+  .input-lila {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background-color: var(--lila-surface);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lila-input);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    outline: none;
+    color: inherit;
+  }
+
+  :root[data-theme="dark"] .form-control,
+  :root[data-theme="dark"] .input-lila {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.25);
+    background-color: #131314;
+  }
+
+  .form-control:focus,
+  .input-lila:focus {
+    box-shadow: var(--shadow-lila-input-focus);
+    border-color: var(--lila-primary);
+    transform: translateY(-1px);
+  }
+}
+
+/* ── Lila React UI kit (resources/react/components/ui) ─────────────────── */
+:root {
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #06b6d4;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+}
+
+:root[data-theme="dark"] {
+  --danger: #f87171;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --info: #22d3ee;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --border: #334155;
+}
+
+@theme {
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+}
+
+body {
+  background-color: var(--bg-body);
+  color: #1e293b;
+  font-family: var(--font-sans);
+}
+
+:root[data-theme="dark"] body {
+  color: #e2e8f0;
+}
+
+@layer components {
+  .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.75rem; border-radius: 0.625rem; }
+  .btn-lg { padding: 0.875rem 1.75rem; font-size: 1rem; }
+  .btn-icon { padding: 0.5rem; width: 2.25rem; height: 2.25rem; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem 1.25rem; font-weight: 600; font-size: 0.875rem; border-radius: 0.75rem;
+    background: transparent; border: 1px solid transparent; color: inherit; cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-ghost:hover { background-color: var(--muted); }
+  .btn-link {
+    display: inline-flex; align-items: center; gap: 0.375rem; padding: 0; font-weight: 600;
+    font-size: 0.875rem; color: var(--lila-primary); background: transparent; border: 0; cursor: pointer;
+  }
+  .btn-link:hover { text-decoration: underline; color: var(--lila-primary-hover); }
+  .btn:disabled, .btn-primary:disabled, .btn-secondary:disabled, .btn-outline:disabled, .btn-danger:disabled,
+  .btn-success:disabled, .btn-warning:disabled, .btn-info:disabled, .btn-light:disabled, .btn-dark:disabled,
+  .btn-ghost:disabled {
+    opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none;
+  }
+
+  .card-title { font-size: 1.125rem; font-weight: 800; letter-spacing: -0.01em; }
+  .card-description { font-size: 0.875rem; color: var(--muted-foreground); margin-top: 0.25rem; }
+
+  .field { display: flex; flex-direction: column; gap: 0.375rem; }
+  .field-label {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+  }
+  .field-hint { font-size: 0.75rem; color: var(--muted-foreground); }
+  .field-error { font-size: 0.75rem; color: var(--danger); }
+  .form-control[aria-invalid="true"] { border-color: var(--danger); }
+  .form-control:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  textarea.form-control { min-height: 6rem; resize: vertical; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.125rem 0.625rem;
+    border-radius: 9999px; font-size: 0.75rem; font-weight: 700; line-height: 1.25rem;
+    background-color: var(--muted); color: var(--muted-foreground);
+  }
+  .badge-primary { background-color: var(--lila-primary); color: #fff; }
+  .badge-success { background-color: var(--success); color: #fff; }
+  .badge-warning { background-color: var(--warning); color: #fff; }
+  .badge-danger { background-color: var(--danger); color: #fff; }
+  .badge-info { background-color: var(--info); color: #fff; }
+  .badge-soft.badge-primary { background-color: color-mix(in srgb, var(--lila-primary) 14%, transparent); color: var(--lila-primary); }
+  .badge-soft.badge-success { background-color: color-mix(in srgb, var(--success) 16%, transparent); color: var(--success); }
+  .badge-soft.badge-warning { background-color: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--warning); }
+  .badge-soft.badge-danger { background-color: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+  .badge-soft.badge-info { background-color: color-mix(in srgb, var(--info) 16%, transparent); color: var(--info); }
+
+  .nav-link {
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 0.75rem; border-radius: 0.75rem;
+    font-size: 0.875rem; font-weight: 600; color: var(--muted-foreground); transition: all 0.2s;
+  }
+  .nav-link:hover { background-color: var(--muted); color: var(--lila-primary); }
+  .nav-link[aria-current="page"], .nav-link.active {
+    background-color: var(--lila-primary); color: #fff; box-shadow: 0 2px 8px -1px rgba(26, 115, 232, 0.3);
+  }
+
+  .skeleton { border-radius: 0.75rem; background-color: var(--muted); animation: lila-pulse 1.4s ease-in-out infinite; }
+  @keyframes lila-pulse { 50% { opacity: 0.5; } }
+
+  .spinner {
+    width: 1rem; height: 1rem; border-radius: 9999px; border: 2px solid currentColor;
+    border-right-color: transparent; animation: lila-spin 0.7s linear infinite; display: inline-block;
+  }
+  @keyframes lila-spin { to { transform: rotate(360deg); } }
+
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px; z-index: 10000; background-color: var(--lila-primary);
+    transition: width 0.3s ease, opacity 0.3s ease; box-shadow: 0 0 8px var(--lila-primary);
+  }
+
+  dialog.lila-dialog {
+    border: 1px solid var(--border); border-radius: 20px; padding: 0; background-color: var(--lila-surface);
+    color: inherit; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); width: min(92vw, var(--dialog-width, 32rem));
+    max-height: 90vh;
+  }
+  dialog.lila-dialog::backdrop { background-color: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); }
+  dialog.lila-drawer {
+    margin: 0; max-height: 100vh; height: 100vh; border-radius: 0; width: min(85vw, var(--dialog-width, 22rem));
+    inset-inline-start: auto;
+  }
+  dialog.lila-drawer[data-side="left"] { inset-inline-start: 0; inset-inline-end: auto; }
+  dialog.lila-drawer[data-side="top"], dialog.lila-drawer[data-side="bottom"] {
+    width: 100vw; max-width: 100vw; height: auto; max-height: 85vh;
+  }
+  dialog.lila-drawer[data-side="bottom"] { margin-top: auto; }
+
+  .toast-stack {
+    position: fixed; z-index: 10001; right: 1rem; bottom: 1rem; display: flex; flex-direction: column;
+    gap: 0.5rem; width: min(92vw, 22rem); pointer-events: none;
+  }
+  .toast-card {
+    pointer-events: auto; display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.875rem 1rem;
+    border-radius: 16px; background-color: var(--lila-surface); border: 1px solid var(--border);
+    box-shadow: var(--shadow-lila-card-hover); animation: lila-toast-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+    border-inline-start: 4px solid var(--toast-color, var(--lila-primary));
+  }
+  @keyframes lila-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .table-lila { width: 100%; font-size: 0.875rem; border-collapse: collapse; }
+  .table-lila th {
+    text-align: start; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800;
+    color: var(--muted-foreground); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .table-lila td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+  .table-lila tbody tr:hover { background-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+}

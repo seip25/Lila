@@ -44,6 +44,7 @@ Lila/
 │   │   ├── react.py         # react_render, router.spa meta tree
 │   │   ├── vite.py          # Vite dev server / manifest tags
 │   │   ├── desktop.py       # desktop/web route targeting
+│   │   ├── typescript.py    # Pydantic/models -> TypeScript interfaces
 │   │   ├── controller.py    # RequestParser (v1 compatibility)
 │   │   ├── exporter.py      # CSV (formula-safe, BOM)
 │   │   ├── background.py    # Redis JSON tasks / Starlette fallback
@@ -301,9 +302,12 @@ return render(
 
 ## 7b. React (Vite)
 
-- `lila react init [--install]` copies `package.json`, `vite.config.js`,
-  `resources/react/{main,spa}.jsx`, `resources/react/lila` (client) and
+- `lila react init [--install] [--js]` — TypeScript by default (`tsconfig.json`,
+  `vite.config.ts`, `resources/react/{main,spa}.tsx`); `--js` writes `.jsx`.
+  Both get `resources/react/lila/index.tsx` (typed client) and
   `app/routes/web/react_pages.py` (never overwrites without `--force`).
+  `lila react types` writes `resources/react/types/lila.ts` from Pydantic
+  schemas and table models in `app/` (also run by `react dev/build` in TS projects).
   `lila react dev` runs Vite + `lila dev`; `lila react build` → `public/build`.
 - `react_render(request, "Users/Show", props, title=..., description=...,
   jsonld=..., meta=..., canonical=True, robots=..., entry=None, root_id="app",
@@ -318,7 +322,34 @@ return render(
   catch-alls (and fallback static mounts) are always matched last.
 - Client (`@lila`): `createLilaApp({pages: import.meta.glob(...)})`,
   `createLilaSpa(App)`, `Link`, `visit`, `http` (CSRF), `useLila()`,
-  `usePage()`, `useLilaHead(pathname)`, `DesktopOnly`, `WebOnly`, `desktopApi()`.
+  `usePage()`, `useT()`, `useForm(initial)` (`field(name)`, `errors.<field>`,
+  `errors._form`, `processing`, `message`, `handleSubmit(url, {redirect,
+  transform, onSuccess, reset})`), `useLilaHead(pathname)`, `DesktopOnly`,
+  `WebOnly`, `desktopApi()`. `react_render(translations=True|[keys])` feeds `useT()`.
+- UI kit (`resources/react/components/ui`, import from `@/components/ui`;
+  copied files, `lila react ui [--force]` adds/updates): `Button` (`variant`
+  primary|secondary|outline|ghost|danger|success|warning|info|light|dark|link,
+  `size` sm|md|lg|icon, `loading`, `href`, `url`+`method`+`confirm`),
+  `buttonVariants()`, `Form` (`action`, `initial`, `redirect`, `validate`,
+  `transform`, `successToast`, `form={useForm()}`) with `Input`/`Textarea`/
+  `Select`/`Checkbox` bound by `name`, `SubmitButton`, `FormError`,
+  `FormMessage`; `Card`, `Badge`, `Modal`, `Drawer`, `Carousel`, `Toaster` +
+  `toast.success/error/info/warning`, `ThemeToggle`/`useTheme` (`lila-theme`,
+  `data-theme`), `Spinner`, `Skeleton`, `PageSkeleton`, `ProgressBar`,
+  `DataTable` (`rows` or `url` → `page/per_page/limit/offset/search/sort/order`,
+  accepts `{items,total}`, `{data,total}` or a list; `onEdit`/`onDelete` may be
+  URL patterns like `/api/users/:id`). Styles: `components/ui/ui.css` (Lila
+  tokens and `.btn-*`, `.card`, `.form-control`, `.badge`, `.nav-link`, `.table-lila`).
+- `@lila/auth`: `AuthProvider` (GET `/api/auth/me`, POST `/login`, `/register`,
+  `/logout`), `useAuth()`, `RequireAuth` (`roles`, `redirectTo`, `page` for the
+  server login page with `?next=`), `GuestOnly`; guards render only — protect
+  APIs on the server. `@lila/router`: `createRouter(routes, {mode, basename})`
+  (basename = `router.spa` mount), `page(() => import(...))`, `<LilaHead />`.
+- `lila auth --react` — React pages `Auth/{Login,Register,ForgotPassword,
+  ChangePassword,InvalidToken}` and `Account/{Dashboard,Profile}`; the route
+  files are the Jinja ones with page handlers switched to `react_render`
+  (`lila.cli.auth.REACT_PAGE_REPLACEMENTS`); Jinja templates are skipped. Every
+  `lila auth` also adds `GET /api/auth/me` (`app/routes/web/auth/me.py`).
   `Page.layout = (page) => <Layout>{page}</Layout>` for persistent layouts.
 - Dev assets come from `public/build/hot` (written by the Lila Vite plugin)
   **only when DEBUG=True**; otherwise `public/build/.vite/manifest.json` is
@@ -374,6 +405,10 @@ return render(
 - `lila worker --driver sqlite|redis`, `lila tasks stats|list|retry|purge`,
   `lila schedule list|run`, `lila i18n check [--strict]`; `lila doctor` also
   validates `.env` values, translations and the compiled CSS.
+- `lila desktop build --installer auto|dmg|msi [--version --publisher --bundle-id]`
+  — `.dmg` via hdiutil (macOS only), `.msi` via WiX v4+ (`wix` CLI, Windows
+  only; the `.wxs` is kept in `build/installer/`). Icons: `--icon` or
+  `public/icon.*`, `public/favicon.ico`, Lila logo; PNG → ICO/ICNS with Pillow.
 - `lila desktop routes` — desktop/web route preview; `lila desktop dev/build
   --exclude PATTERN --auto-exclude` (build runs `lila react build` when
   `vite.config.js` exists; `--no-react` skips it).

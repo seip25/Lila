@@ -421,16 +421,23 @@ def dev(
 def build(
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Executable name"),
     onefile: bool = typer.Option(True, "--onefile/--onedir", help="Package into a single executable"),
-    icon: Optional[str] = typer.Option("public/favicon.ico", "--icon", "-i", help="Path to .ico icon"),
+    icon: Optional[str] = typer.Option(None, "--icon", "-i", help="App icon (.ico/.icns/.png). Default: public/icon.*, public/favicon.ico or the Lila logo"),
     windowed: bool = typer.Option(True, "--windowed/--console", help="Hide console window on execution"),
     exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Route pattern(s) left out of the build: /payments*, /upload*, name:checkout"),
     auto_exclude: bool = typer.Option(False, "--auto-exclude", help="Exclude routes detected as web-only (payments, uploads, webhooks...)"),
     react: Optional[bool] = typer.Option(None, "--react/--no-react", help="Run `lila react build` first (default: auto when vite.config.js exists)"),
     width: int = typer.Option(1200, "--width", help="Initial window width"),
     height: int = typer.Option(800, "--height", help="Initial window height"),
+    installer: str = typer.Option("none", "--installer", help="none | auto | dmg (macOS) | msi (Windows, WiX Toolset)"),
+    version: Optional[str] = typer.Option(None, "--version", help="App version (default: VERSION_PROJECT from .env)"),
+    publisher: Optional[str] = typer.Option(None, "--publisher", help="Publisher/manufacturer shown by the installer"),
+    bundle_id: Optional[str] = typer.Option(None, "--bundle-id", help="Reverse-DNS id, e.g. com.acme.invoices (macOS bundle id, MSI upgrade code seed)"),
 ):
     """
     Bundles the Lila application into a standalone native executable (.exe / .app) using PyInstaller.
+
+    ``--installer auto`` also creates ``dist/<name>.dmg`` on macOS (hdiutil) or
+    ``dist/<name>.msi`` on Windows (WiX Toolset: ``dotnet tool install --global wix``).
 
     Routes declared with ``desktop=False``, matched by ``DESKTOP_EXCLUDE`` or by
     ``--exclude`` are removed from the build (404, hidden from React links).
@@ -446,6 +453,32 @@ def build(
     ConfigLoader.load()
     app_name = (name or ENV_CONFIG.get("TITLE_PROJECT", "LilaApp")).replace(" ", "_")
     app_name = "".join(ch for ch in app_name if ch.isalnum() or ch in ("_", "-")) or "LilaApp"
+
+    from lila.cli import installers
+
+    installer = (installer or "none").lower()
+    if installer == "auto":
+        installer = installers.default_installer() or "none"
+        if installer == "none":
+            typer.secho("ℹ️ No native installer for this OS (.dmg on macOS, .msi on Windows).", fg=typer.colors.YELLOW)
+    if installer not in ("none", "dmg", "msi"):
+        typer.secho("❌ --installer must be none, auto, dmg or msi.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    if installer == "dmg" and sys.platform != "darwin":
+        typer.secho("❌ .dmg images can only be built on macOS.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    if installer == "msi" and sys.platform != "win32":
+        typer.secho("❌ .msi installers can only be built on Windows (WiX Toolset).", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    if installer == "dmg" and not windowed:
+        windowed = True  # hdiutil packs the .app bundle, which needs --windowed
+    app_version = version or str(ENV_CONFIG.get("VERSION_PROJECT", "1.0.0") or "1.0.0")
+    app_publisher = publisher or str(ENV_CONFIG.get("AUTHOR_DEFAULT", "") or app_name)
+    app_id = bundle_id or f"com.lila.{app_name.lower()}"
+    icon_path = installers.convert_icon(installers.find_icon(icon), sys.platform)
+    if icon and not icon_path:
+        typer.secho(f"⚠️ Icon {icon} not found; using the default.", fg=typer.colors.YELLOW)
+        icon_path = installers.convert_icon(installers.find_icon(None), sys.platform)
 
     from lila.cli.react import is_react_project, run_build
 
@@ -640,8 +673,10 @@ finally:
     if windowed:
         pyinstaller_cmd.append("--windowed")
 
-    if icon and os.path.isfile(icon):
-        pyinstaller_cmd.extend(["--icon", icon])
+    if icon_path:
+        pyinstaller_cmd.extend(["--icon", icon_path])
+    if sys.platform == "darwin":
+        pyinstaller_cmd.extend(["--osx-bundle-identifier", app_id])
 
     sep = ";" if sys.platform == "win32" else ":"
     if os.path.isdir("public"):
@@ -668,6 +703,18 @@ finally:
     else:
         typer.secho("❌ PyInstaller build failed.", fg=typer.colors.RED)
         raise typer.Exit(code=result.returncode if result else 1)
+
+    if installer == "dmg":
+        ok, detail = installers.build_dmg(app_name)
+    elif installer == "msi":
+        ok, detail = installers.build_msi(app_name, app_version, app_publisher, icon_path, app_id, onefile)
+    else:
+        return
+    if ok:
+        typer.secho(f"💿 Installer ready: {detail}", fg=typer.colors.GREEN)
+    else:
+        typer.secho(f"❌ Installer not created: {detail}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

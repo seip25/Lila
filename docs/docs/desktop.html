@@ -175,6 +175,20 @@ lila desktop build --name "InvoiceManager" --onedir
         Keep <code>DB_NAME</code> relative (<code>DB_NAME="lila"</code>) so it resolves under that
         directory.
       </p>
+      <h3 class="text-xl font-bold mt-8 mb-3">Installers: .dmg and .msi</h3>
+      <pre><code class="language-bash">lila desktop build --installer auto --version 1.4.0 --publisher "Acme" --bundle-id com.acme.invoices
+# macOS   -> dist/Invoices.app + dist/Invoices.dmg   (hdiutil, drag to Applications)
+# Windows -> dist/Invoices.exe + dist/Invoices.msi   (WiX Toolset: dotnet tool install --global wix)</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Each installer is built on its own OS. The MSI installs into Program Files, adds Start-menu and
+        desktop shortcuts with the app icon, shows the icon in "Apps &amp; features" and upgrades
+        previous versions in place (the upgrade code comes from <code>--bundle-id</code>). If WiX is not
+        installed the generated <code>build/installer/&lt;name&gt;.wxs</code> is kept with the command to
+        run. The icon is <code>--icon</code>, else <code>public/icon.ico|icns|png</code>,
+        <code>public/favicon.ico</code> or the Lila logo; PNG files are converted to ICO/ICNS when
+        Pillow is installed.
+      </p>
+
       <h3 class="text-xl font-bold mt-8 mb-3">4. Web-only and desktop-only routes</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         One codebase can be a website and a desktop app. Features that only make sense on the web

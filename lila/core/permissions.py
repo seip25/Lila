@@ -110,6 +110,11 @@ async def _resolve_roles(request, user) -> List[str]:
     return roles
 
 
+async def resolve_roles(request, user) -> List[str]:
+    """Roles of ``user`` for this request (``role``/``roles`` or ``set_role_loader``)."""
+    return await _resolve_roles(request, user)
+
+
 def _wants_json(request) -> bool:
     accept = request.headers.get("accept", "").lower()
     return "application/json" in accept or request.url.path.startswith("/api/") or \

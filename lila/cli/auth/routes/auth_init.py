@@ -3,6 +3,7 @@ from .register import routes as _register_routes
 from .logout import routes as _logout_routes
 from .forgot_password import routes as _forgot_routes
 from .change_password import routes as _change_routes
+from .me import routes as _me_routes
 import itertools
 
 # English: All auth routes collected in a single list for easy import in main.py
@@ -13,4 +14,5 @@ routes = list(itertools.chain(
     _logout_routes,
     _forgot_routes,
     _change_routes,
+    _me_routes,
 ))

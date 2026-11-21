@@ -46,7 +46,7 @@ from lila.core.csrf import CSRF, CSRF_COOKIE_NAME, CSRF_MAX_AGE
 from lila.core.logger import Logger
 from lila.core.request import Request
 from lila.core.responses import HTMLResponse, JSONResponse, orjson_dumps
-from lila.core.vite import DEFAULT_ENTRY, DEFAULT_SPA_ENTRY, ViteBridge, ViteManifestMissing
+from lila.core.vite import ViteBridge, ViteManifestMissing, default_entry
 from lila.core import desktop as desktop_mod
 
 REACT_HEADER = "x-lila-react"
@@ -132,6 +132,7 @@ def react_render(
     skeleton: Optional[str] = None,
     spa: Optional[Dict[str, Any]] = None,
     lang_default: Optional[str] = None,
+    translations: Any = None,
     title: Optional[str] = None,
     description: Optional[str] = None,
     keywords: Optional[str] = None,
@@ -152,11 +153,12 @@ def react_render(
 
     ``props`` must be JSON serializable (dicts from ``BaseModel`` reads are).
     Never put secrets in props: they are visible in the page source.
-    ``entry`` is the Vite entry (default ``resources/react/main.jsx``),
+    ``entry`` is the Vite entry (default ``resources/react/main.tsx``, or
+    ``main.jsx`` in ``--js`` projects),
     ``tailwind=True`` also includes Lila's Tailwind runtime/CSS (normally
     Tailwind comes from Vite), ``skeleton`` is raw HTML shown until React mounts.
     """
-    from lila.core.templates import _build_page, get_base_context, jinja_env
+    from lila.core.templates import _DEV_RELOAD_SCRIPT, _build_page, get_base_context, jinja_env
 
     ctx = get_base_context(request, lang_default=lang_default)
     for key in ("title", "description", "keywords", "author"):
@@ -189,6 +191,13 @@ def react_render(
     }
     if spa:
         page["spa"] = spa
+    if translations:
+        # useT() in React: True = whole locale, a list = only those keys.
+        trans = ctx.get("translate") or {}
+        if translations is True:
+            page["t"] = dict(trans)
+        else:
+            page["t"] = {key: trans.get(key, key) for key in translations}
     # Also in the HTML payload: history (back/forward) restores it client-side.
     page["head"] = _head_payload(page_meta, raw_jsonld, lang)
     response_headers = dict(headers or {})
@@ -208,7 +217,7 @@ def react_render(
         return response
 
     try:
-        vite_tags = ViteBridge.tags(entry or (DEFAULT_SPA_ENTRY if spa else DEFAULT_ENTRY))
+        vite_tags = ViteBridge.tags(entry or default_entry(spa=bool(spa)))
     except ViteManifestMissing as exc:
         return _shell_error(exc)
 
@@ -220,6 +229,8 @@ def react_render(
         "react_page": script_json(page),
         "react_root_id": re.sub(r"[^A-Za-z0-9_-]", "", root_id) or "app",
         "react_skeleton": Markup(skeleton or ""),
+        # Reloads the page when the Python server restarts (Vite handles JS/CSS).
+        "react_dev_reload": Markup(_DEV_RELOAD_SCRIPT) if is_debug() else Markup(""),
     })
     if page_meta.get("title"):
         ctx["title"] = page_meta["title"]
