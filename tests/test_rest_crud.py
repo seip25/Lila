@@ -45,6 +45,26 @@ class RestCrudTests(unittest.TestCase):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
+    def test_pagination_search_and_sort(self):
+        for title in ("alpha", "beta", "gamma 100%", "delta", "alphabet"):
+            self.assertEqual(self.client.post("/api/notes", json={"title": title}).status_code, 201)
+        self.db.run_sync(self.Note.insert_async(title="zeta", secret="hidden-secret"))
+        page = self.client.get("/api/notes?page=1&per_page=2&sort=title&order=desc").json()
+        self.assertEqual(page["total"], 6)
+        self.assertEqual(page["pages"], 3)
+        self.assertEqual([n["title"] for n in page["items"]], ["zeta", "gamma 100%"])
+        found = self.client.get("/api/notes?page=1&per_page=10&search=alpha").json()
+        self.assertEqual(sorted(n["title"] for n in found["items"]), ["alpha", "alphabet"])
+        # LIKE wildcards are escaped and private columns are never searched.
+        self.assertEqual(self.client.get("/api/notes?page=1&search=%25").json()["total"], 1)
+        self.assertEqual(self.client.get("/api/notes?page=1&search=secret").json()["total"], 0)
+        self.assertNotIn("secret", found["items"][0])
+        plain = self.client.get("/api/notes?limit=2&sort=title").json()
+        self.assertIsInstance(plain, list)
+        self.assertEqual([n["title"] for n in plain], ["alpha", "alphabet"])
+        self.assertEqual(self.client.get("/api/notes?page=1&sort=secret").status_code, 422)
+        self.assertEqual(self.client.get("/api/notes?page=1&order=sideways").status_code, 422)
+
     def test_create_and_read(self):
         res = self.client.post("/api/notes", json={"title": "hi"})
         self.assertEqual(res.status_code, 201, res.text)

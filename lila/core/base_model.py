@@ -182,6 +182,44 @@ class BaseModel(Base):
         return clauses
 
     @classmethod
+    def searchable_columns(cls, fields: Optional[List[str]] = None):
+        """Text columns used by ``search=`` (or the given ``fields``), never private ones."""
+        private = set(getattr(cls, "__private_fields__", ()) or ())
+        if fields:
+            cols = []
+            for name in fields:
+                col = cls._column(name)
+                if col is None or name in private:
+                    raise ValueError(f"Unknown search field for {cls.__name__}: {name}")
+                cols.append(col)
+            return cols
+        out = []
+        for column in cls.__table__.columns:
+            if column.name in private:
+                continue
+            try:
+                is_text = column.type.python_type is str
+            except Exception:
+                is_text = False
+            if is_text:
+                out.append(cls._column(column.name))
+        return out
+
+    @classmethod
+    def _search_clause(cls, term: Optional[str], fields: Optional[List[str]] = None):
+        """``search="ana"``: OR of case-insensitive LIKEs (``%``/``_`` escaped)."""
+        term = str(term or "").strip()
+        if not term:
+            return None
+        from sqlalchemy import or_
+
+        escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        cols = cls.searchable_columns(fields)
+        if not cols:
+            return None
+        return or_(*[col.ilike(f"%{escaped}%", escape="\\") for col in cols])
+
+    @classmethod
     def _filter_columns(cls, filters: Dict[str, Any]):
         """Backwards-compatible equality filters as ``(column, value)`` pairs."""
         cols = []
@@ -207,7 +245,7 @@ class BaseModel(Base):
         return [c for c in cls.__table__.columns if c.name not in private]
 
     @classmethod
-    def _read_stmt(cls, target_select=None, filters=None, order_by=None, desc=False):
+    def _read_stmt(cls, target_select=None, filters=None, order_by=None, desc=False, search=None, search_fields=None):
         """Core SELECT returning plain rows: no ORM objects, no lazy loads,
         private columns never leave the database."""
         from sqlalchemy import select as sa_select
@@ -217,6 +255,9 @@ class BaseModel(Base):
             stmt = stmt.where(getattr(cls, cls._active_field) == 1)
         for clause in cls._filter_clauses(filters or {}):
             stmt = stmt.where(clause)
+        search_clause = cls._search_clause(search, search_fields)
+        if search_clause is not None:
+            stmt = stmt.where(search_clause)
         order_col = cls._column(order_by) if order_by else None
         if order_by and order_col is None:
             raise ValueError(f"Unknown order_by column for {cls.__name__}: {order_by}")
@@ -270,17 +311,19 @@ class BaseModel(Base):
         select: Optional[str] = None,
         order_by: Optional[str] = None,
         desc: bool = False,
+        search: Optional[str] = None,
+        search_fields: Optional[List[str]] = None,
         **filters,
     ) -> List[Dict[str, Any]]:
         conn = cls.get_connection()
         target_select = select_cols or select
         cache_key = (
             f"{cls._cache_prefix()}:all:{target_select}:{limit}:{offset}:{order_by}:{desc}:"
-            f"{tuple(sorted(filters.items()))}"
+            f"{tuple(sorted(filters.items()))}:{search!r}:{tuple(search_fields or ())}"
         )
 
         async def _fetch():
-            stmt = cls._read_stmt(target_select, filters, order_by, desc).offset(offset).limit(limit)
+            stmt = cls._read_stmt(target_select, filters, order_by, desc, search, search_fields).offset(offset).limit(limit)
             async with conn.transaction() as session:
                 result = await session.execute(stmt)
                 return [dict(row) for row in result.mappings().all()]
@@ -296,6 +339,8 @@ class BaseModel(Base):
         desc: bool = False,
         select: Optional[str] = None,
         max_per_page: int = 100,
+        search: Optional[str] = None,
+        search_fields: Optional[List[str]] = None,
         **filters,
     ) -> Dict[str, Any]:
         """One call for list pages and APIs::
@@ -314,12 +359,12 @@ class BaseModel(Base):
             per_page = max(1, min(int(per_page), int(max_per_page)))
         except (TypeError, ValueError):
             per_page = 20
-        total = await cls.count_async(**filters)
+        total = await cls.count_async(search=search, search_fields=search_fields, **filters)
         pages = max(1, -(-total // per_page))
         page = min(page, pages)
         items = await cls.get_all_async(
             select=select, limit=per_page, offset=(page - 1) * per_page,
-            order_by=order_by, desc=desc, **filters,
+            order_by=order_by, desc=desc, search=search, search_fields=search_fields, **filters,
         )
         return {
             "items": items,
@@ -396,7 +441,7 @@ class BaseModel(Base):
         return deleted
 
     @classmethod
-    async def count_async(cls, **filters) -> int:
+    async def count_async(cls, search: Optional[str] = None, search_fields: Optional[List[str]] = None, **filters) -> int:
         conn = cls.get_connection()
         async with conn.transaction() as session:
             pk_col = getattr(cls, cls._primary_key)
@@ -405,6 +450,9 @@ class BaseModel(Base):
                 stmt = stmt.where(getattr(cls, cls._active_field) == 1)
             for clause in cls._filter_clauses(filters):
                 stmt = stmt.where(clause)
+            search_clause = cls._search_clause(search, search_fields)
+            if search_clause is not None:
+                stmt = stmt.where(search_clause)
             result = await session.execute(stmt)
             return result.scalar() or 0
 

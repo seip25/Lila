@@ -719,11 +719,39 @@ class Router:
                 )
             return data, None
 
+        readable = {
+            col.name for col in model_sql.__table__.columns if col.name not in private
+        }
+
         @self.get(route_prefix, auth=auth)
-        async def list_records(request: Request, limit: int = 100, offset: int = 0):
+        async def list_records(
+            request: Request,
+            limit: int = 100,
+            offset: int = 0,
+            page: Optional[int] = None,
+            per_page: Optional[int] = None,
+            search: Optional[str] = None,
+            sort: Optional[str] = None,
+            order: Literal["asc", "desc"] = "asc",
+        ):
+            """``?page=2&per_page=20&search=ana&sort=name&order=desc`` returns
+            ``paginate_async`` ({items, total, pages...}); without ``page`` a
+            plain list (``limit``/``offset``) like before."""
+            if sort is not None and sort not in readable:
+                return JSONResponse({"success": False, "errors": [{"sort": "Unknown column"}]}, status_code=422)
+            if search is not None and len(search) > 200:
+                return JSONResponse({"success": False, "errors": [{"search": "Too long"}]}, status_code=422)
+            if page is not None:
+                size = per_page if per_page is not None else limit
+                return await model_sql.paginate_async(
+                    page=page, per_page=max(1, int(size)), max_per_page=int(max_limit),
+                    order_by=sort, desc=order == "desc", search=search,
+                )
             limit = max(1, min(int(limit), int(max_limit)))
             offset = max(0, int(offset))
-            return await model_sql.get_all_async(limit=limit, offset=offset)
+            return await model_sql.get_all_async(
+                limit=limit, offset=offset, order_by=sort, desc=order == "desc", search=search,
+            )
 
         @self.get(f"{route_prefix}/{{id:int}}", auth=auth)
         async def get_record(request: Request, id: int):
