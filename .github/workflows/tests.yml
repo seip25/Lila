@@ -7,6 +7,18 @@ on:
   workflow_dispatch:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Ruff (syntax errors, undefined names; Python 3.10 target)
+        run: |
+          python -m pip install ruff
+          ruff check --select E9,F63,F7,F82 --target-version py310 lila tests
+
   unittest:
     runs-on: ubuntu-latest
     strategy:
@@ -24,8 +36,61 @@ jobs:
           python -m pip install .
       - name: Compile
         run: python -m compileall -q lila
+      - name: CLI imports
+        run: lila --help > /dev/null
       - name: Unit tests
         env:
           SECRET_KEY: "0123456789abcdef0123456789abcdef"
           CACHE_DRIVER: memory
         run: python -m unittest discover -s tests -v
+
+  react:
+    # New project -> React (TypeScript and JavaScript) -> React auth -> typecheck,
+    # production build and a smoke test of the rendered pages.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: ["ts", "js"]
+    env:
+      SECRET_KEY: "0123456789abcdef0123456789abcdef"
+      CACHE_DRIVER: memory
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Lila
+        run: python -m pip install .
+      - name: Scaffold project
+        run: |
+          mkdir -p "$RUNNER_TEMP/app" && cd "$RUNNER_TEMP/app"
+          yes "" | lila init
+          if [ "${{ matrix.variant }}" = "js" ]; then lila react init --js --install; else lila react init --install; fi
+          lila auth --react
+      - name: Typecheck
+        if: matrix.variant == 'ts'
+        working-directory: ${{ runner.temp }}/app
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: ${{ runner.temp }}/app
+        run: lila react build --no-install
+      - name: Smoke test
+        working-directory: ${{ runner.temp }}/app
+        run: |
+          DEBUG=False python -m uvicorn main:app --port 8077 > server.log 2>&1 &
+          for i in $(seq 1 50); do curl -s -o /dev/null http://127.0.0.1:8077/health && break; sleep 0.2; done
+          for path in /react /app /app/users/1 /login /register; do
+            body=$(curl -s -H "Accept: text/html" -w "\n%{http_code}" "http://127.0.0.1:8077$path")
+            code=$(echo "$body" | tail -n1)
+            echo "$path -> $code"
+            test "$code" = "200"
+            echo "$body" | grep -q '/public/build/assets/'
+            echo "$body" | grep -q 'id="lila-page"'
+          done
+          curl -s -D - -o /dev/null -H "Accept: text/html" http://127.0.0.1:8077/react | grep -qi "content-security-policy: .*nonce-"
+          curl -s http://127.0.0.1:8077/api/auth/me | grep -q '"user":null'
+          cat server.log | grep -i "error" && exit 1 || true
