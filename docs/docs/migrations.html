@@ -311,6 +311,15 @@ await connection.drop_all_async(use_base=True)
           <code>lila.core.admin</code> for the admins table). If a module fails to import, its table may be
           missing — the command prints the failing modules and exits with a non-zero status.</p>
       </div>
+    
+      <h3 class="text-xl font-bold mt-8 mb-3">Rollback</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Every <code>lila migrate</code> run is a batch. <code>lila migrate rollback</code> undoes the newest
+        one: index and rename steps directly; columns or tables the batch added only after confirmation (their
+        data is deleted). Dropped columns cannot be restored and are reported as such.</p>
+      <pre><code class="language-bash">lila migrate rollback --dry-run     # what would be undone
+lila migrate rollback               # asks before destructive steps
+lila migrate rollback --steps 2 --yes
+lila migrate history</code></pre>
     </article>
   </main>
   <script src="../js/highlight.min.js"></script>

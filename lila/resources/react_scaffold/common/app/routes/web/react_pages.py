@@ -36,7 +36,7 @@ async def react_about(request: Request):
     return react_render(
         request,
         "About",
-        {"version": "2.0.0"},
+        {"version": __import__("lila").__version__},
         title="About",
         description="About this Lila + React app.",
         jsonld={"@context": "https://schema.org", "@type": "AboutPage", "name": "About"},

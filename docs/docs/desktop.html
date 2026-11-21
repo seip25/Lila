@@ -214,6 +214,25 @@ lila desktop build --exclude "/payments" --auto-exclude   # baked into the execu
         first (<code>--no-react</code> to skip) and bundles <code>public/build</code> and
         <code>app/locales</code>.
       </p>
+    
+      <h3 class="text-xl font-bold mt-8 mb-3">Code signing and in-app updates</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Unsigned apps are blocked by Gatekeeper and flagged by SmartScreen. Sign during the build:</p>
+      <pre><code class="language-bash"># macOS: Developer ID + notarization (xcrun notarytool store-credentials lila-notary)
+lila desktop build --installer dmg --sign-identity &quot;Developer ID Application: Acme (TEAMID)&quot; \
+  --notary-profile lila-notary
+
+# Windows: .pfx (password only via env) or a certificate thumbprint
+set WINDOWS_SIGN_PASSWORD=...
+lila desktop build --installer msi --sign-cert certs\\acme.pfx</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Updates: build with <code>--update-url https://downloads.example.com/app/latest.json</code>, upload
+        the installers and run <code>lila desktop release --version 1.4.0 --base-url
+        https://downloads.example.com/app</code> (SHA-256 manifest; Windows and macOS entries are merged). In
+        React, <code>useDesktopUpdate()</code> shows <code>available</code>/<code>version</code>/<code>notes</code>
+        and <code>install()</code> downloads, verifies and opens the new installer.</p>
+      <pre><code class="language-typescript">import { desktop, useDesktopUpdate } from &quot;@lila/desktop&quot;;
+const update = useDesktopUpdate();
+{update.available &amp;&amp; &lt;Button onClick={update.install}&gt;Update to {update.version}&lt;/Button&gt;}
+await desktop.notify(&quot;Backup finished&quot;, &quot;3 files&quot;);</code></pre>
     </article>
   </main>
 

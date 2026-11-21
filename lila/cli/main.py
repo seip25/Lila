@@ -21,7 +21,7 @@ from lila.cli.react import app as react_app
 
 app = typer.Typer(
     name="lila",
-    help="Lila Framework v2.0.0 CLI — Full-Stack Python with SPA View Transitions, AI Helper, and Desktop apps.",
+    help="Lila Framework CLI — full-stack Python: Jinja SPA, React (Vite), desktop apps, AI helper.",
     add_completion=False
 )
 
@@ -89,7 +89,7 @@ def run(
 
     import uvicorn
 
-    typer.secho(f"🚀 Lila v2.0.0 on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
+    typer.secho(f"🚀 Lila v{__import__('lila').__version__} on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
     uvicorn.run(
         "main:app",
         host=bind_host,

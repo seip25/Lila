@@ -610,7 +610,15 @@ lila backup --compress
 lila doctor                         # now also checks .env values, translations and compiled CSS</code></pre>
         </div>
       </div>
-        </article>
+        
+      <h3 class="text-xl font-bold mt-8 mb-3">Project templates</h3>
+      <pre><code class="language-bash">lila init --template web          # Jinja pages (default)
+lila init -t react                # + React/Vite (TypeScript) and the UI kit
+lila init -t auth                 # + Jinja auth
+lila init -t react-auth           # + React auth pages
+lila init -t full -y --install    # React + React auth + React admin, no questions
+lila init -t desktop              # React + desktop notes (DESKTOP_EXCLUDE)</code></pre>
+    </article>
     </main>
     <script src="../js/highlight.min.js"></script>
     <script>

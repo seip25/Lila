@@ -1,4 +1,4 @@
-# Lila Framework v2.0.0 — Agent & Developer Reference
+# Lila Framework v2.1.0 — Agent & Developer Reference
 
 Lila is a lightweight full-stack Python web framework built on **Starlette**,
 **Pydantic v2**, **SQLAlchemy 2.0 Async** and **Jinja2**. It targets 1–2 worker
@@ -45,6 +45,10 @@ Lila/
 │   │   ├── vite.py          # Vite dev server / manifest tags
 │   │   ├── desktop.py       # desktop/web route targeting
 │   │   ├── typescript.py    # Pydantic/models -> TypeScript interfaces
+│   │   ├── csp.py           # Content-Security-Policy with nonces
+│   │   ├── storage.py       # local / S3-compatible file storage
+│   │   ├── telemetry.py     # optional OpenTelemetry tracing
+│   │   ├── desktop_bridge.py # window.pywebview.api (dialogs, notify, updates)
 │   │   ├── controller.py    # RequestParser (v1 compatibility)
 │   │   ├── exporter.py      # CSV (formula-safe, BOM)
 │   │   ├── background.py    # Redis JSON tasks / Starlette fallback
@@ -75,8 +79,19 @@ app = App(
     openapi=True,
     debug_html=DEBUG,     # mounts /debug (GET / DELETE)
     csrf=False,           # global JSON/header CSRF; prefer route csrf=True
+    csp=True,             # Content-Security-Policy with nonces (scaffold default)
+    telemetry=None,       # OpenTelemetry (True / OTEL_ENABLED=true, extra [otel])
 )
 ```
+
+- `csp=True|"report-only"|{"img-src": [...], "script-src!": [...], "report-uri": ...}`:
+  HTML responses get `script-src 'nonce-…' 'strict-dynamic'` (+ CSP2
+  fallbacks), `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`.
+  Templates use `<script{{ nonce_attr }}>` / `nonce="{{ csp_nonce }}"` (a
+  placeholder the middleware swaps per response, so caches/ETags stay valid;
+  HTML responses lose their ETag). Inline handlers are blocked: use
+  `data-onclick="globalFn"`, `data-onchange`, `data-oninput` (lila-client) or
+  `addEventListener`. The Vite dev origin is allowed automatically in dev.
 
 `App` calls `ConfigLoader.load()` itself, so importing `App` directly still reads
 `.env`. `include_router(router, prefix=...)` supports prefixes and raw route lists;
@@ -139,6 +154,10 @@ class Product(BaseModel):
   pages, has_prev, has_next, prev_page, next_page}` (`{{ pagination(page) }}`).
 - Filters: `name="x"`, `price__gte=10`, `id__in=[...]`, `name__contains="x"`,
   `__ne/__gt/__lt/__lte/__not_in/__like/__ilike/__startswith/__endswith/__isnull`.
+  `search="ana"` (+ `search_fields=[...]`) ORs case-insensitive LIKEs over text
+  columns (wildcards escaped, private columns never searched).
+- `rest_crud_generate` / admin API lists: `?page=&per_page=&search=&sort=&order=`
+  → `paginate_async` dict; without `page` a plain list (v2.0 behaviour).
 - Reads use SQLAlchemy Core (dicts, no ORM objects) and never select
   `__private_fields__`. SQLite writes go through `db.write_transaction()` (one
   writer per process, no "database is locked" bursts).
@@ -150,7 +169,10 @@ class Product(BaseModel):
   `__renamed_columns__ = {"new": "old"}` and creates indexes; `--plan` shows the
   diff (type/NULL changes and NOT NULL columns without default are reported, not
   applied); `--drop-columns` drops removed columns; `lila migrate history`.
-  `--refresh` drops tables (confirmation required unless `--yes`).
+  `--refresh` drops tables (confirmation required unless `--yes`). Each run is
+  a batch: `lila migrate rollback [--steps N] [--dry-run] [--yes]` undoes index
+  and rename steps; added columns/tables only with confirmation; dropped
+  columns cannot be restored.
 - Cache invalidation is per process and also sent to Redis when configured; the
   model read cache defaults to `MODEL_CACHE_TTL=5`. Cached reads are returned as
   copies (mutating a result never changes the cache).
@@ -356,6 +378,16 @@ return render(
   required (missing → logged 500 with instructions). `VITE_DEV_SERVER`,
   `VITE_BASE`, `ASSET_URL`, `ASSET_VERSION` override the defaults.
 - Jinja: `{{ vite("resources/react/islands.jsx") }}`.
+- `@lila/realtime`: `useSSE(url, {events: {name: fn}})` for `Channel(...).stream`,
+  `useWebSocket(url, {rooms, events})` → `{connected, emit, join, leave, on}` for
+  `router.ws_hub(...)` (`{event, data}` protocol, heartbeat, backoff, offline queue).
+- `@lila/desktop`: `desktop.notify/openExternal/openFile/saveFile/selectFolder/
+  appInfo/checkUpdate/installUpdate/setTitle` (no-ops on the web),
+  `useDesktopUpdate()`.
+- `lila crud --model X --react [--auth]` → `resources/react/pages/Crud/X.tsx`
+  (DataTable server mode + Modal form) and a paginated API that logs errors
+  (never `str(exc)`) and honours `__private_fields__`. `lila admin --react` →
+  `Admin(models=[...], react=True)` with `pages/Admin/{Login,Panel}.tsx`.
 
 ## 7c. Desktop targets
 
@@ -374,7 +406,8 @@ return render(
 
 ## 8. CLI
 
-- `lila init` — scaffold; **never overwrites existing files/.env**.
+- `lila init [--template web|react|auth|react-auth|full|desktop] [--yes] [--install]`
+  — scaffold (+ the generators of the template); **never overwrites existing files/.env**.
 - `lila dev` / `lila run` — read `.env` HOST/PORT; `run` supports `-w`.
   `lila dev` forces development mode and enables Jinja auto-reload plus an SSE
   watcher for templates/static/locales (works without `watchfiles`).
@@ -405,6 +438,12 @@ return render(
 - `lila worker --driver sqlite|redis`, `lila tasks stats|list|retry|purge`,
   `lila schedule list|run`, `lila i18n check [--strict]`; `lila doctor` also
   validates `.env` values, translations and the compiled CSS.
+- Desktop signing/updates: `--sign-identity`/`MACOS_SIGN_IDENTITY` (+
+  `--notary-profile`/`MACOS_NOTARY_PROFILE`), `--sign-cert`/`WINDOWS_SIGN_CERT`
+  (password only in `WINDOWS_SIGN_PASSWORD`) or `--sign-thumbprint`;
+  `--update-url https://…/latest.json` (or `DESKTOP_UPDATE_URL`) and
+  `lila desktop release --version X --base-url https://…` (SHA-256 manifest,
+  platforms merged). Updates are https-only and checksum-verified.
 - `lila desktop build --installer auto|dmg|msi [--version --publisher --bundle-id]`
   — `.dmg` via hdiutil (macOS only), `.msi` via WiX v4+ (`wix` CLI, Windows
   only; the `.wxs` is kept in `build/installer/`). Icons: `--icon` or
@@ -438,6 +477,15 @@ return render(
   5 only for dynamic responses, static text assets compressed once (or `.br/.gz`
   siblings), Jinja bytecode cache in production, `LOG_RETENTION_DAYS=30`.
 - `.env` is validated (`validate_settings()`); errors are printed at startup.
+- Storage (`lila.core.storage`): `STORAGE_DRIVER=local|s3` (`S3_BUCKET`,
+  `S3_REGION`, `S3_ENDPOINT_URL`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`,
+  `S3_PREFIX`, `S3_PUBLIC_URL` or presigned `S3_PRESIGN_SECONDS`); `upload(...,
+  folder="avatars")` returns `url` + `key`; `storage().put_bytes_async/url_async/
+  delete_async`. Extra `[s3]` (boto3).
+- Telemetry (`lila.core.telemetry`): `App(telemetry=True)`/`OTEL_ENABLED=true`,
+  standard `OTEL_*` variables; spans `GET /route/{template}`, SQL without
+  parameters, `task <name>`; continues `traceparent`. Extra `[otel]`.
+- `websockets` is a core dependency (uvicorn needs it for `ws_hub`).
 - `lila.testing`: `TestClient()` (main:app), `login(client, user)`,
   `csrf_headers(client)`, `temp_database(*models)`, `override_env(**values)`.
 

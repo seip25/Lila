@@ -152,7 +152,7 @@ def apply_template(template: str, install: bool = False) -> None:
 def _collect_project_info(project_dir_name: str) -> dict:
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
 
-    print("\n📝 Configuración del proyecto / Project configuration (Lila v2.0.0)")
+    print(f"\n📝 Configuración del proyecto / Project configuration (Lila v{__import__('lila').__version__})")
     print("   (Presiona Enter para usar los valores por defecto / Press Enter for defaults)\n")
 
     suggested_port = "8000"
@@ -178,7 +178,7 @@ def _collect_project_info(project_dir_name: str) -> dict:
         "DESCRIPTION_PROJECT": _prompt("Description", "Descripción", "Full-Stack Python Application"),
         "AUTHOR_DEFAULT": _prompt("Author", "Autor", ""),
         "LANG_DEFAULT": _prompt("Default language (en/es/...)", "Idioma por defecto (en/es/...)", "en"),
-        "DESCRIPTION_DEFAULT": _prompt("SEO meta description", "SEO meta descripción", "Built with Lila Framework v2.0"),
+        "DESCRIPTION_DEFAULT": _prompt("SEO meta description", "SEO meta descripción", "Built with Lila Framework"),
         "KEYWORDS_DEFAULT": _prompt("SEO keywords", "SEO palabras clave", "python, starlette, spa, web, framework"),
         "CACHE_DRIVER": "memory",
         "DB_TYPE": "sqlite",
@@ -187,7 +187,7 @@ def _collect_project_info(project_dir_name: str) -> dict:
 
     # Database options
     print("\n🗄️  Configuración de Base de Datos / Database Setup")
-    print("   Lila v2.0 incluye SQLite Async (WAL mode) con cero infraestructura.")
+    print("   Lila incluye SQLite Async (WAL mode) con cero infraestructura.")
     setup_db = "" if _ASSUME_DEFAULTS else input("   ¿Deseas usar MySQL o PostgreSQL en vez de SQLite? [s/N]: ").strip().lower()
     if setup_db in ("s", "y", "si", "yes"):
         db_choice = input("   Tipo de base de datos (mysql/postgresql) [mysql]: ").strip().lower() or "mysql"
@@ -233,7 +233,7 @@ APP_URL=""
 
 # ─── Project Metadata ───────────────────────────────────
 TITLE_PROJECT={_env_value(project_info["TITLE_PROJECT"])}
-VERSION_PROJECT="2.0.0"
+VERSION_PROJECT="1.0.0"
 DESCRIPTION_PROJECT={_env_value(project_info["DESCRIPTION_PROJECT"])}
 LANG_DEFAULT={_env_value(project_info["LANG_DEFAULT"])}
 
@@ -300,7 +300,7 @@ def main(template: str = "web", yes: bool = False, install: bool = False):
     try:
         project_info = _collect_project_info(project_dir_name)
 
-        print("\n🛠️  Scaffolding project with Lila Framework v2.0...")
+        print("\n🛠️  Scaffolding project with Lila Framework...")
 
         for item_pkg_name, item_dest_name in SCAFFOLD_ITEMS.items():
             copy_item("lila", item_pkg_name, destination_base_path, item_dest_name)
@@ -314,14 +314,14 @@ def main(template: str = "web", yes: bool = False, install: bool = False):
 
         req_path = destination_base_path / "requirements.txt"
         if not req_path.exists():
-            req_path.write_text("lila-framework>=2.0.0\n", encoding="utf-8")
+            req_path.write_text("lila-framework>=2.1.0\n", encoding="utf-8")
             print("  📄 requirements.txt generated.")
 
         readme_content = f"""# {project_info["TITLE_PROJECT"]}
 
 {project_info["DESCRIPTION_PROJECT"]}
 
-Built with **Lila Framework v2.0** — Full-Stack Python SPA, SQLite WAL mode, and Desktop ready.
+Built with **Lila Framework** — full-stack Python (Jinja SPA or React), SQLite WAL, desktop ready.
 
 ## Quick Start
 ```bash
@@ -349,7 +349,7 @@ https://seip25.github.io/Lila
             print(f"\n🧩 Template '{template}': {TEMPLATES[template]}")
             apply_template(template, install=install)
 
-        print("\n🎉 ¡Proyecto Lila v2.0 inicializado con éxito! / Lila v2.0 project scaffolded successfully!")
+        print("\n🎉 ¡Proyecto Lila inicializado con éxito! / Lila project scaffolded successfully!")
         if template in ("react", "react-auth", "full", "desktop"):
             print("➡️  Ejecuta 'lila react dev' (Vite + Lila con HMR) / Run 'lila react dev'.")
         else:

@@ -37,7 +37,7 @@ def main():
         )
     else:
         workers = min((os.cpu_count() or 1) * 2 + 1, 8) if (str(WORKERS).lower() == "max" or WORKERS == 0) else int(WORKERS)
-        print(f"🚀 Running Lila v2.0 on {HOST}:{PORT} with {workers} workers")
+        print(f"🚀 Running Lila on {HOST}:{PORT} with {workers} workers")
         uvicorn.run("main:app", host=HOST, port=PORT, reload=False, workers=workers)
 
 

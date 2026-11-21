@@ -211,6 +211,20 @@ JWT.revoke_user(user.id)        # &quot;log out everywhere&quot; / after a passw
         <li>Refresh state (token id, family, expiry) lives in <code>app/data/lila_system.db</code>: shared by workers and kept across restarts; the tokens themselves are never stored.</li>
         <li><code>@validate_token</code> accepts access tokens only; a refresh token gets 401.</li>
       </ul>
+    
+      <h3 class="text-xl font-bold mt-8 mb-3">Content-Security-Policy (nonces)</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>App(csp=True)</code> (on in new projects) sends a strict policy on every HTML response:
+        scripts run only with the per-response nonce (and what those scripts load, thanks to
+        <code>'strict-dynamic'</code>), plus <code>object-src 'none'</code>, <code>frame-ancestors 'none'</code>
+        and <code>base-uri 'self'</code>. Templates write a placeholder that the middleware fills, so route
+        caches and ETags keep working.</p>
+      <pre><code class="language-jinja">&lt;script{{ nonce_attr }}&gt;
+  function purge() { /* ... */ }
+&lt;/script&gt;
+&lt;button data-onclick=&quot;purge&quot;&gt;Purge&lt;/button&gt;   {# instead of onclick=&quot;purge()&quot; #}</code></pre>
+      <pre><code class="language-python">App(csp=&quot;report-only&quot;)                                  # try it first
+App(csp={&quot;img-src&quot;: [&quot;https://cdn.example&quot;], &quot;connect-src&quot;: [&quot;wss://rt.example&quot;],
+         &quot;report-uri&quot;: &quot;/csp-report&quot;})</code></pre>
     </article>
   </main>
 

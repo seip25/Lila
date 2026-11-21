@@ -25,7 +25,7 @@ FRAMEWORK_SCHEMA = [
     ("DEBUG",                "bool", False),
     ("WORKERS",              "str",  "1"),
     ("TITLE_PROJECT",        "str",  "Lila Application"),
-    ("VERSION_PROJECT",      "str",  "2.0.0"),
+    ("VERSION_PROJECT",      "str",  "1.0.0"),
     ("DESCRIPTION_PROJECT",  "str",  "Full-stack lightweight Python application"),
     ("LANG_DEFAULT",         "str",  "es"),
     ("DESCRIPTION_DEFAULT",  "str",  "Lila Framework 2.0 Web App"),

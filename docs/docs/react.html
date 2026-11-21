@@ -241,6 +241,13 @@ createLilaSpa(() =&gt; &lt;AuthProvider&gt;&lt;RouterProvider router={router} /&
         instructions and is reported by <code>lila doctor</code>. Jinja pages can embed Vite entries
         with <code>{{ vite("resources/react/islands.jsx") }}</code>.
       </p>
+    
+      <h3 class="text-xl font-bold mt-8 mb-3">Real-time and desktop hooks</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>@lila/realtime</code> (<code>useSSE</code>, <code>useWebSocket</code>) connects to
+        <code>Channel</code> streams and <code>WebSocketHub</code>; <code>@lila/desktop</code> exposes the native
+        bridge (dialogs, notifications, updates) as no-ops on the web. Start a project with everything wired:
+        <code>lila init -t full</code>. CRUD pages: <code>lila crud -m Product --react</code>; admin:
+        <code>lila admin --react</code>.</p>
     </article>
   </main>
 

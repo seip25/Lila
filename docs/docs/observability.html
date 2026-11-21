@@ -160,6 +160,17 @@ scrape_configs:
         <li><code>lila_cache_items</code>, <code>lila_cache_memory_bytes</code>, <code>lila_tasks{status}</code>, <code>lila_database_up</code></li>
         <li>No path, query, user or IP labels: no personal data and no cardinality explosion.</li>
       </ul>
+    
+      <h3 class="text-xl font-bold mt-8 mb-3">OpenTelemetry</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>pip install "lila-framework[otel]"</code> and <code>App(telemetry=True)</code> (or
+        <code>OTEL_ENABLED=true</code>). Lila creates one server span per request named by the route template
+        (<code>GET /items/{id:int}</code>), child spans for SQL statements (never their parameters) and
+        <code>task &lt;name&gt;</code> spans; incoming <code>traceparent</code> headers continue the trace.
+        Export is configured with the standard variables, or your own TracerProvider is used.</p>
+      <pre><code class="language-bash">OTEL_ENABLED=true
+OTEL_SERVICE_NAME=shop-api
+OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318
+OTEL_TRACES_EXPORTER=otlp   # or console</code></pre>
     </article>
   </main>
 

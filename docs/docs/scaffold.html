@@ -255,7 +255,14 @@ DELETE /api/product/{id}     → Soft delete (active=0) (CSRF required)
                     <li>router-level middlewares (<code>auth=True</code>, <code>rate_limit</code>, ...)</li>
                 </ul>
             </div>
-        </article>
+        
+      <h3 class="text-xl font-bold mt-8 mb-3">React CRUD</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>lila crud --model Product --react --auth</code> generates a typed React page
+        (<code>resources/react/pages/Crud/Product.tsx</code>) with a server-mode DataTable and a Modal form,
+        and an API that paginates, searches and sorts (<code>?page=&amp;search=&amp;sort=&amp;order=</code>),
+        logs database errors instead of returning them and never exposes <code>__private_fields__</code>.
+        <code>--auth</code> protects the page and the API.</p>
+    </article>
     </main>
     <script src="../js/highlight.min.js"></script>
     <script>

@@ -15,7 +15,7 @@ async def home(request: Request):
         request,
         "index",
         context,
-        title="Lila Framework v2.0.0",
+        title="Lila Framework",
         description="Ultra-lightweight full-stack Python framework with SPA view transitions.",
         canonical=True,
     )

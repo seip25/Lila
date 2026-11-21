@@ -298,6 +298,8 @@ def tailwind_css() -> str:
     return url
 
 
+# Installed Lila version ({{ lila_version }}).
+jinja_env.globals["lila_version"] = __import__("lila").__version__
 jinja_env.globals["public"] = public
 jinja_env.globals["asset"] = asset
 jinja_env.globals["tailwind_css"] = tailwind_css
@@ -656,7 +658,7 @@ def get_base_context(
         "description": ENV_CONFIG.get("DESCRIPTION_PROJECT", ENV_CONFIG.get("DESCRIPTION_DEFAULT", "")),
         "keywords": ENV_CONFIG.get("KEYWORDS_DEFAULT", ""),
         "author": ENV_CONFIG.get("AUTHOR_DEFAULT", ""),
-        "version": ENV_CONFIG.get("VERSION_PROJECT", "2.0.0"),
+        "version": ENV_CONFIG.get("VERSION_PROJECT", "1.0.0"),
         "lang": current_lang,
         "translate": trans_dict,
         "ui": UI(trans_dict),

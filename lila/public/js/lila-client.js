@@ -1,5 +1,5 @@
 /**
- * Lila Framework Client Runtime v2.0.x
+ * Lila Framework Client Runtime v2.1
  * Provides client-side SPA routing with View Transitions API,
  * persistent element state, selective React/JS Islands hydration,
  * lightweight global event bus, and modern Tailwind CSS UI components.
@@ -698,7 +698,7 @@ function lilaEscapeAttr(value) {
 })();
 
 /**
- * Lila UI Components v2.0.0 (Tailwind CSS Native)
+ * Lila UI Components (Tailwind CSS Native)
  */
 function lila(component, options) {
   if (typeof component === "object") {

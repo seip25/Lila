@@ -5,6 +5,54 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-11-21
+
+### Security, CRUD/admin in React, real-time, desktop releases and infrastructure
+
+### Added
+
+- **Content-Security-Policy**: `App(csp=True|"report-only"|{...})` with a
+  per-response nonce and `'strict-dynamic'` (route caches and ETags keep
+  working: templates write a placeholder the middleware fills). Framework
+  templates, Swagger, the React shell and Vite tags carry the nonce; new
+  projects enable it. Use `<script{{ nonce_attr }}>` for inline scripts and
+  `data-onclick="fn"` / `data-onchange` / `data-oninput` instead of inline
+  handlers (`button[data-toast]` too).
+- `lila-client.min.js` / `ws.min.js` ship in the package and are served when
+  `rjsmin` is not installed (`python -m lila.core.static` regenerates them).
+- **CRUD/admin**: `search=`/`search_fields=` in `get_all_async`/`count_async`/
+  `paginate_async`; `rest_crud_generate` and the admin API accept
+  `?page=&per_page=&search=&sort=&order=`; `lila crud --react` (DataTable +
+  Modal form) and `--auth`; `lila admin --react` (dashboard, CRUD for every
+  model, export, cache/logs).
+- **Templates**: `lila init --template web|react|auth|react-auth|full|desktop`
+  with `--yes` and `--install`.
+- **Real-time React hooks** (`@lila/realtime`): `useSSE`, `useWebSocket`
+  (rooms, heartbeat, reconnect with backoff, offline queue).
+- **Desktop**: code signing (`codesign` + notarization, `signtool`), in-app
+  updates (`--update-url`, `lila desktop release` → `latest.json` with SHA-256,
+  `useDesktopUpdate()`), bridge `notify`, `open_external`, `app_info`,
+  `set_title` (`@lila/desktop`).
+- **Migrations**: batches and `lila migrate rollback [--steps] [--dry-run] [--yes]`.
+- **Storage**: `STORAGE_DRIVER=local|s3` (AWS, R2, MinIO, Spaces), presigned
+  or CDN URLs; `upload(..., folder=)`. Extra `[s3]`.
+- **OpenTelemetry**: `App(telemetry=True)` / `OTEL_ENABLED` — HTTP spans by
+  route template, SQL spans without parameters, task spans, `traceparent`.
+  Extra `[otel]`.
+- CI: lint (syntax/undefined names for Python 3.10), `lila --help`, and a
+  React job (TS and JS) that scaffolds, typechecks, builds and smoke-tests.
+
+### Fixed
+
+- The `lila` CLI crashed with a SyntaxError on Python 3.10/3.11 (backslashes
+  inside f-string expressions in `lila/cli/deploy.py`).
+- WebSockets returned 404 on a default install: uvicorn had no WebSocket
+  library. `websockets` is now a dependency and `lila doctor` checks it.
+- `lila crud` generated APIs that returned `str(exc)` to clients and ignored
+  `__private_fields__`; errors are now logged and private columns respected.
+- New projects defaulted `VERSION_PROJECT` to the framework version; it is
+  now `1.0.0` (your app's version, used by desktop builds).
+
 ### React, desktop targets and fixes
 
 ### Added

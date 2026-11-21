@@ -28,7 +28,7 @@ def start(
     except (TypeError, ValueError):
         bind_port = 8000
 
-    typer.secho(f"🚀 Starting Lila v2.0 development server at http://{bind_host}:{bind_port} ...", fg=typer.colors.CYAN)
+    typer.secho(f"🚀 Starting Lila v{__import__('lila').__version__} development server at http://{bind_host}:{bind_port} ...", fg=typer.colors.CYAN)
     
     cmd = [
         sys.executable, "-m", "uvicorn", "main:app",

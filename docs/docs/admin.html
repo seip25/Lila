@@ -345,7 +345,14 @@ lila-create-admin --username myadmin
                 or templates, so it is safe to use on an existing, customized panel.
             </p>
 
-        </article>
+        
+      <h3 class="text-xl font-bold mt-8 mb-3">React admin panel</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>lila admin --react</code> copies <code>resources/react/pages/Admin/{Login,Panel}.tsx</code>
+        and sets <code>Admin(models=[...], react=True)</code>: dashboard (metrics, cache, logs) and, for every
+        model, a DataTable with search, sort and pagination plus a create/edit form generated from the
+        columns. Sessions, CSRF and the sanitized JSON API are the same as the Jinja panel.</p>
+      <pre><code class="language-python">Admin(models=[User, Product], react=True)</code></pre>
+    </article>
     </main>
     <script src="../js/highlight.min.js"></script>
     <script>

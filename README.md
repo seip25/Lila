@@ -74,6 +74,8 @@ pip install "lila-framework[markdown]"    # render_markdown
 pip install "lila-framework[metrics]"     # truthful admin telemetry
 pip install "lila-framework[optimize]"    # rjsmin/rcssmin + Pillow
 pip install "lila-framework[desktop]"     # pywebview + PyInstaller
+pip install "lila-framework[s3]"          # S3 / R2 / MinIO uploads (boto3)
+pip install "lila-framework[otel]"        # OpenTelemetry tracing
 ```
 
 ---
@@ -82,6 +84,7 @@ pip install "lila-framework[desktop]"     # pywebview + PyInstaller
 
 ```bash
 lila init        # scaffold main.py, app/, public/, resources/ and .env
+lila init -t full -y   # or a template: web | react | auth | react-auth | full | desktop
 lila dev         # http://127.0.0.1:8000 with reload + dev SSE
 lila doctor      # check .env, SECRET_KEY, database, templates, public/
 lila routes      # list registered routes of main:app
@@ -101,8 +104,12 @@ app = App(
     gzip=True,
     openapi=True,
     debug_html=DEBUG,   # mount /debug in debug mode
+    csp=True,           # Content-Security-Policy with per-response nonces
 )
 ```
+
+With `csp=True` inline scripts need the nonce (`<script{{ nonce_attr }}>`) and
+inline handlers become `data-onclick="fn"`; framework templates already comply.
 
 ### Routes with typed params
 
@@ -243,6 +250,8 @@ with `OPENAI_MODEL`, `DEEPSEEK_MODEL` or `GEMINI_MODEL`.
 lila auth                 # login/register/reset/profile/dashboard + OAuth
 lila admin -u admin -p ... # create/update the admin user
 lila migrate
+lila crud -m Product --react --auth   # React CRUD page (DataTable + form) + paginated API
+lila admin --react                    # React admin panel
 ```
 
 Admin lives at `/admin`; OAuth callbacks at `/auth/{provider}/callback`. Set
@@ -329,6 +338,27 @@ Lila binds the desktop server to `127.0.0.1`, enforces a per-run local token,
 prevents a second instance and stores its SQLite/cache/logs in the OS
 application-data directory.
 
+Sign and auto-update desktop apps: `--sign-identity` (macOS, + notarization
+with `--notary-profile`), `--sign-cert` (Windows, password in
+`WINDOWS_SIGN_PASSWORD`), `--update-url https://…/latest.json` and
+`lila desktop release`; in React `useDesktopUpdate()` and `desktop.notify(...)`
+from `@lila/desktop`.
+
+### Real-time, storage and tracing
+
+```tsx
+import { useSSE, useWebSocket } from "@lila/realtime";
+const orders = useSSE("/events/orders", { events: { "order:new": (o) => toast.success(`#${o.id}`) } });
+const chat = useWebSocket("/ws/chat", { rooms: ["general"], events: { "chat:message": addMessage } });
+```
+
+```bash
+# .env
+STORAGE_DRIVER=s3          # upload() goes to S3 / R2 / MinIO (presigned or S3_PUBLIC_URL)
+S3_BUCKET=my-bucket
+OTEL_ENABLED=true          # OpenTelemetry spans: GET /items/{id}, SQL, tasks
+```
+
 ---
 
 ## 🛠️ CLI Reference
@@ -343,8 +373,9 @@ application-data directory.
 | `lila auth` | Auth 2.0 scaffold (backups for overwritten files). |
 | `lila admin` | Create/update admin user + link routes safely. |
 | `lila model create` | Generate an ActiveRecord model. |
-| `lila crud --model X` | CRUD API + HTML DataTable with CSRF. |
+| `lila crud --model X [--react] [--auth]` | Paginated/searchable CRUD API + Jinja or React page. |
 | `lila migrate` | Create tables and add missing columns. |
+| `lila migrate rollback` | Undo the last migration batch (`--steps`, `--dry-run`). |
 | `lila migrate --refresh --yes` | Drop and recreate (asks without `--yes`). |
 | `lila optimize` | Minify JS/CSS (needs the optimize extra) + WebP images. |
 | `lila secret-key` | Rotate `SECRET_KEY`. |
@@ -357,11 +388,13 @@ application-data directory.
 | `lila i18n check` | Translation keys missing per language. |
 | `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
-| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`). |
+| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`, signing, `--update-url`). |
 | `lila desktop routes` | Which routes ship in the desktop app + web-only suggestions. |
 | `lila react init/dev/build/types/status` | React + Vite (TypeScript): scaffold, HMR dev server, production build, TS types from models. |
 | `lila auth --react` | Auth pages in React (TypeScript) instead of Jinja. |
 | `lila react ui [--force]` | Add/update the React UI kit in an existing project. |
+| `lila admin --react` | React admin panel (dashboard + CRUD of every model). |
+| `lila desktop release` | `latest.json` (version, URLs, SHA-256) for in-app updates. |
 
 `lila desktop` binds to `127.0.0.1`, enforces a generated local session token and
 allows only one instance. The frozen build stores SQLite/cache/logs in the OS

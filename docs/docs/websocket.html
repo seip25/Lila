@@ -375,6 +375,20 @@ sock.disconnect();                                // Close, no auto-reconnect
         </div>
       </div>
 
+    
+      <h3 class="text-xl font-bold mt-8 mb-3">React: useWebSocket / useSSE</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>@lila/realtime</code> speaks the same <code>{event, data}</code> protocol as
+        <code>ws.js</code>: rooms, heartbeat, reconnection with backoff and a bounded offline queue.
+        <code>websockets</code> is installed with Lila (uvicorn needs it to accept WebSocket upgrades).</p>
+      <pre><code class="language-typescript">import { useSSE, useWebSocket } from &quot;@lila/realtime&quot;;
+
+const chat = useWebSocket(&quot;/ws/chat&quot;, {
+  rooms: [&quot;general&quot;],
+  events: { &quot;chat:message&quot;: (msg) =&gt; setMessages((m) =&gt; [...m, msg]) },
+});
+chat.emit(&quot;chat:message&quot;, { text: &quot;hi&quot; });
+
+const feed = useSSE(&quot;/events/orders&quot;, { events: { &quot;order:new&quot;: (o) =&gt; notify(o) } });</code></pre>
     </article>
   </main>
 
