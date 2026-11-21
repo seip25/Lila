@@ -253,7 +253,7 @@ reset URL is printed to the console instead.
 ### React (Vite)
 
 ```bash
-lila react init --install   # package.json, vite.config.js, resources/react/*, example routes
+lila react init --install   # TypeScript by default (--js for .jsx): package.json, vite.config.ts, resources/react/*
 lila react dev              # Vite (HMR + React Fast Refresh) + Lila together
 lila react build            # public/build + manifest — Node is NOT needed on the server
 ```
@@ -271,7 +271,9 @@ async def user(request: Request, id: int):
                         jsonld={"@context": "https://schema.org", "@type": "Person", "name": user["name"]})
 ```
 
-`resources/react/pages/Users/Show.jsx` receives `user` as a prop; `<Link href>`
+`resources/react/pages/Users/Show.tsx` receives `user` as a prop
+(`lila react types` writes TypeScript interfaces for your Pydantic schemas and
+models; `useForm` handles CSRF and Lila's 422 errors per field); `<Link href>`
 from `@lila` navigates without reloads (JSON page + `<head>` swap, back/forward,
 asset-version reload). A React Router SPA with per-route meta:
 
@@ -282,12 +284,16 @@ router.spa("/app", meta={
 })
 ```
 
+React auth (login, register, forgot/reset password, dashboard, profile) on the
+same secure JSON endpoints as the Jinja version: `lila auth --react`.
+
 ### Desktop
 
 ```bash
 pip install "lila-framework[desktop]"
 lila desktop dev
 lila desktop build --name MyApp --onefile --windowed
+lila desktop build --installer auto     # + dist/MyApp.dmg (macOS) or dist/MyApp.msi (Windows, WiX)
 ```
 
 One codebase, two targets. Keep web-only features out of the desktop build:
@@ -342,9 +348,10 @@ application-data directory.
 | `lila i18n check` | Translation keys missing per language. |
 | `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
-| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`). |
+| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`). |
 | `lila desktop routes` | Which routes ship in the desktop app + web-only suggestions. |
-| `lila react init/dev/build/status` | React + Vite: scaffold, HMR dev server, production build. |
+| `lila react init/dev/build/types/status` | React + Vite (TypeScript): scaffold, HMR dev server, production build, TS types from models. |
+| `lila auth --react` | Auth pages in React (TypeScript) instead of Jinja. |
 
 `lila desktop` binds to `127.0.0.1`, enforces a generated local session token and
 allows only one instance. The frozen build stores SQLite/cache/logs in the OS

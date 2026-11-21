@@ -25,6 +25,21 @@ All notable changes to Lila Framework. The format follows
   Jinja (`is_desktop()`, `route_available()`). `lila desktop build` runs the
   React build first; `--width/--height`.
 - `lila doctor` checks React assets and a stale `public/build/hot`.
+- **TypeScript by default**: `lila react init` writes `.tsx`, `tsconfig.json`
+  (strict) and `vite.config.ts`; `--js` keeps `.jsx`. The `@lila` client is
+  typed (`Page`, `Head`, `HttpError`, `LinkProps`...) and shared by both.
+- `useForm(initial)` (CSRF, `processing`, per-field 422 errors, `transform`,
+  `redirect`), `useT()` with `react_render(translations=True|[keys])`.
+- `lila react types` → `resources/react/types/lila.ts` from Pydantic schemas and
+  models in `app/` (private fields excluded); refreshed by `react dev/build`.
+- React pages reload when the Python dev server restarts.
+- `lila auth --react`: login, register, forgot/reset password, invalid token,
+  dashboard and profile as React pages over the same JSON endpoints, throttles
+  and lockouts; `OAuth.configured_providers()`.
+- `lila desktop build --installer auto|dmg|msi`: macOS `.dmg` (hdiutil, with an
+  Applications link) and Windows `.msi` (WiX v4+: Program Files, Start
+  menu/desktop shortcuts, icon, in-place upgrades); `--version`,
+  `--publisher`, `--bundle-id`; icons auto-detected and converted with Pillow.
 
 ### Fixed
 
@@ -33,6 +48,7 @@ All notable changes to Lila Framework. The format follows
   production. Top-level `public/` directories are now served at the root as
   fallbacks (matched after application routes).
 - Desktop builds did not bundle the project's `app/locales/*.json`.
+- `lila react types` discovers modules in folders without `__init__.py`.
 - The JSON fallback without orjson produced spaced output (different SSE
   payloads/ETags than with orjson).
 - Static prefixes for rate limiting/cache headers include `/css`, `/fonts`, `/build`.

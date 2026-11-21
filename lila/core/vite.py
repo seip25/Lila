@@ -27,8 +27,20 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from lila.core.config import ENV_CONFIG, get_base_path, is_debug
 
-DEFAULT_ENTRY = "resources/react/main.jsx"
-DEFAULT_SPA_ENTRY = "resources/react/spa.jsx"
+DEFAULT_ENTRY = "resources/react/main.tsx"
+DEFAULT_SPA_ENTRY = "resources/react/spa.tsx"
+_EXTENSIONS = (".tsx", ".jsx", ".ts", ".js")
+
+
+def default_entry(spa: bool = False) -> str:
+    """``resources/react/main.tsx`` (TypeScript) or ``main.jsx`` (``--js``)."""
+    stem = "resources/react/spa" if spa else "resources/react/main"
+    manifest = ViteBridge.manifest() if not ViteBridge.is_dev() else {}
+    for ext in _EXTENSIONS:
+        candidate = stem + ext
+        if candidate in manifest or os.path.isfile(get_base_path(*candidate.split("/"))):
+            return candidate
+    return stem + ".tsx"
 BUILD_DIR = ("public", "build")
 BUILD_URL = "/public/build/"
 
@@ -215,7 +227,7 @@ class ViteBridge:
     def tags(cls, entries: Any = None, react: bool = True) -> str:
         """``<script>``/``<link>`` tags for one or more entries (dev or build)."""
         if not entries:
-            entries = [DEFAULT_ENTRY]
+            entries = [default_entry()]
         elif isinstance(entries, str):
             entries = [entries]
         entries = [str(e).lstrip("/") for e in entries]

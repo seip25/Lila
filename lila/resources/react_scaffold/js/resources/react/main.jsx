@@ -4,5 +4,5 @@ import { createLilaApp } from "@lila";
 
 createLilaApp({
   // Lazy: every page is its own chunk. Use { eager: true } to bundle them all.
-  pages: import.meta.glob("./pages/**/*.jsx"),
+  pages: import.meta.glob("./pages/**/*.{jsx,tsx}"),
 });

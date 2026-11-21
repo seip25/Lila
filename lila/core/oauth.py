@@ -205,6 +205,15 @@ class OAuth:
             return None
 
     @classmethod
+    def configured_providers(cls, prefix: str = "/auth") -> List[Dict[str, str]]:
+        """Providers with credentials in .env, for client-side buttons (React)."""
+        items = []
+        for key, conf in cls.PROVIDERS.items():
+            if ENV_CONFIG.get(conf.get("client_id_env", "")) and ENV_CONFIG.get(conf.get("client_secret_env", "")):
+                items.append({"key": key, "name": conf.get("name", key.title()), "href": f"{prefix}/{key}"})
+        return items
+
+    @classmethod
     def render_buttons(
         cls,
         providers: Optional[List[str]] = None,

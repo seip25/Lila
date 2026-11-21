@@ -46,7 +46,7 @@ export default defineConfig(({ command }) => ({
   plugins: [lila(), react(), tailwindcss()],
   resolve: {
     alias: {
-      "@lila": path.resolve("resources/react/lila/index.jsx"),
+      "@lila": path.resolve("resources/react/lila/index.tsx"),
       "@": path.resolve("resources/react"),
     },
   },

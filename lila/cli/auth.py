@@ -81,7 +81,102 @@ def _create_routes():
         typer.echo("ℹ️ Auth routes already present (or main.py could not be patched safely).")
 
 
-def _create_auth_files():
+# `lila auth --react`: page handlers render React pages instead of Jinja. The
+# JSON endpoints (POST /login, /register, ...) are shared by both versions.
+_REACT_IMPORT = "from lila.core.react import react_render"
+_RT = "robots=\"noindex\", translations=True"
+REACT_PAGE_REPLACEMENTS = {
+    "login.py": [
+        (
+            'return render(request=request, template="auth/login", csrf=True, title="sign_in")',
+            f'return react_render(request, "Auth/Login", {{"providers": OAuth.configured_providers()}}, title="sign_in", {_RT})',
+        ),
+    ],
+    "register.py": [
+        (
+            'return render(request=request, template="auth/register", csrf=True, title="register")',
+            f'return react_render(request, "Auth/Register", {{"providers": OAuth.configured_providers()}}, title="register", {_RT})',
+        ),
+    ],
+    "forgot_password.py": [
+        (
+            'return render(request=request, template="auth/forgot-password", csrf=True, title="recover_password")',
+            f'return react_render(request, "Auth/ForgotPassword", {{}}, title="recover_password", {_RT})',
+        ),
+    ],
+    "change_password.py": [
+        (
+            'return render(request=request, template="auth/invalid-token", status_code=400, title="invalid or expired token", robots="noindex")',
+            f'return react_render(request, "Auth/InvalidToken", {{}}, status_code=400, title="invalid or expired token", {_RT})',
+        ),
+        (
+            """return render(
+        request=request,
+        template="auth/change-password",
+        context={"token": token},
+        csrf=True,
+        title="reset_password",
+        robots="noindex",
+    )""",
+            f'return react_render(request, "Auth/ChangePassword", {{"token": token}}, title="reset_password", {_RT})',
+        ),
+    ],
+    "dashboard.py": [
+        (
+            'return render(request=request, template="authenticated/dashboard", context=context, title="dashboard", robots="noindex")',
+            f'return react_render(request, "Account/Dashboard", context, title="dashboard", {_RT})',
+        ),
+    ],
+    "profile.py": [
+        (
+            'return render(request=request, template="authenticated/profile", context=context, csrf=True, title="profile", robots="noindex")',
+            f'return react_render(request, "Account/Profile", context, title="profile", {_RT})',
+        ),
+    ],
+}
+
+
+def reactify_route(filename: str, content: str) -> str:
+    """Returns the React version of a generated route file (exact, checked replacements)."""
+    replacements = REACT_PAGE_REPLACEMENTS.get(filename)
+    if not replacements:
+        return content
+    for old, new in replacements:
+        if old not in content:
+            raise RuntimeError(f"lila auth --react: page handler not found in {filename}")
+        content = content.replace(old, new)
+    content = content.replace(
+        "from lila.core.templates import render\n",
+        f"{_REACT_IMPORT}\n",
+        1,
+    )
+    if "OAuth.configured_providers" in content and "from lila.core.oauth import OAuth" not in content:
+        content = content.replace(f"{_REACT_IMPORT}\n", f"{_REACT_IMPORT}\nfrom lila.core.oauth import OAuth\n", 1)
+    return content
+
+
+def _create_react_pages():
+    """Copies the React auth pages; sets up React (TypeScript) when missing."""
+    from lila.cli.react import init as react_init, is_react_project
+
+    if not is_react_project():
+        typer.secho("  ⚛️  React is not set up yet: running `lila react init --no-routes`...", fg=typer.colors.CYAN)
+        react_init(install=False, force=False, routes=False, js=False)
+    base = Path(package_root) / "cli" / "auth" / "react"
+    for src in sorted(base.rglob("*.tsx")):
+        rel = src.relative_to(base)
+        target = Path("resources/react") / rel
+        _write_with_backup(target, src.read_text(encoding="utf-8"))
+        typer.echo(f"  ⚛️  {target}")
+    main_jsx = Path("resources/react/main.jsx")
+    if main_jsx.exists() and ".tsx" not in main_jsx.read_text(encoding="utf-8"):
+        typer.secho(
+            '  ⚠️ resources/react/main.jsx only globs .jsx: use import.meta.glob("./pages/**/*.{jsx,tsx}")',
+            fg=typer.colors.YELLOW,
+        )
+
+
+def _create_auth_files(react: bool = False):
     auth_dir = Path(os.path.join(user_project_root, "app/routes/web/auth"))
     auth_dir.mkdir(parents=True, exist_ok=True)
 
@@ -94,12 +189,14 @@ def _create_auth_files():
         "change_password.py": read_file("cli/auth/routes/change_password.py"),
     }
     for filename, content in files.items():
+        if react:
+            content = reactify_route(filename, content)
         _write_with_backup(auth_dir / filename, content)
 
     typer.echo("  📁 Route files created in app/routes/web/auth/")
 
 
-def _create_authenticated_files():
+def _create_authenticated_files(react: bool = False):
     auth_dir = Path(os.path.join(user_project_root, "app/routes/web/authenticated"))
     auth_dir.mkdir(parents=True, exist_ok=True)
 
@@ -109,6 +206,8 @@ def _create_authenticated_files():
         "profile.py":   read_file("cli/auth/routes/profile.py"),
     }
     for filename, content in files.items():
+        if react:
+            content = reactify_route(filename, content)
         _write_with_backup(auth_dir / filename, content)
 
     typer.echo("  📁 Route files created in app/routes/web/authenticated/")
@@ -140,25 +239,33 @@ def _create_auth_model():
         )
     typer.echo("  🔐 LoginAttempt & PasswordResetToken models registered.")
 
+_TEMPLATES_HELP = "Generate Jinja2 auth templates (default: yes, no with --react)"
+_REACT_HELP = "React (TypeScript) pages for login, register, forgot/reset password, dashboard and profile"
+
+
 @app.callback(invoke_without_command=True)
 def default_auth(
     ctx: typer.Context,
-    template: bool = typer.Option(True, "--templates/--no-templates", help="Generate Jinja2 auth templates"),
+    template: Optional[bool] = typer.Option(None, "--templates/--no-templates", help=_TEMPLATES_HELP),
     routes: bool = typer.Option(True, "--routes/--no-routes", help="Generate auth and dashboard routes"),
+    react: bool = typer.Option(False, "--react", help=_REACT_HELP),
 ):
     """Scaffold authentication system with OAuth 2.0, Argon2, and dashboard."""
     if ctx.invoked_subcommand is None:
-        generate(template=template, routes=routes)
+        generate(template=template, routes=routes, react=react)
 
 
 @app.command()
 def generate(
-    template: bool = typer.Option(True, "--templates/--no-templates", help="Generate Jinja2 auth templates"),
+    template: Optional[bool] = typer.Option(None, "--templates/--no-templates", help=_TEMPLATES_HELP),
     routes: bool = typer.Option(True, "--routes/--no-routes", help="Generate auth and dashboard routes"),
+    react: bool = typer.Option(False, "--react", help=_REACT_HELP),
 ):
     """
     Scaffold authentication system with OAuth 2.0, Argon2, and dashboard.
     """
+    if template is None:
+        template = not react
     if not os.path.exists("main.py") or not os.path.exists("app"):
         typer.secho("❌ Error: Must run inside a Lila project root directory.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
@@ -168,14 +275,19 @@ def generate(
     if template:
         _create_templates()
 
+    if react:
+        _create_react_pages()
+
     if routes:
-        _create_auth_files()
-        _create_authenticated_files()
+        _create_auth_files(react=react)
+        _create_authenticated_files(react=react)
         _overwrite_user_model()
         _create_auth_model()
         _create_routes()
 
     typer.secho("✅ Auth 2.0 generated successfully! OAuth ready with Google, GitHub, and Discord.", fg=typer.colors.GREEN)
+    if react:
+        typer.echo("   React pages: resources/react/pages/Auth/* and Account/* — run `lila react dev`.")
 
 def main():
     app()
