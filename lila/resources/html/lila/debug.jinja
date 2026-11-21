@@ -20,7 +20,7 @@
         <p class="text-xs font-semibold text-slate-400">Last 100 requests in memory. Zero disk I/O.</p>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="deleteDebug()" class="px-4 py-2.5 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer">🧹 Reset</button>
+        <button data-onclick="deleteDebug" class="px-4 py-2.5 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer">🧹 Reset</button>
       </div>
     </header>
 
@@ -50,7 +50,7 @@
           <!-- Status Filter -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Status:</span>
-            <select id="filter-status" onchange="applyFiltersAndSort()" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <select id="filter-status" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
               <option value="all">All</option>
               <option value="2xx">2xx Success</option>
               <option value="3xx">3xx Redirect</option>
@@ -62,7 +62,7 @@
           <!-- Method Filter -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Method:</span>
-            <select id="filter-method" onchange="applyFiltersAndSort()" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <select id="filter-method" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
               <option value="all">All</option>
               <option value="GET">GET</option>
               <option value="POST">POST</option>
@@ -75,7 +75,7 @@
           <!-- Sort Filter -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Sort:</span>
-            <select id="sort-by" onchange="applyFiltersAndSort()" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <select id="sort-by" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
               <option value="newest">Newest First</option>
               <option value="slowest">Slowest (duration_ms DESC)</option>
               <option value="ram">Highest RAM (ram_mb DESC)</option>
@@ -96,8 +96,8 @@
     </article>
   </main>
 
-  <script src="{{ public('js/lila-client.js') }}"></script>
-  <script>
+  <script src="{{ public('js/lila-client.js') }}"{{ nonce_attr | default('') }}></script>
+  <script{{ nonce_attr | default('') }}>
     let rawHistory = {{ history | tojson }};
     let timer = null;
     let debugTable = null;

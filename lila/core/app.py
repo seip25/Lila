@@ -133,6 +133,7 @@ class App(Starlette):
         etag: bool = True,
         health: bool = True,
         metrics: bool = False,
+        csp: Any = False,
     ):
         # Ensure .env is loaded even when users import App directly (not app.config).
         ConfigLoader.load()
@@ -279,6 +280,14 @@ class App(Starlette):
             # Level 5: ~2-3x less CPU than Starlette's default (9) for ~2-4% larger bodies.
             gzip_conf = gzip if isinstance(gzip, dict) else {"minimum_size": 500, "compresslevel": 5}
             middleware_stack.append(Middleware(PureASGIGZipMiddleware, **gzip_conf))
+
+        self._csp = csp
+        if csp:
+            # Inside GZip (plain body) and outside ETag (hashes the placeholder,
+            # so cached HTML stays stable); see lila.core.csp.
+            from lila.core.csp import PureASGICSPMiddleware
+
+            middleware_stack.append(Middleware(PureASGICSPMiddleware, csp=csp))
 
         if etag:
             # Inside GZip: hashes the plain body, a 304 skips compression too.
@@ -642,6 +651,9 @@ class App(Starlette):
 
     async def _docs_ui_endpoint(self, request):
         """Renders Swagger UI."""
+        from lila.core.csp import nonce_attr
+
+        nonce = str(nonce_attr(request))
         html = """<!DOCTYPE html>
 <html>
 <head>
@@ -653,9 +665,9 @@ class App(Starlette):
 </head>
 <body>
     <div id="swagger-ui"></div>
-    <script src="/swagger/swagger-ui-bundle.js"></script>
-    <script src="/swagger/swagger-ui-standalone-preset.js"></script>
-    <script>
+    <script src="/swagger/swagger-ui-bundle.js"__NONCE__></script>
+    <script src="/swagger/swagger-ui-standalone-preset.js"__NONCE__></script>
+    <script__NONCE__>
     window.onload = function() {
         SwaggerUIBundle({
             url: "/openapi.json",
@@ -670,7 +682,7 @@ class App(Starlette):
     }
     </script>
 </body>
-</html>"""
+</html>""".replace("__NONCE__", nonce)
         return HTMLResponse(html)
 
     def _wants_json(self, request) -> bool:

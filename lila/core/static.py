@@ -177,13 +177,58 @@ class LilaStaticFiles(StaticFiles):
 _bundled: dict = {}
 
 
-def _minify_js(source: str) -> str:
+def source_hash(source: str) -> str:
+    return hashlib.sha256(source.encode("utf-8")).hexdigest()[:16]
+
+
+def min_path(path: str) -> str:
+    return path[:-3] + ".min.js" if path.endswith(".js") else path + ".min"
+
+
+def minified_bundle(path: str, source: str) -> str:
+    """Contents of the shipped ``.min.js``: a hash header + rjsmin output."""
+    import rjsmin  # type: ignore
+
+    name = os.path.basename(path)
+    return f"/*! Lila {name} | MIT | src:{source_hash(source)} */\n" + rjsmin.jsmin(source) + "\n"
+
+
+def write_minified_bundles(directory: Optional[str] = None) -> list:
+    """Regenerates lila/public/js/*.min.js (run: python -m lila.core.static)."""
+    directory = directory or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public", "js")
+    written = []
+    for name in ("lila-client.js", "ws.js"):
+        path = os.path.join(directory, name)
+        with open(path, "r", encoding="utf-8") as fh:
+            source = fh.read()
+        target = min_path(path)
+        with open(target, "w", encoding="utf-8") as fh:
+            fh.write(minified_bundle(path, source))
+        written.append(target)
+    return written
+
+
+def _shipped_min(path: str, source: str) -> Optional[str]:
+    """The packaged ``.min.js`` when it was built from exactly this source."""
+    target = min_path(path)
+    try:
+        with open(target, "r", encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError:
+        return None
+    first_line = text.split("\n", 1)[0]
+    return text if f"src:{source_hash(source)}" in first_line else None
+
+
+def _minify_js(source: str, path: str = "") -> str:
     try:
         import rjsmin  # type: ignore
 
         return rjsmin.jsmin(source)
     except Exception:
-        return source
+        # No rjsmin (it is optional): use the minified copy shipped in the package.
+        shipped = _shipped_min(path, source) if path else None
+        return shipped if shipped is not None else source
 
 
 def _bundled_variant(path: str, minify: bool) -> Tuple[bytes, str, float]:
@@ -194,7 +239,7 @@ def _bundled_variant(path: str, minify: bool) -> Tuple[bytes, str, float]:
         with open(path, "r", encoding="utf-8") as fh:
             text = fh.read()
         if minify:
-            text = _minify_js(text)
+            text = _minify_js(text, path)
         body = text.encode("utf-8")
         etag = hashlib.blake2b(body, digest_size=10).hexdigest()
         cached = (body, etag, stat.st_mtime)
@@ -219,3 +264,8 @@ def bundled_js_response(request, path: str, debug: bool) -> Response:
         body = cached_compress((path, etag), lambda: body, encoding)
         headers["content-encoding"] = encoding
     return Response(content=body, media_type="application/javascript", headers=headers)
+
+
+if __name__ == "__main__":  # pragma: no cover - maintainer tool
+    for written_path in write_minified_bundles():
+        print(f"wrote {written_path} ({os.path.getsize(written_path) / 1024:.1f} KB)")

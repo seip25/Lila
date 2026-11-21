@@ -162,7 +162,7 @@ class ViteBridge:
             css.append(file)
 
     @classmethod
-    def build_tags(cls, entries: Iterable[str]) -> str:
+    def build_tags(cls, entries: Iterable[str], nonce: str = "") -> str:
         manifest = cls.manifest()
         if not manifest:
             raise ViteManifestMissing(
@@ -193,12 +193,12 @@ class ViteBridge:
             return list(dict.fromkeys(items))
 
         tags = [f'<link rel="stylesheet" href="{html.escape(base + f)}" />' for f in unique(css)]
-        tags += [f'<link rel="modulepreload" href="{html.escape(base + f)}" />' for f in unique(preload)]
-        tags += [f'<script type="module" src="{html.escape(base + f)}"></script>' for f in unique(scripts)]
+        tags += [f'<link rel="modulepreload" href="{html.escape(base + f)}"{nonce} />' for f in unique(preload)]
+        tags += [f'<script type="module" src="{html.escape(base + f)}"{nonce}></script>' for f in unique(scripts)]
         return "\n".join(tags)
 
     @classmethod
-    def dev_tags(cls, entries: Iterable[str], react: bool = True) -> str:
+    def dev_tags(cls, entries: Iterable[str], react: bool = True, nonce: str = "") -> str:
         url = cls.dev_url() or ""
         esc = html.escape(url)
         tags = []
@@ -206,7 +206,7 @@ class ViteBridge:
             # Same preamble @vitejs/plugin-react injects in index.html (needed
             # when the HTML comes from the backend instead of Vite).
             tags.append(
-                '<script type="module">'
+                f'<script type="module"{nonce}>'
                 f'import RefreshRuntime from "{esc}/@react-refresh";'
                 "RefreshRuntime.injectIntoGlobalHook(window);"
                 "window.$RefreshReg$ = () => {};"
@@ -214,34 +214,36 @@ class ViteBridge:
                 "window.__vite_plugin_react_preamble_installed__ = true;"
                 "</script>"
             )
-        tags.append(f'<script type="module" src="{esc}/@vite/client"></script>')
+        tags.append(f'<script type="module" src="{esc}/@vite/client"{nonce}></script>')
         for entry in entries:
             src = f"{esc}/{html.escape(entry.lstrip('/'))}"
             if entry.endswith((".css", ".scss", ".sass", ".less")):
                 tags.append(f'<link rel="stylesheet" href="{src}" />')
             else:
-                tags.append(f'<script type="module" src="{src}"></script>')
+                tags.append(f'<script type="module" src="{src}"{nonce}></script>')
         return "\n".join(tags)
 
     @classmethod
-    def tags(cls, entries: Any = None, react: bool = True) -> str:
-        """``<script>``/``<link>`` tags for one or more entries (dev or build)."""
+    def tags(cls, entries: Any = None, react: bool = True, nonce: str = "") -> str:
+        """``<script>``/``<link>`` tags for one or more entries (dev or build).
+
+        ``nonce`` is the ``' nonce="..."'`` attribute (``lila.core.csp.nonce_attr``)."""
         if not entries:
             entries = [default_entry()]
         elif isinstance(entries, str):
             entries = [entries]
         entries = [str(e).lstrip("/") for e in entries]
         if cls.is_dev():
-            return cls.dev_tags(entries, react=react)
-        return cls.build_tags(entries)
+            return cls.dev_tags(entries, react=react, nonce=nonce)
+        return cls.build_tags(entries, nonce=nonce)
 
 
-def vite(entries: Any = None, react: bool = True) -> str:
+def vite(entries: Any = None, react: bool = True, nonce: str = "") -> str:
     """Jinja helper: ``{{ vite("resources/react/main.jsx") }}``."""
     from markupsafe import Markup
 
     try:
-        return Markup(ViteBridge.tags(entries, react=react))
+        return Markup(ViteBridge.tags(entries, react=react, nonce=str(nonce or "")))
     except ViteManifestMissing as exc:
         from lila.core.logger import Logger
 

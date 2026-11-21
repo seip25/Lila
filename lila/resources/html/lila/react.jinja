@@ -5,7 +5,7 @@
 <html lang="{{ lang | default('en') }}" data-theme="light">
 <head>
   {% include "lila/head.jinja" %}
-  <script>try{var t=localStorage.getItem("lila-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.dataset.theme="dark";document.documentElement.classList.add("dark")}}catch(e){}</script>
+  <script{{ nonce_attr | default('') }}>try{var t=localStorage.getItem("lila-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.dataset.theme="dark";document.documentElement.classList.add("dark")}}catch(e){}</script>
   {{ vite_tags }}
 </head>
 <body data-layout="react"{% if page_meta and page_meta.body_class %} class="{{ page_meta.body_class }}"{% endif %}>

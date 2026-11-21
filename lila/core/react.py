@@ -158,7 +158,8 @@ def react_render(
     ``tailwind=True`` also includes Lila's Tailwind runtime/CSS (normally
     Tailwind comes from Vite), ``skeleton`` is raw HTML shown until React mounts.
     """
-    from lila.core.templates import _DEV_RELOAD_SCRIPT, _build_page, get_base_context, jinja_env
+    from lila.core.csp import nonce_attr
+    from lila.core.templates import _build_page, dev_reload_script, get_base_context, jinja_env
 
     ctx = get_base_context(request, lang_default=lang_default)
     for key in ("title", "description", "keywords", "author"):
@@ -217,7 +218,7 @@ def react_render(
         return response
 
     try:
-        vite_tags = ViteBridge.tags(entry or default_entry(spa=bool(spa)))
+        vite_tags = ViteBridge.tags(entry or default_entry(spa=bool(spa)), nonce=str(nonce_attr(request)))
     except ViteManifestMissing as exc:
         return _shell_error(exc)
 
@@ -230,7 +231,7 @@ def react_render(
         "react_root_id": re.sub(r"[^A-Za-z0-9_-]", "", root_id) or "app",
         "react_skeleton": Markup(skeleton or ""),
         # Reloads the page when the Python server restarts (Vite handles JS/CSS).
-        "react_dev_reload": Markup(_DEV_RELOAD_SCRIPT) if is_debug() else Markup(""),
+        "react_dev_reload": Markup(dev_reload_script(request)) if is_debug() else Markup(""),
     })
     if page_meta.get("title"):
         ctx["title"] = page_meta["title"]

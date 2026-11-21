@@ -27,7 +27,7 @@
           <a href="{{ admin_prefix | default('/admin') }}/api/{{ model_plural }}/export" target="_blank" data-no-router class="btn bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs px-3.5 py-2">
             <span>📥</span> Export CSV
           </a>
-          <button onclick="openCreateModal()" class="btn btn-primary text-xs px-4 py-2 shadow-sm cursor-pointer">
+          <button data-onclick="openCreateModal" class="btn btn-primary text-xs px-4 py-2 shadow-sm cursor-pointer">
             <span>➕</span> New {{ model_name.capitalize() }}
           </button>
         </div>
@@ -41,7 +41,7 @@
       <dialog id="recordModal" class="m-auto fixed inset-0 rounded-2xl p-6 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full backdrop:bg-slate-950/40">
         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
           <h3 id="modalTitle" class="text-lg font-bold text-slate-900 dark:text-white">New {{ model_name.capitalize() }}</h3>
-          <button onclick="document.getElementById('recordModal').close()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+          <button data-close-modal class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
         </div>
         <form id="recordForm" class="space-y-4">
           <input type="hidden" id="recordId" name="id" value="" />
@@ -77,7 +77,7 @@
             {% endfor %}
           </div>
           <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onclick="document.getElementById('recordModal').close()" class="btn bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-4 py-2 cursor-pointer">
+            <button type="button" data-close-modal class="btn bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-4 py-2 cursor-pointer">
               Cancel
             </button>
             <button type="submit" class="btn btn-primary text-xs px-4 py-2 cursor-pointer">
@@ -87,7 +87,7 @@
         </form>
       </dialog>
 
-      <script>
+      <script{{ nonce_attr | default('') }}>
         (function() {
           const ADMIN_PREFIX = {{ admin_prefix | default('/admin') | tojson }};
           const MODEL_PLURAL = {{ model_plural | tojson }};
@@ -228,7 +228,7 @@
     </main>
   </div>
 
-  <script src="{{ public('js/lila-client.js') }}"></script>
+  <script src="{{ public('js/lila-client.js') }}"{{ nonce_attr | default('') }}></script>
 </body>
 
 </html>

@@ -24,10 +24,10 @@
           <p class="text-xs text-slate-400 mt-1 font-semibold">Lila Engine v2.0 Live Telemetry</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="purgeCache()" class="btn bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 text-xs px-3.5 py-2">
+          <button data-onclick="purgeCache" class="btn bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 text-xs px-3.5 py-2">
             <span>⚡</span> Purge Cache
           </button>
-          <button onclick="clearLogs()" class="btn bg-red-50 dark:bg-red-950/20 text-red-500 border border-red-200 dark:border-red-900/30 text-xs px-3.5 py-2">
+          <button data-onclick="clearLogs" class="btn bg-red-50 dark:bg-red-950/20 text-red-500 border border-red-200 dark:border-red-900/30 text-xs px-3.5 py-2">
             <span>🧹</span> Clear Logs
           </button>
         </div>
@@ -100,8 +100,8 @@
     </main>
   </div>
 
-  <script src="{{ public('js/lila-client.js') }}"></script>
-  <script>
+  <script src="{{ public('js/lila-client.js') }}"{{ nonce_attr | default('') }}></script>
+  <script{{ nonce_attr | default('') }}>
     const ADMIN_PREFIX = {{ admin_prefix | default('/admin') | tojson }};
     async function purgeCache() {
       try {

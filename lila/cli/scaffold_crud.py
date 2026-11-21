@@ -217,10 +217,10 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
         <p class="text-xs text-slate-400 mt-1 font-semibold">Active CRUD Table with View Transitions</p>
       </div>
       <div class="flex items-center gap-3">
-        <button onclick="fetchData()" class="btn bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs px-3.5 py-2">
+        <button data-onclick="fetchData" class="btn bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs px-3.5 py-2">
           <span>🔄</span> Refresh
         </button>
-        <button onclick="openModal()" class="btn btn-primary text-xs px-4 py-2">
+        <button data-onclick="openModal" class="btn btn-primary text-xs px-4 py-2">
           <span>➕</span> New {model_name}
         </button>
       </div>
@@ -233,13 +233,13 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
     <dialog id="crud-dialog" class="m-auto fixed inset-0 rounded-2xl p-6 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full backdrop:bg-slate-950/40">
       <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 id="modal-title" class="text-lg font-bold text-slate-900 dark:text-white">New {model_name}</h3>
-        <button onclick="document.getElementById('crud-dialog').close()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+        <button data-close-modal class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
       </div>
       <form id="crud-form" class="space-y-3">
         <input type="hidden" id="recordId" name="id" value="" />
 {form_fields_html}
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 mt-4">
-          <button type="button" onclick="document.getElementById('crud-dialog').close()" class="btn bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-4 py-2">
+          <button type="button" data-close-modal class="btn bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-4 py-2">
             Cancel
           </button>
           <button type="submit" class="btn btn-primary text-xs px-4 py-2">
@@ -249,7 +249,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
       </form>
     </dialog>
 
-  <script>
+  <script{{{{ nonce_attr }}}}>
     // ``var``/function declarations: the SPA router re-runs this script on
     // every visit, ``let``/``const`` at top level would throw on the 2nd visit.
     var dt = null;

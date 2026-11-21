@@ -1547,10 +1547,46 @@ if (typeof window !== "undefined") {
   else document.addEventListener("DOMContentLoaded", () => lilaInitComponents());
 }
 
+// CSP-safe replacement for inline handlers (blocked by App(csp=True)):
+// <button data-onclick="purgeCache"> / <select data-onchange="applyFilters">
+// call window[name](event, element). Only global functions, never eval.
+function lilaCallHandler(e, attr) {
+  const el = e.target && e.target.closest ? e.target.closest(`[${attr}]`) : null;
+  if (!el) return false;
+  const name = el.getAttribute(attr) || "";
+  const fn = /^[A-Za-z_$][\w$]*$/.test(name) ? window[name] : null;
+  if (typeof fn === "function") {
+    fn.call(el, e, el);
+    return true;
+  }
+  if (name) console.warn(`[Lila] ${attr}: window.${name} is not a function`);
+  return false;
+}
+
+if (!window.__LILA_HANDLERS_BOUND__) {
+  window.__LILA_HANDLERS_BOUND__ = true;
+  document.addEventListener("click", (e) => lilaCallHandler(e, "data-onclick"));
+  document.addEventListener("change", (e) => lilaCallHandler(e, "data-onchange"));
+  document.addEventListener("input", (e) => lilaCallHandler(e, "data-oninput"));
+}
+
 if (!window.__LILA_UI_BOUND__) {
   window.__LILA_UI_BOUND__ = true;
 
   document.addEventListener("click", (e) => {
+    // <button data-toast="Title" data-toast-description="..." data-toast-type="success">
+    // (forms and [data-action] handle their own data-toast after the request).
+    const toastTrigger = e.target.closest("button[data-toast]:not([data-action]):not([type=submit]), a[data-toast]:not([data-action])");
+    if (toastTrigger && !toastTrigger.closest("form[data-lila-form]")) {
+      e.preventDefault();
+      lila("toast", {
+        title: toastTrigger.getAttribute("data-toast") || "",
+        description: toastTrigger.getAttribute("data-toast-description") || "",
+        type: toastTrigger.getAttribute("data-toast-type") || "info",
+      });
+      return;
+    }
+
     // Copy to clipboard
     const copyTrigger = e.target.closest("[data-copy]");
     if (copyTrigger) {

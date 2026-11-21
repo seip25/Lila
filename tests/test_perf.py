@@ -75,12 +75,8 @@ class BundledJsAndETagTests(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.headers.get("content-encoding"), "gzip")
         raw_size = os.path.getsize(os.path.join(os.path.dirname(__file__), "..", "lila", "public", "js", "lila-client.js"))
-        try:
-            import rjsmin  # noqa: F401  (optional: lila-framework[optimize])
-        except ImportError:
-            self.assertEqual(len(res.content), raw_size)
-        else:
-            self.assertLess(len(res.content), raw_size)
+        # Minified with rjsmin, or the .min.js shipped in the package.
+        self.assertLess(len(res.content), raw_size)
         cached = self.client.get("/js/lila-client.js", headers={"accept-encoding": "gzip", "if-none-match": res.headers["etag"]})
         self.assertEqual(cached.status_code, 304)
 

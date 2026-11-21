@@ -37,8 +37,8 @@
     </main>
   </div>
 
-  <script src="{{ public('js/lila-client.js') }}"></script>
-  <script>
+  <script src="{{ public('js/lila-client.js') }}"{{ nonce_attr | default('') }}></script>
+  <script{{ nonce_attr | default('') }}>
     const ADMIN_PREFIX = {{ admin_prefix | default('/admin') | tojson }};
     document.getElementById("loginForm").addEventListener("submit", async function (event) {
       event.preventDefault();

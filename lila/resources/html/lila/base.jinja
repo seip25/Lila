@@ -7,7 +7,7 @@
   {% include "lila/head.jinja" %}
   {# In <head> so inline page scripts can use lila(), Http(), lilaSSE()... on
      the first load too (it is small, minified and cached; it waits for the DOM itself). #}
-  <script src="{{ public('js/lila-client.js') }}"></script>
+  <script src="{{ public('js/lila-client.js') }}"{{ nonce_attr | default('') }}></script>
   {% block head %}{% endblock %}
 </head>
 

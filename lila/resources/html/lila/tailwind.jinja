@@ -9,7 +9,7 @@
 {% else %}
 <!-- Tailwind CSS browser runtime (zero build step, used in development).
      Run `lila css build` before deploying to serve a small compiled CSS. -->
-<script src="{{ public('js/tailwind.js') }}"></script>
+<script src="{{ public('js/tailwind.js') }}"{{ nonce_attr | default('') }}></script>
 
 <style type="text/tailwindcss">
   @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));

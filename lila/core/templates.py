@@ -29,6 +29,7 @@ from lila.core.translate import Translate
 from lila.core.csrf import CSRF, CSRF_COOKIE_NAME, CSRF_MAX_AGE
 from lila.core.logger import Logger
 from lila.core.oauth import OAuth
+from lila.core.csp import nonce_attr, nonce_value
 
 
 def _get_template_loaders() -> ChoiceLoader:
@@ -178,6 +179,11 @@ _DEV_RELOAD_SCRIPT = """<script>
 
 
 
+def dev_reload_script(request: Any) -> str:
+    """The dev auto-reload snippet with the CSP nonce when enabled."""
+    return _DEV_RELOAD_SCRIPT.replace("<script>", f"<script{nonce_attr(request)}>", 1)
+
+
 def clear_asset_cache() -> None:
     """Drops cached asset URLs/manifests (used by the dev template watcher)."""
     global _MANIFEST_LOADED
@@ -297,10 +303,11 @@ jinja_env.globals["asset"] = asset
 jinja_env.globals["tailwind_css"] = tailwind_css
 
 
-def _vite_global(entries=None, react=True):
+@pass_context
+def _vite_global(ctx, entries=None, react=True):
     from lila.core.vite import vite
 
-    return vite(entries, react=react)
+    return vite(entries, react=react, nonce=ctx.get("nonce_attr") or "")
 
 
 def _is_desktop_global() -> bool:
@@ -664,6 +671,9 @@ def get_base_context(
         "layout_id": "default",
         "csrf_token": "",
         "page_meta": {},
+        # CSP (App(csp=True)): <script{{ nonce_attr }}> / nonce="{{ csp_nonce }}".
+        "csp_nonce": nonce_value(request),
+        "nonce_attr": nonce_attr(request),
     }
 
 
@@ -925,12 +935,13 @@ def render(
             else:
                 body = marker + body
         if debug_enabled and not is_partial and "__lilaDevReload" not in body:
+            reload_script = dev_reload_script(request)
             lower = body.lower()
             close_body = lower.rfind("</body>")
             if close_body >= 0:
-                body = body[:close_body] + _DEV_RELOAD_SCRIPT + body[close_body:]
+                body = body[:close_body] + reload_script + body[close_body:]
             else:
-                body += _DEV_RELOAD_SCRIPT
+                body += reload_script
 
         response_headers = dict(headers or {})
         if is_partial:

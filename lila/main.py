@@ -21,6 +21,7 @@ app = App(
     gzip=True,           # Compress HTML/JSON/JS responses
     openapi=True,        # Mount /openapi.json and Swagger UI at /docs
     debug_html=DEBUG,    # Mount /debug dashboard in debug mode
+    csp=True,            # Content-Security-Policy with nonces: <script{{ nonce_attr }}>
 )
 # lila:includes:start
 # lila:includes:end
