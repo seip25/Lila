@@ -182,7 +182,55 @@ def history_cmd(limit: int = typer.Option(30, "--limit", "-n")):
         typer.echo("No migrations recorded yet.")
         return
     for row in rows:
-        typer.echo(f"  {row['applied_at']}  {row['kind']:<15} {row['target']:<32} {row['detail'] or ''}")
+        batch = f"#{row['batch']}" if row.get("batch") else "  "
+        undone = " (rolled back)" if row.get("rolled_back") and not str(row["kind"]).startswith("rollback:") else ""
+        typer.echo(f"  {row['applied_at']}  {batch:<4} {row['kind']:<22} {row['target']:<32} {row['detail'] or ''}{undone}")
+
+
+@app.command("rollback")
+def rollback_cmd(
+    steps: int = typer.Option(1, "--steps", "-s", help="How many `lila migrate` runs to undo"),
+    dry_run: bool = typer.Option(False, "--dry-run", "--plan", help="Only show what would be undone"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Also drop columns/tables the batch added (data loss) without asking"),
+):
+    """Undo the last migration batch(es) recorded by `lila migrate`."""
+    from lila.core import migrations as mig
+
+    project_connection = _load_connection()
+    if project_connection is None or not getattr(project_connection, "is_async", False):
+        typer.secho("❌ rollback needs the async project connection (app.connections).", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    if not project_connection._connected or project_connection.engine is None:
+        project_connection.connect()
+    plan = mig.rollback_plan(mig.database_key(project_connection), steps)
+    if not plan:
+        typer.secho("✅ Nothing to roll back.", fg=typer.colors.GREEN)
+        return
+    destructive = [op for op in plan if op["reversible"] and op["destructive"]]
+    for op in plan:
+        if not op["reversible"]:
+            typer.secho(f"  ⛔ #{op['batch']} {op['kind']:<15} {op['target']:<30} cannot be undone (data was dropped)", fg=typer.colors.RED)
+        else:
+            color = typer.colors.YELLOW if op["destructive"] else typer.colors.GREEN
+            note = "  ⚠️ deletes its data" if op["destructive"] else ""
+            typer.secho(f"  ↩️  #{op['batch']} {op['kind']:<15} {op['target']:<30} → {op['inverse']}{note}", fg=color)
+    if dry_run:
+        return
+    allow = yes
+    if destructive and not yes:
+        allow = typer.confirm(f"⚠️ {len(destructive)} step(s) drop columns/tables and their data. Include them?")
+    async def _run():
+        try:
+            return await mig.rollback_async(project_connection, plan, allow_destructive=allow)
+        finally:
+            await project_connection.engine.dispose()
+
+    undone = asyncio.run(_run())
+    skipped = len([op for op in plan if op["reversible"]]) - len(undone)
+    typer.secho(f"✅ Rolled back {len(undone)} operation(s)" + (f", skipped {skipped} destructive" if skipped else "") + ".",
+                fg=typer.colors.GREEN)
+    if undone:
+        typer.echo("   Remove/rename them in your models too, or the next `lila migrate` applies them again.")
 
 
 def main():

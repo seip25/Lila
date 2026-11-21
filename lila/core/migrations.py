@@ -16,7 +16,11 @@ and only reports the ones that need a human decision:
                                        (applied only with ``--drop-columns``)
 
 Every applied operation is recorded in ``app/data/lila_system.db``
-(``lila migrate history``), never in the project database.
+(``lila migrate history``), never in the project database, grouped in
+batches (one per ``lila migrate`` run). ``lila migrate rollback`` undoes the
+last batch: index and rename steps directly; columns and tables the batch
+added only with confirmation (their data is lost). Dropped columns cannot
+be restored.
 """
 
 from __future__ import annotations
@@ -130,28 +134,143 @@ def build_plan(sync_conn, metadata) -> List[Dict[str, Any]]:
     return ops
 
 
-def _record(database: str, applied: List[Dict[str, Any]]) -> None:
-    if not applied:
-        return
+_HISTORY_COLUMNS = {
+    "batch": "INTEGER NOT NULL DEFAULT 0",
+    "extra": "TEXT",            # JSON: table, column, old name, index name
+    "rolled_back": "INTEGER NOT NULL DEFAULT 0",
+}
+
+# Inverse of each recorded operation. ``destructive`` ones lose data.
+REVERSIBLE = {
+    "create_index": ("drop_index", False),
+    "rename_column": ("rename_back", False),
+    "add_column": ("drop_column", True),
+    "create_table": ("drop_table", True),
+}
+
+
+def _history_conn():
+    """lila_migrations in app/data/lila_system.db (columns added for old files)."""
     from lila.core import system_db
 
     conn = system_db.connect("lila_system", _HISTORY_SCHEMA)
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(lila_migrations)").fetchall()}
+    for name, ddl in _HISTORY_COLUMNS.items():
+        if name not in existing:
+            conn.execute(f"ALTER TABLE lila_migrations ADD COLUMN {name} {ddl}")
+    return conn
+
+
+def _record(database: str, applied: List[Dict[str, Any]]) -> int:
+    """Stores one batch (a `lila migrate` run); returns its number."""
+    if not applied:
+        return 0
+    import json
+
+    conn = _history_conn()
+    batch = int(conn.execute("SELECT COALESCE(MAX(batch), 0) + 1 FROM lila_migrations").fetchone()[0])
     now = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
     conn.executemany(
-        "INSERT INTO lila_migrations (applied_at, database, kind, target, detail) VALUES (?, ?, ?, ?, ?)",
-        [(now, database, op["kind"], op["target"], op["detail"]) for op in applied],
+        "INSERT INTO lila_migrations (applied_at, database, kind, target, detail, batch, extra) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+            (now, database, op["kind"], op["target"], op["detail"], batch, json.dumps({
+                "table": op.get("table"), "column": op.get("column"), "old": op.get("old"),
+                "index_name": op.get("index_name"),
+            }))
+            for op in applied
+        ],
     )
+    return batch
 
 
 def history(limit: int = 50) -> List[Dict[str, Any]]:
-    from lila.core import system_db
-
-    conn = system_db.connect("lila_system", _HISTORY_SCHEMA)
+    conn = _history_conn()
     rows = conn.execute(
-        "SELECT applied_at, database, kind, target, detail FROM lila_migrations ORDER BY id DESC LIMIT ?",
+        "SELECT id, applied_at, database, kind, target, detail, batch, rolled_back FROM lila_migrations "
+        "ORDER BY id DESC LIMIT ?",
         (int(limit),),
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def rollback_plan(database: str, steps: int = 1) -> List[Dict[str, Any]]:
+    """Operations of the last ``steps`` batches (newest first) and how to undo them."""
+    import json
+
+    conn = _history_conn()
+    batches = [
+        row[0] for row in conn.execute(
+            "SELECT DISTINCT batch FROM lila_migrations WHERE database = ? AND rolled_back = 0 AND batch > 0 "
+            "AND kind NOT LIKE 'rollback:%' ORDER BY batch DESC LIMIT ?",
+            (database, int(steps)),
+        ).fetchall()
+    ]
+    if not batches:
+        return []
+    marks = ",".join("?" for _ in batches)
+    rows = conn.execute(
+        f"SELECT id, batch, kind, target, detail, extra FROM lila_migrations WHERE database = ? AND batch IN ({marks}) "
+        "AND rolled_back = 0 ORDER BY id DESC",
+        (database, *batches),
+    ).fetchall()
+    plan = []
+    for row in rows:
+        extra = json.loads(row["extra"] or "{}")
+        inverse, destructive = REVERSIBLE.get(row["kind"], (None, False))
+        plan.append({
+            "id": row["id"], "batch": row["batch"], "kind": row["kind"], "target": row["target"],
+            "detail": row["detail"], "inverse": inverse, "destructive": destructive,
+            "reversible": inverse is not None, **extra,
+        })
+    return plan
+
+
+def database_key(db) -> str:
+    url = db.engine.url
+    return f"{url.get_backend_name()}:{url.database or ''}"
+
+
+async def rollback_async(db, plan: List[Dict[str, Any]], allow_destructive: bool = False) -> List[Dict[str, Any]]:
+    """Undoes a rollback plan (newest first). Destructive steps need ``allow_destructive``."""
+    if not db._connected or db.engine is None:
+        db.connect()
+    undone: List[Dict[str, Any]] = []
+    async with db.engine.begin() as conn:
+        dialect = conn.dialect
+        q = dialect.identifier_preparer.quote
+        for op in plan:
+            if not op["reversible"]:
+                continue
+            if op["destructive"] and not allow_destructive:
+                continue
+            table, column = op.get("table"), op.get("column")
+            inverse = op["inverse"]
+            if inverse == "drop_index":
+                name = q(op["index_name"])
+                if dialect.name == "mysql":
+                    await conn.execute(text(f"DROP INDEX {name} ON {q(table)}"))
+                else:
+                    await conn.execute(text(f"DROP INDEX IF EXISTS {name}"))
+            elif inverse == "rename_back":
+                await conn.execute(text(f"ALTER TABLE {q(table)} RENAME COLUMN {q(column)} TO {q(op['old'])}"))
+            elif inverse == "drop_column":
+                await conn.execute(text(f"ALTER TABLE {q(table)} DROP COLUMN {q(column)}"))
+            elif inverse == "drop_table":
+                await conn.execute(text(f"DROP TABLE IF EXISTS {q(table)}"))
+            undone.append(op)
+    if undone:
+        def _mark():
+            hist = _history_conn()
+            now = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+            hist.executemany("UPDATE lila_migrations SET rolled_back = 1 WHERE id = ?", [(op["id"],) for op in undone])
+            hist.executemany(
+                "INSERT INTO lila_migrations (applied_at, database, kind, target, detail, batch, rolled_back) "
+                "VALUES (?, ?, ?, ?, ?, 0, 1)",
+                [(now, database_key(db), f"rollback:{op['kind']}", op["target"], op["inverse"]) for op in undone],
+            )
+
+        await asyncio.to_thread(_mark)
+    return undone
 
 
 async def plan_async(db, metadata=None) -> List[Dict[str, Any]]:
@@ -201,7 +320,5 @@ async def apply_async(db, ops: List[Dict[str, Any]], drop_columns: bool = False,
             except Exception as exc:
                 Logger.error(f"[Lila migrate] {kind} {op['target']} failed: {exc}")
                 raise
-    url = db.engine.url
-    database = f"{url.get_backend_name()}:{url.database or ''}"
-    await asyncio.to_thread(_record, database, applied)
+    await asyncio.to_thread(_record, database_key(db), applied)
     return applied
