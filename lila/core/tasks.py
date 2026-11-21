@@ -194,15 +194,18 @@ async def run_one(worker_id: str = _WORKER_ID) -> Optional[str]:
     if job is None:
         return None
     backoff = _REGISTRY[job["name"]].backoff if job["name"] in _REGISTRY else 5.0
+    from lila.core.telemetry import task_span
+
     try:
         func = resolve(job["name"])
         data = json.loads(job["payload"])
-        if inspect.iscoroutinefunction(func):
-            await asyncio.wait_for(func(*data.get("args", []), **data.get("kwargs", {})), timeout=job["timeout"])
-        else:
-            await asyncio.wait_for(
-                asyncio.to_thread(func, *data.get("args", []), **data.get("kwargs", {})), timeout=job["timeout"]
-            )
+        with task_span(job["name"], job["id"]):
+            if inspect.iscoroutinefunction(func):
+                await asyncio.wait_for(func(*data.get("args", []), **data.get("kwargs", {})), timeout=job["timeout"])
+            else:
+                await asyncio.wait_for(
+                    asyncio.to_thread(func, *data.get("args", []), **data.get("kwargs", {})), timeout=job["timeout"]
+                )
         state = await asyncio.to_thread(_finish, job["id"], True)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}\n{traceback.format_exc(limit=5)}"

@@ -134,6 +134,7 @@ class App(Starlette):
         health: bool = True,
         metrics: bool = False,
         csp: Any = False,
+        telemetry: Optional[bool] = None,
     ):
         # Ensure .env is loaded even when users import App directly (not app.config).
         ConfigLoader.load()
@@ -248,6 +249,12 @@ class App(Starlette):
 
         # 7. Middleware stack
         middleware_stack: List[Middleware] = []
+
+        # OpenTelemetry (App(telemetry=True) or OTEL_ENABLED=true): outermost span.
+        from lila.core import telemetry as _telemetry
+
+        if _telemetry.requested(telemetry) and _telemetry.enable():
+            middleware_stack.append(Middleware(_telemetry.PureASGITelemetryMiddleware))
 
         self._health = bool(health)
         self._metrics = bool(metrics)

@@ -109,14 +109,33 @@ async def upload(
     max_file_size: Optional[int] = None,
     convert_to_webp: bool = False,
     webp_quality: int = 80,
+    folder: Optional[str] = None,
+    storage_driver: Optional[str] = None,
 ) -> Union[JSONResponse, Dict[str, Any]]:
-    """Handles async file uploads with validation and optional WebP optimization."""
-    if upload_dir:
+    """Handles async file uploads with validation and optional WebP optimization.
+
+    ``STORAGE_DRIVER=s3`` (or ``storage_driver="s3"``) sends the validated files
+    to the bucket (``lila.core.storage``) and returns its URL plus ``key``;
+    ``folder`` groups them (``avatars/``) in the bucket or under public/uploads.
+    """
+    from lila.core.config import ENV_CONFIG
+    from lila.core.storage import clean_key
+
+    driver = (storage_driver or str(ENV_CONFIG.get("STORAGE_DRIVER", "local") or "local")).lower()
+    remote = driver != "local" and not upload_dir
+    folder_key = clean_key(folder or "")
+    if remote:
+        import tempfile
+
+        target_dir = tempfile.mkdtemp(prefix="lila-upload-")
+    elif upload_dir:
         target_dir = upload_dir
     elif getattr(sys, "frozen", False):
         target_dir = get_data_path("uploads")
     else:
         target_dir = get_base_path("public", "uploads")
+    if folder_key and not remote:
+        target_dir = os.path.join(target_dir, folder_key)
     allowed = {str(ext).lower().lstrip(".") for ext in (allowed_extensions or DEFAULT_ALLOWED_EXTENSIONS)}
     max_size = int(max_file_size or DEFAULT_MAX_FILE_SIZE)
 
@@ -212,6 +231,23 @@ async def upload(
             "url": _public_url(target_dir, safe_name),
         })
         await item.close()
+
+    if remote:
+        from lila.core.storage import storage
+
+        try:
+            store = storage(driver)
+            for info in saved_files:
+                key = f"{folder_key}/{info['saved_name']}" if folder_key else info["saved_name"]
+                info["url"] = await store.put_file_async(os.path.join(target_dir, info["saved_name"]), key, info["mime"])
+                info["key"] = key
+        except Exception as exc:
+            Logger.error(f"File upload to {driver} storage failed: {exc}", exception=exc)
+            return JSONResponse({"success": False, "message": "Upload failed."}, status_code=500)
+        finally:
+            import shutil
+
+            shutil.rmtree(target_dir, ignore_errors=True)
 
     if len(saved_files) == 1:
         return {"success": True, **saved_files[0]}

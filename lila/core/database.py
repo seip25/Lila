@@ -128,6 +128,12 @@ class Database:
         else:
             self._connect_sqlite()
 
+        try:
+            from lila.core import telemetry
+
+            telemetry.register_engine(self.engine)  # SQL spans once telemetry is enabled
+        except Exception:
+            pass
         self._connected = True
         return True
 
