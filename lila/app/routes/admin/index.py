@@ -4,11 +4,11 @@ from app.models.user import User
 
 router = Router()
 
-def Admin(models: list, default_route: str = "admin") -> Router:
+def Admin(models: list, default_route: str = "admin", react: bool = False) -> Router:
     """
-    Register Admin 2.0 routes for the given models.
+    Register Admin 2.0 routes for the given models (react=True: React panel).
     """
-    return admin_routes(models=models, router=router, default_route=default_route)
+    return admin_routes(models=models, router=router, default_route=default_route, react=react)
 
 # Auto-register User model in Admin Panel
 Admin(models=[User])

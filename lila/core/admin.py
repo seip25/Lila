@@ -302,13 +302,76 @@ def _coerce_payload_for_model(model_cls: Any, payload: dict, is_update: bool = F
 _coerce_payload = _coerce_payload_for_model
 
 
-def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any:
-    """Mounts Admin 2.0 routes on the given router."""
+def _form_columns(model: Any) -> List[dict]:
+    """Admin form schema: name, input_type, required, nullable, has_default."""
+    private = set(getattr(model, "__private_fields__", ()))
+    current_model = model
+    form_columns = []
+    for col in current_model.__table__.columns:
+        if col.name in ("id", "created_at", "updated_at"):
+            continue
+        if col.name in private and col.name != "password":
+            continue
+
+        col_type = col.type
+        if col.name == "password":
+            input_type = "password"
+        elif col.name == "active":
+            input_type = "active_select"
+        elif isinstance(col_type, Boolean):
+            input_type = "boolean_select"
+        elif isinstance(col_type, (Integer, BigInteger, SmallInteger, Float, Numeric)):
+            input_type = "number"
+        elif isinstance(col_type, (DateTime, TIMESTAMP)):
+            input_type = "datetime-local"
+        elif isinstance(col_type, Date):
+            input_type = "date"
+        else:
+            input_type = "text"
+
+        has_default = col.default is not None or col.server_default is not None
+        required = not col.nullable and not has_default
+
+        form_columns.append({
+            "name": col.name,
+            "input_type": input_type,
+            "required": required,
+            "nullable": bool(col.nullable),
+            "has_default": bool(has_default),
+        })
+
+    return form_columns
+
+
+def admin_routes(models: list, router: Any, default_route: str = "admin", react: bool = False) -> Any:
+    """Mounts Admin 2.0 routes on the given router.
+
+    ``react=True`` renders the login, dashboard and model pages with React
+    (``resources/react/pages/Admin/{Login,Panel}.tsx``, copied by
+    ``lila admin --react``); the JSON API, sessions and CSRF are the same.
+    """
+    from lila.core.react import react_render
+
+    def _menu() -> List[dict]:
+        return [{"name": m.__name__, "plural": pluralize(m.__name__)} for m in models]
+
+    def _panel(request: Request, view: str, title: str, **props: Any):
+        admin = getattr(request.state, "admin", None) or {}
+        payload = {
+            "prefix": prefix,
+            "models": _menu(),
+            "admin": {"username": admin.get("username", "") if isinstance(admin, dict) else ""},
+            "view": view,
+            **props,
+        }
+        return react_render(request, "Admin/Panel", payload, title=title, robots="noindex, nofollow")
     prefix = "/" + (str(default_route or "").strip("/") or "admin")
     router.openapi = False
 
     @router.get(f"{prefix}/login")
     async def admin_login_view(request: Request):
+        if react:
+            return react_render(request, "Admin/Login", {"prefix": prefix}, title="Admin", robots="noindex, nofollow")
         return render(request, "admin/login", context={"admin_prefix": prefix}, csrf=True)
 
     @router.post(f"{prefix}/login", csrf=True)
@@ -363,6 +426,8 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
     @admin_required(redirect_to=f"{prefix}/login")
     async def admin_dashboard_view(request: Request):
         metrics = get_admin_metrics()
+        if react:
+            return _panel(request, "dashboard", "Admin", metrics=_jsonable([metrics])[0], logs=_collect_logs())
         menu_html = render_admin_menu(models, request, prefix=prefix)
         context = {
             "metrics": metrics,
@@ -396,6 +461,16 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
         @router.get(f"{prefix}/{current_plural}")
         @admin_required(redirect_to=f"{prefix}/login")
         async def model_view(request: Request):
+            if react:
+                headers = [col.name for col in current_model.__table__.columns
+                           if col.name not in private and col.name != "password"]
+                return _panel(request, "model", f"{current_name} · Admin", model={
+                    "name": current_name,
+                    "plural": current_plural,
+                    "api": f"{prefix}/api/{current_plural}",
+                    "headers": headers,
+                    "fields": _form_columns(current_model),
+                })
             raw_items = await current_model.get_all_async(limit=500)
             items = [_sanitize_record(current_model, item) for item in raw_items]
             headers = [
@@ -403,39 +478,7 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
                 if col.name not in private and col.name != "password"
             ]
 
-            form_columns = []
-            for col in current_model.__table__.columns:
-                if col.name in ("id", "created_at", "updated_at"):
-                    continue
-                if col.name in private and col.name != "password":
-                    continue
-
-                col_type = col.type
-                if col.name == "password":
-                    input_type = "password"
-                elif col.name == "active":
-                    input_type = "active_select"
-                elif isinstance(col_type, Boolean):
-                    input_type = "boolean_select"
-                elif isinstance(col_type, (Integer, BigInteger, SmallInteger, Float, Numeric)):
-                    input_type = "number"
-                elif isinstance(col_type, (DateTime, TIMESTAMP)):
-                    input_type = "datetime-local"
-                elif isinstance(col_type, Date):
-                    input_type = "date"
-                else:
-                    input_type = "text"
-
-                has_default = col.default is not None or col.server_default is not None
-                required = not col.nullable and not has_default
-
-                form_columns.append({
-                    "name": col.name,
-                    "input_type": input_type,
-                    "required": required,
-                    "nullable": bool(col.nullable),
-                    "has_default": bool(has_default),
-                })
+            form_columns = _form_columns(current_model)
 
             context = {
                 "model_name": current_name,
@@ -450,9 +493,28 @@ def admin_routes(models: list, router: Any, default_route: str = "admin") -> Any
 
         @router.get(f"{prefix}/api/{current_plural}")
         @admin_required(redirect_to=f"{prefix}/login")
-        async def api_list(request: Request):
-            raw_items = await current_model.get_all_async(limit=1000)
-            return [_sanitize_record(current_model, item) for item in raw_items]
+        async def api_list(
+            request: Request,
+            page: Optional[int] = None,
+            per_page: int = 20,
+            search: Optional[str] = None,
+            sort: Optional[str] = None,
+            order: str = "asc",
+        ):
+            """Without ``page``: up to 1000 rows (v2.0 behaviour). With ``page``:
+            ``{items, total, pages...}`` plus ``search``/``sort``/``order``."""
+            if page is None:
+                raw_items = await current_model.get_all_async(limit=1000)
+                return [_sanitize_record(current_model, item) for item in raw_items]
+            readable = {c.name for c in current_model.__table__.columns if c.name not in private and c.name != "password"}
+            if sort is not None and sort not in readable:
+                return JSONResponse({"success": False, "errors": [{"sort": "Unknown column"}]}, status_code=422)
+            result = await current_model.paginate_async(
+                page=page, per_page=per_page, max_per_page=200, order_by=sort,
+                desc=str(order).lower() == "desc", search=(search or "")[:200] or None,
+            )
+            result["items"] = [_sanitize_record(current_model, item) for item in result["items"]]
+            return result
 
         @router.get(f"{prefix}/api/{current_plural}/{{id:int}}")
         @admin_required(redirect_to=f"{prefix}/login")

@@ -61,6 +61,47 @@ def copy_admin_files():
             typer.echo(f"  📄 Admin templates updated ({updated} files, old versions backed up).")
 
 
+def enable_react_admin() -> None:
+    """Copies the React admin pages and switches Admin(...) to react=True."""
+    import shutil
+    import re as _re
+    from pathlib import Path
+
+    from lila.cli.react import copy_ui, init as react_init, is_react_project
+
+    if not is_react_project():
+        typer.secho("  ⚛️  React is not set up yet: running `lila react init --no-routes`...", fg=typer.colors.CYAN)
+        react_init(install=False, force=False, routes=False, js=False)
+    else:
+        copy_ui(quiet=True)
+    base = Path(os.path.dirname(__file__)) / "admin_react"
+    for src in sorted(base.rglob("*.tsx")):
+        target = Path("resources/react") / src.relative_to(base)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() and target.read_text(encoding="utf-8") != src.read_text(encoding="utf-8"):
+            shutil.copy2(target, str(target) + ".bak")
+        shutil.copy2(src, target)
+        typer.echo(f"  ⚛️  {target}")
+
+    index = Path("app/routes/admin/index.py")
+    if index.exists():
+        text = index.read_text(encoding="utf-8")
+        updated = _re.sub(r"Admin\(models=(\[[^\]]*\])\)", r"Admin(models=\1, react=True)", text)
+        updated = updated.replace(
+            'def Admin(models: list, default_route: str = "admin") -> Router:',
+            'def Admin(models: list, default_route: str = "admin", react: bool = False) -> Router:',
+        ).replace(
+            "return admin_routes(models=models, router=router, default_route=default_route)",
+            "return admin_routes(models=models, router=router, default_route=default_route, react=react)",
+        )
+        if updated != text:
+            shutil.copy2(index, str(index) + ".bak")
+            index.write_text(updated, encoding="utf-8")
+            typer.echo("  ~ app/routes/admin/index.py: Admin(..., react=True)")
+        elif "react=True" not in text:
+            typer.secho("  ⚠️ Add react=True to Admin(models=[...]) in app/routes/admin/index.py", fg=typer.colors.YELLOW)
+
+
 def update_main_routes() -> bool:
     main_file = os.path.join(os.getcwd(), "main.py")
     if not os.path.exists(main_file):
@@ -116,10 +157,11 @@ def default_admin(
     ctx: typer.Context,
     username: str = typer.Option("admin", "--user", "-u", "--username", help="Admin username"),
     password: str = typer.Option(None, "--password", "-p", help="Admin password (generated if omitted)"),
+    react: bool = typer.Option(False, "--react", help="React admin panel (DataTable + forms) instead of Jinja"),
 ):
     """Setup Admin 2.0 tables and create/update a superuser."""
     if ctx.invoked_subcommand is None:
-        create(username=username, password=password)
+        create(username=username, password=password, react=react)
 
 
 @app.command("create")
@@ -127,6 +169,7 @@ def default_admin(
 def create(
     username: str = typer.Option("admin", "--user", "-u", "--username", help="Admin username"),
     password: str = typer.Option(None, "--password", "-p", help="Admin password (generated if omitted)"),
+    react: bool = typer.Option(False, "--react", help="React admin panel (DataTable + forms) instead of Jinja"),
 ):
     """Setup Admin 2.0 tables and create/update a superuser."""
     if not os.path.exists("main.py") or not os.path.exists("app"):
@@ -152,6 +195,8 @@ def create(
         typer.secho(f"❌ Failed to create administrator: {exc}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
+    if react:
+        enable_react_admin()
     update_main_routes()
     typer.secho(f"✅ Administrator '{username}' ready!", fg=typer.colors.GREEN)
     typer.echo(f"   🔑 Password: {admin_pw}")
