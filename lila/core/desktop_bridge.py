@@ -1,0 +1,237 @@
+"""Native bridge for desktop builds: ``window.pywebview.api`` in the page.
+
+Used by ``lila desktop dev`` and the PyInstaller bootstrap. From React:
+``desktopApi()?.notify("Saved", "Backup finished")`` (``@lila``) or the
+helpers in ``@lila/desktop``. Every method returns JSON-serializable values and
+never raises into the page.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+import tempfile
+import urllib.request
+from typing import Any, Dict, Optional
+
+ALLOWED_SCHEMES = ("https://", "http://", "mailto:")
+
+
+def _windows() -> Optional[list]:
+    try:
+        import webview  # type: ignore
+
+        return list(webview.windows)
+    except Exception:
+        return None
+
+
+def parse_version(value: str) -> tuple:
+    """``"1.10.2"`` > ``"1.9"``; non-numeric parts are ignored."""
+    parts = []
+    for chunk in str(value or "0").lstrip("vV").split("."):
+        digits = "".join(ch for ch in chunk if ch.isdigit())
+        parts.append(int(digits) if digits else 0)
+    while len(parts) < 3:
+        parts.append(0)
+    return tuple(parts[:4])
+
+
+def platform_key() -> str:
+    return {"win32": "windows", "darwin": "macos"}.get(sys.platform, "linux")
+
+
+def check_update(url: Optional[str], current: Optional[str], timeout: float = 8.0) -> Dict[str, Any]:
+    """Reads the update manifest written by ``lila desktop release``::
+
+        {"version": "1.4.0", "notes": "...", "files": {"windows": {"url": "...msi", "sha256": "..."},
+                                                      "macos": {"url": "...dmg", "sha256": "..."}}}
+    """
+    if not url:
+        return {"available": False, "reason": "no update URL configured"}
+    if not url.startswith("https://") and not url.startswith("http://127.0.0.1") and not url.startswith("http://localhost"):
+        return {"available": False, "reason": "update URL must use https"}
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": "lila-desktop-updater"})
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec - https enforced above
+            manifest = json.loads(response.read(1_000_000).decode("utf-8"))
+    except Exception as exc:
+        return {"available": False, "reason": f"could not read the manifest: {exc.__class__.__name__}"}
+    latest = str(manifest.get("version") or "")
+    entry = (manifest.get("files") or {}).get(platform_key()) or {}
+    available = bool(latest) and parse_version(latest) > parse_version(current or "0") and bool(entry.get("url"))
+    return {
+        "available": available,
+        "current": current or "",
+        "version": latest,
+        "notes": str(manifest.get("notes") or ""),
+        "url": entry.get("url", ""),
+        "sha256": entry.get("sha256", ""),
+    }
+
+
+def download_verified(url: str, sha256: str, timeout: float = 120.0) -> str:
+    """Downloads the installer to a temp file and checks its SHA-256."""
+    if not url.startswith("https://") and not url.startswith("http://127.0.0.1"):
+        raise ValueError("installer URL must use https")
+    if not sha256 or len(sha256) != 64:
+        raise ValueError("missing sha256 in the update manifest")
+    suffix = os.path.splitext(url.split("?", 1)[0])[1] or ".bin"
+    fd, path = tempfile.mkstemp(prefix="lila-update-", suffix=suffix)
+    digest = hashlib.sha256()
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": "lila-desktop-updater"})
+        with urllib.request.urlopen(request, timeout=timeout) as response, os.fdopen(fd, "wb") as fh:  # nosec
+            while True:
+                chunk = response.read(1 << 16)
+                if not chunk:
+                    break
+                digest.update(chunk)
+                fh.write(chunk)
+    except Exception:
+        os.unlink(path)
+        raise
+    if digest.hexdigest().lower() != sha256.lower():
+        os.unlink(path)
+        raise ValueError("checksum mismatch: the download was not installed")
+    return path
+
+
+def _open_path(path: str) -> None:
+    if sys.platform == "win32":
+        os.startfile(path)  # type: ignore[attr-defined]  # noqa: S606
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", path])
+    else:
+        subprocess.Popen(["xdg-open", path])
+
+
+def notify(title: str, message: str = "") -> bool:
+    """Native notification (macOS osascript, Linux notify-send, Windows tray balloon)."""
+    title = str(title or "")[:120]
+    message = str(message or "")[:400]
+    try:
+        if sys.platform == "darwin":
+            script = f"display notification {json.dumps(message)} with title {json.dumps(title)}"
+            subprocess.Popen(["osascript", "-e", script])
+            return True
+        if sys.platform == "win32":
+            ps = (
+                "Add-Type -AssemblyName System.Windows.Forms;"
+                "$n=New-Object System.Windows.Forms.NotifyIcon;"
+                "$n.Icon=[System.Drawing.SystemIcons]::Information;$n.Visible=$true;"
+                f"$n.ShowBalloonTip(5000,{json.dumps(title)},{json.dumps(message or ' ')},'Info');"
+                "Start-Sleep -s 6;$n.Dispose()"
+            )
+            subprocess.Popen(["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps],
+                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            return True
+        subprocess.Popen(["notify-send", title, message])
+        return True
+    except Exception:
+        return False
+
+
+class DesktopBridge:
+    """Exposed to JavaScript as ``window.pywebview.api``."""
+
+    def open_file_dialog(self, title: str = "Open File", file_types: Optional[list] = None) -> Optional[str]:
+        try:
+            import webview  # type: ignore
+
+            windows = _windows()
+            if windows:
+                res = windows[0].create_file_dialog(webview.OPEN_DIALOG, title=title,
+                                                    file_types=tuple(file_types or ["All files (*.*)"]))
+                return res[0] if res else None
+        except Exception:
+            return None
+        return None
+
+    def save_file_dialog(self, title: str = "Save File As", default_filename: str = "") -> Optional[str]:
+        try:
+            import webview  # type: ignore
+
+            windows = _windows()
+            if windows:
+                res = windows[0].create_file_dialog(webview.SAVE_DIALOG, title=title, save_filename=default_filename)
+                return res if isinstance(res, str) else (res[0] if res else None)
+        except Exception:
+            return None
+        return None
+
+    def select_folder_dialog(self, title: str = "Select Folder") -> Optional[str]:
+        try:
+            import webview  # type: ignore
+
+            windows = _windows()
+            if windows:
+                res = windows[0].create_file_dialog(webview.FOLDER_DIALOG, title=title)
+                return res[0] if res else None
+        except Exception:
+            return None
+        return None
+
+    def get_system_metrics(self) -> dict:
+        from lila.core.debug import get_system_metrics
+
+        return get_system_metrics()
+
+    def notify(self, title: str, message: str = "") -> bool:
+        return notify(title, message)
+
+    def open_external(self, url: str) -> bool:
+        """Opens http(s)/mailto links in the system browser (never file:// or javascript:)."""
+        url = str(url or "")
+        if not url.startswith(ALLOWED_SCHEMES):
+            return False
+        import webbrowser
+
+        return bool(webbrowser.open(url))
+
+    def app_info(self) -> dict:
+        from lila.core.config import get_data_path
+
+        return {
+            "name": os.environ.get("TITLE_PROJECT", ""),
+            "version": os.environ.get("LILA_APP_VERSION", ""),
+            "platform": platform_key(),
+            "os": f"{platform.system()} {platform.release()}",
+            "frozen": bool(getattr(sys, "frozen", False)),
+            "data_dir": get_data_path(),
+        }
+
+    def check_update(self) -> dict:
+        return check_update(os.environ.get("LILA_UPDATE_URL"), os.environ.get("LILA_APP_VERSION"))
+
+    def install_update(self) -> dict:
+        """Downloads (SHA-256 checked) and opens the new installer, then closes the app."""
+        info = self.check_update()
+        if not info.get("available"):
+            return {"ok": False, "reason": info.get("reason") or "already up to date"}
+        try:
+            path = download_verified(info["url"], info.get("sha256", ""))
+            _open_path(path)
+        except Exception as exc:
+            return {"ok": False, "reason": str(exc)}
+        windows = _windows()
+        if windows:
+            try:
+                windows[0].destroy()
+            except Exception:
+                pass
+        return {"ok": True, "version": info["version"]}
+
+    def set_title(self, title: str) -> bool:
+        windows = _windows()
+        if not windows:
+            return False
+        try:
+            windows[0].set_title(str(title)[:200])
+            return True
+        except Exception:
+            return False

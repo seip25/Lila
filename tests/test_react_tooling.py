@@ -251,3 +251,81 @@ class UiKitTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DesktopUpdateAndSigningTests(unittest.TestCase):
+    def test_versions_and_manifest_check(self):
+        import http.server
+        import threading
+
+        from lila.core.desktop_bridge import check_update, parse_version, platform_key
+
+        self.assertGreater(parse_version("1.10.0"), parse_version("1.9.9"))
+        self.assertEqual(parse_version("v2"), (2, 0, 0))
+        manifest = json.dumps({"version": "1.5.0", "notes": "Fixes",
+                               "files": {platform_key(): {"url": "https://x/app.bin", "sha256": "a" * 64}}}).encode()
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):  # noqa: N802
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(manifest)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            url = f"http://127.0.0.1:{server.server_port}/latest.json"
+            self.assertTrue(check_update(url, "1.4.9")["available"])
+            self.assertFalse(check_update(url, "1.5.0")["available"])
+        finally:
+            server.shutdown()
+        self.assertFalse(check_update("http://example.com/latest.json", "1.0")["available"])  # https only
+        self.assertFalse(check_update(None, "1.0")["available"])
+
+    def test_download_rejects_bad_checksum_and_http(self):
+        from lila.core.desktop_bridge import download_verified
+
+        with self.assertRaises(ValueError):
+            download_verified("http://example.com/x.msi", "a" * 64)
+        with self.assertRaises(ValueError):
+            download_verified("https://example.com/x.msi", "short")
+
+    def test_open_external_only_allows_web_links(self):
+        from lila.core.desktop_bridge import DesktopBridge
+
+        bridge = DesktopBridge()
+        self.assertFalse(bridge.open_external("file:///etc/passwd"))
+        self.assertFalse(bridge.open_external("javascript:alert(1)"))
+
+    def test_signing_commands(self):
+        cmd = installers.macos_sign_command("dist/App.app", "Developer ID Application: Acme (TEAM)")
+        self.assertEqual(cmd[:3], ["codesign", "--deep", "--force"])
+        self.assertIn("runtime", cmd)
+        self.assertEqual(installers.macos_notarize_commands("dist/App.dmg", "prof")[1], ["xcrun", "stapler", "staple", "dist/App.dmg"])
+        with override_env(WINDOWS_SIGN_PASSWORD="hunter2"):
+            cmd = installers.windows_sign_command("dist/App.msi", cert="cert.pfx")
+        self.assertEqual(cmd[cmd.index("/f") + 1], "cert.pfx")
+        self.assertNotIn("hunter2", installers.redact(cmd))
+        self.assertIn("/sha1", installers.windows_sign_command("a.exe", thumbprint="ABC"))
+        self.assertIn("/a", installers.windows_sign_command("a.exe"))
+
+    def test_release_manifest_merges_platforms(self):
+        folder = tempfile.mkdtemp()
+        try:
+            msi = os.path.join(folder, "App.msi")
+            dmg = os.path.join(folder, "App.dmg")
+            for path in (msi, dmg):
+                with open(path, "wb") as fh:
+                    fh.write(path.encode())
+            win = installers.build_update_manifest("1.2.0", "https://dl.example/app/", [msi])
+            both = installers.build_update_manifest("1.2.0", "https://dl.example/app", [dmg], previous=win)
+            self.assertEqual(set(both["files"]), {"windows", "macos"})
+            self.assertEqual(both["files"]["macos"]["url"], "https://dl.example/app/App.dmg")
+            self.assertEqual(len(both["files"]["windows"]["sha256"]), 64)
+            fresh = installers.build_update_manifest("1.3.0", "https://dl.example/app", [dmg], previous=both)
+            self.assertEqual(set(fresh["files"]), {"macos"})
+        finally:
+            shutil.rmtree(folder, ignore_errors=True)

@@ -237,3 +237,114 @@ def build_dmg(name: str, dist: str = "dist") -> Tuple[bool, str]:
 
 def default_installer(platform: str = sys.platform) -> Optional[str]:
     return "msi" if platform == "win32" else "dmg" if platform == "darwin" else None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Code signing (unsigned apps are blocked by Gatekeeper / warned by SmartScreen)
+# ──────────────────────────────────────────────────────────────────────────────
+DEFAULT_TIMESTAMP_URL = "http://timestamp.digicert.com"
+
+
+def macos_sign_command(path: str, identity: str, entitlements: Optional[str] = None) -> List[str]:
+    """Hardened-runtime signature for a .app (or .dmg) with a Developer ID identity."""
+    cmd = ["codesign", "--force", "--timestamp", "--options", "runtime", "--sign", identity]
+    if path.endswith(".app"):
+        cmd.insert(1, "--deep")
+    if entitlements:
+        cmd += ["--entitlements", entitlements]
+    return cmd + [path]
+
+
+def macos_notarize_commands(dmg: str, profile: str) -> List[List[str]]:
+    """``xcrun notarytool store-credentials <profile>`` once, then submit + staple."""
+    return [
+        ["xcrun", "notarytool", "submit", dmg, "--keychain-profile", profile, "--wait"],
+        ["xcrun", "stapler", "staple", dmg],
+    ]
+
+
+def windows_sign_command(path: str, cert: Optional[str] = None, thumbprint: Optional[str] = None,
+                         timestamp_url: str = DEFAULT_TIMESTAMP_URL, signtool: str = "signtool") -> List[str]:
+    """signtool with a .pfx (password from WINDOWS_SIGN_PASSWORD), a store thumbprint, or /a."""
+    cmd = [signtool, "sign", "/fd", "SHA256", "/tr", timestamp_url, "/td", "SHA256"]
+    if cert:
+        cmd += ["/f", cert]
+        password = os.environ.get("WINDOWS_SIGN_PASSWORD")
+        if password:
+            cmd += ["/p", password]
+    elif thumbprint:
+        cmd += ["/sha1", thumbprint]
+    else:
+        cmd += ["/a"]
+    return cmd + [path]
+
+
+def redact(cmd: List[str]) -> str:
+    """Printable command without secrets (signtool /p)."""
+    out = []
+    hide = False
+    for part in cmd:
+        out.append("****" if hide else part)
+        hide = part == "/p"
+    return " ".join(out)
+
+
+def run_commands(commands: List[List[str]]) -> Tuple[bool, str]:
+    for cmd in commands:
+        if not shutil.which(cmd[0]) and not os.path.isfile(cmd[0]):
+            return False, f"{cmd[0]} not found"
+        result = subprocess.run(cmd)
+        if result.returncode != 0:
+            return False, f"failed: {redact(cmd)}"
+    return True, ""
+
+
+def find_signtool() -> Optional[str]:
+    found = shutil.which("signtool") or shutil.which("signtool.exe")
+    if found:
+        return found
+    kits = os.path.expandvars(r"%ProgramFiles(x86)%\Windows Kits\10\bin")
+    if os.path.isdir(kits):
+        for version in sorted(os.listdir(kits), reverse=True):
+            candidate = os.path.join(kits, version, "x64", "signtool.exe")
+            if os.path.isfile(candidate):
+                return candidate
+    return None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Update manifest (read by DesktopBridge.check_update / @lila/desktop)
+# ──────────────────────────────────────────────────────────────────────────────
+INSTALLER_PLATFORMS = {".msi": "windows", ".exe": "windows", ".dmg": "macos", ".appimage": "linux"}
+
+
+def sha256_file(path: str) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def build_update_manifest(version: str, base_url: str, files: List[str], notes: str = "",
+                          previous: Optional[dict] = None) -> dict:
+    """``latest.json``: one entry per platform; entries for other platforms of
+    the same version are kept, so Windows and macOS CI jobs can each add theirs."""
+    import datetime as _dt
+
+    manifest = {"version": version, "notes": notes, "published": _dt.datetime.now(_dt.timezone.utc).isoformat(), "files": {}}
+    if previous and str(previous.get("version")) == str(version):
+        manifest["files"].update(previous.get("files") or {})
+        manifest["notes"] = notes or previous.get("notes", "")
+    for path in files:
+        key = INSTALLER_PLATFORMS.get(os.path.splitext(path)[1].lower())
+        if not key:
+            continue
+        manifest["files"][key] = {
+            "url": f"{base_url.rstrip('/')}/{os.path.basename(path)}",
+            "sha256": sha256_file(path),
+            "size": os.path.getsize(path),
+        }
+    return manifest

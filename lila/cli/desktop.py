@@ -12,57 +12,9 @@ from typing import Optional, Any, List
 
 app = typer.Typer(help="Lila Desktop CLI - Run and bundle full-stack Python apps as native desktop applications.")
 
-class DesktopBridge:
-    """Exposes native OS capabilities to JavaScript in pywebview via window.pywebview.api."""
-
-    def open_file_dialog(self, title: str = "Open File", file_types: Optional[list] = None) -> Optional[str]:
-        """Opens native file picker dialog."""
-        try:
-            import webview
-            if webview.windows:
-                res = webview.windows[0].create_file_dialog(
-                    webview.OPEN_DIALOG,
-                    title=title,
-                    file_types=tuple(file_types or ["All files (*.*)"]),
-                )
-                return res[0] if res else None
-        except Exception:
-            return None
-        return None
-
-    def save_file_dialog(self, title: str = "Save File As", default_filename: str = "") -> Optional[str]:
-        """Opens native save file dialog."""
-        try:
-            import webview
-            if webview.windows:
-                res = webview.windows[0].create_file_dialog(
-                    webview.SAVE_DIALOG,
-                    title=title,
-                    save_filename=default_filename,
-                )
-                return res if isinstance(res, str) else (res[0] if res else None)
-        except Exception:
-            return None
-        return None
-
-    def select_folder_dialog(self, title: str = "Select Folder") -> Optional[str]:
-        """Opens native directory picker dialog."""
-        try:
-            import webview
-            if webview.windows:
-                res = webview.windows[0].create_file_dialog(
-                    webview.FOLDER_DIALOG,
-                    title=title,
-                )
-                return res[0] if res else None
-        except Exception:
-            return None
-        return None
-
-    def get_system_metrics(self) -> dict:
-        """Returns live process and system telemetry."""
-        from lila.core.debug import get_system_metrics
-        return get_system_metrics()
+# The native bridge (window.pywebview.api) lives in lila.core.desktop_bridge so
+# `lila desktop dev` and the frozen bootstrap share one implementation.
+from lila.core.desktop_bridge import DesktopBridge  # noqa: E402,F401
 
 
 def acquire_single_instance_lock(app_name: str) -> Optional[Any]:
@@ -432,6 +384,11 @@ def build(
     version: Optional[str] = typer.Option(None, "--version", help="App version (default: VERSION_PROJECT from .env)"),
     publisher: Optional[str] = typer.Option(None, "--publisher", help="Publisher/manufacturer shown by the installer"),
     bundle_id: Optional[str] = typer.Option(None, "--bundle-id", help="Reverse-DNS id, e.g. com.acme.invoices (macOS bundle id, MSI upgrade code seed)"),
+    update_url: Optional[str] = typer.Option(None, "--update-url", help="https URL of latest.json (lila desktop release) for in-app updates; default DESKTOP_UPDATE_URL"),
+    sign_identity: Optional[str] = typer.Option(None, "--sign-identity", help="macOS: 'Developer ID Application: ...' (default MACOS_SIGN_IDENTITY)"),
+    notary_profile: Optional[str] = typer.Option(None, "--notary-profile", help="macOS: notarytool keychain profile (default MACOS_NOTARY_PROFILE)"),
+    sign_cert: Optional[str] = typer.Option(None, "--sign-cert", help="Windows: .pfx path (password in WINDOWS_SIGN_PASSWORD; default WINDOWS_SIGN_CERT)"),
+    sign_thumbprint: Optional[str] = typer.Option(None, "--sign-thumbprint", help="Windows: certificate thumbprint in the store (default WINDOWS_SIGN_THUMBPRINT)"),
 ):
     """
     Bundles the Lila application into a standalone native executable (.exe / .app) using PyInstaller.
@@ -473,6 +430,14 @@ def build(
     if installer == "dmg" and not windowed:
         windowed = True  # hdiutil packs the .app bundle, which needs --windowed
     app_version = version or str(ENV_CONFIG.get("VERSION_PROJECT", "1.0.0") or "1.0.0")
+    update_url = update_url or str(ENV_CONFIG.get("DESKTOP_UPDATE_URL", "") or "") or None
+    if update_url and not update_url.startswith("https://"):
+        typer.secho("❌ --update-url must use https.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    sign_identity = sign_identity or os.environ.get("MACOS_SIGN_IDENTITY") or None
+    notary_profile = notary_profile or os.environ.get("MACOS_NOTARY_PROFILE") or None
+    sign_cert = sign_cert or os.environ.get("WINDOWS_SIGN_CERT") or None
+    sign_thumbprint = sign_thumbprint or os.environ.get("WINDOWS_SIGN_THUMBPRINT") or None
     app_publisher = publisher or str(ENV_CONFIG.get("AUTHOR_DEFAULT", "") or app_name)
     app_id = bundle_id or f"com.lila.{app_name.lower()}"
     icon_path = installers.convert_icon(installers.find_icon(icon), sys.platform)
@@ -547,36 +512,14 @@ def acquire_lock(app_name):
 if acquire_lock({app_name!r}) is None:
     sys.exit(0)
 
-class DesktopBridge:
-    def open_file_dialog(self, title="Open File", file_types=None):
-        try:
-            import webview
-            if webview.windows:
-                res = webview.windows[0].create_file_dialog(webview.OPEN_DIALOG, title=title, file_types=tuple(file_types or ["All files (*.*)"]))
-                return res[0] if res else None
-        except Exception:
-            return None
-    def save_file_dialog(self, title="Save File As", default_filename=""):
-        try:
-            import webview
-            if webview.windows:
-                res = webview.windows[0].create_file_dialog(webview.SAVE_DIALOG, title=title, save_filename=default_filename)
-                return res if isinstance(res, str) else (res[0] if res else None)
-        except Exception:
-            return None
-    def select_folder_dialog(self, title="Select Folder"):
-        try:
-            import webview
-            if webview.windows:
-                res = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG, title=title)
-                return res[0] if res else None
-        except Exception:
-            return None
+from lila.core.desktop_bridge import DesktopBridge
 
 desktop_token = secrets.token_hex(20)
 os.environ["LILA_DESKTOP_TOKEN"] = desktop_token
 os.environ["LILA_DESKTOP"] = "1"
 os.environ["LILA_DESKTOP_EXCLUDE"] = {",".join(patterns)!r}
+os.environ["LILA_APP_VERSION"] = {app_version!r}
+os.environ["LILA_UPDATE_URL"] = {(update_url or "")!r}
 os.environ.setdefault("TITLE_PROJECT", {app_name!r})
 
 import uvicorn
@@ -704,17 +647,86 @@ finally:
         typer.secho("❌ PyInstaller build failed.", fg=typer.colors.RED)
         raise typer.Exit(code=result.returncode if result else 1)
 
+    def _sign(commands, what: str) -> None:
+        ok, detail = installers.run_commands(commands)
+        if ok:
+            typer.secho(f"🔏 Signed {what}", fg=typer.colors.GREEN)
+        else:
+            typer.secho(f"❌ Signing {what} {detail}", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+
+    # 1. Sign the app itself (before it goes into an installer).
+    if sys.platform == "darwin" and sign_identity and os.path.isdir(os.path.join("dist", f"{app_name}.app")):
+        _sign([installers.macos_sign_command(os.path.join("dist", f"{app_name}.app"), sign_identity)], f"{app_name}.app")
+    if sys.platform == "win32" and (sign_cert or sign_thumbprint):
+        exe = os.path.join("dist", f"{app_name}.exe") if onefile else os.path.join("dist", app_name, f"{app_name}.exe")
+        tool = installers.find_signtool() or "signtool"
+        _sign([installers.windows_sign_command(exe, sign_cert, sign_thumbprint, signtool=tool)], os.path.basename(exe))
+
+    # 2. Installer, then sign (and notarize) it.
     if installer == "dmg":
         ok, detail = installers.build_dmg(app_name)
     elif installer == "msi":
         ok, detail = installers.build_msi(app_name, app_version, app_publisher, icon_path, app_id, onefile)
     else:
+        if sys.platform in ("darwin", "win32") and not (sign_identity or sign_cert or sign_thumbprint):
+            typer.secho("ℹ️ Unsigned build: Gatekeeper/SmartScreen will warn users (see --sign-identity / --sign-cert).", fg=typer.colors.YELLOW)
         return
-    if ok:
-        typer.secho(f"💿 Installer ready: {detail}", fg=typer.colors.GREEN)
-    else:
+    if not ok:
         typer.secho(f"❌ Installer not created: {detail}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+    if installer == "dmg" and sign_identity:
+        _sign([installers.macos_sign_command(detail, sign_identity)], os.path.basename(detail))
+        if notary_profile:
+            _sign(installers.macos_notarize_commands(detail, notary_profile), f"{os.path.basename(detail)} (notarized + stapled)")
+    if installer == "msi" and (sign_cert or sign_thumbprint):
+        tool = installers.find_signtool() or "signtool"
+        _sign([installers.windows_sign_command(detail, sign_cert, sign_thumbprint, signtool=tool)], os.path.basename(detail))
+    if not (sign_identity or sign_cert or sign_thumbprint):
+        typer.secho("ℹ️ Unsigned installer: Gatekeeper/SmartScreen will warn users (see --sign-identity / --sign-cert).", fg=typer.colors.YELLOW)
+    typer.secho(f"💿 Installer ready: {detail}", fg=typer.colors.GREEN)
+    if update_url:
+        typer.echo(f"   Publish it and update the manifest: lila desktop release --version {app_version} --base-url <download folder URL>")
+
+
+@app.command("release")
+def release(
+    version: str = typer.Option(..., "--version", help="Version being published (must match the build)"),
+    base_url: str = typer.Option(..., "--base-url", help="https folder URL where the installers are uploaded"),
+    notes: str = typer.Option("", "--notes", help="Release notes shown by the app"),
+    dist: str = typer.Option("dist", "--dist", help="Folder with the installers"),
+    output: str = typer.Option("dist/latest.json", "--output", "-o", help="Manifest to write (upload it to --update-url)"),
+):
+    """Write latest.json (version, URLs, SHA-256) for in-app updates.
+
+    Run it on each OS after `lila desktop build --installer auto`; entries for
+    the other platform of the same version are kept.
+    """
+    import json as _json
+    from lila.cli import installers
+
+    if not base_url.startswith("https://"):
+        typer.secho("❌ --base-url must use https.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    files = [os.path.join(dist, f) for f in sorted(os.listdir(dist))] if os.path.isdir(dist) else []
+    files = [f for f in files if os.path.splitext(f)[1].lower() in installers.INSTALLER_PLATFORMS]
+    if not files:
+        typer.secho(f"❌ No .msi/.dmg/.exe in {dist}/. Build with --installer auto first.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    previous = None
+    if os.path.isfile(output):
+        try:
+            with open(output, "r", encoding="utf-8") as fh:
+                previous = _json.load(fh)
+        except Exception:
+            previous = None
+    manifest = installers.build_update_manifest(version, base_url, files, notes, previous)
+    os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
+    with open(output, "w", encoding="utf-8") as fh:
+        _json.dump(manifest, fh, indent=2)
+    for key, entry in manifest["files"].items():
+        typer.echo(f"   {key:<8} {entry['url']}  sha256:{entry['sha256'][:12]}…")
+    typer.secho(f"✅ {output} written. Upload the installers to {base_url} and the manifest to your --update-url.", fg=typer.colors.GREEN)
 
 
 if __name__ == "__main__":
