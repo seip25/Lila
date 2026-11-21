@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import secrets
 import typer
-from typing import Optional, Any
+from typing import Optional, Any, List
 
 app = typer.Typer(help="Lila Desktop CLI - Run and bundle full-stack Python apps as native desktop applications.")
 
@@ -198,6 +198,97 @@ def launch_native_browser(url: str, width: int = 1200, height: int = 800) -> Opt
     return subprocess.Popen(cmd)
 
 
+def _load_project_routes(patterns: List[str]):
+    """Imports main:app in desktop mode and returns ``(all_routes, statuses)``."""
+    import importlib
+    from lila.core import desktop as desktop_mod
+
+    cwd = os.getcwd()
+    if cwd not in sys.path:
+        sys.path.insert(0, cwd)
+    previous = os.environ.get("LILA_DESKTOP")
+    os.environ["LILA_DESKTOP"] = "1"
+    try:
+        module = sys.modules.get("main") or importlib.import_module("main")
+    finally:
+        if previous is None:
+            os.environ.pop("LILA_DESKTOP", None)
+        else:
+            os.environ["LILA_DESKTOP"] = previous
+    app_obj = getattr(module, "app", None)
+    routes = list(getattr(app_obj, "_lila_all_routes", None) or getattr(app_obj, "routes", []))
+    all_patterns = list(dict.fromkeys(desktop_mod.exclude_patterns() + list(patterns)))
+    statuses = []
+    for route in routes:
+        path = getattr(route, "path", "")
+        if not path:
+            continue
+        enabled, reason = desktop_mod.route_status(route, desktop=True, patterns=all_patterns)
+        methods = getattr(route, "methods", None)
+        kind = ",".join(sorted(m for m in methods if m != "HEAD")) if methods else type(route).__name__.replace("Route", "") or "MOUNT"
+        statuses.append((path, kind, enabled, reason))
+    return routes, statuses
+
+
+def _resolve_patterns(exclude: Optional[List[str]], auto_exclude: bool, routes=None) -> List[str]:
+    from lila.core import desktop as desktop_mod
+
+    patterns: List[str] = []
+    for item in exclude or []:
+        patterns.extend(p.strip() for p in str(item).split(",") if p.strip())
+    if auto_exclude:
+        if routes is None:
+            try:
+                routes, _ = _load_project_routes(patterns)
+            except Exception as exc:
+                typer.secho(f"⚠️ Could not inspect routes for --auto-exclude: {exc}", fg=typer.colors.YELLOW)
+                routes = []
+        for path, reason in desktop_mod.suggest_exclusions(routes):
+            typer.echo(f"   auto-exclude {path} ({reason})")
+            patterns.append(path)
+    return list(dict.fromkeys(patterns))
+
+
+def _print_route_table(statuses) -> None:
+    kept = [s for s in statuses if s[2]]
+    removed = [s for s in statuses if not s[2]]
+    for path, kind, _enabled, reason in sorted(kept):
+        typer.secho(f"  ✅ {kind:<16} {path}" + (f"  ({reason})" if reason and reason != "framework" else ""), fg=typer.colors.GREEN)
+    for path, kind, _enabled, reason in sorted(removed):
+        typer.secho(f"  ⛔ {kind:<16} {path}  ({reason})", fg=typer.colors.RED)
+    typer.echo(f"\n{len(kept)} route(s) in the desktop app, {len(removed)} web-only.")
+
+
+@app.command("routes")
+def routes_command(
+    exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Extra pattern(s) to exclude: /payments*, name:checkout"),
+    auto_exclude: bool = typer.Option(False, "--auto-exclude", help="Also exclude routes detected as web-only."),
+):
+    """Preview which routes ship in the desktop app (and suggestions)."""
+    from lila.core.config import ConfigLoader
+    from lila.core import desktop as desktop_mod
+
+    ConfigLoader.load()
+    try:
+        routes, _ = _load_project_routes([])
+    except Exception as exc:
+        typer.secho(f"❌ Could not import main:app: {exc}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    patterns = _resolve_patterns(exclude, auto_exclude, routes)
+    _, statuses = _load_project_routes(patterns)
+    _print_route_table(statuses)
+    if not auto_exclude:
+        suggestions = [
+            (path, reason) for path, reason in desktop_mod.suggest_exclusions(routes)
+            if desktop_mod.route_status(next(r for r in routes if getattr(r, "path", "") == path),
+                                        desktop=True, patterns=desktop_mod.exclude_patterns() + patterns)[0]
+        ]
+        if suggestions:
+            typer.secho("\n💡 These look web-only (use desktop=False, DESKTOP_EXCLUDE or --auto-exclude):", fg=typer.colors.YELLOW)
+            for path, reason in suggestions:
+                typer.echo(f"   {path}  ({reason})")
+
+
 @app.callback(invoke_without_command=True)
 def default_desktop(
     ctx: typer.Context,
@@ -208,7 +299,8 @@ def default_desktop(
 ):
     """Runs Lila desktop app locally by default or supports build subcommand."""
     if ctx.invoked_subcommand is None:
-        dev(title=title, width=width, height=height, port=port)
+        dev(title=title, width=width, height=height, port=port, resizable=True, fullscreen=False,
+            debug=False, exclude=None, auto_exclude=False)
 
 
 @app.command("dev")
@@ -221,6 +313,8 @@ def dev(
     fullscreen: bool = typer.Option(False, "--fullscreen", help="Start window in fullscreen"),
     port: int = typer.Option(0, "--port", "-p", help="Server port (0 = autodetect free port)"),
     debug: bool = typer.Option(False, "--debug", help="Enable webview developer tools"),
+    exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Route pattern(s) left out of the desktop app"),
+    auto_exclude: bool = typer.Option(False, "--auto-exclude", help="Exclude routes detected as web-only (payments, uploads...)"),
 ):
     """
     Runs the Lila application inside a native ultra-lightweight desktop window.
@@ -246,6 +340,11 @@ def dev(
     # 2. Local Session Security Token (blocks external callers on same machine)
     desktop_token = secrets.token_hex(20)
     os.environ["LILA_DESKTOP_TOKEN"] = desktop_token
+    os.environ["LILA_DESKTOP"] = "1"
+    patterns = _resolve_patterns(exclude, auto_exclude)
+    if patterns:
+        os.environ["LILA_DESKTOP_EXCLUDE"] = ",".join(patterns)
+        typer.echo(f"🧩 Web-only routes excluded: {', '.join(patterns)}")
 
     typer.echo(f"🚀 Starting Lila Desktop on http://127.0.0.1:{target_port} ...")
 
@@ -324,9 +423,17 @@ def build(
     onefile: bool = typer.Option(True, "--onefile/--onedir", help="Package into a single executable"),
     icon: Optional[str] = typer.Option("public/favicon.ico", "--icon", "-i", help="Path to .ico icon"),
     windowed: bool = typer.Option(True, "--windowed/--console", help="Hide console window on execution"),
+    exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Route pattern(s) left out of the build: /payments*, /upload*, name:checkout"),
+    auto_exclude: bool = typer.Option(False, "--auto-exclude", help="Exclude routes detected as web-only (payments, uploads, webhooks...)"),
+    react: Optional[bool] = typer.Option(None, "--react/--no-react", help="Run `lila react build` first (default: auto when vite.config.js exists)"),
+    width: int = typer.Option(1200, "--width", help="Initial window width"),
+    height: int = typer.Option(800, "--height", help="Initial window height"),
 ):
     """
-    Bundles the Lila application into a standalone native executable (.exe) using PyInstaller.
+    Bundles the Lila application into a standalone native executable (.exe / .app) using PyInstaller.
+
+    Routes declared with ``desktop=False``, matched by ``DESKTOP_EXCLUDE`` or by
+    ``--exclude`` are removed from the build (404, hidden from React links).
     """
     import importlib.util
     if not importlib.util.find_spec("PyInstaller"):
@@ -339,6 +446,28 @@ def build(
     ConfigLoader.load()
     app_name = (name or ENV_CONFIG.get("TITLE_PROJECT", "LilaApp")).replace(" ", "_")
     app_name = "".join(ch for ch in app_name if ch.isalnum() or ch in ("_", "-")) or "LilaApp"
+
+    from lila.cli.react import is_react_project, run_build
+
+    if react is None:
+        react = is_react_project()
+    if react:
+        if not run_build(install=True):
+            raise typer.Exit(code=1)
+
+    from lila.core.desktop import exclude_patterns
+
+    # .env is not bundled: bake DESKTOP_EXCLUDE together with --exclude.
+    patterns = list(dict.fromkeys(exclude_patterns() + _resolve_patterns(exclude, auto_exclude)))
+    try:
+        _, statuses = _load_project_routes(patterns)
+        removed = [s for s in statuses if not s[2]]
+        if removed:
+            typer.secho("🧩 Web-only routes left out of the desktop build:", fg=typer.colors.CYAN)
+            for path, kind, _enabled, reason in sorted(removed):
+                typer.echo(f"   ⛔ {kind:<14} {path}  ({reason})")
+    except Exception as exc:
+        typer.secho(f"⚠️ Could not preview routes ({exc}); exclusions still apply at runtime.", fg=typer.colors.YELLOW)
 
     bootstrap_code = f'''import os, sys, threading, socket, time, secrets, tempfile
 
@@ -413,6 +542,8 @@ class DesktopBridge:
 
 desktop_token = secrets.token_hex(20)
 os.environ["LILA_DESKTOP_TOKEN"] = desktop_token
+os.environ["LILA_DESKTOP"] = "1"
+os.environ["LILA_DESKTOP_EXCLUDE"] = {",".join(patterns)!r}
 os.environ.setdefault("TITLE_PROJECT", {app_name!r})
 
 import uvicorn
@@ -456,7 +587,7 @@ url = f"http://127.0.0.1:{{port}}/?_dt={{desktop_token}}"
 
 try:
     import webview
-    webview.create_window({app_name!r}, url, width=1200, height=800, js_api=DesktopBridge())
+    webview.create_window({app_name!r}, url, width={int(width)}, height={int(height)}, js_api=DesktopBridge())
     webview.start()
 except ImportError:
     import webbrowser
@@ -517,6 +648,10 @@ finally:
         pyinstaller_cmd.extend(["--add-data", f"public{sep}public"])
     if os.path.isdir("resources"):
         pyinstaller_cmd.extend(["--add-data", f"resources{sep}resources"])
+    # Project translations are JSON data, not Python modules: bundle them too
+    # (otherwise the build silently falls back to the framework's locales).
+    if os.path.isdir(os.path.join("app", "locales")):
+        pyinstaller_cmd.extend(["--add-data", f"{os.path.join('app', 'locales')}{sep}{os.path.join('app', 'locales')}"])
 
     pyinstaller_cmd.append(bootstrap_file)
 

@@ -97,6 +97,7 @@
   <a href="connections.html">Connections</a>
   <a href="migrations.html">Migrations</a>
   <a href="desktop.html">Desktop</a>
+  <a href="react.html">React (Vite)</a>
   <a href="auth.html">Auth CLI</a>
   <a href="admin.html">Admin Panel</a>
   <a href="cli.html">CLI Commands</a>
@@ -173,6 +174,31 @@ lila desktop build --name "InvoiceManager" --onedir
         (then the current working directory) and keeps the SQLite database, cache and logs there.
         Keep <code>DB_NAME</code> relative (<code>DB_NAME="lila"</code>) so it resolves under that
         directory.
+      </p>
+      <h3 class="text-xl font-bold mt-8 mb-3">4. Web-only and desktop-only routes</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        One codebase can be a website and a desktop app. Features that only make sense on the web
+        (payments, uploads, webhooks, OAuth callbacks) can be left out of the desktop build, and
+        desktop-only features out of the website. Removed routes do not exist in that mode (404),
+        are not listed in <code>/openapi.json</code>, and React <code>&lt;Link&gt;</code> hides links to them.
+      </p>
+      <pre><code class="language-python">@router.post("/checkout", desktop=False)       # web only
+billing = Router(prefix="/billing", desktop=False)  # whole group web only
+@router.get("/local-backup", desktop="only")     # desktop app only</code></pre>
+      <pre><code class="language-bash"># .env (patterns: path + children, globs, route names)
+DESKTOP_EXCLUDE=/payments,/api/*/upload,name:stripe_webhook
+
+lila desktop routes                          # preview + web-only suggestions
+lila desktop dev --exclude "/upload*"
+lila desktop build --exclude "/payments" --auto-exclude   # baked into the executable</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        <code>--auto-exclude</code> adds the routes Lila detects as web-only (payments, checkout,
+        billing, upload, webhook, OAuth...). Jinja templates get <code>is_desktop()</code> and
+        <code>route_available(path)</code>; React gets <code>useLila().desktop</code>,
+        <code>isAvailable(href)</code>, <code>&lt;WebOnly&gt;</code> and <code>&lt;DesktopOnly&gt;</code>.
+        When the project uses Vite, <code>lila desktop build</code> runs <code>lila react build</code>
+        first (<code>--no-react</code> to skip) and bundles <code>public/build</code> and
+        <code>app/locales</code>.
       </p>
     </article>
   </main>

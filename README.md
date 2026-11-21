@@ -250,6 +250,38 @@ Admin lives at `/admin`; OAuth callbacks at `/auth/{provider}/callback`. Set
 (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`) — in development the
 reset URL is printed to the console instead.
 
+### React (Vite)
+
+```bash
+lila react init --install   # package.json, vite.config.js, resources/react/*, example routes
+lila react dev              # Vite (HMR + React Fast Refresh) + Lila together
+lila react build            # public/build + manifest — Node is NOT needed on the server
+```
+
+Pages per route with server props and full SEO (same keywords as `render()`):
+
+```python
+from lila.core.react import react_render
+
+@router.get("/users/{id:int}")
+async def user(request: Request, id: int):
+    user = await User.get_by_id_async(id)
+    return react_render(request, "Users/Show", {"user": user},
+                        title=user["name"], description="Profile", canonical=True,
+                        jsonld={"@context": "https://schema.org", "@type": "Person", "name": user["name"]})
+```
+
+`resources/react/pages/Users/Show.jsx` receives `user` as a prop; `<Link href>`
+from `@lila` navigates without reloads (JSON page + `<head>` swap, back/forward,
+asset-version reload). A React Router SPA with per-route meta:
+
+```python
+router.spa("/app", meta={
+    "*": {"title": "App"},
+    "users/:id": lambda request, params: {"title": f"User {params['id']}", "robots": "noindex"},
+})
+```
+
 ### Desktop
 
 ```bash
@@ -257,6 +289,25 @@ pip install "lila-framework[desktop]"
 lila desktop dev
 lila desktop build --name MyApp --onefile --windowed
 ```
+
+One codebase, two targets. Keep web-only features out of the desktop build:
+
+```python
+@router.post("/checkout", desktop=False)          # web only (payments, uploads, webhooks...)
+billing = Router(prefix="/billing", desktop=False)
+@router.get("/local-files", desktop="only")       # desktop app only
+```
+
+```bash
+# .env: DESKTOP_EXCLUDE=/payments*,/upload*,name:stripe_webhook
+lila desktop routes                       # preview + suggestions
+lila desktop build --exclude "/payments*" --auto-exclude
+```
+
+Removed routes return 404, disappear from `/openapi.json`, and React `<Link>`
+hides them (`<WebOnly>`, `<DesktopOnly>`, `useLila().isAvailable(href)`; Jinja:
+`is_desktop()`, `route_available(path)`). `lila desktop build` runs
+`lila react build` first when the project uses Vite.
 
 The generated executable bundles `main`, `app`, Lila templates and `public/`.
 Lila binds the desktop server to `127.0.0.1`, enforces a per-run local token,
@@ -291,7 +342,9 @@ application-data directory.
 | `lila i18n check` | Translation keys missing per language. |
 | `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
-| `lila desktop dev/build` | Native window / PyInstaller executable. |
+| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`). |
+| `lila desktop routes` | Which routes ship in the desktop app + web-only suggestions. |
+| `lila react init/dev/build/status` | React + Vite: scaffold, HMR dev server, production build. |
 
 `lila desktop` binds to `127.0.0.1`, enforces a generated local session token and
 allows only one instance. The frozen build stores SQLite/cache/logs in the OS
