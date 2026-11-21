@@ -27,9 +27,13 @@ app = typer.Typer(
 
 # Attach subcommands
 @app.command("init")
-def init():
-    """Scaffold a new Lila project in the current directory."""
-    scaffold_main()
+def init(
+    template: str = typer.Option("web", "--template", "-t", help="web | react | auth | react-auth | full | desktop"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Use the defaults, no questions (CI, scripts)"),
+    install: bool = typer.Option(False, "--install", help="npm install for React templates"),
+):
+    """Scaffold a new Lila project in the current directory (never overwrites files)."""
+    scaffold_main(template=template, yes=yes, install=install)
 
 @app.command("dev")
 def dev(
@@ -344,6 +348,13 @@ def doctor():
         typer.secho("  ✅ Compiled Tailwind CSS found (public/css/lila.css)", fg=typer.colors.GREEN)
     elif not ENV_CONFIG.get_bool("DEBUG", False):
         typer.secho("  ⚠️ No compiled CSS: run `lila css build` (pages load the 270 KB Tailwind runtime).", fg=typer.colors.YELLOW)
+
+    import importlib.util as _ilu
+
+    if _ilu.find_spec("websockets") or _ilu.find_spec("wsproto"):
+        typer.secho("  ✅ WebSocket support (websockets/wsproto)", fg=typer.colors.GREEN)
+    else:
+        typer.secho("  ⚠️ No WebSocket library: ws_hub/useWebSocket return 404. pip install websockets", fg=typer.colors.YELLOW)
 
     from lila.cli.react import is_react_project
 

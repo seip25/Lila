@@ -11,6 +11,8 @@ desktop="only" keeps it out of the website.
 from lila.core.react import react_render
 from lila.core.request import Request
 from lila.core.routing import Router
+from lila.core.sse import Channel
+from lila.core.websocket import WebSocketHub
 
 router = Router()
 
@@ -53,6 +55,33 @@ async def react_checkout_post(request: Request):
     return {"success": True, "message": f"Plan {data.get('plan', '?')} selected (demo)."}
 
 
+# Real-time demo for the SPA "Live" page (@lila/realtime: useSSE / useWebSocket).
+demo_events = Channel("lila-demo")
+demo_hub = WebSocketHub()
+
+
+@router.get("/app-events", openapi=False)
+async def demo_stream(request: Request):
+    return demo_events.stream(request)
+
+
+@router.post("/app-events", csrf=True, openapi=False)
+async def demo_publish(request: Request):
+    data = await request.json()
+    await demo_events.publish({"text": str(data.get("text", ""))[:200]}, event="demo:message")
+    return {"success": True}
+
+
+@demo_hub.on("chat:message")
+async def demo_chat(websocket, data):
+    text = str((data or {}).get("text", ""))[:200] if isinstance(data, dict) else ""
+    if text:
+        await demo_hub.broadcast("chat:message", {"text": text}, room="general")
+
+
+router.ws_hub("/ws/demo", demo_hub)
+
+
 # SPA with React Router under /app; meta per client route (dict or callable).
 router.spa(
     "/app",
@@ -62,6 +91,7 @@ router.spa(
         "users": {"title": "Users"},
         "users/:id": lambda request, params: {"title": f"User {params['id']}", "robots": "noindex"},
         "account": {"title": "Account", "robots": "noindex"},
+        "live": {"title": "Live"},
         "billing": {"title": "Billing"},
     },
 )

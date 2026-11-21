@@ -92,9 +92,62 @@ def _is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
         except OSError:
             return True
 
+_ASSUME_DEFAULTS = False
+
+
 def _prompt(label_en: str, label_es: str, default: str) -> str:
+    if _ASSUME_DEFAULTS:
+        return default
     value = input(f"  {label_es} / {label_en} [{default}]: ").strip()
     return value if value else default
+
+
+# `lila init --template X`: the scaffold plus these existing generators.
+TEMPLATES = {
+    "web": "Jinja pages + lila-client SPA (default)",
+    "react": "web + React/Vite (TypeScript) with the UI kit",
+    "auth": "web + Jinja auth (login, register, dashboard, profile)",
+    "react-auth": "react + React auth pages",
+    "full": "react + React auth + React admin panel",
+    "desktop": "react + desktop app notes (DESKTOP_EXCLUDE, installers)",
+}
+
+
+def apply_template(template: str, install: bool = False) -> None:
+    """Runs the generators a template needs inside the new project."""
+    template = (template or "web").lower()
+    if template not in TEMPLATES:
+        raise ValueError(f"Unknown template '{template}'. Use one of: {', '.join(TEMPLATES)}")
+    if template == "web":
+        return
+    if template in ("react", "react-auth", "full", "desktop"):
+        from lila.cli.react import init as react_init
+
+        react_init(install=install, force=False, routes=True, js=False)
+    if template == "auth":
+        from lila.cli.auth import generate as auth_generate
+
+        auth_generate(template=True, routes=True, react=False)
+    if template in ("react-auth", "full"):
+        from lila.cli.auth import generate as auth_generate
+
+        auth_generate(template=None, routes=True, react=True)
+    if template == "full":
+        import secrets as _secrets
+        from lila.cli.create_panel_admin import create as admin_create
+
+        admin_create(username="admin", password=_secrets.token_urlsafe(12), react=True)
+    if template == "desktop":
+        env_path = Path(".env")
+        if env_path.exists() and "DESKTOP_EXCLUDE" not in env_path.read_text(encoding="utf-8"):
+            with open(env_path, "a", encoding="utf-8") as fh:
+                fh.write(
+                    "\n# ─── Desktop (lila desktop dev/build) ───────────────────\n"
+                    "# Web-only routes left out of the desktop app (paths, globs, name:route)\n"
+                    'DESKTOP_EXCLUDE=""\n'
+                )
+        print("  🖥️  Desktop: pip install \"lila-framework[desktop]\" · lila desktop dev · "
+              "lila desktop build --installer auto")
 
 def _collect_project_info(project_dir_name: str) -> dict:
     default_title = project_dir_name.replace("_", " ").replace("-", " ").title()
@@ -135,7 +188,7 @@ def _collect_project_info(project_dir_name: str) -> dict:
     # Database options
     print("\n🗄️  Configuración de Base de Datos / Database Setup")
     print("   Lila v2.0 incluye SQLite Async (WAL mode) con cero infraestructura.")
-    setup_db = input("   ¿Deseas usar MySQL o PostgreSQL en vez de SQLite? [s/N]: ").strip().lower()
+    setup_db = "" if _ASSUME_DEFAULTS else input("   ¿Deseas usar MySQL o PostgreSQL en vez de SQLite? [s/N]: ").strip().lower()
     if setup_db in ("s", "y", "si", "yes"):
         db_choice = input("   Tipo de base de datos (mysql/postgresql) [mysql]: ").strip().lower() or "mysql"
         info["DB_TYPE"] = db_choice
@@ -226,16 +279,23 @@ DISCORD_CLIENT_SECRET=""
 """
     env_path.write_text(env_content.lstrip(), encoding="utf-8")
 
-def main():
+def main(template: str = "web", yes: bool = False, install: bool = False):
+    global _ASSUME_DEFAULTS
+    _ASSUME_DEFAULTS = bool(yes)
     destination_base_path = Path(os.getcwd())
     project_dir_name = os.path.basename(destination_base_path)
+    template = (template or "web").lower()
+    if template not in TEMPLATES:
+        print(f"❌ Unknown template '{template}'. Available: " + ", ".join(f"{k} ({v})" for k, v in TEMPLATES.items()))
+        return
 
     if list(destination_base_path.glob('*')):
         print(
             "⚠️ Advertencia: El directorio actual no está vacío. Los archivos del proyecto Lila se copiarán aquí. / "
             "Warning: The current directory is not empty. Lila project files will be copied here."
         )
-        input("Presiona Enter para continuar o Ctrl+C para cancelar... / Press Enter to continue...")
+        if not yes:
+            input("Presiona Enter para continuar o Ctrl+C para cancelar... / Press Enter to continue...")
 
     try:
         project_info = _collect_project_info(project_dir_name)
@@ -285,8 +345,15 @@ https://seip25.github.io/Lila
         else:
             print("  ℹ️ README.md already exists; preserved.")
 
+        if template != "web":
+            print(f"\n🧩 Template '{template}': {TEMPLATES[template]}")
+            apply_template(template, install=install)
+
         print("\n🎉 ¡Proyecto Lila v2.0 inicializado con éxito! / Lila v2.0 project scaffolded successfully!")
-        print("➡️  Ejecuta 'lila dev' para arrancar el servidor con hot-reload.")
+        if template in ("react", "react-auth", "full", "desktop"):
+            print("➡️  Ejecuta 'lila react dev' (Vite + Lila con HMR) / Run 'lila react dev'.")
+        else:
+            print("➡️  Ejecuta 'lila dev' para arrancar el servidor con hot-reload.")
 
     except Exception as e:
         print(f"\n❌ Error during project creation: {e}")

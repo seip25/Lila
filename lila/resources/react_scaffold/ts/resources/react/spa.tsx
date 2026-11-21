@@ -16,6 +16,7 @@ const router = createRouter([
       { path: "users", lazy: page(() => import("./spa/Users")) },
       { path: "users/:id", lazy: page(() => import("./spa/User")) },
       { path: "account", lazy: page(() => import("./spa/Account")) },
+      { path: "live", lazy: page(() => import("./spa/Live")) },
       { path: "billing", lazy: page(() => import("./spa/Billing")) },
       { path: "*", lazy: page(() => import("./spa/NotFound")) },
     ],

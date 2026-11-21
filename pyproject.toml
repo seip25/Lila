@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "starlette>=1.0.0,<2",
     "uvicorn>=0.53.0,<1",
+    "websockets>=13.0",  # WebSocketHub / ws.js / useWebSocket (uvicorn has no WS support without it)
     "httptools>=0.6.0",
     "uvloop>=0.20.0; sys_platform != 'win32'",
     "pydantic>=2.8.0",

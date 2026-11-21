@@ -19,6 +19,7 @@ export default function AppLayout() {
             <NavLink to="/" end className={link}>Components</NavLink>
             <NavLink to="/users" className={link}>Users</NavLink>
             <NavLink to="/account" className={link}>Account</NavLink>
+            <NavLink to="/live" className={link}>Live</NavLink>
             <WebOnly><NavLink to="/billing" className={link}>Billing</NavLink></WebOnly>
           </nav>
           <DesktopOnly><Badge tone="success" soft>Desktop</Badge></DesktopOnly>
