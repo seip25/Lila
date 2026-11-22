@@ -5,7 +5,7 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
-## [2.1.0] — 2026-11-21
+## [2.2.0] — 2026-11-21
 
 ### Security, CRUD/admin in React, real-time, desktop releases and infrastructure
 

@@ -326,7 +326,7 @@ def main(template: str = "web", yes: bool = False, install: bool = False):
 
         req_path = destination_base_path / "requirements.txt"
         if not req_path.exists():
-            req_path.write_text("lila-framework>=2.1.0\n", encoding="utf-8")
+            req_path.write_text("lila-framework>=2.2.0\n", encoding="utf-8")
             print("  📄 requirements.txt generated.")
 
         readme_content = f"""# {project_info["TITLE_PROJECT"]}

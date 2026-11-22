@@ -100,9 +100,9 @@ class TypeScriptTests(unittest.TestCase):
 
 class InstallerTests(unittest.TestCase):
     def test_wix_source_is_valid_xml_with_icon_and_shortcuts(self):
-        source = installers.wix_source("My_App", "dist/My_App.exe", "2.1.0-beta", "Acme & Co", "public/favicon.ico", "com.acme.app")
+        source = installers.wix_source("My_App", "dist/My_App.exe", "2.2.0-beta", "Acme & Co", "public/favicon.ico", "com.acme.app")
         xml.dom.minidom.parseString(source)
-        self.assertIn('Version="2.1.0"', source)
+        self.assertIn('Version="2.2.0"', source)
         self.assertIn('ARPPRODUCTICON', source)
         self.assertIn('Id="DesktopLink"', source)
         self.assertIn("Acme &amp; Co", source)
