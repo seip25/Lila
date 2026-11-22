@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -143,6 +144,24 @@ def init(
     typer.echo("   lila react build   → public/build for production and `lila desktop build`")
 
 
+def _stop_process_tree(proc: subprocess.Popen) -> None:
+    """Terminates ``proc`` and its descendants (needed for npm.cmd -> node on Windows)."""
+    if proc.poll() is not None:
+        return
+    if sys.platform == "win32" and hasattr(signal, "CTRL_BREAK_EVENT"):
+        try:
+            proc.send_signal(signal.CTRL_BREAK_EVENT)
+            proc.wait(timeout=4)
+            return
+        except (OSError, subprocess.TimeoutExpired, ValueError):
+            pass
+    proc.terminate()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+
+
 @app.command("dev")
 def dev(
     host: Optional[str] = typer.Option(None, "--host", "-h", help="Lila host"),
@@ -163,7 +182,24 @@ def dev(
     env = os.environ.copy()
     env["VITE_PORT"] = str(vite_port)
     typer.secho(f"⚡ Vite dev server on http://127.0.0.1:{vite_port}", fg=typer.colors.CYAN)
-    vite_proc = subprocess.Popen([npm, "run", "dev", "--", "--port", str(vite_port), "--strictPort"], env=env)
+    popen_kwargs: dict = {"env": env}
+    if sys.platform == "win32":
+        # Own process group + DEVNULL stdin avoids cmd.exe's "Terminate batch job (Y/N)?" prompt.
+        popen_kwargs["stdin"] = subprocess.DEVNULL
+        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+    vite_proc = subprocess.Popen([npm, "run", "dev", "--", "--port", str(vite_port), "--strictPort"], **popen_kwargs)
+    previous_handlers = {}
+
+    def _handle_stop(_signum, _frame):
+        raise KeyboardInterrupt
+
+    for sig_name in ("SIGTERM", "SIGBREAK"):
+        sig = getattr(signal, sig_name, None)
+        if sig is not None:
+            try:
+                previous_handlers[sig] = signal.signal(sig, _handle_stop)
+            except Exception:
+                pass
     try:
         # Wait briefly for the hot file so the first page already uses Vite.
         hot = os.path.join("public", "build", "hot")
@@ -177,13 +213,15 @@ def dev(
         from lila.cli.dev import start as dev_start
 
         dev_start(host=host, port=port, reload=reload)
+    except KeyboardInterrupt:
+        pass
     finally:
-        if vite_proc.poll() is None:
-            vite_proc.terminate()
+        for sig, prev in previous_handlers.items():
             try:
-                vite_proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                vite_proc.kill()
+                signal.signal(sig, prev)
+            except Exception:
+                pass
+        _stop_process_tree(vite_proc)
         hot = os.path.join("public", "build", "hot")
         if os.path.exists(hot):
             try:

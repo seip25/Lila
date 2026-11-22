@@ -23,7 +23,7 @@ from lila.core.static import LilaStaticFiles, accepted_encoding, clear_cache
 class StaticCompressionTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
-        with open(os.path.join(self.tmp, "app.js"), "w") as fh:
+        with open(os.path.join(self.tmp, "app.js"), "w", encoding="utf-8", newline="\n") as fh:
             fh.write("console.log('lila');\n" * 400)
         with open(os.path.join(self.tmp, "pic.png"), "wb") as fh:
             fh.write(b"\x89PNG" + b"0" * 4000)

@@ -106,10 +106,30 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('ARPPRODUCTICON', source)
         self.assertIn('Id="DesktopLink"', source)
         self.assertIn("Acme &amp; Co", source)
+        for ui_part in ("WelcomeDlg", "MaintenanceDlg", "ProgressDlg", "ExitDlg", "ErrorDlg", "<InstallUISequence>"):
+            self.assertIn(ui_part, source)
         onedir = installers.wix_source("X", "dist/X/X.exe", onedir="dist/X", desktop_shortcut=False)
         xml.dom.minidom.parseString(onedir)
         self.assertIn("<Files Directory=\"INSTALLFOLDER\"", onedir)
         self.assertNotIn("DesktopShortcut", onedir)
+        self.assertIn("WelcomeDlg", onedir)
+        headless = installers.wix_source("H", "dist/H.exe", ui=False)
+        xml.dom.minidom.parseString(headless)
+        self.assertNotIn("<UI ", headless)
+
+    def test_windowed_uvicorn_boots_with_none_stdio(self):
+        import sys
+        import uvicorn
+        from starlette.applications import Starlette
+
+        old_out, old_err = sys.stdout, sys.stderr
+        sys.stdout = None
+        sys.stderr = None
+        try:
+            cfg = uvicorn.Config(Starlette(), host="127.0.0.1", port=0, log_level="warning", access_log=False, log_config=None)
+            cfg.load()
+        finally:
+            sys.stdout, sys.stderr = old_out, old_err
 
     def test_versions_and_upgrade_codes(self):
         self.assertEqual(installers.msi_version("v2"), "2.0.0")
@@ -137,6 +157,71 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(installers.convert_icon("x.ico", "win32", work_dir=folder), "x.ico")
         finally:
             shutil.rmtree(folder, ignore_errors=True)
+
+    def test_find_wix_scans_program_files_and_build_msi_surfaces_eula_hint(self):
+        from unittest import mock
+
+        folder = tempfile.mkdtemp()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(folder)
+            wix_bin = os.path.join(folder, "pf", "WiX Toolset v7.0", "bin")
+            os.makedirs(wix_bin)
+            fake_wix = os.path.join(wix_bin, "wix.exe")
+            with open(fake_wix, "wb") as fh:
+                fh.write(b"")
+            with mock.patch("shutil.which", return_value=None), \
+                    mock.patch("sys.platform", "win32"), \
+                    mock.patch.dict(os.environ, {"ProgramFiles": os.path.join(folder, "pf"), "ProgramFiles(x86)": "", "LOCALAPPDATA": ""}):
+                self.assertEqual(installers.find_wix(), fake_wix)
+
+            os.makedirs("dist")
+            with open(os.path.join("dist", "App.exe"), "wb") as fh:
+                fh.write(b"MZ")
+            eula_fail = mock.Mock(returncode=1, stdout="", stderr="wix.exe : error WIX7015: You must accept EULA")
+            with mock.patch.object(installers, "find_wix", return_value=fake_wix), \
+                    mock.patch("subprocess.run", return_value=eula_fail):
+                ok, detail = installers.build_msi("App", "1.0.0", "Acme", None, "com.acme.app", onefile=True)
+            self.assertFalse(ok)
+            self.assertIn("eula accept wix7", detail)
+        finally:
+            os.chdir(old_cwd)
+            shutil.rmtree(folder, ignore_errors=True)
+
+    def test_js_auth_does_not_warn_on_jsx_tsx_glob(self):
+        import io
+        from contextlib import redirect_stdout
+        from unittest import mock
+        from lila.cli import auth as auth_cli
+
+        folder = tempfile.mkdtemp()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(folder)
+            os.makedirs(os.path.join("resources", "react"))
+            with open(os.path.join("resources", "react", "main.jsx"), "w", encoding="utf-8") as fh:
+                fh.write('pages: import.meta.glob("./pages/**/*.{jsx,tsx}")')
+            buf = io.StringIO()
+            with mock.patch("lila.cli.react.is_react_project", return_value=True), \
+                    mock.patch("lila.cli.react.copy_ui", return_value=[]), \
+                    redirect_stdout(buf):
+                auth_cli._create_react_pages()
+            self.assertNotIn("only globs .jsx", buf.getvalue())
+        finally:
+            os.chdir(old_cwd)
+            shutil.rmtree(folder, ignore_errors=True)
+
+    def test_stop_process_tree_sends_ctrl_break_on_windows(self):
+        import signal
+        from unittest import mock
+        from lila.cli import react as react_cli
+
+        proc = mock.Mock()
+        proc.poll.return_value = None
+        with mock.patch("sys.platform", "win32"), mock.patch.object(signal, "CTRL_BREAK_EVENT", 1, create=True):
+            react_cli._stop_process_tree(proc)
+        proc.send_signal.assert_called_once_with(1)
+        proc.wait.assert_called_once_with(timeout=4)
 
 
 router = Router()
@@ -278,8 +363,9 @@ class DesktopUpdateAndSigningTests(unittest.TestCase):
         threading.Thread(target=server.serve_forever, daemon=True).start()
         try:
             url = f"http://127.0.0.1:{server.server_port}/latest.json"
-            self.assertTrue(check_update(url, "1.4.9")["available"])
-            self.assertFalse(check_update(url, "1.5.0")["available"])
+            with override_env(HTTP_PROXY="http://127.0.0.1:9", HTTPS_PROXY="http://127.0.0.1:9"):
+                self.assertTrue(check_update(url, "1.4.9")["available"])
+                self.assertFalse(check_update(url, "1.5.0")["available"])
         finally:
             server.shutdown()
         self.assertFalse(check_update("http://example.com/latest.json", "1.0")["available"])  # https only

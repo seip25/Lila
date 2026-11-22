@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -45,6 +46,7 @@ class SetupWizardTests(unittest.TestCase):
         os.makedirs(os.path.join(etc, "nginx", "sites-enabled"))
         return project, etc
 
+    @unittest.skipIf(sys.platform == "win32", "Linux systemd/nginx/symlink setup")
     def test_interactive_answers_and_planned_commands(self):
         with tempfile.TemporaryDirectory() as tmp:
             project, etc = self._project(tmp)
@@ -105,6 +107,7 @@ class SetupWizardTests(unittest.TestCase):
             with self.assertRaises(typer.Exit):
                 run_setup(project, assume_yes=True, etc_root=etc, is_root=True, skip_platform_check=True)
 
+    @unittest.skipIf(sys.platform == "win32", "Linux systemd/nginx/symlink setup")
     def test_real_run_installs_files_and_rolls_back_bad_nginx(self):
         with tempfile.TemporaryDirectory() as tmp:
             project, etc = self._project(tmp)

@@ -1,6 +1,14 @@
 import os
 import sys
 import typer
+
+# Ensure UTF-8 output on Windows consoles and redirected streams.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 from lila.cli.scaffold import main as scaffold_main
 from lila.cli.dev import start as dev_start
 from lila.cli.desktop import app as desktop_app

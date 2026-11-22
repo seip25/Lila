@@ -91,6 +91,7 @@ def run_uvicorn_thread(host: str, port: int, server_holder: list, error_holder: 
             log_level="warning",
             access_log=False,
             reload=False,
+            log_config=None,
         )
         server = uvicorn.Server(config)
         server.install_signal_handlers = lambda: None
@@ -467,7 +468,14 @@ def build(
     except Exception as exc:
         typer.secho(f"⚠️ Could not preview routes ({exc}); exclusions still apply at runtime.", fg=typer.colors.YELLOW)
 
-    bootstrap_code = f'''import os, sys, threading, socket, time, secrets, tempfile
+    bootstrap_code = f'''import html as _html, os, sys, threading, socket, time, secrets, tempfile
+
+# PyInstaller --windowed sets stdout/stderr to None on Windows, which crashes
+# uvicorn's default logging formatter (isatty check) and print().
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w", encoding="utf-8")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
 # 1. Ensure runtime directories are correctly registered on sys.path
 meipass = getattr(sys, '_MEIPASS', None)
@@ -521,9 +529,7 @@ os.environ["LILA_DESKTOP_EXCLUDE"] = {",".join(patterns)!r}
 os.environ["LILA_APP_VERSION"] = {app_version!r}
 os.environ["LILA_UPDATE_URL"] = {(update_url or "")!r}
 os.environ.setdefault("TITLE_PROJECT", {app_name!r})
-
-import uvicorn
-import main as app_module
+os.environ.setdefault("DEBUG", "False")
 
 def find_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -532,9 +538,13 @@ def find_port():
 
 port = find_port()
 server_holder = []
+error_holder = []
 
 def run_server():
     try:
+        import uvicorn
+        import main as app_module
+
         config = uvicorn.Config(
             app_module.app,
             host="127.0.0.1",
@@ -542,37 +552,65 @@ def run_server():
             log_level="warning",
             access_log=False,
             reload=False,
+            log_config=None,
         )
         server = uvicorn.Server(config)
         server.install_signal_handlers = lambda: None
         server_holder.append(server)
         server.run()
     except Exception as e:
-        print(f"Error starting server: {{e}}", file=sys.stderr)
+        error_holder.append(e)
+        try:
+            from lila.core.logger import Logger
+            Logger.error(f"Desktop server failed to start: {{e}}", exception=e)
+        except Exception:
+            pass
 
 threading.Thread(target=run_server, daemon=True).start()
 
-for _ in range(100):
+server_ready = False
+for _ in range(150):
+    if error_holder:
+        break
     try:
         with socket.create_connection(("127.0.0.1", port), timeout=0.1):
+            server_ready = True
             break
     except Exception:
         time.sleep(0.1)
 
 url = f"http://127.0.0.1:{{port}}/?_dt={{desktop_token}}"
+err_html = None
+if not server_ready:
+    detail = _html.escape(repr(error_holder[0])) if error_holder else "Server startup timed out."
+    try:
+        from lila.core.config import get_data_path
+        log_hint = _html.escape(get_data_path("app", "logs"))
+    except Exception:
+        log_hint = ""
+    err_html = (
+        "<!doctype html><html><body style='font-family:system-ui,sans-serif;padding:2rem;color:#1e293b'>"
+        "<h2>Could not start application server</h2>"
+        f"<pre style='background:#f8fafc;padding:1rem;border-radius:8px;overflow:auto'>{{detail}}</pre>"
+        f"<p style='color:#64748b'>Logs: {{log_hint}}</p></body></html>"
+    )
 
 try:
     import webview
-    webview.create_window({app_name!r}, url, width={int(width)}, height={int(height)}, js_api=DesktopBridge())
+    if err_html is not None:
+        webview.create_window({app_name!r}, html=err_html, width={int(width)}, height={int(height)})
+    else:
+        webview.create_window({app_name!r}, url, width={int(width)}, height={int(height)}, js_api=DesktopBridge())
     webview.start()
 except ImportError:
-    import webbrowser
-    webbrowser.open(url)
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
+    if err_html is None:
+        import webbrowser
+        webbrowser.open(url)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
 finally:
     if server_holder:
         server_holder[0].should_exit = True

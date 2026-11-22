@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 import shutil
 from pathlib import Path
@@ -171,7 +171,7 @@ def _create_react_pages():
         _write_with_backup(target, src.read_text(encoding="utf-8"))
         typer.echo(f"  ⚛️  {target}")
     main_jsx = Path("resources/react/main.jsx")
-    if main_jsx.exists() and ".tsx" not in main_jsx.read_text(encoding="utf-8"):
+    if main_jsx.exists() and "tsx" not in main_jsx.read_text(encoding="utf-8"):
         typer.secho(
             '  ⚠️ resources/react/main.jsx only globs .jsx: use import.meta.glob("./pages/**/*.{jsx,tsx}")',
             fg=typer.colors.YELLOW,

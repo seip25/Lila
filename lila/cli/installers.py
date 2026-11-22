@@ -96,6 +96,117 @@ def upgrade_code(identifier: str) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"lila-desktop:{identifier}")).upper()
 
 
+def _wix_ui_lines() -> List[str]:
+    """Self-contained setup wizard UI (install, repair/uninstall, progress, finish)."""
+    return [
+        '    <Property Id="DefaultUIFont" Value="LilaFontNormal" />',
+        '    <Property Id="ErrorDialog" Value="ErrorDlg" />',
+        '    <UI Id="LilaInstallerUI">',
+        '      <TextStyle Id="LilaFontNormal" FaceName="Segoe UI" Size="9" />',
+        '      <TextStyle Id="LilaFontBold" FaceName="Segoe UI" Size="9" Bold="yes" />',
+        '      <TextStyle Id="LilaFontTitle" FaceName="Segoe UI" Size="13" Bold="yes" />',
+        '      <Dialog Id="WelcomeDlg" Width="370" Height="270" Title="[ProductName] Setup">',
+        '        <Control Id="Title" Type="Text" X="24" Y="20" Width="322" Height="24" Transparent="yes" NoPrefix="yes" Text="{\\LilaFontTitle}Install [ProductName]" />',
+        '        <Control Id="Desc" Type="Text" X="24" Y="56" Width="322" Height="60" Transparent="yes" NoPrefix="yes" Text="This wizard will install [ProductName] ([ProductVersion]) by [Manufacturer] on your computer.&#13;&#10;&#13;&#10;Click Install to continue, or Cancel to exit Setup." />',
+        '        <Control Id="PathInfo" Type="Text" X="24" Y="126" Width="322" Height="30" Transparent="yes" NoPrefix="yes" Text="Destination folder: [INSTALLFOLDER]" />',
+        '        <Control Id="Line" Type="Line" X="0" Y="234" Width="370" Height="0" />',
+        '        <Control Id="Install" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="Install">',
+        '          <Publish Event="EndDialog" Value="Return" />',
+        '        </Control>',
+        '        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">',
+        '          <Publish Event="EndDialog" Value="Exit" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <Dialog Id="MaintenanceDlg" Width="370" Height="270" Title="[ProductName] Setup">',
+        '        <Control Id="Title" Type="Text" X="24" Y="20" Width="322" Height="24" Transparent="yes" NoPrefix="yes" Text="{\\LilaFontTitle}Manage [ProductName]" />',
+        '        <Control Id="Desc" Type="Text" X="24" Y="56" Width="322" Height="40" Transparent="yes" NoPrefix="yes" Text="[ProductName] ([ProductVersion]) is already installed. Choose Repair to reinstall or Uninstall to remove it." />',
+        '        <Control Id="Repair" Type="PushButton" X="24" Y="112" Width="120" Height="22" Default="yes" Text="Repair">',
+        '          <Publish Property="REINSTALL" Value="ALL" />',
+        '          <Publish Property="REINSTALLMODE" Value="omus" />',
+        '          <Publish Event="EndDialog" Value="Return" />',
+        '        </Control>',
+        '        <Control Id="Remove" Type="PushButton" X="24" Y="144" Width="120" Height="22" Text="Uninstall">',
+        '          <Publish Property="REMOVE" Value="ALL" />',
+        '          <Publish Event="EndDialog" Value="Return" />',
+        '        </Control>',
+        '        <Control Id="Line" Type="Line" X="0" Y="234" Width="370" Height="0" />',
+        '        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Close">',
+        '          <Publish Event="EndDialog" Value="Exit" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <Dialog Id="ProgressDlg" Width="370" Height="270" Title="[ProductName] Setup" Modeless="yes">',
+        '        <Control Id="Title" Type="Text" X="24" Y="20" Width="322" Height="24" Transparent="yes" NoPrefix="yes" Text="{\\LilaFontTitle}Installing [ProductName]..." />',
+        '        <Control Id="ActionText" Type="Text" X="24" Y="88" Width="322" Height="20" Transparent="yes" NoPrefix="yes" Text="Preparing installation...">',
+        '          <Subscribe Event="ActionText" Attribute="Text" />',
+        '        </Control>',
+        '        <Control Id="ProgressBar" Type="ProgressBar" X="24" Y="114" Width="322" Height="12" ProgressBlocks="yes" Text="Progress done">',
+        '          <Subscribe Event="SetProgress" Attribute="Progress" />',
+        '        </Control>',
+        '        <Control Id="Line" Type="Line" X="0" Y="234" Width="370" Height="0" />',
+        '        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">',
+        '          <Publish Event="EndDialog" Value="Exit" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <Dialog Id="ExitDlg" Width="370" Height="270" Title="[ProductName] Setup">',
+        '        <Control Id="Title" Type="Text" X="24" Y="20" Width="322" Height="24" Transparent="yes" NoPrefix="yes" Text="{\\LilaFontTitle}Completed [ProductName] Setup" />',
+        '        <Control Id="Desc" Type="Text" X="24" Y="56" Width="322" Height="50" Transparent="yes" NoPrefix="yes" Text="[ProductName] setup has finished. Click Finish to close this wizard." />',
+        '        <Control Id="Line" Type="Line" X="0" Y="234" Width="370" Height="0" />',
+        '        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="Finish">',
+        '          <Publish Event="EndDialog" Value="Return" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <Dialog Id="UserExitDlg" Width="370" Height="270" Title="[ProductName] Setup">',
+        '        <Control Id="Title" Type="Text" X="24" Y="20" Width="322" Height="24" Transparent="yes" NoPrefix="yes" Text="{\\LilaFontTitle}[ProductName] Setup Cancelled" />',
+        '        <Control Id="Desc" Type="Text" X="24" Y="56" Width="322" Height="50" Transparent="yes" NoPrefix="yes" Text="[ProductName] setup was interrupted. Your system has not been modified." />',
+        '        <Control Id="Line" Type="Line" X="0" Y="234" Width="370" Height="0" />',
+        '        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="Finish">',
+        '          <Publish Event="EndDialog" Value="Return" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <Dialog Id="FatalErrorDlg" Width="370" Height="270" Title="[ProductName] Setup">',
+        '        <Control Id="Title" Type="Text" X="24" Y="20" Width="322" Height="24" Transparent="yes" NoPrefix="yes" Text="{\\LilaFontTitle}[ProductName] Setup Failed" />',
+        '        <Control Id="Desc" Type="Text" X="24" Y="56" Width="322" Height="50" Transparent="yes" NoPrefix="yes" Text="[ProductName] setup ended prematurely because of an error. Your system has not been modified." />',
+        '        <Control Id="Line" Type="Line" X="0" Y="234" Width="370" Height="0" />',
+        '        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="Finish">',
+        '          <Publish Event="EndDialog" Value="Return" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <Dialog Id="ErrorDlg" Width="270" Height="105" Title="[ProductName] Setup" ErrorDialog="yes">',
+        '        <Control Id="ErrorText" Type="Text" X="48" Y="15" Width="205" Height="60" TabSkip="no" NoPrefix="yes" Text="Information text" />',
+        '        <Control Id="Y" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="Yes">',
+        '          <Publish Event="EndDialog" Value="ErrorYes" />',
+        '        </Control>',
+        '        <Control Id="A" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="Abort">',
+        '          <Publish Event="EndDialog" Value="ErrorAbort" />',
+        '        </Control>',
+        '        <Control Id="C" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Cancel="yes" Text="Cancel">',
+        '          <Publish Event="EndDialog" Value="ErrorCancel" />',
+        '        </Control>',
+        '        <Control Id="I" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="Ignore">',
+        '          <Publish Event="EndDialog" Value="ErrorIgnore" />',
+        '        </Control>',
+        '        <Control Id="N" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="No">',
+        '          <Publish Event="EndDialog" Value="ErrorNo" />',
+        '        </Control>',
+        '        <Control Id="O" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="OK">',
+        '          <Publish Event="EndDialog" Value="ErrorOk" />',
+        '        </Control>',
+        '        <Control Id="R" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="Retry">',
+        '          <Publish Event="EndDialog" Value="ErrorRetry" />',
+        '        </Control>',
+        '      </Dialog>',
+        '      <InstallUISequence>',
+        '        <Show Dialog="FatalErrorDlg" OnExit="error" />',
+        '        <Show Dialog="UserExitDlg" OnExit="cancel" />',
+        '        <Show Dialog="ExitDlg" OnExit="success" />',
+        '        <Show Dialog="WelcomeDlg" Before="ProgressDlg" Condition="NOT Installed" />',
+        '        <Show Dialog="MaintenanceDlg" Before="ProgressDlg" Condition="Installed" />',
+        '        <Show Dialog="ProgressDlg" Before="ExecuteAction" />',
+        '      </InstallUISequence>',
+        '    </UI>',
+    ]
+
+
 def wix_source(
     name: str,
     exe_path: str,
@@ -105,6 +216,7 @@ def wix_source(
     identifier: Optional[str] = None,
     onedir: Optional[str] = None,
     desktop_shortcut: bool = True,
+    ui: bool = True,
 ) -> str:
     """WiX v4+ source for a per-machine MSI.
 
@@ -123,6 +235,8 @@ def wix_source(
         '    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />',
         '    <MediaTemplate EmbedCab="yes" />',
     ]
+    if ui:
+        lines += _wix_ui_lines()
     if icon:
         lines += [
             f"    <Icon Id=\"AppIcon\" SourceFile={q(os.path.abspath(icon))} />",
@@ -179,7 +293,19 @@ def find_wix() -> Optional[str]:
     if found:
         return found
     candidate = os.path.join(os.path.expanduser("~"), ".dotnet", "tools", "wix.exe" if sys.platform == "win32" else "wix")
-    return candidate if os.path.isfile(candidate) else None
+    if os.path.isfile(candidate):
+        return candidate
+    if sys.platform == "win32":
+        import glob as _glob
+
+        for root_env in ("ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"):
+            root = os.environ.get(root_env)
+            if not root:
+                continue
+            matches = sorted(_glob.glob(os.path.join(root, "WiX Toolset*", "bin", "wix.exe")), reverse=True)
+            if matches and os.path.isfile(matches[0]):
+                return matches[0]
+    return None
 
 
 def build_msi(name: str, version: str, manufacturer: str, icon: Optional[str], identifier: str,
@@ -199,12 +325,23 @@ def build_msi(name: str, version: str, manufacturer: str, icon: Optional[str], i
     wix = find_wix()
     if not wix:
         return False, (
-            f"WiX Toolset not found. Install it with `dotnet tool install --global wix` and run "
+            f"WiX Toolset not found. Install it with `dotnet tool install --global wix` or "
+            f"`winget install WiXToolset.WiXCLI` and run "
             f"`wix build {wxs} -arch x64 -o {os.path.join(dist, name + '.msi')}`."
         )
     output = os.path.join(dist, f"{name}.msi")
-    result = subprocess.run(wix_command(wxs, output, wix))
+    result = subprocess.run(wix_command(wxs, output, wix), capture_output=True, text=True)
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="")
     if result.returncode != 0:
+        combined = (result.stdout or "") + "\n" + (result.stderr or "")
+        if "WIX7015" in combined:
+            return False, (
+                f"WiX v7 requires accepting its OSMF EULA first (https://wixtoolset.org/osmf/). "
+                f'Run `"{wix}" eula accept wix7` and retry (source kept in {wxs}).'
+            )
         return False, f"wix build failed (source kept in {wxs})."
     return True, output
 

@@ -45,6 +45,13 @@ def platform_key() -> str:
     return {"win32": "windows", "darwin": "macos"}.get(sys.platform, "linux")
 
 
+def _open_url(request: urllib.request.Request, timeout: float):
+    """Bypass proxy env vars when checking/downloading from localhost."""
+    if request.full_url.startswith(("http://127.0.0.1", "http://localhost")):
+        return urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request, timeout=timeout)
+    return urllib.request.urlopen(request, timeout=timeout)  # nosec - https/loopback enforced by caller
+
+
 def check_update(url: Optional[str], current: Optional[str], timeout: float = 8.0) -> Dict[str, Any]:
     """Reads the update manifest written by ``lila desktop release``::
 
@@ -57,7 +64,7 @@ def check_update(url: Optional[str], current: Optional[str], timeout: float = 8.
         return {"available": False, "reason": "update URL must use https"}
     try:
         request = urllib.request.Request(url, headers={"User-Agent": "lila-desktop-updater"})
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec - https enforced above
+        with _open_url(request, timeout=timeout) as response:
             manifest = json.loads(response.read(1_000_000).decode("utf-8"))
     except Exception as exc:
         return {"available": False, "reason": f"could not read the manifest: {exc.__class__.__name__}"}
@@ -85,7 +92,7 @@ def download_verified(url: str, sha256: str, timeout: float = 120.0) -> str:
     digest = hashlib.sha256()
     try:
         request = urllib.request.Request(url, headers={"User-Agent": "lila-desktop-updater"})
-        with urllib.request.urlopen(request, timeout=timeout) as response, os.fdopen(fd, "wb") as fh:  # nosec
+        with _open_url(request, timeout=timeout) as response, os.fdopen(fd, "wb") as fh:
             while True:
                 chunk = response.read(1 << 16)
                 if not chunk:
