@@ -249,11 +249,16 @@ def default_desktop(
     width: int = typer.Option(1200, "--width", "-w", help="Initial window width"),
     height: int = typer.Option(800, "--height", "-h", help="Initial window height"),
     port: int = typer.Option(0, "--port", "-p", help="Server port (0 = autodetect free port)"),
+    menu: Optional[bool] = typer.Option(None, "--menu/--no-menu", help="Show native menu bar (File, Edit, View, Help)"),
+    preferences_url: Optional[str] = typer.Option(None, "--preferences-url", help="URL opened by File -> Preferences"),
+    help_file: Optional[str] = typer.Option(None, "--help-file", help="Markdown file shown in Help -> Manual / Help"),
+    about: Optional[str] = typer.Option(None, "--about", help="Extra description shown in Help -> About"),
 ):
     """Runs Lila desktop app locally by default or supports build subcommand."""
     if ctx.invoked_subcommand is None:
         dev(title=title, width=width, height=height, port=port, resizable=True, fullscreen=False,
-            debug=False, exclude=None, auto_exclude=False)
+            debug=False, exclude=None, auto_exclude=False, menu=menu,
+            preferences_url=preferences_url, help_file=help_file, about=about)
 
 
 @app.command("dev")
@@ -268,15 +273,29 @@ def dev(
     debug: bool = typer.Option(False, "--debug", help="Enable webview developer tools"),
     exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Route pattern(s) left out of the desktop app"),
     auto_exclude: bool = typer.Option(False, "--auto-exclude", help="Exclude routes detected as web-only (payments, uploads...)"),
+    menu: Optional[bool] = typer.Option(None, "--menu/--no-menu", help="Show native menu bar (File, Edit, View, Help)"),
+    preferences_url: Optional[str] = typer.Option(None, "--preferences-url", help="URL opened by File -> Preferences"),
+    help_file: Optional[str] = typer.Option(None, "--help-file", help="Markdown file shown in Help -> Manual / Help"),
+    about: Optional[str] = typer.Option(None, "--about", help="Extra description shown in Help -> About"),
 ):
     """
     Runs the Lila application inside a native ultra-lightweight desktop window.
     Uses pywebview (WebView2 on Windows, WebKit on macOS/Linux) or fallback App Mode.
     """
     from lila.core.config import ConfigLoader, ENV_CONFIG
+    from lila.core.desktop_menu import DesktopMenuConfig, build_desktop_menu
 
     ConfigLoader.load()
     window_title = title or ENV_CONFIG.get("TITLE_PROJECT", "Lila Desktop")
+    menu_enabled = ENV_CONFIG.get_bool("DESKTOP_MENU", True) if menu is None else bool(menu)
+    os.environ.setdefault("LILA_APP_VERSION", str(ENV_CONFIG.get("VERSION_PROJECT", "1.0.0") or "1.0.0"))
+    os.environ["DESKTOP_MENU"] = "True" if menu_enabled else "False"
+    if preferences_url is not None:
+        os.environ["DESKTOP_PREFERENCES_URL"] = preferences_url
+    if help_file is not None:
+        os.environ["DESKTOP_HELP_FILE"] = help_file
+    if about is not None:
+        os.environ["DESKTOP_ABOUT"] = about
 
     # 1. Single Instance Lock
     lock_handle = acquire_single_instance_lock(window_title)
@@ -335,7 +354,7 @@ def dev(
     try:
         if has_webview:
             typer.secho("🖥️ Launching with pywebview native window (window.pywebview.api enabled)...", fg=typer.colors.GREEN)
-            webview.create_window(
+            win = webview.create_window(
                 title=window_title,
                 url=url,
                 width=width,
@@ -343,8 +362,12 @@ def dev(
                 resizable=resizable,
                 fullscreen=fullscreen,
                 js_api=bridge,
+                text_select=True,
+                zoomable=True,
             )
-            webview.start(debug=debug)
+            menu_cfg = DesktopMenuConfig.from_env(app_name=window_title, enabled=menu_enabled)
+            menu_items = build_desktop_menu(lambda: win, menu_cfg) if menu_cfg.enabled else []
+            webview.start(debug=debug, menu=menu_items)
         else:
             typer.secho("ℹ️ pywebview not found. Falling back to native App-Mode window.", fg=typer.colors.YELLOW)
             proc = launch_native_browser(url, width=width, height=height)
@@ -390,6 +413,11 @@ def build(
     notary_profile: Optional[str] = typer.Option(None, "--notary-profile", help="macOS: notarytool keychain profile (default MACOS_NOTARY_PROFILE)"),
     sign_cert: Optional[str] = typer.Option(None, "--sign-cert", help="Windows: .pfx path (password in WINDOWS_SIGN_PASSWORD; default WINDOWS_SIGN_CERT)"),
     sign_thumbprint: Optional[str] = typer.Option(None, "--sign-thumbprint", help="Windows: certificate thumbprint in the store (default WINDOWS_SIGN_THUMBPRINT)"),
+    menu: Optional[bool] = typer.Option(None, "--menu/--no-menu", help="Include native menu bar (File, Edit, View, Help)"),
+    preferences_url: Optional[str] = typer.Option(None, "--preferences-url", help="URL opened by File -> Preferences"),
+    help_file: Optional[str] = typer.Option(None, "--help-file", help="Markdown file bundled for Help -> Manual / Help"),
+    help_editable: Optional[bool] = typer.Option(None, "--help-editable/--no-help-editable", help="Allow users to edit the Markdown manual in-app"),
+    about: Optional[str] = typer.Option(None, "--about", help="Extra description shown in Help -> About"),
 ):
     """
     Bundles the Lila application into a standalone native executable (.exe / .app) using PyInstaller.
@@ -441,6 +469,14 @@ def build(
     sign_thumbprint = sign_thumbprint or os.environ.get("WINDOWS_SIGN_THUMBPRINT") or None
     app_publisher = publisher or str(ENV_CONFIG.get("AUTHOR_DEFAULT", "") or app_name)
     app_id = bundle_id or f"com.lila.{app_name.lower()}"
+    menu_enabled = ENV_CONFIG.get_bool("DESKTOP_MENU", True) if menu is None else bool(menu)
+    menu_lang = str(ENV_CONFIG.get("DESKTOP_MENU_LANG", "") or "")
+    prefs_url = str(ENV_CONFIG.get("DESKTOP_PREFERENCES_URL", "") or "") if preferences_url is None else preferences_url
+    resolved_help_file = str(ENV_CONFIG.get("DESKTOP_HELP_FILE", "resources/manual.md") or "resources/manual.md") if help_file is None else help_file
+    editable_help = ENV_CONFIG.get_bool("DESKTOP_HELP_EDITABLE", True) if help_editable is None else bool(help_editable)
+    resolved_about = str(ENV_CONFIG.get("DESKTOP_ABOUT", "") or "") if about is None else about
+    app_desc = str(ENV_CONFIG.get("DESCRIPTION_PROJECT", "") or "")
+    app_lang = str(ENV_CONFIG.get("LANG_DEFAULT", "en") or "en")
     icon_path = installers.convert_icon(installers.find_icon(icon), sys.platform)
     if icon and not icon_path:
         typer.secho(f"⚠️ Icon {icon} not found; using the default.", fg=typer.colors.YELLOW)
@@ -529,6 +565,15 @@ os.environ["LILA_DESKTOP_EXCLUDE"] = {",".join(patterns)!r}
 os.environ["LILA_APP_VERSION"] = {app_version!r}
 os.environ["LILA_UPDATE_URL"] = {(update_url or "")!r}
 os.environ.setdefault("TITLE_PROJECT", {app_name!r})
+os.environ.setdefault("DESCRIPTION_PROJECT", {app_desc!r})
+os.environ.setdefault("AUTHOR_DEFAULT", {app_publisher!r})
+os.environ.setdefault("LANG_DEFAULT", {app_lang!r})
+os.environ["DESKTOP_MENU"] = {("True" if menu_enabled else "False")!r}
+os.environ["DESKTOP_MENU_LANG"] = {menu_lang!r}
+os.environ["DESKTOP_PREFERENCES_URL"] = {prefs_url!r}
+os.environ["DESKTOP_HELP_FILE"] = {resolved_help_file!r}
+os.environ["DESKTOP_HELP_EDITABLE"] = {("True" if editable_help else "False")!r}
+os.environ["DESKTOP_ABOUT"] = {resolved_about!r}
 os.environ.setdefault("DEBUG", "False")
 
 def find_port():
@@ -597,11 +642,24 @@ if not server_ready:
 
 try:
     import webview
+    from lila.core.desktop_menu import DesktopMenuConfig, build_desktop_menu
+
     if err_html is not None:
         webview.create_window({app_name!r}, html=err_html, width={int(width)}, height={int(height)})
+        webview.start()
     else:
-        webview.create_window({app_name!r}, url, width={int(width)}, height={int(height)}, js_api=DesktopBridge())
-    webview.start()
+        win = webview.create_window(
+            {app_name!r},
+            url,
+            width={int(width)},
+            height={int(height)},
+            js_api=DesktopBridge(),
+            text_select=True,
+            zoomable=True,
+        )
+        menu_cfg = DesktopMenuConfig.from_env(app_name={app_name!r}, enabled={bool(menu_enabled)!r})
+        menu_items = build_desktop_menu(lambda: win, menu_cfg) if menu_cfg.enabled else []
+        webview.start(menu=menu_items)
 except ImportError:
     if err_html is None:
         import webbrowser
@@ -664,6 +722,12 @@ finally:
         pyinstaller_cmd.extend(["--add-data", f"public{sep}public"])
     if os.path.isdir("resources"):
         pyinstaller_cmd.extend(["--add-data", f"resources{sep}resources"])
+    if resolved_help_file and os.path.isfile(resolved_help_file):
+        norm_help = os.path.normpath(resolved_help_file)
+        res_root = os.path.normpath("resources") + os.sep
+        if not norm_help.startswith(res_root):
+            dest_dir = "." if os.path.isabs(resolved_help_file) else (os.path.dirname(norm_help) or ".")
+            pyinstaller_cmd.extend(["--add-data", f"{resolved_help_file}{sep}{dest_dir}"])
     # Project translations are JSON data, not Python modules: bundle them too
     # (otherwise the build silently falls back to the framework's locales).
     if os.path.isdir(os.path.join("app", "locales")):

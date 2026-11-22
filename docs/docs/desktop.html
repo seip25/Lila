@@ -233,6 +233,31 @@ lila desktop build --installer msi --sign-cert certs\\acme.pfx</code></pre>
 const update = useDesktopUpdate();
 {update.available &amp;&amp; &lt;Button onClick={update.install}&gt;Update to {update.version}&lt;/Button&gt;}
 await desktop.notify(&quot;Backup finished&quot;, &quot;3 files&quot;);</code></pre>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">5. Native Menu Bar, About, Preferences &amp; Markdown Manual</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        By default, <code>lila desktop dev</code> and <code>lila desktop build</code> mount a native menu bar
+        (<strong>File</strong>, <strong>Edit</strong>, <strong>View</strong>, <strong>Help</strong>, plus
+        the macOS app menu) localized from <code>LANG_DEFAULT</code> / <code>DESKTOP_MENU_LANG</code>
+        (<code>en</code>, <code>es</code>, <code>pt</code>, <code>zh</code>).
+      </p>
+      <ul class="list-disc ml-5 text-sm text-slate-600 dark:text-slate-400 space-y-1 mb-4">
+        <li><strong>File</strong>: Preferences (opens a built-in Theme / Zoom / Data Folder modal, or navigates to <code>DESKTOP_PREFERENCES_URL</code>) and Quit.</li>
+        <li><strong>Edit</strong>: Undo, Redo, Cut, Copy, Paste (works with React controlled inputs too) and Select All.</li>
+        <li><strong>View</strong>: Back, Forward, Reload, Zoom In/Out/Reset and Fullscreen.</li>
+        <li><strong>Help</strong>: <em>Manual / Help</em> opens an interactive Markdown modal (reads <code>resources/manual.md</code> by default, empty until edited; users can view and edit in-app unless <code>--no-help-editable</code> / <code>DESKTOP_HELP_EDITABLE=False</code>), Check for Updates (when <code>--update-url</code> is set) and About.</li>
+      </ul>
+      <pre><code class="language-bash"># Disable the native menu or lock manual editing in production:
+lila desktop build --no-menu
+lila desktop build --help-file resources/manual.md --no-help-editable --about &quot;Desktop Client&quot;
+
+# Or call/override from JS/React (@lila/desktop):
+# desktop.openHelp(), desktop.openPreferences(), desktop.openAbout()
+# Intercept defaults with window.addEventListener(&quot;lila:desktop-help&quot;, e =&gt; { e.preventDefault(); ... })</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Define <code>extra_menus(window_getter, config)</code> or <code>get_menu(window_getter, defaults, config)</code>
+        in <code>app/desktop_menu.py</code> to add custom native menu items.
+      </p>
     </article>
   </main>
 

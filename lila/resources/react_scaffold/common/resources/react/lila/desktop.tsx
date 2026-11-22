@@ -19,10 +19,25 @@ export interface UpdateInfo {
 export interface AppInfo {
   name: string;
   version: string;
+  description?: string;
+  author?: string;
+  lila_version?: string;
   platform: "windows" | "macos" | "linux";
   os: string;
   frozen: boolean;
   data_dir: string;
+}
+
+export interface HelpManual {
+  ok?: boolean;
+  markdown: string;
+  html: string;
+  is_empty: boolean;
+  editable: boolean;
+  path?: string;
+  has_override?: boolean;
+  has_bundled?: boolean;
+  reason?: string;
 }
 
 interface BridgeApi {
@@ -36,6 +51,13 @@ interface BridgeApi {
   install_update(): Promise<{ ok: boolean; reason?: string; version?: string }>;
   set_title(title: string): Promise<boolean>;
   get_system_metrics(): Promise<Record<string, unknown>>;
+  get_help_manual(): Promise<HelpManual>;
+  save_help_manual(content: string): Promise<HelpManual>;
+  reset_help_manual(): Promise<HelpManual>;
+  open_data_dir(): Promise<boolean>;
+  open_help(): Promise<boolean>;
+  open_about(): Promise<boolean>;
+  open_preferences(): Promise<boolean>;
 }
 
 function api(): BridgeApi | null {
@@ -81,6 +103,16 @@ export const desktop = {
   checkUpdate: () => call((b) => b.check_update(), { available: false, reason: "web" } as UpdateInfo),
   installUpdate: () => call((b) => b.install_update(), { ok: false, reason: "web" }),
   setTitle: (title: string) => call((b) => b.set_title(title), false),
+  getHelpManual: () =>
+    call((b) => b.get_help_manual(), { markdown: "", html: "", is_empty: true, editable: false } as HelpManual),
+  saveHelpManual: (content: string) =>
+    call((b) => b.save_help_manual(content), { ok: false, markdown: "", html: "", is_empty: true, editable: false, reason: "web" } as HelpManual),
+  resetHelpManual: () =>
+    call((b) => b.reset_help_manual(), { ok: false, markdown: "", html: "", is_empty: true, editable: false, reason: "web" } as HelpManual),
+  openDataDir: () => call((b) => b.open_data_dir(), false),
+  openHelp: () => call((b) => b.open_help(), false),
+  openAbout: () => call((b) => b.open_about(), false),
+  openPreferences: () => call((b) => b.open_preferences(), false),
 };
 
 /** Checks for an update once (desktop only); `install()` downloads, verifies and opens it. */

@@ -401,6 +401,13 @@ return render(
   keeps the full list. `lila desktop routes` previews and suggests exclusions.
 - Jinja `is_desktop()`, `route_available(path)`; React `useLila().desktop`,
   `isAvailable(href)`, `<Link>` hides unavailable targets.
+- Native menu bar (`lila.core.desktop_menu`, enabled by default, `--no-menu` /
+  `DESKTOP_MENU=False`): File (Preferences / `DESKTOP_PREFERENCES_URL`, Quit),
+  Edit (Undo, Redo, Cut, Copy, Paste, Select All), View (Back, Forward, Reload,
+  Zoom, Fullscreen), Help (Markdown `resources/manual.md` modal with view/edit
+  via `DESKTOP_HELP_FILE` / `DESKTOP_HELP_EDITABLE`, Updates, About / `DESKTOP_ABOUT`).
+  Extend via `app/desktop_menu.py` (`extra_menus` / `get_menu`) or cancelable
+  `lila:desktop-{about,preferences,help}` events.
 
 ---
 

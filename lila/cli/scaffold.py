@@ -138,6 +138,11 @@ def apply_template(template: str, install: bool = False) -> None:
 
         admin_create(username="admin", password=_secrets.token_urlsafe(12), react=True)
     if template == "desktop":
+        manual_path = Path("resources/manual.md")
+        if not manual_path.exists():
+            manual_path.parent.mkdir(parents=True, exist_ok=True)
+            manual_path.write_text("", encoding="utf-8")
+            print("  📄 Created empty resources/manual.md for Help -> Manual / Help.")
         env_path = Path(".env")
         if env_path.exists() and "DESKTOP_EXCLUDE" not in env_path.read_text(encoding="utf-8"):
             with open(env_path, "a", encoding="utf-8") as fh:
@@ -145,6 +150,13 @@ def apply_template(template: str, install: bool = False) -> None:
                     "\n# ─── Desktop (lila desktop dev/build) ───────────────────\n"
                     "# Web-only routes left out of the desktop app (paths, globs, name:route)\n"
                     'DESKTOP_EXCLUDE=""\n'
+                    "# Native menu bar & Help Markdown manual\n"
+                    "DESKTOP_MENU=True\n"
+                    '# DESKTOP_MENU_LANG=""\n'
+                    '# DESKTOP_PREFERENCES_URL=""\n'
+                    'DESKTOP_HELP_FILE="resources/manual.md"\n'
+                    "DESKTOP_HELP_EDITABLE=True\n"
+                    '# DESKTOP_ABOUT=""\n'
                 )
         print("  🖥️  Desktop: pip install \"lila-framework[desktop]\" · lila desktop dev · "
               "lila desktop build --installer auto")

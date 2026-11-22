@@ -83,6 +83,13 @@ FRAMEWORK_SCHEMA = [
     ("TITLE_TEMPLATE",       "str",  "{title} - {project}"),
     ("SERVICE_NAME",         "str",  ""),
     ("LILA_DATA_DIR",        "str",  ""),
+    # Desktop menu & help manual
+    ("DESKTOP_MENU",            "bool", True),
+    ("DESKTOP_MENU_LANG",       "str",  ""),
+    ("DESKTOP_PREFERENCES_URL", "str",  ""),
+    ("DESKTOP_HELP_FILE",       "str",  "resources/manual.md"),
+    ("DESKTOP_HELP_EDITABLE",   "bool", True),
+    ("DESKTOP_ABOUT",           "str",  ""),
 ]
 
 # Allowed values / formats checked by validate_settings() (and `lila doctor`).

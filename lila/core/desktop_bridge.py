@@ -201,11 +201,15 @@ class DesktopBridge:
         return bool(webbrowser.open(url))
 
     def app_info(self) -> dict:
-        from lila.core.config import get_data_path
+        import lila
+        from lila.core.config import ENV_CONFIG, get_data_path
 
         return {
-            "name": os.environ.get("TITLE_PROJECT", ""),
-            "version": os.environ.get("LILA_APP_VERSION", ""),
+            "name": os.environ.get("TITLE_PROJECT") or ENV_CONFIG.get("TITLE_PROJECT", ""),
+            "version": os.environ.get("LILA_APP_VERSION") or ENV_CONFIG.get("VERSION_PROJECT", ""),
+            "description": os.environ.get("DESCRIPTION_PROJECT") or ENV_CONFIG.get("DESCRIPTION_PROJECT", ""),
+            "author": os.environ.get("AUTHOR_DEFAULT") or ENV_CONFIG.get("AUTHOR_DEFAULT", ""),
+            "lila_version": getattr(lila, "__version__", ""),
             "platform": platform_key(),
             "os": f"{platform.system()} {platform.release()}",
             "frozen": bool(getattr(sys, "frozen", False)),
@@ -240,5 +244,92 @@ class DesktopBridge:
         try:
             windows[0].set_title(str(title)[:200])
             return True
+        except Exception:
+            return False
+
+    def get_help_manual(self) -> dict:
+        try:
+            from lila.core.desktop_menu import read_help_manual
+
+            return read_help_manual()
+        except Exception as exc:
+            return {"markdown": "", "html": "", "is_empty": True, "editable": False, "reason": str(exc)}
+
+    def save_help_manual(self, content: str) -> dict:
+        try:
+            from lila.core.desktop_menu import save_help_manual
+
+            return save_help_manual(content)
+        except Exception as exc:
+            return {"ok": False, "reason": str(exc)}
+
+    def reset_help_manual(self) -> dict:
+        try:
+            from lila.core.desktop_menu import reset_help_manual
+
+            return reset_help_manual()
+        except Exception as exc:
+            return {"ok": False, "reason": str(exc)}
+
+    def open_data_dir(self) -> bool:
+        try:
+            from lila.core.config import get_data_path
+
+            data_dir = get_data_path()
+            os.makedirs(data_dir, exist_ok=True)
+            _open_path(data_dir)
+            return True
+        except Exception:
+            return False
+
+    def open_help(self) -> bool:
+        windows = _windows()
+        if not windows:
+            return False
+        try:
+            from lila.core.desktop_menu import DesktopMenuConfig, open_help_modal
+
+            open_help_modal(windows[0], DesktopMenuConfig.from_env())
+            return True
+        except Exception:
+            return False
+
+    def open_about(self) -> bool:
+        windows = _windows()
+        if not windows:
+            return False
+        try:
+            from lila.core.desktop_menu import DesktopMenuConfig, open_about_modal
+
+            open_about_modal(windows[0], DesktopMenuConfig.from_env())
+            return True
+        except Exception:
+            return False
+
+    def open_preferences(self) -> bool:
+        windows = _windows()
+        if not windows:
+            return False
+        try:
+            from lila.core.desktop_menu import DesktopMenuConfig, open_preferences_modal
+
+            open_preferences_modal(windows[0], DesktopMenuConfig.from_env())
+            return True
+        except Exception:
+            return False
+
+    def get_clipboard(self) -> str:
+        try:
+            from lila.core.desktop_menu import get_clipboard_text
+
+            return get_clipboard_text()
+        except Exception:
+            return ""
+
+    def set_clipboard(self, text: str) -> bool:
+        try:
+            from lila.core.desktop_menu import set_clipboard_text
+
+            return bool(set_clipboard_text(text))
         except Exception:
             return False
