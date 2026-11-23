@@ -27,8 +27,12 @@ from __future__ import annotations
 
 import asyncio
 import datetime as _dt
+import importlib
+import os
+import pkgutil
 import re
-from typing import Any, Dict, List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence
 
 from sqlalchemy import inspect as sa_inspect, text
 
@@ -322,3 +326,84 @@ async def apply_async(db, ops: List[Dict[str, Any]], drop_columns: bool = False,
                 raise
     await asyncio.to_thread(_record, database_key(db), applied)
     return applied
+
+
+def discover_and_import_models(extra_modules: Optional[Sequence[str]] = None) -> List[str]:
+    """Imports framework/app models from disk (dev) or frozen packages (PyInstaller)."""
+    errors: List[str] = []
+    try:
+        import lila.core.admin  # noqa: F401
+    except Exception as exc:
+        errors.append(f"lila.core.admin: {exc}")
+
+    candidates: List[str] = []
+    models_dir = Path("app/models")
+    if models_dir.exists():
+        for file in sorted(models_dir.glob("*.py")):
+            if file.name != "__init__.py":
+                candidates.append(f"app.models.{file.stem}")
+
+    try:
+        models_pkg = importlib.import_module("app.models")
+        pkg_path = getattr(models_pkg, "__path__", None)
+        if pkg_path is not None:
+            for mod_info in pkgutil.iter_modules(pkg_path, prefix="app.models."):
+                if not mod_info.name.endswith(".__init__"):
+                    candidates.append(mod_info.name)
+    except ModuleNotFoundError as exc:
+        if exc.name not in ("app", "app.models"):
+            errors.append(f"app.models: {exc}")
+    except Exception as exc:
+        errors.append(f"app.models: {exc}")
+
+    env_mods = os.environ.get("LILA_DESKTOP_MODELS", "")
+    for item in env_mods.split(","):
+        cleaned = item.strip()
+        if cleaned:
+            candidates.append(cleaned)
+    for item in extra_modules or ():
+        cleaned = str(item).strip()
+        if cleaned:
+            candidates.append(cleaned)
+
+    seen = set()
+    for module_name in candidates:
+        if module_name in seen:
+            continue
+        seen.add(module_name)
+        try:
+            importlib.import_module(module_name)
+        except Exception as exc:
+            errors.append(f"{module_name}: {exc}")
+    return errors
+
+
+async def auto_migrate_async(db=None, extra_modules: Optional[Sequence[str]] = None) -> List[Dict[str, Any]]:
+    """Applies safe schema operations automatically (create_table/add_column/index).
+
+    Used on startup in frozen desktop builds so the fresh SQLite database in
+    AppData gets all tables/columns without needing a manual CLI command.
+    """
+    errors = discover_and_import_models(extra_modules=extra_modules)
+    for err in errors:
+        Logger.warning(f"[Lila auto-migrate] model import warning: {err}")
+
+    if db is None:
+        try:
+            from app.connections import connection as project_conn
+
+            db = project_conn
+        except ModuleNotFoundError:
+            from lila.core.database import db as default_conn
+
+            db = default_conn
+
+    if not getattr(db, "is_async", True):
+        db.migrate(use_base=True)
+        return []
+
+    ops = await plan_async(db)
+    safe_ops = [op for op in ops if op.get("safe")]
+    if not safe_ops:
+        return []
+    return await apply_async(db, safe_ops)

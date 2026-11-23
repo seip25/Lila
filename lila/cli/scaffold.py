@@ -38,7 +38,7 @@ def copy_item(source_package_name, item_name_in_package, destination_base_path, 
             relative = source.relative_to(src_path)
             if "__pycache__" in relative.parts or source.suffix in (".pyc", ".pyo"):
                 continue
-            if ignore and any(part in ("admin", "lila") for part in relative.parts):
+            if ignore and any(part in ("admin", "lila", "react_scaffold") for part in relative.parts):
                 continue
             target = dest_path / relative
             if target.exists():

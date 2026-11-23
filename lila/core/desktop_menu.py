@@ -99,6 +99,20 @@ MENU_LABELS: Dict[str, Dict[str, str]] = {
         "save_error": "Could not save manual",
         "unsaved_changes": "Unsaved changes",
         "markdown_placeholder": "# Application Manual\n\nWrite your documentation in **Markdown**...",
+        "report_bug": "Report Bug / Issue...",
+        "report_bug_title": "Report Bug / Issue",
+        "report_bug_desc": "Send an optional note and recent redacted logs to the developer.",
+        "report_bug_note_placeholder": "Describe what happened or steps to reproduce...",
+        "report_bug_include_logs": "Include recent application logs (emails & tokens redacted)",
+        "report_bug_send": "Send Report",
+        "report_bug_sending": "Sending...",
+        "report_bug_sent": "Report sent. Thank you!",
+        "report_bug_duplicate": "This report was already submitted.",
+        "report_bug_error": "Could not send report",
+        "telemetry_label": "Anonymous diagnostics",
+        "telemetry_desc": "Periodically share anonymized error logs & app version to help fix bugs.",
+        "telemetry_enabled": "Enabled",
+        "telemetry_disabled": "Disabled",
     },
     "es": {
         "menu_file": "Archivo",
@@ -161,6 +175,20 @@ MENU_LABELS: Dict[str, Dict[str, str]] = {
         "save_error": "No se pudo guardar el manual",
         "unsaved_changes": "Cambios sin guardar",
         "markdown_placeholder": "# Manual de la aplicación\n\nEscribe la documentación en **Markdown**...",
+        "report_bug": "Reportar error / bug...",
+        "report_bug_title": "Reportar error / bug",
+        "report_bug_desc": "Envía una nota opcional junto con los registros recientes (sin datos sensibles).",
+        "report_bug_note_placeholder": "Describe qué ocurrió o cómo reproducir el error...",
+        "report_bug_include_logs": "Incluir registros recientes (correos y tokens ocultos)",
+        "report_bug_send": "Enviar reporte",
+        "report_bug_sending": "Enviando...",
+        "report_bug_sent": "¡Reporte enviado! Gracias.",
+        "report_bug_duplicate": "Este reporte ya había sido enviado.",
+        "report_bug_error": "No se pudo enviar el reporte",
+        "telemetry_label": "Diagnósticos anónimos",
+        "telemetry_desc": "Enviar periódicamente errores anónimos y versión de la app para mejorarla.",
+        "telemetry_enabled": "Activado",
+        "telemetry_disabled": "Desactivado",
     },
     "pt": {
         "menu_file": "Arquivo",
@@ -223,6 +251,20 @@ MENU_LABELS: Dict[str, Dict[str, str]] = {
         "save_error": "Não foi possível salvar o manual",
         "unsaved_changes": "Alterações não salvas",
         "markdown_placeholder": "# Manual do aplicativo\n\nEscreva a documentação em **Markdown**...",
+        "report_bug": "Relatar erro / bug...",
+        "report_bug_title": "Relatar erro / bug",
+        "report_bug_desc": "Envie uma nota opcional com os logs recentes (sem dados sensíveis).",
+        "report_bug_note_placeholder": "Descreva o que aconteceu ou como reproduzir...",
+        "report_bug_include_logs": "Incluir logs recentes (e-mails e tokens ocultos)",
+        "report_bug_send": "Enviar relatório",
+        "report_bug_sending": "Enviando...",
+        "report_bug_sent": "Relatório enviado. Obrigado!",
+        "report_bug_duplicate": "Este relatório já foi enviado.",
+        "report_bug_error": "Não foi possível enviar o relatório",
+        "telemetry_label": "Diagnósticos anônimos",
+        "telemetry_desc": "Enviar periodicamente erros anônimos e versão para melhorar o app.",
+        "telemetry_enabled": "Ativado",
+        "telemetry_disabled": "Desativado",
     },
     "zh": {
         "menu_file": "文件",
@@ -285,6 +327,20 @@ MENU_LABELS: Dict[str, Dict[str, str]] = {
         "save_error": "无法保存手册",
         "unsaved_changes": "有未保存的更改",
         "markdown_placeholder": "# 应用手册\n\n使用 **Markdown** 编写文档...",
+        "report_bug": "报告错误 / Bug...",
+        "report_bug_title": "报告错误 / Bug",
+        "report_bug_desc": "向开发者发送可选说明及脱敏后的近期日志。",
+        "report_bug_note_placeholder": "请描述遇到的问题或复现步骤...",
+        "report_bug_include_logs": "包含近期应用日志（已隐藏邮箱与令牌）",
+        "report_bug_send": "发送报告",
+        "report_bug_sending": "发送中...",
+        "report_bug_sent": "报告已发送，感谢反馈！",
+        "report_bug_duplicate": "该报告已提交过。",
+        "report_bug_error": "无法发送报告",
+        "telemetry_label": "匿名诊断",
+        "telemetry_desc": "定期分享匿名错误日志和应用版本以帮助修复问题。",
+        "telemetry_enabled": "已启用",
+        "telemetry_disabled": "已禁用",
     },
 }
 
@@ -764,6 +820,8 @@ class DesktopMenuConfig:
     help_file: str = "resources/manual.md"
     help_editable: bool = True
     update_url: str = ""
+    report_url: str = ""
+    telemetry_interval: int = 3600
 
     @classmethod
     def from_env(
@@ -776,7 +834,15 @@ class DesktopMenuConfig:
         about_text: Optional[str] = None,
         update_url: Optional[str] = None,
         lang: Optional[str] = None,
+        report_url: Optional[str] = None,
+        telemetry_interval: Optional[int] = None,
     ) -> "DesktopMenuConfig":
+        raw_interval = telemetry_interval
+        if raw_interval is None:
+            try:
+                raw_interval = int(_env_str("DESKTOP_TELEMETRY_INTERVAL", "3600") or 3600)
+            except (TypeError, ValueError):
+                raw_interval = 3600
         return cls(
             enabled=_env_bool("DESKTOP_MENU", True) if enabled is None else bool(enabled),
             app_name=app_name or _env_str("TITLE_PROJECT", "Lila Desktop"),
@@ -789,6 +855,8 @@ class DesktopMenuConfig:
             help_file=default_manual_path() if help_file is None else str(help_file),
             help_editable=is_help_editable() if help_editable is None else bool(help_editable),
             update_url=_env_str("LILA_UPDATE_URL") or _env_str("DESKTOP_UPDATE_URL") if update_url is None else str(update_url),
+            report_url=_env_str("DESKTOP_REPORT_URL", "") if report_url is None else str(report_url),
+            telemetry_interval=max(60, int(raw_interval)),
         )
 
 
@@ -1240,6 +1308,7 @@ def open_preferences_modal(window: Any, config: Optional[DesktopMenuConfig] = No
     payload = {
         "app_name": cfg.app_name,
         "preferences_url": cfg.preferences_url,
+        "report_url": cfg.report_url,
         "data_dir": get_data_path(),
         "labels": labels,
     }
@@ -1315,6 +1384,47 @@ def open_preferences_modal(window: Any, config: Optional[DesktopMenuConfig] = No
   var dVal = document.createElement('span'); dVal.className = 'ldm-value'; dVal.style.fontFamily = 'ui-monospace,Consolas,monospace'; dVal.style.fontSize = '12px'; dVal.textContent = data.data_dir;
   dirRow.appendChild(dLbl); dirRow.appendChild(dVal);
   dlg.body.appendChild(dirRow);
+
+  // Opt-in Anonymous Diagnostics row (only when DESKTOP_REPORT_URL is configured)
+  if (data.report_url) {{
+    var telRow = document.createElement('div');
+    telRow.className = 'ldm-row';
+    var telLeft = document.createElement('div');
+    telLeft.style.cssText = 'display:flex;flex-direction:column;gap:2px;max-width:300px';
+    var telLbl = document.createElement('span'); telLbl.className = 'ldm-label'; telLbl.textContent = L.telemetry_label;
+    var telSub = document.createElement('span'); telSub.style.cssText = 'font-size:12px;color:var(--ldm-muted)'; telSub.textContent = L.telemetry_desc;
+    telLeft.appendChild(telLbl); telLeft.appendChild(telSub);
+    var telBtn = document.createElement('button');
+    telBtn.type = 'button';
+    telBtn.className = 'ldm-btn';
+    var telEnabled = false;
+    function renderTelBtn() {{
+      telBtn.textContent = telEnabled ? L.telemetry_enabled : L.telemetry_disabled;
+      telBtn.setAttribute('data-active', telEnabled ? 'true' : 'false');
+    }}
+    renderTelBtn();
+    telBtn.addEventListener('click', function() {{
+      if (!(window.pywebview && window.pywebview.api && window.pywebview.api.set_telemetry_opt_in)) return;
+      telBtn.disabled = true;
+      window.pywebview.api.set_telemetry_opt_in(!telEnabled).then(function(res) {{
+        telBtn.disabled = false;
+        if (res && typeof res.anonymous_telemetry === 'boolean') {{
+          telEnabled = res.anonymous_telemetry;
+          renderTelBtn();
+        }}
+      }}).catch(function() {{ telBtn.disabled = false; }});
+    }});
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.get_report_settings) {{
+      window.pywebview.api.get_report_settings().then(function(res) {{
+        if (res && typeof res.anonymous_telemetry === 'boolean') {{
+          telEnabled = res.anonymous_telemetry;
+          renderTelBtn();
+        }}
+      }}).catch(function(){{}});
+    }}
+    telRow.appendChild(telLeft); telRow.appendChild(telBtn);
+    dlg.body.appendChild(telRow);
+  }}
 
   var openDirBtn = document.createElement('button');
   openDirBtn.type = 'button';
@@ -1591,6 +1701,81 @@ def open_updates_modal(window: Any, config: Optional[DesktopMenuConfig] = None) 
     _run_js(window, script)
 
 
+def open_bug_report_modal(window: Any, config: Optional[DesktopMenuConfig] = None) -> None:
+    cfg = config or DesktopMenuConfig.from_env()
+    labels = get_menu_labels(cfg.lang)
+    payload = {"app_name": cfg.app_name, "version": cfg.app_version, "report_url": cfg.report_url, "labels": labels}
+    if _dispatch_custom_event(window, "lila:desktop-report-bug", payload):
+        return
+    script = f"""(function(data){{
+  var M = {_MODAL_BOOT_JS};
+  var L = data.labels;
+  var dlg = M.open({{ title: L.report_bug_title, badge: 'v' + (data.version || '1.0.0'), closeLabel: L.close, maxWidth: '520px' }});
+  var desc = document.createElement('p');
+  desc.style.cssText = 'margin:0 0 12px;color:var(--ldm-muted);font-size:13px';
+  desc.textContent = L.report_bug_desc;
+  dlg.body.appendChild(desc);
+
+  var note = document.createElement('textarea');
+  note.className = 'ldm-editor';
+  note.style.minHeight = '120px';
+  note.placeholder = L.report_bug_note_placeholder;
+  dlg.body.appendChild(note);
+
+  var chkWrap = document.createElement('label');
+  chkWrap.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;cursor:pointer';
+  var chk = document.createElement('input');
+  chk.type = 'checkbox';
+  chk.checked = true;
+  var chkLbl = document.createElement('span');
+  chkLbl.textContent = L.report_bug_include_logs;
+  chkWrap.appendChild(chk);
+  chkWrap.appendChild(chkLbl);
+  dlg.body.appendChild(chkWrap);
+
+  var statusEl = document.createElement('p');
+  statusEl.style.cssText = 'margin:10px 0 0;font-size:13px;min-height:18px';
+  dlg.body.appendChild(statusEl);
+
+  var sendBtn = document.createElement('button');
+  sendBtn.type = 'button';
+  sendBtn.className = 'ldm-btn ldm-btn-primary';
+  sendBtn.textContent = L.report_bug_send;
+  sendBtn.addEventListener('click', function() {{
+    if (!(window.pywebview && window.pywebview.api && window.pywebview.api.send_bug_report)) {{
+      statusEl.textContent = L.report_bug_error;
+      return;
+    }}
+    sendBtn.disabled = true;
+    sendBtn.textContent = L.report_bug_sending;
+    statusEl.textContent = '';
+    window.pywebview.api.send_bug_report(note.value || '', Boolean(chk.checked)).then(function(res) {{
+      sendBtn.disabled = false;
+      sendBtn.textContent = L.report_bug_send;
+      if (res && res.ok) {{
+        statusEl.textContent = res.duplicate ? L.report_bug_duplicate : L.report_bug_sent;
+        note.value = '';
+      }} else {{
+        statusEl.textContent = (res && res.reason) ? (L.report_bug_error + ': ' + res.reason) : L.report_bug_error;
+      }}
+    }}).catch(function() {{
+      sendBtn.disabled = false;
+      sendBtn.textContent = L.report_bug_send;
+      statusEl.textContent = L.report_bug_error;
+    }});
+  }});
+
+  var closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'ldm-btn';
+  closeBtn.textContent = L.close;
+  closeBtn.addEventListener('click', dlg.close);
+  dlg.footer.appendChild(sendBtn);
+  dlg.footer.appendChild(closeBtn);
+}})({json.dumps(payload)})"""
+    _run_js(window, script)
+
+
 # ─── Menu Builder ─────────────────────────────────────────────────────────────
 
 def _call_in_bg(fn: Callable[..., Any], *args: Any) -> Callable[[], None]:
@@ -1660,6 +1845,8 @@ def build_desktop_menu(
     help_items: List[Any] = [
         MenuAction(labels["manual"], _call_win(open_help_modal, window_getter, cfg)),
     ]
+    if cfg.report_url:
+        help_items.append(MenuAction(labels["report_bug"], _call_win(open_bug_report_modal, window_getter, cfg)))
     if cfg.update_url:
         help_items.append(MenuAction(labels["check_updates"], _call_win(open_updates_modal, window_getter, cfg)))
     if plat != "darwin":

@@ -165,6 +165,7 @@ class App(Starlette):
         metrics: bool = False,
         csp: Any = False,
         telemetry: Optional[bool] = None,
+        desktop_reports: Any = False,
     ):
         # Ensure .env is loaded even when users import App directly (not app.config).
         ConfigLoader.load()
@@ -181,6 +182,11 @@ class App(Starlette):
         if routes:
             for item in routes:
                 self._register_route_item(item)
+
+        if desktop_reports:
+            from lila.core.desktop_reports import create_reports_router
+
+            self._register_route_item(create_reports_router(desktop_reports))
 
         # 2. Static assets (project first, bundled package as fallback).
         static_path = self._project_public if os.path.isdir(self._project_public) else self._package_public
@@ -782,6 +788,15 @@ class App(Starlette):
             self._mount_observability()
         except Exception:
             pass
+        if getattr(sys, "frozen", False) or ENV_CONFIG.get_bool("LILA_AUTO_MIGRATE", False):
+            try:
+                from lila.core.migrations import auto_migrate_async
+
+                await auto_migrate_async()
+            except Exception as exc:
+                from lila.core.logger import Logger
+
+                Logger.error(f"[Lila] auto-migrate failed: {exc}", exception=exc)
         # Log retention: LOG_RETENTION_DAYS (default 30, 0 = keep forever).
         try:
             days = int(ENV_CONFIG.get("LOG_RETENTION_DAYS", 30) or 0)

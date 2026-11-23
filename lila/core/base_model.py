@@ -245,13 +245,34 @@ class BaseModel(Base):
         return [c for c in cls.__table__.columns if c.name not in private]
 
     @classmethod
-    def _read_stmt(cls, target_select=None, filters=None, order_by=None, desc=False, search=None, search_fields=None):
+    def _has_active_filter(cls, filters: Optional[Dict[str, Any]]) -> bool:
+        if not filters:
+            return False
+        field = cls._active_field
+        return any(k == field or k.startswith(f"{field}__") for k in filters)
+
+    @classmethod
+    def _read_stmt(
+        cls,
+        target_select=None,
+        filters=None,
+        order_by=None,
+        desc=False,
+        search=None,
+        search_fields=None,
+        include_deleted: bool = False,
+    ):
         """Core SELECT returning plain rows: no ORM objects, no lazy loads,
         private columns never leave the database."""
         from sqlalchemy import select as sa_select
 
         stmt = sa_select(*cls._read_columns(target_select))
-        if cls._delete_logic and cls._column(cls._active_field) is not None:
+        if (
+            not include_deleted
+            and cls._delete_logic
+            and cls._column(cls._active_field) is not None
+            and not cls._has_active_filter(filters)
+        ):
             stmt = stmt.where(getattr(cls, cls._active_field) == 1)
         for clause in cls._filter_clauses(filters or {}):
             stmt = stmt.where(clause)
@@ -380,15 +401,19 @@ class BaseModel(Base):
 
     @classmethod
     async def get_by_id_async(
-        cls, id_val: Any, select_cols: Optional[str] = None, select: Optional[str] = None
+        cls,
+        id_val: Any,
+        select_cols: Optional[str] = None,
+        select: Optional[str] = None,
+        include_deleted: bool = False,
     ) -> Optional[Dict[str, Any]]:
         conn = cls.get_connection()
         target_select = select_cols or select
-        cache_key = f"{cls._cache_prefix()}:id:{id_val}:{target_select}"
+        cache_key = f"{cls._cache_prefix()}:id:{id_val}:{target_select}:{int(bool(include_deleted))}"
 
         async def _fetch():
             pk_col = getattr(cls, cls._primary_key)
-            stmt = cls._read_stmt(target_select).where(pk_col == id_val).limit(1)
+            stmt = cls._read_stmt(target_select, include_deleted=include_deleted).where(pk_col == id_val).limit(1)
             async with conn.transaction() as session:
                 result = await session.execute(stmt)
                 row = result.mappings().first()
@@ -446,7 +471,7 @@ class BaseModel(Base):
         async with conn.transaction() as session:
             pk_col = getattr(cls, cls._primary_key)
             stmt = select(func.count(pk_col))
-            if cls._delete_logic and hasattr(cls, cls._active_field):
+            if cls._delete_logic and hasattr(cls, cls._active_field) and not cls._has_active_filter(filters):
                 stmt = stmt.where(getattr(cls, cls._active_field) == 1)
             for clause in cls._filter_clauses(filters):
                 stmt = stmt.where(clause)
@@ -489,7 +514,7 @@ class BaseModel(Base):
             )
         with conn.transaction_sync() as session:
             query = session.query(cls)
-            if cls._delete_logic and hasattr(cls, cls._active_field):
+            if cls._delete_logic and hasattr(cls, cls._active_field) and not cls._has_active_filter(filters):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
             for clause in cls._filter_clauses(filters):
                 query = query.filter(clause)
@@ -507,7 +532,7 @@ class BaseModel(Base):
         with conn.transaction_sync() as session:
             pk_col = getattr(cls, cls._primary_key)
             query = session.query(cls).filter(pk_col == id_val)
-            if cls._delete_logic and hasattr(cls, cls._active_field):
+            if cls._delete_logic and hasattr(cls, cls._active_field) and not cls._has_active_filter(filters):
                 query = query.filter(getattr(cls, cls._active_field) == 1)
             row = query.first()
             return row.to_dict() if row else None

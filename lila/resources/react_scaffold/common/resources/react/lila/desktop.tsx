@@ -40,6 +40,24 @@ export interface HelpManual {
   reason?: string;
 }
 
+export interface ReportSettings {
+  configured: boolean;
+  report_url?: string;
+  anonymous_telemetry: boolean;
+  install_id?: string;
+  last_telemetry_at?: string | null;
+  interval_seconds?: number;
+}
+
+export interface ReportSubmitResult {
+  ok: boolean;
+  status: string;
+  stored?: boolean;
+  duplicate?: boolean;
+  id?: number;
+  reason?: string;
+}
+
 interface BridgeApi {
   open_file_dialog(title?: string, fileTypes?: string[]): Promise<string | null>;
   save_file_dialog(title?: string, defaultFilename?: string): Promise<string | null>;
@@ -58,6 +76,11 @@ interface BridgeApi {
   open_help(): Promise<boolean>;
   open_about(): Promise<boolean>;
   open_preferences(): Promise<boolean>;
+  get_report_settings(): Promise<ReportSettings>;
+  set_telemetry_opt_in(enabled: boolean): Promise<ReportSettings>;
+  send_bug_report(note?: string, includeLogs?: boolean): Promise<ReportSubmitResult>;
+  send_telemetry_now(): Promise<ReportSubmitResult>;
+  open_bug_report(): Promise<boolean>;
 }
 
 function api(): BridgeApi | null {
@@ -113,6 +136,13 @@ export const desktop = {
   openHelp: () => call((b) => b.open_help(), false),
   openAbout: () => call((b) => b.open_about(), false),
   openPreferences: () => call((b) => b.open_preferences(), false),
+  getReportSettings: () => call((b) => b.get_report_settings(), { configured: false, anonymous_telemetry: false } as ReportSettings),
+  setTelemetryOptIn: (enabled: boolean) =>
+    call((b) => b.set_telemetry_opt_in(enabled), { configured: false, anonymous_telemetry: false } as ReportSettings),
+  sendBugReport: (note = "", includeLogs = true) =>
+    call((b) => b.send_bug_report(note, includeLogs), { ok: false, status: "web", reason: "web" } as ReportSubmitResult),
+  sendTelemetryNow: () => call((b) => b.send_telemetry_now(), { ok: false, status: "web", reason: "web" } as ReportSubmitResult),
+  openBugReport: () => call((b) => b.open_bug_report(), false),
 };
 
 /** Checks for an update once (desktop only); `install()` downloads, verifies and opens it. */

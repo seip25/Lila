@@ -293,7 +293,12 @@ class Router:
 
     def _normalize_path(self, path: str) -> str:
         p = path.strip()
-        full = f"{self.prefix}/{p.lstrip('/')}" if self.prefix else p
+        if self.prefix:
+            if not p:
+                return self.prefix
+            full = f"{self.prefix}/{p.lstrip('/')}"
+        else:
+            full = p
         if not full.startswith("/"):
             full = f"/{full}"
         return full or "/"

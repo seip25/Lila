@@ -333,3 +333,47 @@ class DesktopBridge:
             return bool(set_clipboard_text(text))
         except Exception:
             return False
+
+    def get_report_settings(self) -> dict:
+        try:
+            from lila.core.desktop_reports import get_report_settings
+
+            return get_report_settings()
+        except Exception as exc:
+            return {"configured": False, "anonymous_telemetry": False, "reason": str(exc)}
+
+    def set_telemetry_opt_in(self, enabled: bool) -> dict:
+        try:
+            from lila.core.desktop_reports import set_telemetry_opt_in
+
+            return set_telemetry_opt_in(bool(enabled))
+        except Exception as exc:
+            return {"configured": False, "anonymous_telemetry": False, "reason": str(exc)}
+
+    def send_bug_report(self, note: str = "", include_logs: bool = True) -> dict:
+        try:
+            from lila.core.desktop_reports import send_bug_report
+
+            return send_bug_report(note=note, include_logs=bool(include_logs))
+        except Exception as exc:
+            return {"ok": False, "status": "error", "reason": str(exc)}
+
+    def send_telemetry_now(self) -> dict:
+        try:
+            from lila.core.desktop_reports import send_anonymous_telemetry
+
+            return send_anonymous_telemetry(force=True)
+        except Exception as exc:
+            return {"ok": False, "status": "error", "reason": str(exc)}
+
+    def open_bug_report(self) -> bool:
+        windows = _windows()
+        if not windows:
+            return False
+        try:
+            from lila.core.desktop_menu import DesktopMenuConfig, open_bug_report_modal
+
+            open_bug_report_modal(windows[0], DesktopMenuConfig.from_env())
+            return True
+        except Exception:
+            return False

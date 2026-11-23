@@ -86,12 +86,16 @@ FRAMEWORK_SCHEMA = [
     ("SERVICE_NAME",         "str",  ""),
     ("LILA_DATA_DIR",        "str",  ""),
     # Desktop menu & help manual
-    ("DESKTOP_MENU",            "bool", True),
-    ("DESKTOP_MENU_LANG",       "str",  ""),
-    ("DESKTOP_PREFERENCES_URL", "str",  ""),
-    ("DESKTOP_HELP_FILE",       "str",  "resources/manual.md"),
-    ("DESKTOP_HELP_EDITABLE",   "bool", True),
-    ("DESKTOP_ABOUT",           "str",  ""),
+    ("LILA_AUTO_MIGRATE",          "bool", False),
+    ("DESKTOP_MENU",               "bool", True),
+    ("DESKTOP_MENU_LANG",          "str",  ""),
+    ("DESKTOP_PREFERENCES_URL",    "str",  ""),
+    ("DESKTOP_HELP_FILE",          "str",  "resources/manual.md"),
+    ("DESKTOP_HELP_EDITABLE",      "bool", True),
+    ("DESKTOP_ABOUT",              "str",  ""),
+    ("DESKTOP_REPORT_URL",         "str",  ""),
+    ("DESKTOP_REPORT_TOKEN",       "str",  ""),
+    ("DESKTOP_TELEMETRY_INTERVAL", "int",  3600),
 ]
 
 # Allowed values / formats checked by validate_settings() (and `lila doctor`).

@@ -5,6 +5,43 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+## [2.2.2] — 2026-11-23
+
+### Added
+
+- **Opt-in Desktop Bug Reports & Anonymous Telemetry** (`lila.core.desktop_reports`):
+  - `App(..., desktop_reports=True | {...})` mounts `POST /api/desktop/bug`,
+    `POST /api/desktop/telemetry`, `GET /api/desktop/reports`, and
+    `GET /api/desktop/reports/stats` (disabled by default, tagged `desktop=False`
+    so `.exe` builds exclude them and `lila desktop routes` shows them).
+  - Isolated SQLite WAL database in `app/desktop/database/reports.db` with
+    unique deduplication on `(kind, app_version, install_id, period_key, content_hash)`.
+  - Security hardening: streaming 256 KB body-size limit (`413`), per-IP rate
+    limiting (`429`), strict Pydantic validation (`422`), optional
+    `X-Lila-Report-Token` auth (`401`), PII redaction, and automatic
+    background retention pruning (`retention_days=90`) on every upload.
+  - Native Desktop menu `Help -> Report Bug / Issue...` + opt-in
+    `Anonymous diagnostics` toggle in `File -> Preferences...`, `DesktopBridge`
+    methods, `@lila/desktop` TypeScript helpers, `--report-url` /
+    `--report-token` / `--telemetry-interval` flags on `lila desktop dev|build`,
+    and periodic `DesktopTelemetryScheduler`.
+- **Automatic safe migrations for Desktop `.exe`**: `auto_migrate_async()`
+  discovers `app.models.*` inside PyInstaller bundles (`LILA_DESKTOP_MODELS` /
+  `pkgutil`) and applies safe schema operations (`create_table`, `add_column`,
+  `rename_column`, `create_index`) on startup when `sys.frozen` or
+  `LILA_AUTO_MIGRATE=1`.
+
+### Fixed
+
+- `lila init` no longer copies internal `resources/react_scaffold/` into new projects.
+- `lila-client.js` (and `.min.js`) now triggers a full browser navigation when
+  clicking links from Jinja pages to React pages (`data-layout="react"`),
+  preventing blank screens without needing `data-no-router`.
+- `Router(prefix="/api/x")` + `@router.get("")` now resolves to `/api/x`
+  without a trailing slash (eliminates `307 Temporary Redirect` responses).
+- `BaseModel._read_stmt` / `count_async` now respect explicit `active=0` (or
+  `active__*`) filters and support `get_by_id_async(..., include_deleted=True)`.
+
 ## [2.2.1] — 2026-11-23
 
 ### Fixed

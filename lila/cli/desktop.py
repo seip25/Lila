@@ -212,6 +212,17 @@ def _print_route_table(statuses) -> None:
     typer.echo(f"\n{len(kept)} route(s) in the desktop app, {len(removed)} web-only.")
 
 
+def _discover_model_names() -> List[str]:
+    models_dir = os.path.join(os.getcwd(), "app", "models")
+    if not os.path.isdir(models_dir):
+        return []
+    names: List[str] = []
+    for fname in sorted(os.listdir(models_dir)):
+        if fname.endswith(".py") and fname != "__init__.py":
+            names.append(f"app.models.{fname[:-3]}")
+    return names
+
+
 @app.command("routes")
 def routes_command(
     exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Extra pattern(s) to exclude: /payments*, name:checkout"),
@@ -277,6 +288,9 @@ def dev(
     preferences_url: Optional[str] = typer.Option(None, "--preferences-url", help="URL opened by File -> Preferences"),
     help_file: Optional[str] = typer.Option(None, "--help-file", help="Markdown file shown in Help -> Manual / Help"),
     about: Optional[str] = typer.Option(None, "--about", help="Extra description shown in Help -> About"),
+    report_url: Optional[str] = typer.Option(None, "--report-url", help="Base URL for desktop bug reports & opt-in telemetry (default DESKTOP_REPORT_URL)"),
+    report_token: Optional[str] = typer.Option(None, "--report-token", help="Optional X-Lila-Report-Token header (default DESKTOP_REPORT_TOKEN)"),
+    telemetry_interval: Optional[int] = typer.Option(None, "--telemetry-interval", help="Opt-in anonymous telemetry upload interval in seconds (default 3600)"),
 ):
     """
     Runs the Lila application inside a native ultra-lightweight desktop window.
@@ -284,6 +298,7 @@ def dev(
     """
     from lila.core.config import ConfigLoader, ENV_CONFIG
     from lila.core.desktop_menu import DesktopMenuConfig, build_desktop_menu
+    from lila.core.desktop_reports import DesktopTelemetryScheduler, is_valid_report_url
 
     ConfigLoader.load()
     window_title = title or ENV_CONFIG.get("TITLE_PROJECT", "Lila Desktop")
@@ -296,6 +311,16 @@ def dev(
         os.environ["DESKTOP_HELP_FILE"] = help_file
     if about is not None:
         os.environ["DESKTOP_ABOUT"] = about
+    resolved_report_url = str(ENV_CONFIG.get("DESKTOP_REPORT_URL", "") or "") if report_url is None else report_url
+    if resolved_report_url and not is_valid_report_url(resolved_report_url):
+        typer.secho("❌ --report-url must use https (or http://127.0.0.1 / localhost).", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    if resolved_report_url:
+        os.environ["DESKTOP_REPORT_URL"] = resolved_report_url
+    if report_token is not None:
+        os.environ["DESKTOP_REPORT_TOKEN"] = report_token
+    if telemetry_interval is not None:
+        os.environ["DESKTOP_TELEMETRY_INTERVAL"] = str(max(60, int(telemetry_interval)))
 
     # 1. Single Instance Lock
     lock_handle = acquire_single_instance_lock(window_title)
@@ -350,6 +375,8 @@ def dev(
         pass
 
     bridge = DesktopBridge()
+    telemetry_scheduler = DesktopTelemetryScheduler()
+    telemetry_scheduler.start()
 
     try:
         if has_webview:
@@ -387,6 +414,7 @@ def dev(
                 except KeyboardInterrupt:
                     pass
     finally:
+        telemetry_scheduler.stop()
         if server_holder:
             server_holder[0].should_exit = True
 
@@ -418,6 +446,9 @@ def build(
     help_file: Optional[str] = typer.Option(None, "--help-file", help="Markdown file bundled for Help -> Manual / Help"),
     help_editable: Optional[bool] = typer.Option(None, "--help-editable/--no-help-editable", help="Allow users to edit the Markdown manual in-app"),
     about: Optional[str] = typer.Option(None, "--about", help="Extra description shown in Help -> About"),
+    report_url: Optional[str] = typer.Option(None, "--report-url", help="Base URL for desktop bug reports & opt-in telemetry (default DESKTOP_REPORT_URL)"),
+    report_token: Optional[str] = typer.Option(None, "--report-token", help="Optional X-Lila-Report-Token header (default DESKTOP_REPORT_TOKEN)"),
+    telemetry_interval: Optional[int] = typer.Option(None, "--telemetry-interval", help="Opt-in anonymous telemetry upload interval in seconds (default 3600)"),
 ):
     """
     Bundles the Lila application into a standalone native executable (.exe / .app) using PyInstaller.
@@ -475,6 +506,23 @@ def build(
     resolved_help_file = str(ENV_CONFIG.get("DESKTOP_HELP_FILE", "resources/manual.md") or "resources/manual.md") if help_file is None else help_file
     editable_help = ENV_CONFIG.get_bool("DESKTOP_HELP_EDITABLE", True) if help_editable is None else bool(help_editable)
     resolved_about = str(ENV_CONFIG.get("DESKTOP_ABOUT", "") or "") if about is None else about
+    resolved_report_url = str(ENV_CONFIG.get("DESKTOP_REPORT_URL", "") or "") if report_url is None else report_url
+    if resolved_report_url:
+        from lila.core.desktop_reports import is_valid_report_url
+
+        if not is_valid_report_url(resolved_report_url):
+            typer.secho("❌ --report-url must use https (or http://127.0.0.1 / localhost).", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+    resolved_report_token = str(ENV_CONFIG.get("DESKTOP_REPORT_TOKEN", "") or "") if report_token is None else report_token
+    resolved_telemetry_interval = max(
+        60,
+        int(
+            ENV_CONFIG.get("DESKTOP_TELEMETRY_INTERVAL", 3600) or 3600
+            if telemetry_interval is None
+            else telemetry_interval
+        ),
+    )
+    discovered_models = _discover_model_names()
     app_desc = str(ENV_CONFIG.get("DESCRIPTION_PROJECT", "") or "")
     app_lang = str(ENV_CONFIG.get("LANG_DEFAULT", "en") or "en")
     icon_path = installers.convert_icon(installers.find_icon(icon), sys.platform)
@@ -574,6 +622,11 @@ os.environ["DESKTOP_PREFERENCES_URL"] = {prefs_url!r}
 os.environ["DESKTOP_HELP_FILE"] = {resolved_help_file!r}
 os.environ["DESKTOP_HELP_EDITABLE"] = {("True" if editable_help else "False")!r}
 os.environ["DESKTOP_ABOUT"] = {resolved_about!r}
+os.environ["DESKTOP_REPORT_URL"] = {resolved_report_url!r}
+os.environ["DESKTOP_REPORT_TOKEN"] = {resolved_report_token!r}
+os.environ["DESKTOP_TELEMETRY_INTERVAL"] = {str(resolved_telemetry_interval)!r}
+os.environ["LILA_AUTO_MIGRATE"] = "1"
+os.environ["LILA_DESKTOP_MODELS"] = {",".join(discovered_models)!r}
 os.environ.setdefault("DEBUG", "False")
 
 def find_port():
@@ -640,6 +693,11 @@ if not server_ready:
         f"<p style='color:#64748b'>Logs: {{log_hint}}</p></body></html>"
     )
 
+from lila.core.desktop_reports import DesktopTelemetryScheduler
+telemetry_scheduler = DesktopTelemetryScheduler()
+if server_ready:
+    telemetry_scheduler.start()
+
 try:
     import webview
     from lila.core.desktop_menu import DesktopMenuConfig, build_desktop_menu
@@ -670,6 +728,7 @@ except ImportError:
         except KeyboardInterrupt:
             pass
 finally:
+    telemetry_scheduler.stop()
     if server_holder:
         server_holder[0].should_exit = True
 '''

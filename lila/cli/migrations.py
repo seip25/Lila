@@ -35,23 +35,11 @@ def _load_connection():
 
 def load_models():
     """Imports app models (and the admin model) so Base.metadata is complete."""
-    try:
-        import lila.core.admin  # noqa: F401  (registers the admins table)
-    except Exception as exc:
-        load_errors.append(f"lila.core.admin: {exc}")
+    from lila.core.migrations import discover_and_import_models
 
-    models_dir = Path("app/models")
-    if not models_dir.exists():
-        return
-    for file in models_dir.glob("*.py"):
-        if file.name == "__init__.py":
-            continue
-        module_name = f"app.models.{file.stem}"
-        try:
-            importlib.import_module(module_name)
-        except Exception as exc:
-            load_errors.append(f"{module_name}: {exc}")
-            typer.echo(f"  ⚠️ Could not load {module_name}: {exc}")
+    for err in discover_and_import_models():
+        load_errors.append(err)
+        typer.echo(f"  ⚠️ Could not load {err}")
 
 
 _ICONS = {

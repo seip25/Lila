@@ -142,6 +142,8 @@ def routes():
     if not os.path.exists("main.py"):
         typer.secho("❌ main.py not found.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+    if os.getcwd() not in sys.path:
+        sys.path.insert(0, os.getcwd())
     try:
         import importlib
 

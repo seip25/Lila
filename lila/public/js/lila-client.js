@@ -264,6 +264,14 @@ function lilaEscapeAttr(value) {
         const parser = new DOMParser();
         const nextDoc = parser.parseFromString(html, "text/html");
 
+        if (
+          nextDoc.body?.getAttribute("data-layout") === "react" ||
+          nextDoc.querySelector("[data-lila-react]")
+        ) {
+          window.location.href = targetUrl;
+          return;
+        }
+
         if (document.startViewTransition) {
           await document.startViewTransition(() => swapDocument(nextDoc, targetUrl, options)).finished;
         } else {
