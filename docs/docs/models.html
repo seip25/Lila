@@ -175,7 +175,9 @@ class User(BaseModel):
           (<code>active = 0</code>). Without an <code>active</code> column the row is deleted for real.</li>
         <li><code>_active_field = "active"</code>: the column used for the soft-delete flag; reads
           (<code>get_all*</code>, <code>get_by_id*</code>, <code>count_async</code>) automatically filter
-          <code>active = 1</code>.</li>
+          <code>active = 1</code> unless you explicitly filter on <code>active</code> (e.g.
+          <code>active=0</code> or <code>active__in=[0, 1]</code>) or pass
+          <code>include_deleted=True</code> to <code>get_by_id_async()</code>.</li>
         <li><code>_primary_key = "id"</code>: the column used by <code>get_by_id_async</code>/<code>update_async</code>/<code>delete_async</code>.</li>
         <li><code>__private_fields__ = ("password", "token")</code>: columns that <code>to_dict()</code> and the
           admin API must never expose.</li>
@@ -263,9 +265,11 @@ users = await User.get_all_async(limit=10, order_by="name", desc=False)
 # Partial columns: `select` and `select_cols` are accepted.
 cards = await User.get_all_async(select="id,name", limit=50)
 
-# Fetch by primary key (returns dict or None)
+# Fetch by primary key (returns dict or None; include_deleted=True includes soft-deleted rows)
 user = await User.get_by_id_async(1)
 user = await User.get_by_id_async(1, select="id,email")
+archived = await User.get_by_id_async(1, include_deleted=True)
+inactive_users = await User.get_all_async(active=0)
 
 # Insert / update / delete
 created = await User.insert_async(name="Alex", email="alex@example.com", password="hashed")

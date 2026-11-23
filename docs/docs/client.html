@@ -156,6 +156,9 @@
           (<code>DOMContentLoaded</code> only fires on the first full load).</li>
         <li>Hover prefetch is de-duplicated and never stores redirected responses (e.g. an expired session redirecting to <code>/login</code>).
           Same-page <code>#hash</code> links scroll natively.</li>
+        <li><strong>Hybrid Jinja + React navigation:</strong> when a Jinja page links to a React route
+          (marked with <code>data-layout="react"</code> or <code>[data-lila-react]</code>),
+          <code>lila-client.js</code> automatically performs a full browser navigation so Vite/React mounts cleanly without needing <code>data-no-router</code>.</li>
       </ul>
 
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>lila-client.js</code> is loaded in the <code>&lt;head&gt;</code> of the default layout, so inline page scripts can call <code>lila()</code>, <code>Http()</code>, <code>lilaSSE()</code> or <code>lilaWS()</code> on the first load too. Live updates without WebSockets: <a href="sse.html">Server-Sent Events</a> (<code>data-sse</code>).</p>

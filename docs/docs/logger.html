@@ -213,6 +213,13 @@ async def secure_endpoint(request: Request):
                     <code class="code-inline">App(routes=[...], logging=True)</code>. Static assets,
                     <code>/_lila/</code>, <code>/favicon</code> and <code>/health</code> are skipped.
                 </p>
+                <p>
+                    Note that when <code>DEBUG=False</code>, Lila automatically silences Uvicorn/Granian HTTP access
+                    output in the terminal (opt back in with <code>LILA_ACCESS_LOG=True</code>,
+                    <code>LILA_LOG_LEVEL=info</code> or <code>lila run --access-log</code>), while
+                    <code>App(logging=True)</code> continues writing structured entries to
+                    <code>app/logs/YYYY-MM-DD/requests.log</code>.
+                </p>
             </div>
 
             <!-- Log Rotation -->

@@ -175,6 +175,10 @@ lila desktop build --name "InvoiceManager" --onedir
         Keep <code>DB_NAME</code> relative (<code>DB_NAME="lila"</code>) so it resolves under that
         directory.
       </p>
+      <div class="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 text-xs text-slate-600 dark:text-slate-300 my-4">
+        <strong>🗄️ Automatic Safe Startup Migrations:</strong>
+        <code class="font-mono">lila desktop build</code> bakes <code class="font-mono">LILA_AUTO_MIGRATE="1"</code> and the discovered model modules (<code class="font-mono">LILA_DESKTOP_MODELS</code>) into the executable. When the desktop app launches (both on first run and after updates), <code class="font-mono">auto_migrate_async()</code> creates missing SQLite tables and adds safe new columns inside the user's AppData database automatically — never dropping tables or altering column types destructively.
+      </div>
       <h3 class="text-xl font-bold mt-8 mb-3">Installers: .dmg and .msi</h3>
       <pre><code class="language-bash">lila desktop build --installer auto --version 1.4.0 --publisher "Acme" --bundle-id com.acme.invoices
 # macOS   -> dist/Invoices.app + dist/Invoices.dmg   (hdiutil, drag to Applications)
@@ -242,22 +246,116 @@ await desktop.notify(&quot;Backup finished&quot;, &quot;3 files&quot;);</code></
         (<code>en</code>, <code>es</code>, <code>pt</code>, <code>zh</code>).
       </p>
       <ul class="list-disc ml-5 text-sm text-slate-600 dark:text-slate-400 space-y-1 mb-4">
-        <li><strong>File</strong>: Preferences (opens a built-in Theme / Zoom / Data Folder modal, or navigates to <code>DESKTOP_PREFERENCES_URL</code>) and Quit.</li>
+        <li><strong>File</strong>: Preferences (opens a built-in Theme / Zoom / Data Folder modal — plus an opt-in <strong>Anonymous diagnostics</strong> toggle when <code class="font-mono">--report-url</code> / <code class="font-mono">DESKTOP_REPORT_URL</code> is configured — or navigates to <code>DESKTOP_PREFERENCES_URL</code>) and Quit.</li>
         <li><strong>Edit</strong>: Undo, Redo, Cut, Copy, Paste (works with React controlled inputs too) and Select All.</li>
         <li><strong>View</strong>: Back, Forward, Reload, Zoom In/Out/Reset and Fullscreen.</li>
-        <li><strong>Help</strong>: <em>Manual / Help</em> opens an interactive Markdown modal (reads <code>resources/manual.md</code> by default, empty until edited; users can view and edit in-app unless <code>--no-help-editable</code> / <code>DESKTOP_HELP_EDITABLE=False</code>), Check for Updates (when <code>--update-url</code> is set) and About.</li>
+        <li><strong>Help</strong>: <em>Manual / Help</em> opens an interactive Markdown modal (reads <code>resources/manual.md</code> by default, empty until edited; users can view and edit in-app unless <code>--no-help-editable</code> / <code>DESKTOP_HELP_EDITABLE=False</code>), <em>Report Bug / Issue...</em> (shown when <code>--report-url</code> / <code>DESKTOP_REPORT_URL</code> is configured; uploads recent AppData <code>logs/</code> and an optional user note), Check for Updates (when <code>--update-url</code> is set) and About.</li>
       </ul>
       <pre><code class="language-bash"># Disable the native menu or lock manual editing in production:
 lila desktop build --no-menu
 lila desktop build --help-file resources/manual.md --no-help-editable --about &quot;Desktop Client&quot;
 
 # Or call/override from JS/React (@lila/desktop):
-# desktop.openHelp(), desktop.openPreferences(), desktop.openAbout()
-# Intercept defaults with window.addEventListener(&quot;lila:desktop-help&quot;, e =&gt; { e.preventDefault(); ... })</code></pre>
+# desktop.openHelp(), desktop.openPreferences(), desktop.openAbout(), desktop.openBugReport()
+# Intercept defaults with window.addEventListener(&quot;lila:desktop-help&quot;, e =&gt; { e.preventDefault(); ... })
+# or window.addEventListener(&quot;lila:desktop-report-bug&quot;, e =&gt; { e.preventDefault(); ... })</code></pre>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         Define <code>extra_menus(window_getter, config)</code> or <code>get_menu(window_getter, defaults, config)</code>
         in <code>app/desktop_menu.py</code> to add custom native menu items.
       </p>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">6. Bug Reports &amp; Opt-in Anonymous Telemetry</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        Desktop builds can optionally send manual bug reports (including recent AppData <code>logs/</code>) and periodic anonymous usage/health diagnostics back to your web server. On the server side this feature is <strong>disabled by default</strong> and all routes are tagged <code>desktop=False</code> so they only exist on the web deployment, never inside desktop executables.
+      </p>
+
+      <h4 class="text-base font-bold mt-6 mb-2">Server-side configuration (main.py)</h4>
+      <pre><code class="language-python">from lila.core.app import App
+
+# Enable with defaults:
+app = App(routes=[web_router], desktop_reports=True)
+
+# Or customize limits, token and retention:
+app = App(
+    routes=[web_router],
+    desktop_reports={
+        &quot;prefix&quot;: &quot;/api/desktop&quot;,      # mounted prefix
+        &quot;max_body_bytes&quot;: 262144,      # 256 KB streaming limit -&gt; HTTP 413
+        &quot;rate_limit&quot;: (10, 60),        # 10 requests / 60s per IP -&gt; HTTP 429
+        &quot;retention_days&quot;: 90,          # auto-prune records older than 90 days
+        &quot;token&quot;: None,                 # defaults to ENV DESKTOP_REPORT_TOKEN
+        &quot;admin_auth&quot;: True,            # GET routes require admin session or X-Lila-Report-Token
+    },
+)</code></pre>
+
+      <div class="overflow-x-auto mb-6 mt-4">
+        <table class="w-full text-sm text-left border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+          <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Endpoint</th>
+              <th class="px-4 py-3 font-semibold">Auth</th>
+              <th class="px-4 py-3 font-semibold">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+            <tr class="bg-white dark:bg-[#131b2e]">
+              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">POST /api/desktop/bug</td>
+              <td class="px-4 py-3 text-xs text-slate-500">Optional token</td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Stores manual bug report (note + recent logs). Returns <code>201 stored</code> or <code>200 duplicate</code>.</td>
+            </tr>
+            <tr class="bg-slate-50 dark:bg-[#0f1729]">
+              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">POST /api/desktop/telemetry</td>
+              <td class="px-4 py-3 text-xs text-slate-500">Optional token</td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Stores opt-in periodic anonymous diagnostics. Returns <code>201 stored</code> or <code>200 duplicate</code>.</td>
+            </tr>
+            <tr class="bg-white dark:bg-[#131b2e]">
+              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">GET /api/desktop/reports</td>
+              <td class="px-4 py-3 text-xs text-slate-500">Admin / token</td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Paginated list supporting <code>?kind=&amp;app_version=&amp;period_key=&amp;limit=&amp;offset=</code>.</td>
+            </tr>
+            <tr class="bg-slate-50 dark:bg-[#0f1729]">
+              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">GET /api/desktop/reports/stats</td>
+              <td class="px-4 py-3 text-xs text-slate-500">Admin / token</td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Summary totals grouped by <code>kind</code>, <code>app_version</code>, <code>platform</code>, and <code>period_key</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 class="text-base font-bold mt-6 mb-2">Isolated SQLite database, deduplication &amp; retention</h4>
+      <ul class="list-disc ml-5 text-sm text-slate-600 dark:text-slate-400 space-y-1 mb-4">
+        <li><strong>Isolated DB:</strong> reports are written to <code>app/desktop/database/reports.db</code> (SQLite WAL), completely separate from your main application database.</li>
+        <li><strong>Deduplication:</strong> unique index on <code>(kind, app_version, install_id, period_key, content_hash)</code> guarantees identical payloads for the same version and date period (e.g. <code>YYYY-MM</code> or <code>YYYY-MM-DD</code>) are not duplicated.</li>
+        <li><strong>90-day auto-pruning:</strong> every accepted upload schedules a <code>BackgroundTask</code> (<code>prune_old_reports</code>) that removes records older than <code>retention_days</code> (default <code>90</code> days), keeping database size bounded. You can also enqueue <code>lila.core.desktop_reports:prune_old_reports_task</code> via <code>lila tasks</code> / <code>@cron</code>.</li>
+        <li><strong>Security &amp; PII redaction:</strong> streaming body limit (<code>413</code> before full buffering), per-IP rate limit (<code>429</code> with <code>Retry-After</code>), optional <code>X-Lila-Report-Token</code> header check (<code>401</code>), Pydantic v2 validation (<code>422</code>), and automatic scrubbing of emails, Bearer/JWT tokens, secret key-values, and OS user home paths via <code>redact_pii()</code>.</li>
+      </ul>
+
+      <h4 class="text-base font-bold mt-6 mb-2">Desktop client setup &amp; React / JS API</h4>
+      <pre><code class="language-bash"># Bake report endpoint and telemetry interval (default 3600s, min 60s) into the desktop build:
+lila desktop build --name &quot;MyApp&quot; --onefile --windowed \
+  --report-url &quot;https://example.com/api/desktop&quot; \
+  --report-token &quot;$DESKTOP_REPORT_TOKEN&quot; \
+  --telemetry-interval 3600
+
+# Or configure in .env for `lila desktop dev`:
+# DESKTOP_REPORT_URL=http://127.0.0.1:8000/api/desktop
+# DESKTOP_REPORT_TOKEN=optional-shared-secret
+# DESKTOP_TELEMETRY_INTERVAL=3600</code></pre>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+        On the client, preferences live in <code>get_data_path(&quot;desktop_preferences.json&quot;)</code> with <code>anonymous_telemetry: false</code> by default (strictly opt-in), a random anonymous <code>install_id</code>, and local <code>sent_hashes</code> tracking so duplicate logs are skipped before making a network request. Control or customize from React using <code>@lila/desktop</code>:
+      </p>
+      <pre><code class="language-typescript">import { desktop } from &quot;@lila/desktop&quot;;
+
+// Check current settings &amp; opt-in state
+const settings = await desktop.getReportSettings();
+
+// Opt in / out of periodic anonymous diagnostics
+await desktop.setTelemetryOptIn(true);
+
+// Trigger a bug report modal or submit directly with AppData logs attached
+await desktop.openBugReport();
+await desktop.sendBugReport(&quot;Export fails with large CSV&quot;, true);
+await desktop.sendTelemetryNow();</code></pre>
     </article>
   </main>
 

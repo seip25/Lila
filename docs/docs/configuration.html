@@ -304,6 +304,42 @@ STRIPE_API_KEY="sk_test_..."
                             <td class="px-4 py-3"><code class="code-inline">5</code></td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Seconds a model read stays in the single-flight cache</td>
                         </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_ACCESS_LOG</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">False</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Enable Uvicorn/Granian HTTP access logs when <code class="code-inline">DEBUG=False</code> (opt-in; always active when <code class="code-inline">DEBUG=True</code>).</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_LOG_LEVEL</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Override server log level. Empty defaults to <code class="code-inline">"warning"</code> when <code class="code-inline">DEBUG=False</code> and <code class="code-inline">"info"</code> when <code class="code-inline">DEBUG=True</code>.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_AUTO_MIGRATE</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">False</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Run safe additive migrations automatically on <code class="code-inline">App</code> startup (enabled automatically in frozen desktop executables).</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_REPORT_URL</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Base endpoint URL (e.g. <code class="code-inline">https://example.com/api/desktop</code>) for desktop bug reports and opt-in anonymous telemetry.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_REPORT_TOKEN</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Optional shared secret validated via <code class="code-inline">X-Lila-Report-Token</code> on <code class="code-inline">desktop_reports</code> endpoints and sent by desktop clients.</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_TELEMETRY_INTERVAL</td>
+                            <td class="px-4 py-3 text-slate-500">int</td>
+                            <td class="px-4 py-3"><code class="code-inline">3600</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Seconds between periodic opt-in anonymous telemetry uploads from desktop apps (minimum <code class="code-inline">60</code>).</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

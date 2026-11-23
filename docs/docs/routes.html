@@ -676,10 +676,16 @@ async def feed(request: Request):
 router = Router(prefix="/v1/api")
 
 # Define a simple API route that supports GET.
+# Use "" for `/v1/api` (no trailing slash / no 307 redirect) or "/" for `/v1/api/`.
+@router.get("")
+async def api_root(request: Request):
+    """Api root function"""  # used as the summary in /openapi.json and /docs
+    return {"api": True}   # dict -> JSON automatically
+
 @router.get("/")
 async def api(request: Request):
-    """Api function"""  # used as the summary in /openapi.json and /docs
-    return {"api": True}   # dict -> JSON automatically
+    """Api trailing slash"""
+    return {"api": True}
 
 # GET and POST on the same path, protected by JWT validation.
 @router.route(path="/token", methods=["GET", "POST"])

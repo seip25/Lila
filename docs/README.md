@@ -13,7 +13,8 @@ Python **3.10+** is required.
 - Auth 2.0 scaffold (login, register, reset, profile, OAuth).
 - Admin 2.0 with sanitized CRUD, CSV export, cache purge and real telemetry.
 - AI helper (OpenAI/DeepSeek/Gemini) with PII masking.
-- One-command desktop builds (`lila desktop build`).
+- One-command desktop builds (`lila desktop build`) with auto-migrations on startup and opt-in bug reports / anonymous telemetry.
+- React (Vite) integration with server props, SEO, UI kit, `@lila/auth`, `@lila/desktop`, and `@lila/realtime`.
 - Built-in locales: English, Spanish, Portuguese and Simplified Chinese.
 
 ## Install
@@ -47,7 +48,8 @@ Requiere **Python 3.10+**.
 - Scaffold de Auth 2.0 (login, registro, reset, perfil, OAuth).
 - Admin 2.0 con CRUD sanitizado, exportación CSV, purga de cache y telemetría real.
 - Helper de IA (OpenAI/DeepSeek/Gemini) con enmascarado de PII.
-- Compilación de escritorio en un comando (`lila desktop build`).
+- Compilación de escritorio en un comando (`lila desktop build`) con migraciones automáticas al iniciar y reportes de bugs / telemetría anónima opt-in.
+- Integración React (Vite) con props del servidor, SEO, kit UI, `@lila/auth`, `@lila/desktop` y `@lila/realtime`.
 - Idiomas incluidos: inglés, español, portugués y chino simplificado.
 
 ## Instalación

@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila-256.webp" width="120" height="120" alt="Lila Framework">
 </p>
 
-<h1 align="center">Lila Framework v2.0.0</h1>
+<h1 align="center">Lila Framework v2.2.2</h1>
 
 <p align="center">
   <b>Lightweight full-stack Python web & desktop framework</b><br>
@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://pypi.org/project/lila-framework/"><img src="https://img.shields.io/pypi/v/lila-framework?color=blue" alt="PyPI"></a>
   <a href="https://pypi.org/project/lila-framework/"><img src="https://img.shields.io/pypi/dm/lila-framework" alt="Downloads"></a>
-  <a href="https://seip25.github.io/Lila"><img src="https://img.shields.io/badge/docs-v2.0-emerald" alt="Documentation"></a>
+  <a href="https://seip25.github.io/Lila"><img src="https://img.shields.io/badge/docs-v2.2-emerald" alt="Documentation"></a>
   <a href="https://github.com/seip25/Lila/blob/main/LICENSE"><img src="https://img.shields.io/github/license/seip25/Lila" alt="License"></a>
 </p>
 
@@ -335,14 +335,49 @@ hides them (`<WebOnly>`, `<DesktopOnly>`, `useLila().isAvailable(href)`; Jinja:
 
 The generated executable bundles `main`, `app`, Lila templates and `public/`.
 Lila binds the desktop server to `127.0.0.1`, enforces a per-run local token,
-prevents a second instance and stores its SQLite/cache/logs in the OS
-application-data directory.
+prevents a second instance, stores its SQLite/cache/logs in the OS
+application-data directory and automatically runs safe additive migrations
+(`LILA_AUTO_MIGRATE=1`) on startup so new tables are ready on first launch.
 
 Sign and auto-update desktop apps: `--sign-identity` (macOS, + notarization
 with `--notary-profile`), `--sign-cert` (Windows, password in
 `WINDOWS_SIGN_PASSWORD`), `--update-url https://…/latest.json` and
 `lila desktop release`; in React `useDesktopUpdate()` and `desktop.notify(...)`
 from `@lila/desktop`.
+
+#### Desktop Bug Reports & Opt-in Anonymous Telemetry
+
+Collect bug logs and opt-in diagnostics from desktop users without bloating your
+app database (`desktop_reports` is **OFF** by default and mounts `desktop=False`
+web-only endpoints):
+
+```python
+# Web server (main.py)
+app = App(
+    routes=[web_router],
+    desktop_reports=True,  # or {"prefix": "/api/desktop", "retention_days": 90, "rate_limit": (10, 60), "max_body_bytes": 262144}
+)
+```
+
+```bash
+# Desktop build / dev pointing at your server (.env: DESKTOP_REPORT_URL, DESKTOP_REPORT_TOKEN, DESKTOP_TELEMETRY_INTERVAL)
+lila desktop build --name MyApp --onefile --windowed \
+  --report-url "https://example.com/api/desktop" \
+  --report-token "$DESKTOP_REPORT_TOKEN" \
+  --telemetry-interval 3600
+```
+
+- **Isolated storage & deduplication**: stored in `app/desktop/database/reports.db`
+  (SQLite WAL) with unique deduplication on `(kind, app_version, install_id, period_key, content_hash)`
+  and automatic 90-day background retention pruning (`BackgroundTask`) on every upload.
+- **Hardened & PII-safe**: enforces 256 KB streaming body caps (`413`), per-IP rate
+  limits (`429`), optional `X-Lila-Report-Token` (`401`), Pydantic v2 validation (`422`),
+  and automatic redaction of emails, tokens/secrets, and user home paths.
+- **Native UI & React helpers**: configuring `--report-url` enables
+  `Help → Report Bug / Issue...` (uploads recent AppData `logs/`) and the opt-in
+  **Anonymous diagnostics** toggle in `File → Preferences...` (off by default in
+  `desktop_preferences.json`), plus `@lila/desktop` helpers (`desktop.openBugReport()`,
+  `desktop.sendBugReport()`, `desktop.setTelemetryOptIn()`, `desktop.getReportSettings()`).
 
 ### Real-time, storage and tracing
 
@@ -367,7 +402,7 @@ OTEL_ENABLED=true          # OpenTelemetry spans: GET /items/{id}, SQL, tasks
 | :--- | :--- |
 | `lila init` | Scaffold a project without overwriting existing files. |
 | `lila dev` | Uvicorn reload + Jinja/static SSE auto-reload (reads `.env` HOST/PORT). |
-| `lila run -w 2` | Production server; warns when using memory cache with >1 worker. |
+| `lila run -w 2` | Production server (`DEBUG=False` silences access logs unless `--access-log` / `--log-level` is passed); warns with memory cache and >1 worker. |
 | `lila doctor` | Health check: Python, `.env`, SECRET_KEY, DB, templates, public/. |
 | `lila routes` | List every route registered in `main:app`. |
 | `lila auth` | Auth 2.0 scaffold (backups for overwritten files). |
@@ -388,7 +423,7 @@ OTEL_ENABLED=true          # OpenTelemetry spans: GET /items/{id}, SQL, tasks
 | `lila i18n check` | Translation keys missing per language. |
 | `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
-| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`, signing, `--update-url`). |
+| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`, signing, `--update-url`, `--report-url`, `--report-token`, `--telemetry-interval`, auto-migrations on startup). |
 | `lila desktop routes` | Which routes ship in the desktop app + web-only suggestions. |
 | `lila react init/dev/build/types/status` | React + Vite (TypeScript): scaffold, HMR dev server, production build, TS types from models. |
 | `lila auth --react` | Auth pages in React (TypeScript) instead of Jinja. |

@@ -121,7 +121,7 @@
             <div>
                 <h1>CLI Commands Reference</h1>
                 <p>
-                    Lila Framework v2.0.0 ships a unified CLI: <code
+                    Lila Framework v2.2 ships a unified CLI: <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila &lt;command&gt;</code>.
                     Legacy entry points such as <code>lila-init</code>, <code>lila-dev</code>,
                     <code>lila-auth</code>, <code>lila-admin</code>, <code>lila-model</code>,
@@ -159,8 +159,10 @@ lila dev
 lila dev --host 0.0.0.0 --port 8080
 
 # Production server, no reload (warns with >1 worker + memory cache)
+# When DEBUG=False, HTTP access logs are silenced by default unless --access-log is passed
 lila run
 lila run -w 2
+lila run --access-log --log-level info
 
 # Health check and route introspection
 lila doctor
@@ -237,15 +239,14 @@ lila model list-models</code></pre>
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Generate scaffold from model (alias: lila-scaffold-crud)
 lila crud --model Product
 
 # Custom route slug
 lila crud --model Product --name products
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -269,7 +270,7 @@ lila crud --model Product --name products
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Create tables and add missing columns
 lila migrate
@@ -279,8 +280,7 @@ lila migrate --refresh
 
 # Same, without the confirmation prompt (destructive!)
 lila migrate --refresh --yes
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -305,7 +305,7 @@ lila migrate --refresh --yes
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Generate auth system (alias: lila-auth)
 lila auth
@@ -313,8 +313,7 @@ lila auth
 # Templates or routes only
 lila auth --no-routes
 lila auth --no-templates
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -338,7 +337,7 @@ lila auth --no-templates
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Create/update an administrator (password generated if omitted)
 lila admin
@@ -346,8 +345,7 @@ lila admin --user admin --password mypassword
 
 # Aliases: lila-admin, lila-create-admin, lila-create-panel-admin
 lila-create-admin --username admin
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -370,14 +368,13 @@ lila-create-admin --username admin
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Replace SECRET_KEY in .env with a new randomly generated token
 lila secret-key
 
 # The same command is available as lila-secret-key
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -403,7 +400,7 @@ lila secret-key
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Generate both files (base URL from APP_URL in .env)
 lila seo
@@ -411,8 +408,7 @@ lila seo
 # Generate one of them with an explicit domain
 lila seo sitemap --domain https://mywebsite.com
 lila seo robots  --domain https://mywebsite.com
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -428,11 +424,10 @@ lila seo robots  --domain https://mywebsite.com
 
             <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
                 <div class="editor-content">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 lila optimize
 # alias: lila-optimize
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -503,7 +498,7 @@ sudo "$(which lila)" deploy setup --yes       # accept defaults (needs APP_URL)
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # Back up the active SQLite DB into backups/ (keeps 7)
 lila backup
@@ -513,8 +508,7 @@ lila backup --source lila.sqlite --output backups --max-backups 14
 
 # Explicit destination file
 lila backup --output backups/lila_before_release.sqlite
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 
@@ -546,13 +540,22 @@ lila backup --output backups/lila_before_release.sqlite
                     <pre><code class="language-bash"># Run locally in a native desktop window (pywebview or Chromium App Mode)
 lila desktop dev
 
-# Launch with custom dimensions
-lila desktop dev --title "My App" --width 1280 --height 800
+# Launch with custom dimensions and report server
+lila desktop dev --title &quot;My App&quot; --width 1280 --height 800 --report-url &quot;http://127.0.0.1:8000/api/desktop&quot;
 
-# Compile a standalone executable (.exe / binary) via PyInstaller
-lila desktop build --name "MyDesktopApp" --onefile --windowed</code></pre>
+# Preview routes shipped in desktop mode + web-only exclusion suggestions
+lila desktop routes
+
+# Compile a standalone executable (.exe / binary) via PyInstaller (auto-migrates on startup)
+lila desktop build --name &quot;MyDesktopApp&quot; --onefile --windowed --auto-exclude \
+  --report-url &quot;https://example.com/api/desktop&quot; --telemetry-interval 3600</code></pre>
                 </div>
             </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+                Additional flags include <code>--exclude</code>, <code>--report-token</code>,
+                <code>--installer auto|dmg|msi</code>, code signing and <code>--update-url</code>. See the full
+                <a href="desktop.html">Desktop guide</a> for details.
+            </p>
 
             <!-- Background Worker -->
             <div class="space-y-4 mt-8">
@@ -577,14 +580,13 @@ lila desktop build --name "MyDesktopApp" --onefile --windowed</code></pre>
                     </div>
                 </div>
                 <div class="overflow-x-auto p-4 md:p-6 text-sm text-gray-200">
-                    <pre class="language-bash">
+                    <pre><code class="language-bash">
 
 # All three forms start the worker
 lila worker
 lila worker start
 lila-worker start
-</code>
-</pre>
+</code></pre>
                 </div>
             </div>
 

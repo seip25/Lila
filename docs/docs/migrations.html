@@ -311,6 +311,16 @@ await connection.drop_all_async(use_base=True)
           <code>lila.core.admin</code> for the admins table). If a module fails to import, its table may be
           missing — the command prints the failing modules and exits with a non-zero status.</p>
       </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">Automatic Safe Migrations (Desktop &amp; Startup)</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        In frozen desktop builds (<code>lila desktop build</code>), Lila automatically sets
+        <code>LILA_AUTO_MIGRATE="1"</code> and bundles the discovered model modules
+        (<code>LILA_DESKTOP_MODELS</code>) so <code>lila.core.migrations.auto_migrate_async()</code>
+        runs safe additive migrations on startup (creating missing tables and adding safe columns inside
+        the user's AppData SQLite database). You can also enable startup auto-migration on a server by
+        setting <code>LILA_AUTO_MIGRATE=True</code> in <code>.env</code>.
+      </p>
     
       <h3 class="text-xl font-bold mt-8 mb-3">Rollback</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Every <code>lila migrate</code> run is a batch. <code>lila migrate rollback</code> undoes the newest

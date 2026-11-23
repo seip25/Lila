@@ -381,6 +381,14 @@ DEBUG=False
         <code>resources/html/404.jinja</code> when it exists, otherwise the bundled
         <code>lila/404</code> template.
       </p>
+      <p class="mt-2">
+        <strong>Quiet terminal logs in production:</strong> with <code>DEBUG=False</code>, Lila automatically
+        silences <code>uvicorn.access</code> and raises Uvicorn/Granian logging to <code>WARNING</code> (both via
+        <code>python main.py</code> and <code>lila run</code>) while still recording unhandled errors to
+        <code>app/logs/YYYY-MM-DD/error.log</code>. To re-enable access logs in production, pass
+        <code>lila run --access-log --log-level info</code> or set <code>LILA_ACCESS_LOG=True</code> and
+        <code>LILA_LOG_LEVEL=info</code> in <code>.env</code>.
+      </p>
 
 
 

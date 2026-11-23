@@ -245,7 +245,9 @@ createLilaSpa(() =&gt; &lt;AuthProvider&gt;&lt;RouterProvider router={router} /&
       <h3 class="text-xl font-bold mt-8 mb-3">Real-time and desktop hooks</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4"><code>@lila/realtime</code> (<code>useSSE</code>, <code>useWebSocket</code>) connects to
         <code>Channel</code> streams and <code>WebSocketHub</code>; <code>@lila/desktop</code> exposes the native
-        bridge (dialogs, notifications, updates) as no-ops on the web. Start a project with everything wired:
+        bridge (dialogs, notifications, updates, plus <code>openBugReport</code>, <code>sendBugReport</code>,
+        <code>getReportSettings</code>, <code>setTelemetryOptIn</code> and <code>sendTelemetryNow</code>) as no-ops on the web — see <a href="desktop.html">Desktop</a>.
+        Start a project with everything wired:
         <code>lila init -t full</code>. CRUD pages: <code>lila crud -m Product --react</code>; admin:
         <code>lila admin --react</code>.</p>
     </article>

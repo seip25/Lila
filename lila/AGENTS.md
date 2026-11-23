@@ -1,4 +1,4 @@
-# Lila Framework v2.2.0 — Agent & Developer Reference
+# Lila Framework v2.2.2 — Agent & Developer Reference
 
 Lila is a lightweight full-stack Python web framework built on **Starlette**,
 **Pydantic v2**, **SQLAlchemy 2.0 Async** and **Jinja2**. It targets 1–2 worker
@@ -48,7 +48,9 @@ Lila/
 │   │   ├── csp.py           # Content-Security-Policy with nonces
 │   │   ├── storage.py       # local / S3-compatible file storage
 │   │   ├── telemetry.py     # optional OpenTelemetry tracing
-│   │   ├── desktop_bridge.py # window.pywebview.api (dialogs, notify, updates)
+│   │   ├── desktop_bridge.py  # window.pywebview.api (dialogs, notify, updates, reports)
+│   │   ├── desktop_menu.py    # native menu bar, About, Preferences, Manual, Bug Report
+│   │   ├── desktop_reports.py # opt-in desktop bug reports & telemetry
 │   │   ├── controller.py    # RequestParser (v1 compatibility)
 │   │   ├── exporter.py      # CSV (formula-safe, BOM)
 │   │   ├── background.py    # Redis JSON tasks / Starlette fallback
@@ -81,8 +83,14 @@ app = App(
     csrf=False,           # global JSON/header CSRF; prefer route csrf=True
     csp=True,             # Content-Security-Policy with nonces (scaffold default)
     telemetry=None,       # OpenTelemetry (True / OTEL_ENABLED=true, extra [otel])
+    desktop_reports=False, # opt-in bug/telemetry ingestion (web-only, app/desktop/database/reports.db)
 )
 ```
+
+- When `DEBUG=False`, `App._configure_server_logging()` silences `uvicorn.access`
+  and raises `uvicorn`/`uvicorn.error`/`uvicorn.asgi` to `WARNING` unless
+  `LILA_ACCESS_LOG=True` or `LILA_LOG_LEVEL` (or `lila run --access-log --log-level`)
+  is explicitly set. Granian inherits the same `server_logging_options()`.
 
 - `csp=True|"report-only"|{"img-src": [...], "script-src!": [...], "report-uri": ...}`:
   HTML responses get `script-src 'nonce-…' 'strict-dynamic'` (+ CSP2
@@ -131,6 +139,9 @@ async def old(request): ...
   concrete path + query; use `cache_public=True` only for public content.
 - `q: Optional[str]` without a default receives `None` when missing.
 - `auth=True` requires a session; API paths get 401, pages get a 303 redirect.
+- On a prefixed router (`Router(prefix="/api/todos")`), `@router.get("")`
+  registers `/api/todos` without a trailing slash (no 307 redirect), while
+  `@router.get("/")` keeps `/api/todos/`.
 
 ---
 
@@ -172,13 +183,18 @@ class Product(BaseModel):
   `--refresh` drops tables (confirmation required unless `--yes`). Each run is
   a batch: `lila migrate rollback [--steps N] [--dry-run] [--yes]` undoes index
   and rename steps; added columns/tables only with confirmation; dropped
-  columns cannot be restored.
+  columns cannot be restored. `lila.core.migrations.auto_migrate_async()` and
+  `discover_and_import_models()` run safe additive migrations automatically at
+  `App` startup when frozen (`sys.frozen`) or when `LILA_AUTO_MIGRATE=1`.
 - Cache invalidation is per process and also sent to Redis when configured; the
   model read cache defaults to `MODEL_CACHE_TTL=5`. Cached reads are returned as
   copies (mutating a result never changes the cache).
 - Filters, `order_by` and `select` accept only table columns; an unknown filter
-  raises `ValueError`. `update_async` skips soft-deleted rows unless the payload
-  sets the active field (`update_async(id, active=1)` restores).
+  raises `ValueError`. Reads default to `active=1` unless the caller explicitly
+  filters on `active` (`active=0`, `active__in=[0, 1]`, etc.);
+  `get_by_id_async(id, include_deleted=True)` fetches soft-deleted rows too.
+  `update_async` skips soft-deleted rows unless the payload sets the active
+  field (`update_async(id, active=1)` restores).
 - `router.rest_crud_generate(Model, auth=True, max_limit=500)` only writes table
   columns (never the primary key or `__private_fields__`).
 
@@ -302,9 +318,11 @@ return render(
   `data-modal-target`/`data-close-modal`. Escape closes drawers/dropdowns; SPA
   navigation closes them too. JS: `Lila.drawer(el, "open")`, `Lila.copy(text)`.
 - `lila-client.js`: View Transitions, prefetch, `data-persist`, toast/snackbar,
-  command palette, drawer, tabs, carousel and `ResponsiveDataTable`. Page scripts
-  re-run on SPA navigation: use `var`/functions (not top-level `let`/`const`) and
-  call init code directly instead of `DOMContentLoaded`.
+  command palette, drawer, tabs, carousel and `ResponsiveDataTable`. Detects
+  target pages with `data-layout="react"` or `[data-lila-react]` and falls back
+  to full navigation so Jinja → React transitions work without `data-no-router`.
+  Page scripts re-run on SPA navigation: use `var`/functions (not top-level
+  `let`/`const`) and call init code directly instead of `DOMContentLoaded`.
 - `ws.js`: `lilaWS("/ws")` (relative URLs ok), auto reconnect with backoff, rooms,
   bounded offline queue; closed automatically when the SPA leaves the page unless
   `{ persist: true }`. Server side: `@hub.can_join` authorizes room joins.
@@ -382,8 +400,9 @@ return render(
   `useWebSocket(url, {rooms, events})` → `{connected, emit, join, leave, on}` for
   `router.ws_hub(...)` (`{event, data}` protocol, heartbeat, backoff, offline queue).
 - `@lila/desktop`: `desktop.notify/openExternal/openFile/saveFile/selectFolder/
-  appInfo/checkUpdate/installUpdate/setTitle` (no-ops on the web),
-  `useDesktopUpdate()`.
+  appInfo/checkUpdate/installUpdate/setTitle/openHelp/openAbout/openPreferences/
+  openBugReport/getReportSettings/setTelemetryOptIn/sendBugReport/sendTelemetryNow`
+  (no-ops on the web), `useDesktopUpdate()`.
 - `lila crud --model X --react [--auth]` → `resources/react/pages/Crud/X.tsx`
   (DataTable server mode + Modal form) and a paginated API that logs errors
   (never `str(exc)`) and honours `__private_fields__`. `lila admin --react` →
@@ -402,12 +421,38 @@ return render(
 - Jinja `is_desktop()`, `route_available(path)`; React `useLila().desktop`,
   `isAvailable(href)`, `<Link>` hides unavailable targets.
 - Native menu bar (`lila.core.desktop_menu`, enabled by default, `--no-menu` /
-  `DESKTOP_MENU=False`): File (Preferences / `DESKTOP_PREFERENCES_URL`, Quit),
+  `DESKTOP_MENU=False`): File (Preferences / `DESKTOP_PREFERENCES_URL`, with
+  opt-in `Anonymous diagnostics` toggle when report URL is configured; Quit),
   Edit (Undo, Redo, Cut, Copy, Paste, Select All), View (Back, Forward, Reload,
   Zoom, Fullscreen), Help (Markdown `resources/manual.md` modal with view/edit
-  via `DESKTOP_HELP_FILE` / `DESKTOP_HELP_EDITABLE`, Updates, About / `DESKTOP_ABOUT`).
-  Extend via `app/desktop_menu.py` (`extra_menus` / `get_menu`) or cancelable
-  `lila:desktop-{about,preferences,help}` events.
+  via `DESKTOP_HELP_FILE` / `DESKTOP_HELP_EDITABLE`, Report Bug / Issue...
+  modal when `DESKTOP_REPORT_URL` / `--report-url` is configured, Updates,
+  About / `DESKTOP_ABOUT`). Extend via `app/desktop_menu.py`
+  (`extra_menus` / `get_menu`) or cancelable
+  `lila:desktop-{about,preferences,help,report-bug}` events.
+- Frozen builds (`lila desktop build`) bake `LILA_AUTO_MIGRATE="1"` and
+  discovered `LILA_DESKTOP_MODELS` so SQLite tables in the OS app-data
+  directory are created/updated safely at startup.
+- **Desktop Bug Reports & Telemetry (`lila.core.desktop_reports`)**:
+  - Disabled by default (`App(..., desktop_reports=False)`). Enable with `True`
+    or dict `{prefix="/api/desktop", max_body_bytes=262144, rate_limit=(10, 60),
+    retention_days=90, token=None, db_path=None, admin_auth=True}`.
+  - Web-only (`desktop=False`) routes: `POST {prefix}/bug`,
+    `POST {prefix}/telemetry`, `GET {prefix}/reports` (`kind`, `app_version`,
+    `period_key`, `limit`, `offset`), `GET {prefix}/reports/stats` (GET routes
+    require admin session or `X-Lila-Report-Token`).
+  - Isolated SQLite WAL DB at `app/desktop/database/reports.db`; deduplicates
+    on `UNIQUE(kind, app_version, install_id, period_key, content_hash)`
+    (`201 stored` vs `200 duplicate`); streaming body cap (`413`), per-IP rate
+    limit (`429`), optional `X-Lila-Report-Token` (`401`), Pydantic v2 (`422`),
+    `redact_pii()`, and `BackgroundTask(prune_old_reports, ...)` deleting rows
+    older than `retention_days` (default 90 days) on every upload (+ `@task`
+    `prune_old_reports_task`).
+  - Client: `--report-url`, `--report-token`, `--telemetry-interval` (default
+    `3600`s, min `60`s) on `lila desktop dev|build` (or `.env`
+    `DESKTOP_REPORT_URL`, `DESKTOP_REPORT_TOKEN`, `DESKTOP_TELEMETRY_INTERVAL`).
+    Persists `anonymous_telemetry=False` (opt-in), random `install_id`, and
+    `sent_hashes` in `get_data_path("desktop_preferences.json")`.
 
 ---
 
@@ -415,9 +460,11 @@ return render(
 
 - `lila init [--template web|react|auth|react-auth|full|desktop] [--yes] [--install]`
   — scaffold (+ the generators of the template); **never overwrites existing files/.env**.
-- `lila dev` / `lila run` — read `.env` HOST/PORT; `run` supports `-w`.
-  `lila dev` forces development mode and enables Jinja auto-reload plus an SSE
-  watcher for templates/static/locales (works without `watchfiles`).
+- `lila dev` / `lila run` — read `.env` HOST/PORT; `run` supports `-w` and
+  `--access-log/--no-access-log --log-level <level>` (silences access logs when
+  `DEBUG=False` unless opted in). `lila dev` forces development mode and enables
+  Jinja auto-reload plus an SSE watcher for templates/static/locales (works
+  without `watchfiles`).
 - `lila doctor`, `lila routes` — health and route introspection.
 - `lila auth`, `lila admin`, `lila model`, `lila crud` — safe `main.py` patching
   (`lila/cli/_patch.py`) with backups for overwritten scaffold files.
@@ -456,12 +503,13 @@ return render(
   only; the `.wxs` is kept in `build/installer/`). Icons: `--icon` or
   `public/icon.*`, `public/favicon.ico`, Lila logo; PNG → ICO/ICNS with Pillow.
 - `lila desktop routes` — desktop/web route preview; `lila desktop dev/build
-  --exclude PATTERN --auto-exclude` (build runs `lila react build` when
+  --exclude PATTERN --auto-exclude --report-url URL --report-token TOK
+  --telemetry-interval SECS` (build runs `lila react build` when
   `vite.config.js` exists; `--no-react` skips it).
 - `lila react init|dev|build|status` — see 7b.
 - `lila desktop dev/build` — bundles `main`, `app` (+ `app/locales`), Lila templates/assets;
-  binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, and stores data under the
-  OS app-data directory when frozen.
+  binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, enables auto-migrations in
+  frozen builds, and stores data under the OS app-data directory when frozen.
 
 ---
 
@@ -509,8 +557,9 @@ health/metrics access, static compression/ETag, migrations plan, UI helpers,
 routing/422, cache isolation, CSRF forms, sessions, seed secrets,
 schema column additions, admin coercion, deploy/backup generation, the deploy
 setup wizard, auto-layout templates and component helpers, WebSocketHub,
-REST CRUD, locale parity, native metrics, desktop locking/bridge and safe
-`main.py` patching.
+REST CRUD, locale parity, native metrics, desktop locking/bridge/menu/reports/telemetry,
+auto-migrations, quiet production logging, prefixed empty routes, soft-delete
+filters and safe `main.py` patching.
 
 ---
 
