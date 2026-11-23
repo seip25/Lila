@@ -1,10 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" class="dark" data-theme="dark">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="dark light" />
+  <script>
+    (function () {
+      var t = 'dark';
+      try { var s = localStorage.getItem('lila-theme'); if (s === 'light' || s === 'dark') t = s; } catch (e) {}
+      var r = document.documentElement;
+      r.classList.toggle('dark', t === 'dark');
+      r.dataset.theme = t;
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = t;
+    })();
+  </script>
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="canonical" href="https://seip25.github.io/Lila/" />
     <title>Lila Framework - Middlewares</title>
@@ -65,27 +76,34 @@
     </script>
 </head>
 
-<body>
-        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+<body class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans">
+        <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-colors duration-300">
       <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
             L
           </div>
-          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+          <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
         </div>
         <div class="flex items-center gap-3">
-          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
             Home
           </a>
-          <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
-            Github
-          </a>
-        </div>
+          <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+          GitHub
+        </a>
+        <button type="button" data-theme-toggle aria-label="Toggle color theme" aria-pressed="true"
+          class="inline-flex items-center justify-center">
+          <svg class="theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <span class="theme-icon-light sr-only">Switch to light theme</span>
+          <svg class="theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span class="theme-icon-dark sr-only">Switch to dark theme</span>
+        </button>
+      </div>
       </nav>
     </header>
     <main>
-        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+        <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-colors duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
   <a href="configuration.html">Configuration</a>
@@ -117,7 +135,7 @@
   <a href="rest_api.html">API Rest CRUD</a>
   <a href="production.html">Production</a>
 </aside>
-        <article id="middlewares-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+        <article id="middlewares-eng" class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-colors duration-300">
             <h1>️ Middlewares</h1>
             <h5>Middleware functions are used to intercept requests before they reach the main logic of the application. In Lila, core middlewares are defined in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila/core/middleware.py</code> and re-exported from <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">lila.core.middleware</code>. Middlewares can be used for tasks such as authentication, logging, security, and error handling.</h5>
             <p>
@@ -141,27 +159,27 @@
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@login_required</code>:
-                    requires an active session. Pages get a <code class="text-blue-600">303</code> redirect to
-                    <code class="text-blue-600">/login</code>; <code>/api/</code> requests get
-                    <code class="text-blue-600">401</code>. It also sets <code>request.state.user</code>.
+                    requires an active session. Pages get a <code class="text-blue-600 dark:text-blue-400">303</code> redirect to
+                    <code class="text-blue-600 dark:text-blue-400">/login</code>; <code>/api/</code> requests get
+                    <code class="text-blue-600 dark:text-blue-400">401</code>. It also sets <code>request.state.user</code>.
                 </li>
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@session_active</code>:
                     redirects already-authenticated users away from guest pages (default:
-                    <code class="text-blue-600">/dashboard</code>).
+                    <code class="text-blue-600 dark:text-blue-400">/dashboard</code>).
                 </li>
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@admin_required</code>:
-                    checks the <code class="text-blue-600">admin_session</code> cookie and sets
-                    <code>request.state.admin</code> (default redirect: <code class="text-blue-600">/admin/login</code>).
+                    checks the <code class="text-blue-600 dark:text-blue-400">admin_session</code> cookie and sets
+                    <code>request.state.admin</code> (default redirect: <code class="text-blue-600 dark:text-blue-400">/admin/login</code>).
                 </li>
                 <li>
                     <code
                         class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@validate_token</code>:
                     validates a JWT from the <code
-                        class="text-blue-600">Authorization: Bearer &lt;token&gt;</code> header and exposes
+                        class="text-blue-600 dark:text-blue-400">Authorization: Bearer &lt;token&gt;</code> header and exposes
                     <code>request.state.jwt</code> / <code>request.state.jwt_user_id</code>.
                 </li>
                 <li>
@@ -171,7 +189,7 @@
                 </li>
             </ul>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-6">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">Example usage in routes</span>
                     <div class="flex space-x-2">
@@ -229,7 +247,7 @@ async def reports(request: Request):
                 helper. This tool automatically handles the boilerplate of Python decorators.
             </p>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-6">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">core/middleware.py (Custom
                         Middleware)</span>
@@ -266,7 +284,7 @@ async def check_admin(request: Request, role="admin"):
                 Instead of decorating every route manually, you can assign one or more middlewares to a <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">Router</code> during initialization. Every route registered on that router will inherit them and run them in left-to-right order.
             </p>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-6">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">Router-level middleware inheritance</span>
                     <div class="flex space-x-2">
@@ -293,13 +311,13 @@ async def user_details(request: Request):
 
             <h2>CSRF Protection Middleware</h2>
             <p>
-                Lila includes a built-in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@csrf</code> decorator that protects routes against Cross-Site Request Forgery attacks. It verifies the CSRF token on all unsafe HTTP methods (<code class="text-blue-600">POST</code>, <code class="text-blue-600">PUT</code>, <code class="text-blue-600">PATCH</code>, <code class="text-blue-600">DELETE</code>). Safe methods (<code class="text-blue-600">GET</code>, <code class="text-blue-600">HEAD</code>, <code class="text-blue-600">OPTIONS</code>) are always allowed through.
+                Lila includes a built-in <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">@csrf</code> decorator that protects routes against Cross-Site Request Forgery attacks. It verifies the CSRF token on all unsafe HTTP methods (<code class="text-blue-600 dark:text-blue-400">POST</code>, <code class="text-blue-600 dark:text-blue-400">PUT</code>, <code class="text-blue-600 dark:text-blue-400">PATCH</code>, <code class="text-blue-600 dark:text-blue-400">DELETE</code>). Safe methods (<code class="text-blue-600 dark:text-blue-400">GET</code>, <code class="text-blue-600 dark:text-blue-400">HEAD</code>, <code class="text-blue-600 dark:text-blue-400">OPTIONS</code>) are always allowed through.
             </p>
             <p>
                 The token is read from the <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">X-CSRF-Token</code> header first, then from the parsed body (<code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code>, <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf</code> or <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">csrf_token</code>; JSON or form), and compared against the signed <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">_csrf</code> cookie set by <code class="font-mono font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">render()</code>. Tokens in the query string are intentionally <b>not</b> accepted.
             </p>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-6">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">CSRF usage example</span>
                     <div class="flex space-x-2">
@@ -358,30 +376,30 @@ async def contact_submit(request: Request):
             <h2>Global Security Middlewares</h2>
             <p>
                 Lila includes a set of global HTTP middlewares for application-wide protection. Pass them to
-                <code class="text-blue-600">App(middleware=[...])</code>:
+                <code class="text-blue-600 dark:text-blue-400">App(middleware=[...])</code>:
             </p>
             <ul>
-                <li><code class="text-blue-600">LoggingMiddleware</code>: Pure ASGI request logger (skips static
+                <li><code class="text-blue-600 dark:text-blue-400">LoggingMiddleware</code>: Pure ASGI request logger (skips static
                     files, redacts sensitive query keys).</li>
-                <li><code class="text-blue-600">SecurityHeadersMiddleware</code>: adds
+                <li><code class="text-blue-600 dark:text-blue-400">SecurityHeadersMiddleware</code>: adds
                     <code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>,
                     <code>Referrer-Policy</code>, <code>Permissions-Policy</code>,
                     <code>Cross-Origin-Opener-Policy</code> and HSTS on HTTPS; blocks real traversal probes
                     (<code>.env</code>, <code>.git</code>, <code>../</code>).</li>
-                <li><code class="text-blue-600">RateLimitMiddleware</code>: pure ASGI limiter backed by
+                <li><code class="text-blue-600 dark:text-blue-400">RateLimitMiddleware</code>: pure ASGI limiter backed by
                     <code>Cache.incr_async</code> (memory by default, Redis when configured) — not
                     Redis-only.</li>
-                <li><code class="text-blue-600">StaticCacheMiddleware</code>: adds long-lived
+                <li><code class="text-blue-600 dark:text-blue-400">StaticCacheMiddleware</code>: adds long-lived
                     <code>Cache-Control</code> headers to <code>/public</code>, <code>/js</code>,
                     <code>/img</code>, <code>/uploads</code> assets (immutable when the URL has
                     <code>?v=</code>).</li>
-                <li><code class="text-blue-600">csrf_protect</code>/<code class="text-blue-600">csrf</code>:
+                <li><code class="text-blue-600 dark:text-blue-400">csrf_protect</code>/<code class="text-blue-600 dark:text-blue-400">csrf</code>:
                     a route decorator that verifies CSRF for HTML form posts. The global
                     <code>App(csrf=True)</code> guard covers JSON/header clients; form bodies are handled by
                     the route-level check.</li>
             </ul>
 
-            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8 mt-4 mb-4">
+            <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-6">
                 <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
                     <span class="editor-title text-gray-300 dark:text-gray-400">main.py configuration</span>
                     <div class="flex space-x-2">

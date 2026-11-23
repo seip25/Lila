@@ -1,10 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" class="dark" data-theme="dark">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
+  <meta name="color-scheme" content="dark light" />
+  <script>
+    (function () {
+      var t = 'dark';
+      try { var s = localStorage.getItem('lila-theme'); if (s === 'light' || s === 'dark') t = s; } catch (e) {}
+      var r = document.documentElement;
+      r.classList.toggle('dark', t === 'dark');
+      r.dataset.theme = t;
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = t;
+    })();
+  </script>
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <link rel="canonical" href="https://seip25.github.io/Lila/" />
   <title>Lila Framework - SPA & View Transitions (lila-client.js)</title>
@@ -53,28 +64,35 @@
   </script>
 </head>
 
-<body class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans transition-all duration-300">
-  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+<body class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans ">
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-colors duration-300">
     <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
           L
         </div>
-        <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
       </div>
       <div class="flex items-center gap-3">
-        <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+        <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
           Home
         </a>
-        <a href="https://github.com/seip25/Lila" target="_blank" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+        <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
           GitHub
         </a>
+      <button type="button" data-theme-toggle aria-label="Toggle color theme" aria-pressed="true"
+          class="inline-flex items-center justify-center">
+          <svg class="theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <span class="theme-icon-light sr-only">Switch to light theme</span>
+          <svg class="theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span class="theme-icon-dark sr-only">Switch to dark theme</span>
+        </button>
       </div>
     </nav>
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-8 flex-1 flex flex-col lg:flex-row gap-8 w-full">
-    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-all duration-300">
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-colors duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
   <a href="configuration.html">Configuration</a>
@@ -107,7 +125,7 @@
   <a href="production.html">Production</a>
 </aside>
 
-    <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-all duration-300">
+    <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-colors duration-300">
       <h2 class="text-3xl font-black mb-4">SPA & View Transitions (<code class="font-mono text-xl">lila-client.js</code>)</h2>
 
       <p class="text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
@@ -167,35 +185,35 @@
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">Everything below works without writing JavaScript, survives SPA navigations and is re-applied to content inserted with <code>data-target</code> or partials. Escape closes drawers and dropdowns.</p>
       <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 mb-6">
         <table class="w-full text-sm text-left">
-          <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500"><tr><th class="px-3 py-2">Group</th><th class="px-3 py-2">Attribute</th><th class="px-3 py-2">What it does</th></tr></thead>
+          <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-600 dark:text-slate-300"><tr><th class="px-3 py-2">Group</th><th class="px-3 py-2">Attribute</th><th class="px-3 py-2">What it does</th></tr></thead>
           <tbody>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>a[href]</code></td><td class="px-3 py-2">Internal links use the SPA router (View Transitions + hover prefetch). Opt out: data-no-router, data-no-prefetch.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>data-persist=&quot;true&quot;</code></td><td class="px-3 py-2">Element kept across navigations (players, sidebars); its links get the new page&#x27;s active classes.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>data-partial-target=&quot;#sel&quot;</code></td><td class="px-3 py-2">Link loads only the [data-lila-outlet] fragment into #sel (+ data-transition, data-push-url).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>form[data-lila-form]</code></td><td class="px-3 py-2">Validate + send with Http() + feedback (see Forms &amp; actions).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-action=&quot;/api/x&quot;</code></td><td class="px-3 py-2">Button/link request: data-method, data-body, data-include, data-confirm, data-target, data-refresh, data-callback.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-match=&quot;field&quot;</code></td><td class="px-3 py-2">Confirmation field must equal another field (data-match-message).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-autosubmit[=&quot;ms&quot;]</code></td><td class="px-3 py-2">On a form or field: submit on change; text inputs wait ms after typing (default 400).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>form[data-navigate]</code></td><td class="px-3 py-2">GET form (filters/search) → SPA navigation to action?query.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-char-count=&quot;#counter&quot;</code></td><td class="px-3 py-2">Writes &quot;n / maxlength&quot; into #counter (red at the limit).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-password-toggle=&quot;#input&quot;</code></td><td class="px-3 py-2">Shows/hides a password (data-show-text / data-hide-text, aria-pressed).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Feedback</td><td class="px-3 py-2 whitespace-nowrap"><code>data-confirm=&quot;Text&quot;</code></td><td class="px-3 py-2">Native confirm() before a click/submit continues.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Feedback</td><td class="px-3 py-2 whitespace-nowrap"><code>data-copy=&quot;text | #sel&quot;</code></td><td class="px-3 py-2">Copies text or an element&#x27;s value/text (fallback on http://); data-copy-message, data-copy-silent.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer=&quot;#id&quot;</code></td><td class="px-3 py-2">Toggles a drawer (data-drawer-action=&quot;open|close&quot;). Old data-drawer-target=&quot;id&quot; still works.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer-panel + data-orientation</code></td><td class="px-3 py-2">Drawer panel: left | right | top | bottom (aliases up/down/start/end), data-size=&quot;20rem&quot;.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer-close</code></td><td class="px-3 py-2">Closes the drawer it is in (or the selector given).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-dropdown=&quot;#menu&quot;</code></td><td class="px-3 py-2">Toggles a menu; closes on outside click, Escape and navigation. Mark the menu data-dropdown-menu to keep it open on inner clicks.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-modal-target=&quot;#dialog&quot; / data-close-modal</code></td><td class="px-3 py-2">Opens (showModal) / closes a &lt;dialog&gt;.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle-class=&quot;a b&quot;</code></td><td class="px-3 py-2">Toggles classes on data-toggle-target (default: the element itself).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle-hidden=&quot;#sel&quot;</code></td><td class="px-3 py-2">Shows/hides elements (hidden attribute or .hidden), sets aria-expanded.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-remove[=&quot;#sel&quot;]</code></td><td class="px-3 py-2">Fades out and removes an element (default: closest [data-removable] or the parent).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-tab-target=&quot;panelId&quot;</code></td><td class="px-3 py-2">Tabs: .tabs container with .tab-trigger buttons and .tab-content panels.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-scroll[=&quot;#id&quot;]</code></td><td class="px-3 py-2">Smooth scroll to an element (or to the top).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle=&quot;theme&quot;</code></td><td class="px-3 py-2">Light/dark switch, remembered in localStorage.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-filter=&quot;#list&quot;</code></td><td class="px-3 py-2">Filters the list&#x27;s children (or [data-filter-item]) by text; [data-filter-empty=&quot;#list&quot;] shows when nothing matches.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>&lt;time data-local-time datetime=&quot;…&quot;&gt;</code></td><td class="px-3 py-2">Formats dates in the visitor&#x27;s locale: data-format=&quot;date|time|datetime|relative&quot;.</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Components</td><td class="px-3 py-2 whitespace-nowrap"><code>data-carousel / data-carousel-slide</code></td><td class="px-3 py-2">Carousel from plain HTML (see Carousel).</td></tr>
-            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs text-slate-400">Components</td><td class="px-3 py-2 whitespace-nowrap"><code>{{ datatable(...) }} / {{ carousel(...) }}</code></td><td class="px-3 py-2">Jinja helpers, auto-initialized.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>a[href]</code></td><td class="px-3 py-2">Internal links use the SPA router (View Transitions + hover prefetch). Opt out: data-no-router, data-no-prefetch.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>data-persist=&quot;true&quot;</code></td><td class="px-3 py-2">Element kept across navigations (players, sidebars); its links get the new page&#x27;s active classes.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Navigation</td><td class="px-3 py-2 whitespace-nowrap"><code>data-partial-target=&quot;#sel&quot;</code></td><td class="px-3 py-2">Link loads only the [data-lila-outlet] fragment into #sel (+ data-transition, data-push-url).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>form[data-lila-form]</code></td><td class="px-3 py-2">Validate + send with Http() + feedback (see Forms &amp; actions).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-action=&quot;/api/x&quot;</code></td><td class="px-3 py-2">Button/link request: data-method, data-body, data-include, data-confirm, data-target, data-refresh, data-callback.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-match=&quot;field&quot;</code></td><td class="px-3 py-2">Confirmation field must equal another field (data-match-message).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-autosubmit[=&quot;ms&quot;]</code></td><td class="px-3 py-2">On a form or field: submit on change; text inputs wait ms after typing (default 400).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>form[data-navigate]</code></td><td class="px-3 py-2">GET form (filters/search) → SPA navigation to action?query.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-char-count=&quot;#counter&quot;</code></td><td class="px-3 py-2">Writes &quot;n / maxlength&quot; into #counter (red at the limit).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Forms</td><td class="px-3 py-2 whitespace-nowrap"><code>data-password-toggle=&quot;#input&quot;</code></td><td class="px-3 py-2">Shows/hides a password (data-show-text / data-hide-text, aria-pressed).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Feedback</td><td class="px-3 py-2 whitespace-nowrap"><code>data-confirm=&quot;Text&quot;</code></td><td class="px-3 py-2">Native confirm() before a click/submit continues.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Feedback</td><td class="px-3 py-2 whitespace-nowrap"><code>data-copy=&quot;text | #sel&quot;</code></td><td class="px-3 py-2">Copies text or an element&#x27;s value/text (fallback on http://); data-copy-message, data-copy-silent.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer=&quot;#id&quot;</code></td><td class="px-3 py-2">Toggles a drawer (data-drawer-action=&quot;open|close&quot;). Old data-drawer-target=&quot;id&quot; still works.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer-panel + data-orientation</code></td><td class="px-3 py-2">Drawer panel: left | right | top | bottom (aliases up/down/start/end), data-size=&quot;20rem&quot;.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-drawer-close</code></td><td class="px-3 py-2">Closes the drawer it is in (or the selector given).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-dropdown=&quot;#menu&quot;</code></td><td class="px-3 py-2">Toggles a menu; closes on outside click, Escape and navigation. Mark the menu data-dropdown-menu to keep it open on inner clicks.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Overlays</td><td class="px-3 py-2 whitespace-nowrap"><code>data-modal-target=&quot;#dialog&quot; / data-close-modal</code></td><td class="px-3 py-2">Opens (showModal) / closes a &lt;dialog&gt;.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle-class=&quot;a b&quot;</code></td><td class="px-3 py-2">Toggles classes on data-toggle-target (default: the element itself).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle-hidden=&quot;#sel&quot;</code></td><td class="px-3 py-2">Shows/hides elements (hidden attribute or .hidden), sets aria-expanded.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-remove[=&quot;#sel&quot;]</code></td><td class="px-3 py-2">Fades out and removes an element (default: closest [data-removable] or the parent).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-tab-target=&quot;panelId&quot;</code></td><td class="px-3 py-2">Tabs: .tabs container with .tab-trigger buttons and .tab-content panels.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-scroll[=&quot;#id&quot;]</code></td><td class="px-3 py-2">Smooth scroll to an element (or to the top).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-toggle=&quot;theme&quot;</code></td><td class="px-3 py-2">Light/dark switch, remembered in localStorage.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>data-filter=&quot;#list&quot;</code></td><td class="px-3 py-2">Filters the list&#x27;s children (or [data-filter-item]) by text; [data-filter-empty=&quot;#list&quot;] shows when nothing matches.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">UI</td><td class="px-3 py-2 whitespace-nowrap"><code>&lt;time data-local-time datetime=&quot;…&quot;&gt;</code></td><td class="px-3 py-2">Formats dates in the visitor&#x27;s locale: data-format=&quot;date|time|datetime|relative&quot;.</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Components</td><td class="px-3 py-2 whitespace-nowrap"><code>data-carousel / data-carousel-slide</code></td><td class="px-3 py-2">Carousel from plain HTML (see Carousel).</td></tr>
+            <tr class="border-t border-slate-100 dark:border-slate-800"><td class="px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400">Components</td><td class="px-3 py-2 whitespace-nowrap"><code>{{ datatable(...) }} / {{ carousel(...) }}</code></td><td class="px-3 py-2">Jinja helpers, auto-initialized.</td></tr>
           </tbody>
         </table>
       </div>
@@ -349,8 +367,8 @@
         <!-- ResponsiveDataTable -->
         <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
           <h4 class="text-base font-bold mb-2">3. ResponsiveDataTable</h4>
-          <p class="text-xs text-slate-500 mb-3">Renders a desktop table on large screens and converts automatically into mobile card views on small screens.</p>
-          <p class="text-xs text-slate-500 mb-3">From Jinja, without JavaScript: <code>{{ datatable(users, ["id", "name", ("email", "E-mail")], edit="openEditModal") }}</code> (unique id, auto-initialized; see <a href="templates.html">Templates</a>). Tables release their resize listener when an SPA navigation removes them.</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Renders a desktop table on large screens and converts automatically into mobile card views on small screens.</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">From Jinja, without JavaScript: <code>{{ datatable(users, ["id", "name", ("email", "E-mail")], edit="openEditModal") }}</code> (unique id, auto-initialized; see <a href="templates.html">Templates</a>). Tables release their resize listener when an SPA navigation removes them.</p>
           <pre><code class="language-javascript">new ResponsiveDataTable('containerId', {
   data: users,
   columns: [
@@ -369,7 +387,7 @@
         <!-- Carousel -->
         <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
           <h4 class="text-base font-bold mb-2">Carousel</h4>
-          <p class="text-xs text-slate-500 mb-3">Scroll-snap carousel styled with Tailwind: touch swipe, arrows, indicators, keyboard (← →), autoplay (paused on hover/focus/hidden tab), loop and <code>prefers-reduced-motion</code>. Initialized automatically on the first load and after every SPA navigation. Three ways to create one:</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Scroll-snap carousel styled with Tailwind: touch swipe, arrows, indicators, keyboard (← →), autoplay (paused on hover/focus/hidden tab), loop and <code>prefers-reduced-motion</code>. Initialized automatically on the first load and after every SPA navigation. Three ways to create one:</p>
           <p class="text-xs font-bold mt-3 mb-1">a) Plain HTML with data attributes (track, arrows and dots are generated)</p>
           <pre><code class="language-html">&lt;div data-carousel
      data-carousel-autoplay=&quot;4000&quot;     &lt;!-- ms, 0 = off (default) --&gt;
@@ -383,7 +401,7 @@
   &lt;!-- several per view: give the slide a basis class --&gt;
   &lt;div data-carousel-slide class=&quot;basis-full md:basis-1/3 p-2&quot;&gt;&lt;div class=&quot;card h-full&quot;&gt;Card&lt;/div&gt;&lt;/div&gt;
 &lt;/div&gt;</code></pre>
-          <p class="text-xs text-slate-500 mt-2">Optional own controls inside the carousel: <code>data-carousel-prev</code>, <code>data-carousel-next</code>, <code>data-carousel-indicators</code>, <code>data-carousel-track</code>. (HTML comments inside the tag above are only explanatory.)</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400 mt-2">Optional own controls inside the carousel: <code>data-carousel-prev</code>, <code>data-carousel-next</code>, <code>data-carousel-indicators</code>, <code>data-carousel-track</code>. (HTML comments inside the tag above are only explanatory.)</p>
           <p class="text-xs font-bold mt-3 mb-1">b) From Jinja</p>
           <pre><code class="language-html">{{ carousel([{&quot;image&quot;: &quot;img/1.webp&quot;, &quot;title&quot;: &quot;Fast&quot;, &quot;text&quot;: &quot;...&quot;, &quot;href&quot;: &quot;/docs&quot;}], autoplay=5000) }}</code></pre>
           <p class="text-xs font-bold mt-3 mb-1">c) From JavaScript</p>
@@ -422,6 +440,7 @@ if (res.success) {
       hljs.highlightAll();
     });
   </script>
+  <script src="../js/lila.js"></script>
   <script src="../js/partial.js"></script>
 </body>
 </html>

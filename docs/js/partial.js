@@ -7,12 +7,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const html = await response.text();
     aside.innerHTML = html;
 
-    // 1. Dispatch custom event so other scripts (like lila.js) know the aside is fully loaded
-    document.dispatchEvent(new CustomEvent("lila:aside-loaded"));
-
-    // 2. Extract and execute script tags within the loaded HTML (since innerHTML doesn't execute them)
+    // 1. Execute script tags within the loaded HTML synchronously so active links are marked before cloning into drawer
     const scripts = aside.querySelectorAll("script");
-    scripts.forEach(script => {
+    scripts.forEach((script) => {
       const newScript = document.createElement("script");
       if (script.src) {
         newScript.src = script.src;
@@ -22,8 +19,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.body.appendChild(newScript);
       newScript.remove();
     });
+
+    // 2. Notify listeners (e.g., lila.js mobile drawer) after active link highlighting has run
+    document.dispatchEvent(new CustomEvent("lila:aside-loaded"));
   } catch (err) {
     console.error("Error loading aside:", err);
   }
 });
-

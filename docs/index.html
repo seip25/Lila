@@ -1,10 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" class="dark" data-theme="dark">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
+  <meta name="color-scheme" content="dark light" />
+  <script>
+    (function () {
+      var t = 'dark';
+      try { var s = localStorage.getItem('lila-theme'); if (s === 'light' || s === 'dark') t = s; } catch (e) {}
+      var r = document.documentElement;
+      r.classList.toggle('dark', t === 'dark');
+      r.dataset.theme = t;
+      var m = document.querySelector('meta[name="color-scheme"]');
+      if (m) m.content = t;
+    })();
+  </script>
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <link rel="canonical" href="https://seip25.github.io/Lila/" />
   <title>Lila Framework v2.2.4 - Full-Stack Python SPA, React & Desktop</title>
@@ -72,9 +83,9 @@
 </head>
 
 <body
-  class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans transition-all duration-300">
+  class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans">
   <header
-    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-all duration-300">
+    class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-colors duration-300">
     <nav class="max-w-6xl mx-auto px-6 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div
@@ -82,34 +93,41 @@
           L
         </div>
         <h1
-          class="text-2xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          class="text-2xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
           Lila Framework</h1>
       </div>
 
-      <div class="flex items-center gap-4 hidden sm:block">
+      <div class="flex items-center gap-3">
         <a href="docs/install.html"
-          class="px-5 py-2.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-950/60">
+          class="hidden sm:inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-950/60">
           Documentation
         </a>
-        <a href="https://github.com/seip25/Lila" target="_blank"
-          class="px-5 py-2.5 rounded-full text-sm font-semibold border border-slate-300 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:hover:bg-slate-800">
+        <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer"
+          class="hidden sm:inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
           GitHub
         </a>
+        <button type="button" data-theme-toggle aria-label="Toggle color theme" aria-pressed="true"
+          class="inline-flex items-center justify-center">
+          <svg class="theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <span class="theme-icon-light sr-only">Switch to light theme</span>
+          <svg class="theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span class="theme-icon-dark sr-only">Switch to dark theme</span>
+        </button>
       </div>
     </nav>
   </header>
 
   <main class="max-w-6xl mx-auto px-6 py-12 flex-1 flex flex-col gap-16 w-full">
     <!-- Hero Section -->
-    <section class="text-center flex flex-col items-center gap-6 py-8">
+    <section class="hero-glow text-center flex flex-col items-center gap-6 py-8">
       <div
-        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide">
+        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         ✨ Lila Framework v2.2.4 is Live • Full-Stack Web, React &amp; Desktop
       </div>
 
       <h1
-        class="text-5xl md:text-7xl font-extrabold font-heading tracking-tight leading-none bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent max-w-4xl">
+        class="text-5xl md:text-7xl font-extrabold font-heading tracking-tight leading-none bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent max-w-4xl">
         Full-Stack Python SPA Experience
       </h1>
 
@@ -125,8 +143,8 @@
           class="px-8 py-3.5 rounded-full text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
           Get Started
         </a>
-        <a href="https://github.com/seip25/Lila" target="_blank"
-          class="px-8 py-3.5 rounded-full text-base font-semibold border border-slate-300 bg-white hover:bg-slate-50 transition-all duration-300 dark:border-slate-700 dark:bg-[#131b2e] dark:hover:bg-slate-800">
+        <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer"
+          class="px-8 py-3.5 rounded-full text-base font-semibold border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 transition-all duration-300 dark:border-slate-700 dark:bg-[#131b2e] dark:text-slate-100 dark:hover:bg-slate-800">
           View on GitHub
         </a>
       </div>
@@ -134,27 +152,27 @@
 
     <!-- Description & Terminal Installer Section -->
     <section
-      class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#131b2e] rounded-3xl p-8 lg:p-12 border border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-100/50 dark:shadow-none">
+      class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#131b2e] rounded-3xl p-8 lg:p-12 border border-slate-200/50 dark:border-slate-800/80 shadow-xl shadow-slate-100/50 dark:shadow-none">
       <div class="lg:col-span-6 flex flex-col gap-6">
-        <h2 class="text-3xl font-bold font-heading text-slate-800 dark:text-white tracking-tight">Zero-Infrastructure &
+        <h2 class="text-3xl font-bold font-heading text-slate-800 dark:text-white tracking-tight">Zero-Infrastructure &amp;
           AI-First Architecture</h2>
-        <p class="text-slate-500 dark:text-slate-400 leading-relaxed">
+        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
           <strong>Lila v2.0</strong> is engineered for the 95% of real-world projects that want high performance without
           devops bloat. Run SQLite in WAL mode with In-Memory LRU cache by default, and scale optionally to Redis or
           PostgreSQL whenever needed.
         </p>
         <div
-          class="p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30 flex items-start gap-4">
+          class="p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100/50 dark:border-blue-900/40 flex items-start gap-4">
           <span class="text-2xl mt-0.5">⚡</span>
           <div>
             <h4 class="font-semibold text-blue-700 dark:text-blue-400">SPA View Transitions Runtime</h4>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Zero build-step client (<code class="font-mono text-xs">lila-client.js</code>) intercepts links,
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
+              Zero build-step client (<code class="font-mono text-xs px-1 py-0.5 rounded bg-blue-100/70 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">lila-client.js</code>) intercepts links,
               prefetches on hover, and transitions views smoothly with native browser APIs.
             </p>
           </div>
         </div>
-        <p class="text-sm font-medium text-slate-400 dark:text-slate-500">
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
           * Pure ASGI stack on Starlette + Pydantic v2 + SQLAlchemy 2.0 Async.
         </p>
       </div>
@@ -169,38 +187,38 @@
               <div class="w-3 h-3 bg-yellow-500/90 rounded-full"></div>
               <div class="w-3 h-3 bg-green-500/90 rounded-full"></div>
             </div>
-            <span class="text-xs text-slate-500">bash</span>
+            <span class="text-xs text-slate-400">bash</span>
           </div>
 
           <!-- Terminal Output -->
-          <div class="p-6 text-slate-300 space-y-3 min-h-[280px] flex flex-col justify-between">
+          <div class="p-6 text-slate-200 space-y-3 min-h-[280px] flex flex-col justify-between">
             <div class="space-y-2">
               <div class="flex items-center">
-                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span class="text-blue-400 mr-3 font-semibold">$</span>
                 <span class="text-green-400 font-medium">pip install lila-framework</span>
               </div>
               <div class="flex items-center">
-                <span class="text-blue-500 mr-3 font-semibold">$</span>
+                <span class="text-blue-400 mr-3 font-semibold">$</span>
                 <span>lila init</span>
               </div>
               <div class="flex items-center">
-                <span class="text-blue-500 mr-3 font-semibold">$</span>
-                <span class="text-indigo-400 font-semibold">lila dev <span class="text-slate-500"># Hot-reload web
+                <span class="text-blue-400 mr-3 font-semibold">$</span>
+                <span class="text-indigo-400 font-semibold">lila dev <span class="text-slate-400"># Hot-reload web
                     server</span></span>
               </div>
               <div class="flex items-center">
-                <span class="text-blue-500 mr-3 font-semibold">$</span>
-                <span class="text-purple-400">lila desktop dev <span class="text-slate-500"># Native desktop
+                <span class="text-blue-400 mr-3 font-semibold">$</span>
+                <span class="text-purple-400">lila desktop dev <span class="text-slate-400"># Native desktop
                     window</span></span>
               </div>
               <div class="flex items-center">
-                <span class="text-blue-500 mr-3 font-semibold">$</span>
-                <span class="text-amber-400">lila desktop build <span class="text-slate-500"># Compile .exe
+                <span class="text-blue-400 mr-3 font-semibold">$</span>
+                <span class="text-amber-400">lila desktop build <span class="text-slate-400"># Compile .exe
                     binary</span></span>
               </div>
             </div>
 
-            <div class="flex items-center justify-between pt-4 border-t border-slate-900 text-xs text-slate-500">
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800 text-xs text-slate-400">
               <span>⚡ Lila v2.2.4 Active (Pure ASGI)</span>
               <span class="w-2.5 h-4 bg-blue-500 animate-pulse"></span>
             </div>
@@ -214,7 +232,7 @@
       <div class="text-center flex flex-col gap-4">
         <h2 class="text-4xl font-extrabold font-heading text-slate-800 dark:text-white tracking-tight">Core Pillars of
           Lila v2.2</h2>
-        <p class="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">
+        <p class="text-slate-600 dark:text-slate-300 max-w-xl mx-auto font-medium">
           Everything you need to build full-stack web and desktop applications with Python.
         </p>
       </div>
@@ -225,8 +243,8 @@
             ⚡
           </div>
           <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">SPA View Transitions</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            Native browser View Transitions API integration via <code class="font-mono text-xs">lila-client.js</code>.
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            Native browser View Transitions API integration via <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400">lila-client.js</code>.
             No Node.js build step, instant prefetch, and reactive Tailwind UI components.
           </p>
         </article>
@@ -236,10 +254,10 @@
             class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-2xl">
             🤖
           </div>
-          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">AI Helper & PII Masking</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">AI Helper &amp; PII Masking</h3>
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Unified client for OpenAI, DeepSeek, and Gemini with reversible sensitive data masking (<code
-              class="font-mono text-xs">[email_01]</code>), prompt cache hits, and rate limiting.
+              class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400">[email_01]</code>), prompt cache hits, and rate limiting.
           </p>
         </article>
 
@@ -249,9 +267,9 @@
             🖥️
           </div>
           <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Desktop in 1 Command</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            Run inside a native desktop window (<code class="font-mono text-xs">lila desktop dev</code>) and build
-            installers (<code class="font-mono text-xs">lila desktop build</code>) with native menus, startup
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            Run inside a native desktop window (<code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400">lila desktop dev</code>) and build
+            installers (<code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400">lila desktop build</code>) with native menus, startup
             auto-migrations, and opt-in bug reports &amp; telemetry.
           </p>
         </article>
@@ -261,7 +279,7 @@
             💾
           </div>
           <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Zero Infrastructure</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Async SQLite WAL mode + in-memory LRU cache by default. Scale seamlessly to Redis, PostgreSQL, or MySQL with
             simple configuration flags.
           </p>
@@ -272,7 +290,7 @@
             🔐
           </div>
           <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">OAuth 2.0</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Instant Google, GitHub, and Discord OAuth with official vector SVG buttons, Argon2 password hashing, and
             auto-mounted routes.
           </p>
@@ -283,8 +301,8 @@
             class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-2xl">
             📊
           </div>
-          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Admin 2.0 & Telemetry</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Admin 2.0 &amp; Telemetry</h3>
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Full interactive CRUD for any model, CSV data export, live memory/CPU telemetry, and on-click cache purges
             in a persistent SPA sidebar.
           </p>
@@ -294,36 +312,36 @@
   </main>
 
   <footer
-    class="bg-white dark:bg-[#131b2e] border-t border-slate-200/50 dark:border-slate-800/50 py-12 transition-all duration-300">
+    class="bg-white dark:bg-[#131b2e] border-t border-slate-200/50 dark:border-slate-800/50 py-12 transition-colors duration-300">
     <div class="max-w-6xl mx-auto px-6 flex flex-col items-center gap-8">
       <div class="flex flex-wrap justify-center gap-8">
-        <a href="https://github.com/seip25/Lila" target="_blank"
-          class="text-sm font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+        <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer"
+          class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors">
           GitHub Repo
         </a>
         <a href="docs/install.html"
-          class="text-sm font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+          class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors">
           Documentation
         </a>
-        <a href="https://pypi.org/project/lila-framework/" target="_blank"
-          class="text-sm font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+        <a href="https://pypi.org/project/lila-framework/" target="_blank" rel="noopener noreferrer"
+          class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors">
           PyPI Package
         </a>
       </div>
       <div class="flex flex-wrap justify-center items-center gap-4">
-        <a href="https://pepy.tech/projects/lila-framework" target="_blank"
+        <a href="https://pepy.tech/projects/lila-framework" target="_blank" rel="noopener noreferrer"
           class="hover:scale-105 transition-transform">
           <img src="https://static.pepy.tech/badge/lila-framework" alt="PyPI Downloads" class="h-6">
         </a>
         <a href="https://www.paypal.com/donate/?business=C65NYY5JGJZDS&amp;no_recurring=0&amp;item_name=Si+te+gusta+mi+trabajo%2C+puedes+apoyarme.%0ALas+donaciones+me+ayudan+a+dedicar+m%C3%A1s+tiempo+a+mejorar+este+proyecto&amp;currency_code=USD"
-          target="_blank" class="hover:scale-105 transition-transform">
+          target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform">
           <img src="https://img.shields.io/badge/Donar-PayPal-0070ba?style=flat&amp;logo=paypal" alt="Donar"
             class="h-6">
         </a>
       </div>
 
       <div class="text-center border-t border-slate-200/50 dark:border-slate-800/50 w-full pt-8">
-        <p class="text-sm text-slate-400 dark:text-slate-500">
+        <p class="text-sm text-slate-500 dark:text-slate-400">
           &copy; 2026 Lila Framework. MIT Licensed.
         </p>
       </div>
@@ -336,6 +354,7 @@
       hljs.highlightAll();
     });
   </script>
+  <script src="js/lila.js"></script>
 </body>
 
 </html>
