@@ -65,9 +65,10 @@ def run(
     max_rss: int = typer.Option(0, "--max-rss", help="granian only: restart a worker above this RSS in MB (0 = off)."),
     access_log: Optional[bool] = typer.Option(None, "--access-log/--no-access-log", help="Print HTTP access logs (default: off when DEBUG=False)."),
     log_level: str = typer.Option("", "--log-level", help="Server log level: debug|info|warning|error|critical (default: warning when DEBUG=False)."),
+    graceful_timeout: Optional[int] = typer.Option(None, "--graceful-timeout", help="Seconds to wait for open connections (SSE/WS) on shutdown (default: 5 or LILA_GRACEFUL_TIMEOUT)."),
 ):
     """Run the production server (no reload)."""
-    from lila.core.config import ConfigLoader, ENV_CONFIG, server_logging_options
+    from lila.core.config import ConfigLoader, ENV_CONFIG, server_graceful_timeout, server_logging_options
 
     if not os.path.exists("main.py"):
         typer.secho("❌ main.py not found. Run this command inside your project root.", fg=typer.colors.RED)
@@ -121,19 +122,25 @@ def run(
         return
 
     import uvicorn
+    from lila.core.sse import signal_shutdown
 
+    shutdown_timeout = server_graceful_timeout(graceful_timeout if isinstance(graceful_timeout, int) else None)
     typer.secho(f"🚀 Lila v{__import__('lila').__version__} on http://{bind_host}:{bind_port} ({workers} worker(s))", fg=typer.colors.CYAN)
-    uvicorn.run(
-        "main:app",
-        host=bind_host,
-        port=bind_port,
-        reload=False,
-        workers=workers,
-        proxy_headers=proxy_headers,
-        forwarded_allow_ips=forwarded_allow_ips,
-        access_log=use_access_log,
-        log_level=resolved_log_level,
-    )
+    try:
+        uvicorn.run(
+            "main:app",
+            host=bind_host,
+            port=bind_port,
+            reload=False,
+            workers=workers,
+            proxy_headers=proxy_headers,
+            forwarded_allow_ips=forwarded_allow_ips,
+            access_log=use_access_log,
+            log_level=resolved_log_level,
+            timeout_graceful_shutdown=shutdown_timeout,
+        )
+    finally:
+        signal_shutdown()
 
 
 @app.command("routes")

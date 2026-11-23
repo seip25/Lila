@@ -83,6 +83,7 @@ FRAMEWORK_SCHEMA = [
     ("LOG_RETENTION_DAYS",   "int",  30),
     ("LILA_SERVER",          "str",  "uvicorn"),
     ("TITLE_TEMPLATE",       "str",  "{title} - {project}"),
+    ("LILA_GRACEFUL_TIMEOUT", "int",  5),
     ("SERVICE_NAME",         "str",  ""),
     ("LILA_DATA_DIR",        "str",  ""),
     # Desktop menu & help manual
@@ -395,6 +396,19 @@ def server_logging_options(
     if raw_level not in _CHOICES["LILA_LOG_LEVEL"]:
         raw_level = "info" if dbg else "warning"
     return use_access_log, raw_level
+
+
+def server_graceful_timeout(timeout: Optional[int] = None) -> int:
+    """Resolve graceful shutdown timeout (seconds) for open SSE/WS streams."""
+    if timeout is not None:
+        return max(1, int(timeout))
+    raw_env = os.environ.get("LILA_GRACEFUL_TIMEOUT")
+    if raw_env is not None and str(raw_env).strip() != "":
+        try:
+            return max(1, int(str(raw_env).strip()))
+        except (TypeError, ValueError):
+            pass
+    return max(1, ENV_CONFIG.get_int("LILA_GRACEFUL_TIMEOUT", 5))
 
 
 class ConfigLoader:

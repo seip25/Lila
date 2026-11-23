@@ -92,6 +92,7 @@ def run_uvicorn_thread(host: str, port: int, server_holder: list, error_holder: 
             access_log=False,
             reload=False,
             log_config=None,
+            timeout_graceful_shutdown=2,
         )
         server = uvicorn.Server(config)
         server.install_signal_handlers = lambda: None
@@ -415,6 +416,11 @@ def dev(
                     pass
     finally:
         telemetry_scheduler.stop()
+        try:
+            from lila.core.sse import signal_shutdown
+            signal_shutdown()
+        except Exception:
+            pass
         if server_holder:
             server_holder[0].should_exit = True
 
@@ -651,6 +657,7 @@ def run_server():
             access_log=False,
             reload=False,
             log_config=None,
+            timeout_graceful_shutdown=2,
         )
         server = uvicorn.Server(config)
         server.install_signal_handlers = lambda: None
@@ -729,6 +736,11 @@ except ImportError:
             pass
 finally:
     telemetry_scheduler.stop()
+    try:
+        from lila.core.sse import signal_shutdown
+        signal_shutdown()
+    except Exception:
+        pass
     if server_holder:
         server_holder[0].should_exit = True
 '''

@@ -162,7 +162,7 @@ lila dev --host 0.0.0.0 --port 8080
 # When DEBUG=False, HTTP access logs are silenced by default unless --access-log is passed
 lila run
 lila run -w 2
-lila run --access-log --log-level info
+lila run --access-log --log-level info --graceful-timeout 5
 
 # Health check and route introspection
 lila doctor

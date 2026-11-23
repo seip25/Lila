@@ -419,7 +419,12 @@ class App(Starlette):
 
         kept, removed = desktop_mod.filter_routes(routes)
         self._desktop_removed.extend(removed)
-        desktop_mod.register_unavailable(self._desktop_removed)
+        active_paths = {getattr(r, "path", None) for r in getattr(self, "routes", [])}
+        active_paths.update(getattr(r, "path", None) for r in kept)
+        truly_unavailable = [
+            r for r in self._desktop_removed if getattr(r, "path", None) not in active_paths
+        ]
+        desktop_mod.register_unavailable(truly_unavailable)
         return kept
 
     @staticmethod
@@ -588,15 +593,24 @@ class App(Starlette):
         up the new template on the next request.
         """
 
+        from lila.core.sse import is_shutting_down
+
+        class _QuietStreamingResponse(StreamingResponse):
+            async def __call__(self, scope, receive, send):
+                try:
+                    await super().__call__(scope, receive, send)
+                except asyncio.CancelledError:
+                    return
+
         async def event_generator():
             watch_enabled = ENV_CONFIG.get_bool("LILA_DEV_RELOAD", True)
             last_sig = await asyncio.to_thread(_dev_watch_signature) if watch_enabled else ""
             yield f'data: {{"type": "connected", "bootId": "{BOOT_ID}"}}\n\n'
             ticks = 0
             try:
-                while True:
+                while not is_shutting_down():
                     await asyncio.sleep(1)
-                    if await request.is_disconnected():
+                    if is_shutting_down() or await request.is_disconnected():
                         return
                     ticks += 1
                     if watch_enabled:
@@ -619,7 +633,7 @@ class App(Starlette):
             except (asyncio.CancelledError, GeneratorExit):
                 return
 
-        return StreamingResponse(
+        return _QuietStreamingResponse(
             event_generator(),
             media_type="text/event-stream",
             headers={
@@ -785,6 +799,12 @@ class App(Starlette):
     async def _internal_startup(self):
         """Framework services started with the app (all cheap / optional)."""
         try:
+            from lila.core.sse import reset_shutdown
+
+            reset_shutdown()
+        except Exception:
+            pass
+        try:
             self._mount_observability()
         except Exception:
             pass
@@ -821,6 +841,12 @@ class App(Starlette):
 
     async def _cleanup_resources(self):
         """Stops optional services, then closes database and cache handles."""
+        try:
+            from lila.core.sse import signal_shutdown
+
+            signal_shutdown()
+        except Exception:
+            pass
         for hook in list(_SHUTDOWN_HOOKS):
             try:
                 res = hook(self)

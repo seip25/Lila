@@ -28,12 +28,16 @@ app = App(
 
 
 def main():
+    from lila.core.config import server_graceful_timeout
+
+    graceful_timeout = server_graceful_timeout()
     if DEBUG:
         uvicorn.run(
             "main:app",
             host=HOST,
             port=PORT,
             reload=True,
+            timeout_graceful_shutdown=min(graceful_timeout, 3),
         )
     else:
         from lila.core.config import server_logging_options
@@ -49,6 +53,7 @@ def main():
             workers=workers,
             access_log=access_log,
             log_level=log_level,
+            timeout_graceful_shutdown=graceful_timeout,
         )
 
 

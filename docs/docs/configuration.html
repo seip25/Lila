@@ -317,6 +317,12 @@ STRIPE_API_KEY="sk_test_..."
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Override server log level. Empty defaults to <code class="code-inline">"warning"</code> when <code class="code-inline">DEBUG=False</code> and <code class="code-inline">"info"</code> when <code class="code-inline">DEBUG=True</code>.</td>
                         </tr>
                         <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_GRACEFUL_TIMEOUT</td>
+                            <td class="px-4 py-3 text-slate-500">int</td>
+                            <td class="px-4 py-3"><code class="code-inline">5</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Seconds Uvicorn waits for open HTTP/SSE connections on shutdown before closing cleanly.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_AUTO_MIGRATE</td>
                             <td class="px-4 py-3 text-slate-500">bool</td>
                             <td class="px-4 py-3"><code class="code-inline">False</code></td>

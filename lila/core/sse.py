@@ -42,6 +42,31 @@ from lila.core.responses import orjson_dumps, orjson_loads
 
 HEARTBEAT_SECONDS = 15.0
 _PROCESS_ID = uuid.uuid4().hex  # skips our own Redis echoes
+_SHUTDOWN = threading.Event()
+_ACTIVE_SIGNALS: Set[tuple[asyncio.AbstractEventLoop, asyncio.Event]] = set()
+_SIGNALS_LOCK = threading.Lock()
+
+
+def signal_shutdown() -> None:
+    """Wake all active SSE streams so servers exit without waiting for idle tabs."""
+    _SHUTDOWN.set()
+    with _SIGNALS_LOCK:
+        targets = list(_ACTIVE_SIGNALS)
+    for loop, ev in targets:
+        try:
+            if not loop.is_closed():
+                loop.call_soon_threadsafe(ev.set)
+        except Exception:
+            pass
+
+
+def reset_shutdown() -> None:
+    """Clear the global SSE shutdown flag (used on app startup / tests)."""
+    _SHUTDOWN.clear()
+
+
+def is_shutting_down() -> bool:
+    return _SHUTDOWN.is_set()
 
 
 def format_event(data: Any = None, event: Optional[str] = None, id: Optional[str] = None,
@@ -78,20 +103,43 @@ class EventStream(StreamingResponse):
         base_headers.update(headers or {})
         super().__init__(self._generate(), media_type="text/event-stream", headers=base_headers)
 
+    async def __call__(self, scope, receive, send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        except asyncio.CancelledError:
+            return
+
     async def _generate(self):
+        loop = asyncio.get_running_loop()
+        stop_event = asyncio.Event()
+        if _SHUTDOWN.is_set():
+            stop_event.set()
+        sig = (loop, stop_event)
+        with _SIGNALS_LOCK:
+            _ACTIVE_SIGNALS.add(sig)
+
         yield format_event(event="ready", data={"ok": True}, retry=self._retry)
         iterator = self._source.__aiter__()
         pending: Optional[asyncio.Task] = None
+        stop_task: Optional[asyncio.Task] = None
         try:
-            while True:
+            while not stop_event.is_set() and not _SHUTDOWN.is_set():
                 if pending is None:
                     pending = asyncio.ensure_future(iterator.__anext__())
-                done, _ = await asyncio.wait({pending}, timeout=self._heartbeat)
-                if await self._request.is_disconnected():
+                if stop_task is None:
+                    stop_task = asyncio.ensure_future(stop_event.wait())
+                done, _ = await asyncio.wait(
+                    {pending, stop_task},
+                    timeout=self._heartbeat,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if stop_event.is_set() or _SHUTDOWN.is_set() or await self._request.is_disconnected():
                     break
                 if not done:
                     yield b": ping\n\n"
                     continue
+                if stop_task in done:
+                    break
                 try:
                     item = pending.result()
                 except StopAsyncIteration:
@@ -102,14 +150,19 @@ class EventStream(StreamingResponse):
                     yield format_event(item.get("data"), item.get("event"), item.get("id"), item.get("retry"))
                 else:
                     yield format_event(item)
+        except (asyncio.CancelledError, GeneratorExit):
+            return
         finally:
-            if pending is not None:
-                pending.cancel()
+            with _SIGNALS_LOCK:
+                _ACTIVE_SIGNALS.discard(sig)
+            for task in (pending, stop_task):
+                if task is not None and not task.done():
+                    task.cancel()
             aclose = getattr(iterator, "aclose", None)
             if aclose is not None:
                 try:
                     await aclose()
-                except Exception:
+                except (Exception, asyncio.CancelledError):
                     pass
 
 

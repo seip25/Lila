@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 import typer
-from lila.core.config import ConfigLoader, ENV_CONFIG
+from lila.core.config import ConfigLoader, ENV_CONFIG, server_graceful_timeout
 
 app = typer.Typer(help="Start Lila local development server with hot-reload.")
 
@@ -33,7 +33,8 @@ def start(
     cmd = [
         sys.executable, "-m", "uvicorn", "main:app",
         "--host", str(bind_host),
-        "--port", str(bind_port)
+        "--port", str(bind_port),
+        "--timeout-graceful-shutdown", str(min(server_graceful_timeout(), 3)),
     ]
     child_env = os.environ.copy()
     # ``lila dev`` is a development command even if the project .env says

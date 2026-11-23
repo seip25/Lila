@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila-256.webp" width="120" height="120" alt="Lila Framework">
 </p>
 
-<h1 align="center">Lila Framework v2.2.2</h1>
+<h1 align="center">Lila Framework v2.2.3</h1>
 
 <p align="center">
   <b>Lightweight full-stack Python web & desktop framework</b><br>
@@ -402,7 +402,7 @@ OTEL_ENABLED=true          # OpenTelemetry spans: GET /items/{id}, SQL, tasks
 | :--- | :--- |
 | `lila init` | Scaffold a project without overwriting existing files. |
 | `lila dev` | Uvicorn reload + Jinja/static SSE auto-reload (reads `.env` HOST/PORT). |
-| `lila run -w 2` | Production server (`DEBUG=False` silences access logs unless `--access-log` / `--log-level` is passed); warns with memory cache and >1 worker. |
+| `lila run -w 2` | Production server (`DEBUG=False` silences access logs unless `--access-log` / `--log-level` is passed; `--graceful-timeout` sets `LILA_GRACEFUL_TIMEOUT`); warns with memory cache and >1 worker. |
 | `lila doctor` | Health check: Python, `.env`, SECRET_KEY, DB, templates, public/. |
 | `lila routes` | List every route registered in `main:app`. |
 | `lila auth` | Auth 2.0 scaffold (backups for overwritten files). |

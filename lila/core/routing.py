@@ -26,6 +26,7 @@ from typing import (
     Literal,
     get_args,
     get_origin,
+    get_type_hints,
 )
 
 from pydantic import BaseModel as PydanticBaseModel, ValidationError, TypeAdapter
@@ -217,14 +218,19 @@ class RouteInspector:
         self.query_params: Dict[str, tuple] = {}
         self.params_map: Dict[str, RouteParam] = {}
 
+        try:
+            resolved_hints = get_type_hints(handler, include_extras=True)
+        except Exception:
+            resolved_hints = {}
+
         for name, param in self.sig.parameters.items():
             if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
                 continue
-            ann = param.annotation
+            ann = resolved_hints.get(name, param.annotation)
             default = param.default
             required = default is inspect.Parameter.empty
 
-            if ann is Request or (name == "request" and not _is_pydantic_model(ann)):
+            if ann is Request or ann == "Request" or (name == "request" and not _is_pydantic_model(ann)):
                 self.wants_request = True
                 self.request_param_name = name
                 continue
@@ -243,8 +249,12 @@ class RouteInspector:
                 continue
 
             unwrapped = _unwrap_annotation(ann) if ann is not inspect.Parameter.empty else str
-            is_list = get_origin(unwrapped) in (list, tuple, set)
-            adapter = _build_param_adapter(ann if ann is not inspect.Parameter.empty else str)
+            if isinstance(unwrapped, str):
+                adapter = None
+                is_list = False
+            else:
+                is_list = get_origin(unwrapped) in (list, tuple, set)
+                adapter = _build_param_adapter(ann if ann is not inspect.Parameter.empty else str)
 
             route_param = RouteParam(
                 name=name,
@@ -332,6 +342,22 @@ class Router:
         inspector = RouteInspector(handler, methods=methods)
         active_model = model or inspector.body_model
         body_param_name = inspector.body_param_name
+        if model is not None and body_param_name is None and any(m in ("POST", "PUT", "PATCH", "DELETE") for m in methods):
+            model_name = getattr(model, "__name__", "")
+            for pname, rparam in list(inspector.params_map.items()):
+                raw_ann = str(rparam.annotation).strip() if isinstance(rparam.annotation, str) else ""
+                if raw_ann and (
+                    raw_ann == model_name
+                    or raw_ann == f"Optional[{model_name}]"
+                    or raw_ann.startswith(f"{model_name} |")
+                    or raw_ann.endswith(f"| {model_name}")
+                ):
+                    body_param_name = pname
+                    inspector.body_optional = ("None" in raw_ann) or ("Optional" in raw_ann) or (not rparam.required)
+                    inspector.params_map.pop(pname, None)
+                    inspector.path_params.pop(pname, None)
+                    inspector.query_params.pop(pname, None)
+                    break
         if cache is None:
             cache = cache_ttl if cache_ttl is not None else self.default_cache_ttl
 

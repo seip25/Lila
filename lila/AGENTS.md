@@ -1,4 +1,4 @@
-# Lila Framework v2.2.2 — Agent & Developer Reference
+# Lila Framework v2.2.3 — Agent & Developer Reference
 
 Lila is a lightweight full-stack Python web framework built on **Starlette**,
 **Pydantic v2**, **SQLAlchemy 2.0 Async** and **Jinja2**. It targets 1–2 worker
@@ -132,7 +132,8 @@ async def old(request): ...
   `Literal`, lists, `Optional`, `Annotated`). Invalid values return **422**.
 - Missing required query params return **422** instead of a 500.
 - `model=Model` validates JSON/form bodies; the model is injected into the
-  matching parameter and available at `request.state.data`.
+  matching parameter and available at `request.state.data` (supports modules
+  using `from __future__ import annotations`).
 - `csrf=True`/`@csrf` accepts `X-CSRF-Token`, JSON `_csrf` or a form `_csrf`.
   Route `csrf=True` is checked before body validation.
 - `cache=N` is **per identity** (cookie/Authorization fingerprint) and per
@@ -460,11 +461,12 @@ return render(
 
 - `lila init [--template web|react|auth|react-auth|full|desktop] [--yes] [--install]`
   — scaffold (+ the generators of the template); **never overwrites existing files/.env**.
-- `lila dev` / `lila run` — read `.env` HOST/PORT; `run` supports `-w` and
+- `lila dev` / `lila run` — read `.env` HOST/PORT; `run` supports `-w`,
   `--access-log/--no-access-log --log-level <level>` (silences access logs when
-  `DEBUG=False` unless opted in). `lila dev` forces development mode and enables
-  Jinja auto-reload plus an SSE watcher for templates/static/locales (works
-  without `watchfiles`).
+  `DEBUG=False` unless opted in), and `--graceful-timeout`
+  (`LILA_GRACEFUL_TIMEOUT`, default `5`s so open SSE/WS tabs never block exit).
+  `lila dev` forces development mode and enables Jinja auto-reload plus an SSE
+  watcher for templates/static/locales (works without `watchfiles`).
 - `lila doctor`, `lila routes` — health and route introspection.
 - `lila auth`, `lila admin`, `lila model`, `lila crud` — safe `main.py` patching
   (`lila/cli/_patch.py`) with backups for overwritten scaffold files.

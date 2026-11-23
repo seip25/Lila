@@ -5,6 +5,28 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+## [2.2.3] — 2026-11-23
+
+### Fixed
+
+- **Clean SSE & Uvicorn shutdown (no hanging process on open browser tabs)**:
+  - `lila run`, `lila dev`, scaffolded `main.py`, and `lila desktop dev|build`
+    now pass `timeout_graceful_shutdown` (`LILA_GRACEFUL_TIMEOUT`, default
+    `5`s, overridable via `--graceful-timeout`) to Uvicorn so open SSE/WebSocket
+    tabs never block `Ctrl+C` or service restarts indefinitely.
+  - Added cooperative `signal_shutdown()` / `reset_shutdown()` /
+    `is_shutting_down()` in `lila.core.sse`, wired into `App` lifecycle and CLI
+    runners, and suppressed noisy `asyncio.CancelledError` tracebacks on stream
+    close in `EventStream` and `_dev_reload_endpoint`.
+- **`from __future__ import annotations` in route modules**: `RouteInspector`
+  now resolves postponed string annotations via `typing.get_type_hints()` (with
+  fallback promotion when `model=` is explicitly passed), preventing false
+  `422 data: Field required` errors on Pydantic body parameters.
+- **Dual-targeted routes on the same path**: `App._apply_targets` no longer
+  marks a path as unavailable when one handler is `desktop=False` and another
+  active handler on the same path is `desktop="only"` (e.g. web `/` vs desktop
+  `/`).
+
 ## [2.2.2] — 2026-11-23
 
 ### Added
