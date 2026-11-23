@@ -149,7 +149,7 @@
         need it). Optional extras: <code class="code-inline">[redis]</code>,
         <code class="code-inline">[images]</code>, <code class="code-inline">[markdown]</code>,
         <code class="code-inline">[metrics]</code>, <code class="code-inline">[optimize]</code>
-        and <code class="code-inline">[desktop]</code>.
+        and <code class="code-inline">[desktop]</code>. If <code class="code-inline">pip install "lila-framework[desktop]"</code> hits a write/permission error, run the terminal as Administrator on Windows (or install inside a writable project <code class="code-inline">venv</code>), since desktop packaging/runtime writes to user <code class="code-inline">AppData</code> (Windows) or home data folders (macOS/Linux).
       </p>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden mb-4 mt-8">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">

@@ -159,6 +159,14 @@
         <code class="code-inline">DB_TYPE</code>/<code class="code-inline">DB_NAME</code> (and host/user/password)
         from <code>.env</code> the first time it connects. SQLite defaults to async with WAL mode.
       </p>
+
+      <div class="p-4 rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 text-xs text-slate-600 dark:text-slate-300 my-5">
+        <strong>🧭 Choosing SQLite (WAL) vs PostgreSQL / MySQL (+ Redis):</strong>
+        <ul class="list-disc ml-5 mt-2 space-y-1">
+          <li><strong>SQLite (WAL):</strong> zero infrastructure, serialized in-process writes and fast concurrent reads — ideal for desktop apps, local-first tools, prototypes, and 1–2 worker web apps.</li>
+          <li><strong>PostgreSQL / MySQL (+ Redis):</strong> recommended when running multiple web workers (<code class="font-mono">WORKERS &gt; 1</code>), heavy concurrent write throughput, or shared multi-process state (<code class="font-mono">CACHE_DRIVER=redis</code> for sessions, cache, rate limits, and SSE/WebSocket fan-out).</li>
+        </ul>
+      </div>
       <div class="bg-gray-900 rounded-lg shadow-2xl font-mono text-sm overflow-hidden my-6">
         <div class="flex items-center justify-between p-3 bg-gray-800 border-b border-gray-700">
           <span class="editor-title text-gray-300 dark:text-gray-400">app/connections.py</span>

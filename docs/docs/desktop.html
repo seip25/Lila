@@ -156,6 +156,11 @@ lila desktop dev --title "My Desktop App" --width 1280 --height 850</code></pre>
         </ul>
       </div>
 
+      <div class="p-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-950/20 text-xs text-slate-700 dark:text-slate-300 my-6">
+        <strong>🔐 Permissions &amp; AppData Note:</strong>
+        If <code class="font-mono">pip install "lila-framework[desktop]"</code> fails with a write/permission error, run your terminal as <strong>Administrator</strong> on Windows (or install inside a writable project <code class="font-mono">venv</code>), because desktop tooling/runtime writes to user/system directories (such as <code class="font-mono">%APPDATA%</code> / <code class="font-mono">%LOCALAPPDATA%</code> on Windows or your home data directory <code class="font-mono">~/Library/Application Support</code> / <code class="font-mono">~/.local/share</code> on macOS/Linux).
+      </div>
+
       <h3 class="text-xl font-bold mt-8 mb-3">2. Compiling Standalone Executables (.exe / Binary)</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         <code>lila desktop build</code> writes a temporary bootstrap that imports <code>main</code>

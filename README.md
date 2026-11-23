@@ -213,6 +213,8 @@ await Product.delete_async(1)  # soft delete when `active` exists
 Run `lila migrate` after changing models; it adds missing columns. For destructive
 changes use `lila migrate --refresh --yes` (asks for confirmation otherwise).
 
+> **SQLite (WAL) vs PostgreSQL/MySQL (+ Redis):** Keep SQLite WAL for desktop apps, prototypes, and 1–2 worker sites with low/medium concurrent writes. Switch to PostgreSQL or MySQL (`DB_TYPE=postgresql|mysql`) paired with `CACHE_DRIVER=redis` when running multiple web workers (`WORKERS > 1`), high write concurrency, or shared SSE/WebSocket state across workers.
+
 ### Cache
 
 ```python
@@ -313,6 +315,8 @@ lila desktop dev
 lila desktop build --name MyApp --onefile --windowed
 lila desktop build --installer auto     # + dist/MyApp.dmg (macOS) or dist/MyApp.msi (Windows, WiX)
 ```
+
+> **Desktop install permissions:** If `pip install "lila-framework[desktop]"` fails with a write/permission error, run your terminal as **Administrator** on Windows (or install inside a writable project `venv`), because desktop packaging/runtime writes to system/user paths (`AppData` on Windows, home data folders on macOS/Linux).
 
 One codebase, two targets. Keep web-only features out of the desktop build:
 

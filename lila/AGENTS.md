@@ -199,6 +199,12 @@ class Product(BaseModel):
   field (`update_async(id, active=1)` restores).
 - `router.rest_crud_generate(Model, auth=True, max_limit=500)` only writes table
   columns (never the primary key or `__private_fields__`).
+- **Recommendation (SQLite vs MySQL/PostgreSQL)**: keep SQLite WAL (`DB_TYPE=sqlite`)
+  for desktop apps, local-first tools, and 1–2 worker sites; move to
+  PostgreSQL/MySQL (`DB_TYPE=postgresql|mysql`) + `CACHE_DRIVER=redis` when
+  scaling to multiple web workers (`WORKERS > 1`), high write concurrency, or
+  cross-worker shared sessions/SSE/WebSockets (where complex schema changes may
+  also call for SQL scripts / dedicated DB migrations).
 
 ---
 
@@ -528,6 +534,10 @@ return render(
 - `lila desktop dev/build` — bundles `main`, `app` (+ `app/locales`), Lila templates/assets;
   binds to `127.0.0.1`, enforces `LILA_DESKTOP_TOKEN`, enables auto-migrations in
   frozen builds, and stores data under the OS app-data directory when frozen.
+  If `pip install "lila-framework[desktop]"` hits a write error, run as
+  Administrator on Windows (or use a writable project `venv`), since desktop
+  runtime/packaging writes to `AppData` on Windows and user home data paths on
+  macOS/Linux.
 
 ---
 
