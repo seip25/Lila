@@ -86,8 +86,10 @@ FRAMEWORK_SCHEMA = [
     ("LILA_GRACEFUL_TIMEOUT", "int",  5),
     ("SERVICE_NAME",         "str",  ""),
     ("LILA_DATA_DIR",        "str",  ""),
-    # Desktop menu & help manual
+    # Desktop menu, migrations, LAN & telemetry
     ("LILA_AUTO_MIGRATE",          "bool", False),
+    ("LILA_MIGRATE_BACKUP",        "bool", True),
+    ("LILA_MIGRATE_BACKUP_KEEP",   "int",  10),
     ("DESKTOP_MENU",               "bool", True),
     ("DESKTOP_MENU_LANG",          "str",  ""),
     ("DESKTOP_PREFERENCES_URL",    "str",  ""),
@@ -97,6 +99,11 @@ FRAMEWORK_SCHEMA = [
     ("DESKTOP_REPORT_URL",         "str",  ""),
     ("DESKTOP_REPORT_TOKEN",       "str",  ""),
     ("DESKTOP_TELEMETRY_INTERVAL", "int",  3600),
+    ("DESKTOP_LAN",                "bool", False),
+    ("DESKTOP_LAN_PORT",           "int",  0),
+    ("DESKTOP_LAN_OTP_TTL",        "int",  300),
+    ("DESKTOP_LAN_ALLOW",          "str",  ""),
+    ("DESKTOP_LAN_DENY",           "str",  ""),
 ]
 
 # Allowed values / formats checked by validate_settings() (and `lila doctor`).

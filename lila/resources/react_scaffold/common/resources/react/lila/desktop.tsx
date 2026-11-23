@@ -58,6 +58,31 @@ export interface ReportSubmitResult {
   reason?: string;
 }
 
+export interface BackupResult {
+  ok: boolean;
+  path?: string;
+  size_bytes?: number;
+  size_mb?: number;
+  duration_ms?: number;
+  rotated?: number;
+  reason?: string;
+}
+
+export interface LanStatus {
+  running: boolean;
+  host_ip?: string;
+  port?: number;
+  url?: string;
+  pair_url?: string;
+  otp?: string;
+  otp_expires_in?: number;
+  active_sessions?: number;
+  allow?: string[];
+  deny?: string[];
+  revoked?: number;
+  reason?: string;
+}
+
 interface BridgeApi {
   open_file_dialog(title?: string, fileTypes?: string[]): Promise<string | null>;
   save_file_dialog(title?: string, defaultFilename?: string): Promise<string | null>;
@@ -81,6 +106,12 @@ interface BridgeApi {
   send_bug_report(note?: string, includeLogs?: boolean): Promise<ReportSubmitResult>;
   send_telemetry_now(): Promise<ReportSubmitResult>;
   open_bug_report(): Promise<boolean>;
+  create_backup(compress?: boolean): Promise<BackupResult>;
+  lan_status(): Promise<LanStatus>;
+  start_lan(port?: number | null, otpTtl?: number | null): Promise<LanStatus>;
+  stop_lan(): Promise<LanStatus>;
+  rotate_lan_otp(ttl?: number | null): Promise<LanStatus>;
+  revoke_lan_sessions(): Promise<LanStatus>;
 }
 
 function api(): BridgeApi | null {
@@ -143,6 +174,15 @@ export const desktop = {
     call((b) => b.send_bug_report(note, includeLogs), { ok: false, status: "web", reason: "web" } as ReportSubmitResult),
   sendTelemetryNow: () => call((b) => b.send_telemetry_now(), { ok: false, status: "web", reason: "web" } as ReportSubmitResult),
   openBugReport: () => call((b) => b.open_bug_report(), false),
+  createBackup: (compress = false) =>
+    call((b) => b.create_backup(compress), { ok: false, reason: "web" } as BackupResult),
+  lanStatus: () => call((b) => b.lan_status(), { running: false, reason: "web" } as LanStatus),
+  startLan: (port?: number | null, otpTtl?: number | null) =>
+    call((b) => b.start_lan(port ?? null, otpTtl ?? null), { running: false, reason: "web" } as LanStatus),
+  stopLan: () => call((b) => b.stop_lan(), { running: false, reason: "web" } as LanStatus),
+  rotateLanOtp: (ttl?: number | null) =>
+    call((b) => b.rotate_lan_otp(ttl ?? null), { running: false, reason: "web" } as LanStatus),
+  revokeLanSessions: () => call((b) => b.revoke_lan_sessions(), { running: false, revoked: 0, reason: "web" } as LanStatus),
 };
 
 /** Checks for an update once (desktop only); `install()` downloads, verifies and opens it. */

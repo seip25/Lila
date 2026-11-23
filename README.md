@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila-256.webp" width="120" height="120" alt="Lila Framework">
 </p>
 
-<h1 align="center">Lila Framework v2.2.3</h1>
+<h1 align="center">Lila Framework v2.2.4</h1>
 
 <p align="center">
   <b>Lightweight full-stack Python web & desktop framework</b><br>
@@ -423,7 +423,7 @@ OTEL_ENABLED=true          # OpenTelemetry spans: GET /items/{id}, SQL, tasks
 | `lila i18n check` | Translation keys missing per language. |
 | `sudo "$(which lila)" deploy setup` | Interactive Linux install: `.env` for production, systemd, Nginx, Certbot HTTPS. |
 | `lila backup` | Online, zero-downtime SQLite backup with retention. |
-| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`, signing, `--update-url`, `--report-url`, `--report-token`, `--telemetry-interval`, auto-migrations on startup). |
+| `lila desktop dev/build` | Native window / PyInstaller executable (`--exclude`, `--auto-exclude`, `--installer dmg\|msi`, signing, `--update-url`, `--report-url`, `--report-token`, `--telemetry-interval`, `--lan`, `--lan-port`, `--lan-otp-ttl`, auto-backup + auto-migrations on startup). |
 | `lila desktop routes` | Which routes ship in the desktop app + web-only suggestions. |
 | `lila react init/dev/build/types/status` | React + Vite (TypeScript): scaffold, HMR dev server, production build, TS types from models. |
 | `lila auth --react` | Auth pages in React (TypeScript) instead of Jinja. |

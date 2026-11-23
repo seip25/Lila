@@ -224,6 +224,17 @@ def _discover_model_names() -> List[str]:
     return names
 
 
+def _discover_migration_names() -> List[str]:
+    mig_dir = os.path.join(os.getcwd(), "app", "migrations")
+    if not os.path.isdir(mig_dir):
+        return []
+    names: List[str] = []
+    for fname in sorted(os.listdir(mig_dir)):
+        if fname.endswith(".py") and fname != "__init__.py" and not fname.startswith("_"):
+            names.append(f"app.migrations.{fname[:-3]}")
+    return names
+
+
 @app.command("routes")
 def routes_command(
     exclude: Optional[List[str]] = typer.Option(None, "--exclude", "-x", help="Extra pattern(s) to exclude: /payments*, name:checkout"),
@@ -292,12 +303,16 @@ def dev(
     report_url: Optional[str] = typer.Option(None, "--report-url", help="Base URL for desktop bug reports & opt-in telemetry (default DESKTOP_REPORT_URL)"),
     report_token: Optional[str] = typer.Option(None, "--report-token", help="Optional X-Lila-Report-Token header (default DESKTOP_REPORT_TOKEN)"),
     telemetry_interval: Optional[int] = typer.Option(None, "--telemetry-interval", help="Opt-in anonymous telemetry upload interval in seconds (default 3600)"),
+    lan: Optional[bool] = typer.Option(None, "--lan/--no-lan", help="Expose local desktop app on LAN with OTP pairing (default DESKTOP_LAN=False)"),
+    lan_port: Optional[int] = typer.Option(None, "--lan-port", help="Preferred port for LAN gateway (0 = auto)"),
+    lan_otp_ttl: Optional[int] = typer.Option(None, "--lan-otp-ttl", help="LAN OTP pairing TTL in seconds (default 300)"),
 ):
     """
     Runs the Lila application inside a native ultra-lightweight desktop window.
     Uses pywebview (WebView2 on Windows, WebKit on macOS/Linux) or fallback App Mode.
     """
     from lila.core.config import ConfigLoader, ENV_CONFIG
+    from lila.core.desktop_lan import set_desktop_local_port, start_lan_gateway, stop_lan_gateway
     from lila.core.desktop_menu import DesktopMenuConfig, build_desktop_menu
     from lila.core.desktop_reports import DesktopTelemetryScheduler, is_valid_report_url
 
@@ -376,6 +391,11 @@ def dev(
         pass
 
     bridge = DesktopBridge()
+    set_desktop_local_port(target_port)
+    lan_enabled = ENV_CONFIG.get_bool("DESKTOP_LAN", False) if lan is None else bool(lan)
+    if lan_enabled:
+        lan_info = start_lan_gateway(port=lan_port, otp_ttl=lan_otp_ttl, target_port=target_port)
+        typer.secho(f"📡 LAN Gateway active: {lan_info['url']} (PIN: {lan_info['otp']}, pair: {lan_info['pair_url']})", fg=typer.colors.CYAN)
     telemetry_scheduler = DesktopTelemetryScheduler()
     telemetry_scheduler.start()
 
@@ -417,6 +437,10 @@ def dev(
     finally:
         telemetry_scheduler.stop()
         try:
+            stop_lan_gateway()
+        except Exception:
+            pass
+        try:
             from lila.core.sse import signal_shutdown
             signal_shutdown()
         except Exception:
@@ -455,6 +479,9 @@ def build(
     report_url: Optional[str] = typer.Option(None, "--report-url", help="Base URL for desktop bug reports & opt-in telemetry (default DESKTOP_REPORT_URL)"),
     report_token: Optional[str] = typer.Option(None, "--report-token", help="Optional X-Lila-Report-Token header (default DESKTOP_REPORT_TOKEN)"),
     telemetry_interval: Optional[int] = typer.Option(None, "--telemetry-interval", help="Opt-in anonymous telemetry upload interval in seconds (default 3600)"),
+    lan: Optional[bool] = typer.Option(None, "--lan/--no-lan", help="Enable opt-in LAN gateway with OTP pairing (default DESKTOP_LAN=False)"),
+    lan_port: Optional[int] = typer.Option(None, "--lan-port", help="Preferred port for LAN gateway (0 = auto)"),
+    lan_otp_ttl: Optional[int] = typer.Option(None, "--lan-otp-ttl", help="LAN OTP pairing TTL in seconds (default 300)"),
 ):
     """
     Bundles the Lila application into a standalone native executable (.exe / .app) using PyInstaller.
@@ -529,6 +556,12 @@ def build(
         ),
     )
     discovered_models = _discover_model_names()
+    discovered_migrations = _discover_migration_names()
+    lan_enabled = ENV_CONFIG.get_bool("DESKTOP_LAN", False) if lan is None else bool(lan)
+    resolved_lan_port = int(ENV_CONFIG.get_int("DESKTOP_LAN_PORT", 0) if lan_port is None else lan_port)
+    resolved_lan_ttl = max(30, int(ENV_CONFIG.get_int("DESKTOP_LAN_OTP_TTL", 300) if lan_otp_ttl is None else lan_otp_ttl))
+    resolved_lan_allow = str(ENV_CONFIG.get("DESKTOP_LAN_ALLOW", "") or "")
+    resolved_lan_deny = str(ENV_CONFIG.get("DESKTOP_LAN_DENY", "") or "")
     app_desc = str(ENV_CONFIG.get("DESCRIPTION_PROJECT", "") or "")
     app_lang = str(ENV_CONFIG.get("LANG_DEFAULT", "en") or "en")
     icon_path = installers.convert_icon(installers.find_icon(icon), sys.platform)
@@ -633,6 +666,12 @@ os.environ["DESKTOP_REPORT_TOKEN"] = {resolved_report_token!r}
 os.environ["DESKTOP_TELEMETRY_INTERVAL"] = {str(resolved_telemetry_interval)!r}
 os.environ["LILA_AUTO_MIGRATE"] = "1"
 os.environ["LILA_DESKTOP_MODELS"] = {",".join(discovered_models)!r}
+os.environ["LILA_DESKTOP_MIGRATIONS"] = {",".join(discovered_migrations)!r}
+os.environ["DESKTOP_LAN"] = {("True" if lan_enabled else "False")!r}
+os.environ["DESKTOP_LAN_PORT"] = {str(resolved_lan_port)!r}
+os.environ["DESKTOP_LAN_OTP_TTL"] = {str(resolved_lan_ttl)!r}
+os.environ["DESKTOP_LAN_ALLOW"] = {resolved_lan_allow!r}
+os.environ["DESKTOP_LAN_DENY"] = {resolved_lan_deny!r}
 os.environ.setdefault("DEBUG", "False")
 
 def find_port():
@@ -700,10 +739,17 @@ if not server_ready:
         f"<p style='color:#64748b'>Logs: {{log_hint}}</p></body></html>"
     )
 
+from lila.core.desktop_lan import set_desktop_local_port, start_lan_gateway, stop_lan_gateway
 from lila.core.desktop_reports import DesktopTelemetryScheduler
 telemetry_scheduler = DesktopTelemetryScheduler()
 if server_ready:
+    set_desktop_local_port(port)
     telemetry_scheduler.start()
+    if os.environ.get("DESKTOP_LAN") == "True":
+        try:
+            start_lan_gateway(target_port=port)
+        except Exception:
+            pass
 
 try:
     import webview
@@ -736,6 +782,10 @@ except ImportError:
             pass
 finally:
     telemetry_scheduler.stop()
+    try:
+        stop_lan_gateway()
+    except Exception:
+        pass
     try:
         from lila.core.sse import signal_shutdown
         signal_shutdown()

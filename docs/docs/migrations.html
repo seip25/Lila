@@ -316,11 +316,15 @@ await connection.drop_all_async(use_base=True)
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         In frozen desktop builds (<code>lila desktop build</code>), Lila automatically sets
         <code>LILA_AUTO_MIGRATE="1"</code> and bundles the discovered model modules
-        (<code>LILA_DESKTOP_MODELS</code>) so <code>lila.core.migrations.auto_migrate_async()</code>
-        runs safe additive migrations on startup (creating missing tables and adding safe columns inside
-        the user's AppData SQLite database). You can also enable startup auto-migration on a server by
-        setting <code>LILA_AUTO_MIGRATE=True</code> in <code>.env</code>.
+        (<code>LILA_DESKTOP_MODELS</code>) and versioned migration scripts
+        (<code>LILA_DESKTOP_MIGRATIONS</code>) so <code>lila.core.migrations.auto_migrate_async()</code>
+        runs safe additive migrations on startup inside the user's AppData SQLite database. You can also enable
+        startup auto-migration on a server by setting <code>LILA_AUTO_MIGRATE=True</code> in <code>.env</code>.
       </p>
+      <ul class="list-disc pl-6 space-y-1 text-sm mb-4">
+        <li><strong>Pre-migration hot SQLite backup:</strong> when <code>LILA_MIGRATE_BACKUP=True</code> (default) and changes are pending on an existing SQLite database, both <code>lila migrate</code> and <code>auto_migrate_async()</code> automatically create a zero-lock <code>sqlite3.Connection.backup()</code> snapshot under <code>backups/pre_migrate/</code> (keeping the newest <code>LILA_MIGRATE_BACKUP_KEEP=10</code> copies).</li>
+        <li><strong>Versioned Python migration scripts:</strong> place ordered files in <code>app/migrations/001_example.py</code> exporting <code>def upgrade(db):</code> or <code>async def upgrade(db):</code> for custom backfills or data transforms. Executed scripts are recorded in <code>lila_script_migrations</code> so they run exactly once and appear in <code>lila migrate --plan</code>.</li>
+      </ul>
     
       <h3 class="text-xl font-bold mt-8 mb-3">Rollback</h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Every <code>lila migrate</code> run is a batch. <code>lila migrate rollback</code> undoes the newest

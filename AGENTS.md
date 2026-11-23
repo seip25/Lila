@@ -1,4 +1,4 @@
-# Lila Framework v2.2.3 — Agent & Developer Reference
+# Lila Framework v2.2.4 — Agent & Developer Reference
 
 Lila is a lightweight full-stack Python web framework built on **Starlette**,
 **Pydantic v2**, **SQLAlchemy 2.0 Async** and **Jinja2**. It targets 1–2 worker
@@ -48,7 +48,8 @@ Lila/
 │   │   ├── csp.py           # Content-Security-Policy with nonces
 │   │   ├── storage.py       # local / S3-compatible file storage
 │   │   ├── telemetry.py     # optional OpenTelemetry tracing
-│   │   ├── desktop_bridge.py  # window.pywebview.api (dialogs, notify, updates, reports)
+│   │   ├── desktop_bridge.py  # window.pywebview.api (dialogs, notify, updates, reports, backup, LAN)
+│   │   ├── desktop_lan.py     # opt-in 0.0.0.0 LAN proxy with 6-digit OTP pairing (HTTP/SSE/WS)
 │   │   ├── desktop_menu.py    # native menu bar, About, Preferences, Manual, Bug Report
 │   │   ├── desktop_reports.py # opt-in desktop bug reports & telemetry
 │   │   ├── controller.py    # RequestParser (v1 compatibility)
@@ -402,7 +403,8 @@ return render(
   `router.ws_hub(...)` (`{event, data}` protocol, heartbeat, backoff, offline queue).
 - `@lila/desktop`: `desktop.notify/openExternal/openFile/saveFile/selectFolder/
   appInfo/checkUpdate/installUpdate/setTitle/openHelp/openAbout/openPreferences/
-  openBugReport/getReportSettings/setTelemetryOptIn/sendBugReport/sendTelemetryNow`
+  openBugReport/getReportSettings/setTelemetryOptIn/sendBugReport/sendTelemetryNow/
+  createBackup/lanStatus/startLan/stopLan/rotateLanOtp/revokeLanSessions`
   (no-ops on the web), `useDesktopUpdate()`.
 - `lila crud --model X --react [--auth]` → `resources/react/pages/Crud/X.tsx`
   (DataTable server mode + Modal form) and a paginated API that logs errors
@@ -431,9 +433,23 @@ return render(
   About / `DESKTOP_ABOUT`). Extend via `app/desktop_menu.py`
   (`extra_menus` / `get_menu`) or cancelable
   `lila:desktop-{about,preferences,help,report-bug}` events.
-- Frozen builds (`lila desktop build`) bake `LILA_AUTO_MIGRATE="1"` and
-  discovered `LILA_DESKTOP_MODELS` so SQLite tables in the OS app-data
-  directory are created/updated safely at startup.
+- Frozen builds (`lila desktop build`) bake `LILA_AUTO_MIGRATE="1"`,
+  discovered `LILA_DESKTOP_MODELS`, and `LILA_DESKTOP_MIGRATIONS` so SQLite
+  tables in the OS app-data directory are backed up (`LILA_MIGRATE_BACKUP=True`
+  -> `backups/pre_migrate/`) and updated safely at startup (including versioned
+  `app/migrations/*.py` scripts with `upgrade(db)` tracked in
+  `lila_script_migrations`).
+- **Opt-in Desktop LAN Gateway (`lila.core.desktop_lan`)**:
+  - Disabled by default (`DESKTOP_LAN=False`). Enable via `--lan` on
+    `lila desktop dev|build`, `.env` `DESKTOP_LAN=True` (`DESKTOP_LAN_PORT`,
+    `DESKTOP_LAN_OTP_TTL`, `DESKTOP_LAN_ALLOW`, `DESKTOP_LAN_DENY`), or
+    runtime `desktop.startLan()`.
+  - Main desktop server stays on `127.0.0.1` + `LILA_DESKTOP_TOKEN`. The LAN
+    gateway listens on `0.0.0.0`, pairs mobile/LAN devices at `/_lila/lan/pair`
+    with a 6-digit OTP PIN (5-attempt lockout -> 429), issues signed
+    `HttpOnly` `lila_lan` cookies tied to revocable sessions, strips client
+    forwarding headers, injects `X-Forwarded-For` + `request.state.is_lan` /
+    `lan_client_ip()`, and proxies HTTP, SSE, and WebSockets.
 - **Desktop Bug Reports & Telemetry (`lila.core.desktop_reports`)**:
   - Disabled by default (`App(..., desktop_reports=False)`). Enable with `True`
     or dict `{prefix="/api/desktop", max_body_bytes=262144, rate_limit=(10, 60),

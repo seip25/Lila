@@ -5,6 +5,37 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+## [2.2.4] — 2026-11-23
+
+### Added
+
+- **Opt-in Desktop LAN Gateway with OTP Pairing** (`lila.core.desktop_lan`):
+  - Keeps desktop servers strictly bound to `127.0.0.1` behind
+    `LILA_DESKTOP_TOKEN`, and exposes an opt-in LAN reverse proxy (`0.0.0.0`)
+    for mobile/QR pairing or local Three.js/game peers (`--lan`, `--lan-port`,
+    `--lan-otp-ttl`, or `.env` `DESKTOP_LAN=True`).
+  - Pairs devices via `/_lila/lan/pair` using a time-limited 6-digit OTP PIN
+    (with 5-attempt lockout), sets a signed `HttpOnly` `lila_lan` cookie tied to
+    revocable sessions, strips client-spoofed forwarding headers, injects
+    trusted `X-Forwarded-For`, `request.state.is_lan` / `lan_client_ip()`,
+    supports `DESKTOP_LAN_ALLOW` / `DESKTOP_LAN_DENY`, and proxies HTTP, SSE, and
+    WebSockets seamlessly.
+  - Added runtime controls to `DesktopBridge` and `@lila/desktop`:
+    `desktop.lanStatus()`, `desktop.startLan()`, `desktop.stopLan()`,
+    `desktop.rotateLanOtp()`, `desktop.revokeLanSessions()`, and
+    `desktop.createBackup()`.
+- **Pre-Migration Hot SQLite Backups & Versioned Migration Scripts**
+  (`lila.core.migrations`):
+  - Before applying schema changes or migration scripts on existing SQLite
+    databases, `lila migrate` and frozen `auto_migrate_async()` automatically
+    take a hot `sqlite3.Connection.backup()` into `backups/pre_migrate/` with
+    configurable retention (`LILA_MIGRATE_BACKUP=True`,
+    `LILA_MIGRATE_BACKUP_KEEP=10`).
+  - Added ordered Python migration scripts in `app/migrations/*.py`
+    (`upgrade(db)`, sync or async), tracked in `lila_script_migrations`, shown
+    in `lila migrate --plan`, and bundled automatically into desktop builds via
+    `LILA_DESKTOP_MIGRATIONS`.
+
 ## [2.2.3] — 2026-11-23
 
 ### Fixed

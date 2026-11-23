@@ -356,6 +356,25 @@ await desktop.setTelemetryOptIn(true);
 await desktop.openBugReport();
 await desktop.sendBugReport(&quot;Export fails with large CSV&quot;, true);
 await desktop.sendTelemetryNow();</code></pre>
+
+      <h3 class="text-xl font-bold mt-8 mb-3">7. Opt-in LAN Gateway &amp; OTP Pairing</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        By default, desktop apps bind strictly to <code>127.0.0.1</code> behind a local token. When you want companion phones, tablets, or co-op LAN peers to connect on the same local network, enable the opt-in LAN gateway (<code>--lan</code> or <code>DESKTOP_LAN=True</code>, or call <code>desktop.startLan()</code> at runtime).
+      </p>
+      <ul class="list-disc ml-5 text-sm text-slate-600 dark:text-slate-400 space-y-1 mb-4">
+        <li><strong>6-digit OTP pairing (<code>/_lila/lan/pair</code>):</strong> devices enter the temporary PIN shown by the desktop host (locked for 5 min after 5 wrong tries) to receive a signed <code>HttpOnly</code> <code>lila_lan</code> session cookie.</li>
+        <li><strong>Header &amp; path hardening:</strong> client-spoofed <code>X-Forwarded-*</code> / token headers are stripped; routes receive trusted <code>X-Forwarded-For</code> plus <code>is_lan_request(request)</code> and <code>lan_client_ip(request)</code>. Optional <code>DESKTOP_LAN_ALLOW</code> / <code>DESKTOP_LAN_DENY</code> patterns restrict sensitive paths.</li>
+        <li><strong>HTTP, SSE &amp; WebSockets:</strong> works for mobile companion UIs (e.g. QR receipts/check-in) and local multiplayer LAN sessions (<code>WebSocketHub</code>).</li>
+        <li><strong>On-demand SQLite backups:</strong> call <code>await desktop.createBackup()</code> to trigger a zero-downtime hot SQLite backup into AppData <code>backups/</code> at any time.</li>
+      </ul>
+      <pre><code class="language-bash"># Launch with opt-in LAN gateway + 6-digit OTP pairing:
+lila desktop dev --lan --lan-port 3000 --lan-otp-ttl 300
+
+# Runtime controls from React (@lila/desktop):
+# const info = await desktop.startLan();        // { running, url, pair_url, otp, active_sessions }
+# await desktop.rotateLanOtp();                 // issue fresh PIN
+# await desktop.revokeLanSessions();            // disconnect all paired devices
+# await desktop.stopLan();</code></pre>
     </article>
   </main>
 

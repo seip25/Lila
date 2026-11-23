@@ -28,14 +28,18 @@ from __future__ import annotations
 import asyncio
 import datetime as _dt
 import importlib
+import inspect
 import os
 import pkgutil
 import re
+import sqlite3
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 from sqlalchemy import inspect as sa_inspect, text
 
+from lila.core.config import ENV_CONFIG, get_data_path
 from lila.core.logger import Logger
 
 SAFE_KINDS = {"create_table", "add_column", "rename_column", "create_index"}
@@ -49,7 +53,30 @@ CREATE TABLE IF NOT EXISTS lila_migrations (
     target TEXT NOT NULL,
     detail TEXT
 );
+CREATE TABLE IF NOT EXISTS lila_script_migrations (
+    database TEXT NOT NULL,
+    name TEXT NOT NULL,
+    app_version TEXT NOT NULL DEFAULT '',
+    applied_at TEXT NOT NULL,
+    PRIMARY KEY (database, name)
+);
 """
+
+_SCRIPT_SCHEMA = """
+CREATE TABLE IF NOT EXISTS lila_script_migrations (
+    database TEXT NOT NULL,
+    name TEXT NOT NULL,
+    app_version TEXT NOT NULL DEFAULT '',
+    applied_at TEXT NOT NULL,
+    PRIMARY KEY (database, name)
+);
+"""
+
+_LAST_AUTO_MIGRATE_REPORT: Dict[str, Any] = {
+    "backup_path": None,
+    "applied_ops": [],
+    "applied_scripts": [],
+}
 
 
 def _norm_type(value: str) -> str:
@@ -162,6 +189,7 @@ def _history_conn():
     for name, ddl in _HISTORY_COLUMNS.items():
         if name not in existing:
             conn.execute(f"ALTER TABLE lila_migrations ADD COLUMN {name} {ddl}")
+    conn.executescript(_SCRIPT_SCHEMA)
     return conn
 
 
@@ -378,12 +406,176 @@ def discover_and_import_models(extra_modules: Optional[Sequence[str]] = None) ->
     return errors
 
 
-async def auto_migrate_async(db=None, extra_modules: Optional[Sequence[str]] = None) -> List[Dict[str, Any]]:
-    """Applies safe schema operations automatically (create_table/add_column/index).
+def sqlite_db_path(db) -> Optional[str]:
+    """Return filesystem path when ``db`` targets a file-backed SQLite database."""
+    if db is None or getattr(db, "engine", None) is None:
+        return None
+    url = db.engine.url
+    if not str(url.drivername or "").startswith("sqlite"):
+        return None
+    raw = str(url.database or "").strip()
+    if not raw or raw == ":memory:" or raw.startswith("file::memory:"):
+        return None
+    return os.path.abspath(raw)
 
-    Used on startup in frozen desktop builds so the fresh SQLite database in
-    AppData gets all tables/columns without needing a manual CLI command.
-    """
+
+def backup_sqlite_before_migrate(db, max_backups: Optional[int] = None) -> Optional[str]:
+    """Create a hot SQLite backup before applying migrations; returns path or None."""
+    src_path = sqlite_db_path(db)
+    if not src_path or not os.path.isfile(src_path):
+        return None
+    try:
+        if os.path.getsize(src_path) <= 0:
+            return None
+    except OSError:
+        return None
+
+    keep = int(
+        ENV_CONFIG.get_int("LILA_MIGRATE_BACKUP_KEEP", 10)
+        if max_backups is None
+        else max_backups
+    )
+    backup_dir = get_data_path("backups", "pre_migrate")
+    os.makedirs(backup_dir, exist_ok=True)
+    stem = Path(src_path).stem or "lila"
+    raw_ver = os.environ.get("LILA_APP_VERSION") or str(ENV_CONFIG.get("VERSION_PROJECT", "0") or "0")
+    safe_ver = re.sub(r"[^A-Za-z0-9._-]+", "_", raw_ver).strip("_") or "0"
+    stamp = f"{time.strftime('%Y%m%d_%H%M%S')}_{int((time.time() % 1) * 1_000_000):06d}"
+    dst_path = os.path.join(backup_dir, f"pre_migrate_{stem}_v{safe_ver}_{stamp}.sqlite")
+
+    src_conn = sqlite3.connect(src_path)
+    dst_conn = sqlite3.connect(dst_path)
+    try:
+        src_conn.backup(dst_conn)
+    finally:
+        dst_conn.close()
+        src_conn.close()
+
+    if keep > 0:
+        prefix = f"pre_migrate_{stem}_"
+        existing = []
+        for fname in os.listdir(backup_dir):
+            if fname.startswith(prefix) and fname.endswith(".sqlite"):
+                cand = os.path.join(backup_dir, fname)
+                try:
+                    existing.append((os.path.getmtime(cand), cand))
+                except OSError:
+                    pass
+        existing.sort(key=lambda item: item[0])
+        while len(existing) > keep:
+            _, oldest = existing.pop(0)
+            try:
+                os.remove(oldest)
+            except OSError:
+                pass
+    return dst_path
+
+
+def discover_migration_scripts(extra_modules: Optional[Sequence[str]] = None) -> List[str]:
+    """Discover ordered versioned Python migration modules (``app/migrations/*.py``)."""
+    candidates: List[str] = []
+    mig_dir = Path("app/migrations")
+    if mig_dir.exists():
+        for file in sorted(mig_dir.glob("*.py")):
+            if file.name != "__init__.py" and not file.name.startswith("_"):
+                candidates.append(f"app.migrations.{file.stem}")
+
+    try:
+        mig_pkg = importlib.import_module("app.migrations")
+        pkg_path = getattr(mig_pkg, "__path__", None)
+        if pkg_path is not None:
+            for mod_info in sorted(pkgutil.iter_modules(pkg_path, prefix="app.migrations."), key=lambda m: m.name):
+                leaf = mod_info.name.rsplit(".", 1)[-1]
+                if not leaf.startswith("_"):
+                    candidates.append(mod_info.name)
+    except ModuleNotFoundError as exc:
+        if exc.name not in ("app", "app.migrations"):
+            Logger.warning(f"[Lila migrate] app.migrations import warning: {exc}")
+    except Exception as exc:
+        Logger.warning(f"[Lila migrate] app.migrations import warning: {exc}")
+
+    env_mods = os.environ.get("LILA_DESKTOP_MIGRATIONS", "")
+    for item in env_mods.split(","):
+        cleaned = item.strip()
+        if cleaned:
+            candidates.append(cleaned)
+    for item in extra_modules or ():
+        cleaned = str(item).strip()
+        if cleaned:
+            candidates.append(cleaned)
+
+    seen = set()
+    ordered: List[str] = []
+    for mod in candidates:
+        if mod not in seen:
+            seen.add(mod)
+            ordered.append(mod)
+    return sorted(ordered, key=lambda name: (name.rsplit(".", 1)[-1], name))
+
+
+def applied_scripts(db) -> set[str]:
+    conn = _history_conn()
+    rows = conn.execute(
+        "SELECT name FROM lila_script_migrations WHERE database = ?",
+        (database_key(db),),
+    ).fetchall()
+    return {row[0] for row in rows}
+
+
+def pending_scripts(db, extra_modules: Optional[Sequence[str]] = None) -> List[str]:
+    if not getattr(db, "_connected", False) or getattr(db, "engine", None) is None:
+        db.connect()
+    done = applied_scripts(db)
+    return [mod for mod in discover_migration_scripts(extra_modules=extra_modules) if mod not in done]
+
+
+async def run_scripts_async(db, extra_modules: Optional[Sequence[str]] = None) -> List[str]:
+    """Execute pending versioned ``app/migrations/*.py`` scripts in sorted order."""
+    pending = pending_scripts(db, extra_modules=extra_modules)
+    if not pending:
+        return []
+    ran: List[str] = []
+    db_key = database_key(db)
+    app_ver = str(os.environ.get("LILA_APP_VERSION") or ENV_CONFIG.get("VERSION_PROJECT", "") or "")
+    for mod_name in pending:
+        mod = importlib.import_module(mod_name)
+        fn = getattr(mod, "upgrade", None)
+        if not callable(fn):
+            raise RuntimeError(f"Migration script '{mod_name}' must define callable upgrade(db)")
+        res = fn(db)
+        if inspect.isawaitable(res):
+            await res
+        now = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+
+        def _save(name=mod_name, ts=now):
+            hist = _history_conn()
+            hist.execute(
+                "INSERT OR IGNORE INTO lila_script_migrations (database, name, app_version, applied_at) VALUES (?, ?, ?, ?)",
+                (db_key, name, app_ver, ts),
+            )
+
+        await asyncio.to_thread(_save)
+        ran.append(mod_name)
+    return ran
+
+
+def last_auto_migrate_report() -> Dict[str, Any]:
+    return {
+        "backup_path": _LAST_AUTO_MIGRATE_REPORT.get("backup_path"),
+        "applied_ops": list(_LAST_AUTO_MIGRATE_REPORT.get("applied_ops") or []),
+        "applied_scripts": list(_LAST_AUTO_MIGRATE_REPORT.get("applied_scripts") or []),
+    }
+
+
+async def auto_migrate_async(
+    db=None,
+    extra_modules: Optional[Sequence[str]] = None,
+    script_modules: Optional[Sequence[str]] = None,
+    backup: Optional[bool] = None,
+) -> List[Dict[str, Any]]:
+    """Applies safe schema ops + versioned scripts automatically (with pre-backup)."""
+    global _LAST_AUTO_MIGRATE_REPORT
+
     errors = discover_and_import_models(extra_modules=extra_modules)
     for err in errors:
         Logger.warning(f"[Lila auto-migrate] model import warning: {err}")
@@ -398,12 +590,41 @@ async def auto_migrate_async(db=None, extra_modules: Optional[Sequence[str]] = N
 
             db = default_conn
 
+    if not getattr(db, "_connected", False) or getattr(db, "engine", None) is None:
+        db.connect()
+
     if not getattr(db, "is_async", True):
         db.migrate(use_base=True)
+        _LAST_AUTO_MIGRATE_REPORT = {"backup_path": None, "applied_ops": [], "applied_scripts": []}
         return []
 
     ops = await plan_async(db)
     safe_ops = [op for op in ops if op.get("safe")]
-    if not safe_ops:
+    pending = pending_scripts(db, extra_modules=script_modules)
+    if not safe_ops and not pending:
+        _LAST_AUTO_MIGRATE_REPORT = {"backup_path": None, "applied_ops": [], "applied_scripts": []}
         return []
-    return await apply_async(db, safe_ops)
+
+    do_backup = ENV_CONFIG.get_bool("LILA_MIGRATE_BACKUP", True) if backup is None else bool(backup)
+    backup_path: Optional[str] = None
+    if do_backup:
+        try:
+            backup_path = await asyncio.to_thread(backup_sqlite_before_migrate, db)
+            if backup_path:
+                Logger.info(f"[Lila auto-migrate] Pre-migration SQLite backup: {backup_path}")
+        except Exception as exc:
+            Logger.warning(f"[Lila auto-migrate] Pre-migration backup skipped: {exc}")
+
+    applied: List[Dict[str, Any]] = []
+    if safe_ops:
+        applied = await apply_async(db, safe_ops)
+    ran_scripts: List[str] = []
+    if pending:
+        ran_scripts = await run_scripts_async(db, extra_modules=script_modules)
+
+    _LAST_AUTO_MIGRATE_REPORT = {
+        "backup_path": backup_path,
+        "applied_ops": applied,
+        "applied_scripts": ran_scripts,
+    }
+    return applied

@@ -45,6 +45,7 @@ def load_models():
 _ICONS = {
     "create_table": "🆕", "add_column": "➕", "rename_column": "✏️", "create_index": "⚡",
     "drop_column": "🗑️", "alter_type": "⚠️", "alter_nullable": "⚠️", "add_column_manual": "⚠️",
+    "run_script": "📜",
 }
 
 
@@ -86,18 +87,41 @@ async def migrate_async(conn, refresh: bool = False, plan_only: bool = False, dr
             return True
 
         ops = await mig.plan_async(conn)
+        pending_scripts = mig.pending_scripts(conn)
+        for mod_name in pending_scripts:
+            ops.append({
+                "kind": "run_script",
+                "table": mod_name,
+                "target": mod_name,
+                "detail": "upgrade(db)",
+                "safe": True,
+            })
         print_plan(ops)
         if plan_only:
             return True
-        to_apply = [op for op in ops if op["safe"] or (drop_columns and op["kind"] == "drop_column")]
+        to_apply = [
+            op for op in ops
+            if (op["kind"] != "run_script" and (op["safe"] or (drop_columns and op["kind"] == "drop_column")))
+        ]
+        if (to_apply or pending_scripts) and not refresh:
+            from lila.core.config import ENV_CONFIG
+
+            if ENV_CONFIG.get_bool("LILA_MIGRATE_BACKUP", True):
+                backup_path = await asyncio.to_thread(mig.backup_sqlite_before_migrate, conn)
+                if backup_path:
+                    typer.secho(f"💾 Pre-migration SQLite backup: {backup_path}", fg=typer.colors.CYAN)
+        applied = []
         if to_apply:
             applied = await mig.apply_async(conn, to_apply, drop_columns=drop_columns)
             typer.secho(f"✅ Applied {len(applied)} operation(s) (recorded in app/data/lila_system.db).",
                         fg=typer.colors.GREEN)
-        pending = [op for op in ops if op not in to_apply]
+        ran_scripts = await mig.run_scripts_async(conn)
+        if ran_scripts:
+            typer.secho(f"📜 Executed {len(ran_scripts)} migration script(s).", fg=typer.colors.GREEN)
+        pending = [op for op in ops if op["kind"] != "run_script" and op not in to_apply]
         if pending:
             typer.secho(f"ℹ️  {len(pending)} operation(s) need a manual decision (see above).", fg=typer.colors.YELLOW)
-        elif not to_apply:
+        elif not to_apply and not ran_scripts:
             typer.secho("✅ Nothing to do.", fg=typer.colors.GREEN)
         return True
     except Exception as exc:

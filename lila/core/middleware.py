@@ -77,6 +77,16 @@ def _cookie_from_scope(scope: Scope, name: str) -> Optional[str]:
     return None
 
 
+def _header_from_scope(scope: Scope, target: bytes) -> Optional[str]:
+    for key, value in scope.get("headers", []):
+        if key.lower() == target:
+            try:
+                return value.decode("latin-1").strip()
+            except Exception:
+                return None
+    return None
+
+
 class PureASGIDesktopGuardMiddleware:
     """Gates a desktop-mode server behind a one-time local session token.
 
@@ -84,6 +94,10 @@ class PureASGIDesktopGuardMiddleware:
     placed in ``LILA_DESKTOP_TOKEN`` before the app is imported. The first
     navigation uses ``?_dt=<token>``; the guard sets an HttpOnly cookie and
     redirects to the same path without exposing the token in history/referrers.
+
+    When the opt-in ``DesktopLanGateway`` is running, requests arriving from it
+    must carry matching ``X-Lila-Lan-Proxy`` and ``X-Lila-Desktop-Token`` headers
+    and receive ``request.state.is_lan = True`` + ``request.state.lan_ip``.
     """
 
     __slots__ = ("app", "token")
@@ -106,6 +120,22 @@ class PureASGIDesktopGuardMiddleware:
         if not self.token or scope["type"] not in ("http", "websocket"):
             await self.app(scope, receive, send)
             return
+
+        state = scope.setdefault("state", {})
+        lan_secret = os.environ.get("LILA_LAN_PROXY_SECRET", "")
+        if lan_secret:
+            hdr_proxy = _header_from_scope(scope, b"x-lila-lan-proxy") or ""
+            hdr_tok = _header_from_scope(scope, b"x-lila-desktop-token") or ""
+            if hdr_proxy and hmac.compare_digest(hdr_proxy, lan_secret) and self._matches(hdr_tok):
+                client = scope.get("client")
+                client_host = client[0] if client else ""
+                state["is_lan"] = True
+                state["lan_ip"] = _header_from_scope(scope, b"x-lila-lan-ip") or client_host or None
+                await self.app(scope, receive, send)
+                return
+
+        state.setdefault("is_lan", False)
+        state.setdefault("lan_ip", None)
 
         cookie_ok = self._matches(_cookie_from_scope(scope, self.COOKIE_NAME))
         query_token = None

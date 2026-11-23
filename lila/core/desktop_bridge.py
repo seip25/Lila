@@ -377,3 +377,52 @@ class DesktopBridge:
             return True
         except Exception:
             return False
+
+    def create_backup(self, compress: bool = False) -> dict:
+        try:
+            from lila.cli.backup import run_sqlite_backup
+
+            res = run_sqlite_backup(compress=bool(compress))
+            return {"ok": True, "path": res.get("destination"), **res}
+        except Exception as exc:
+            return {"ok": False, "reason": str(exc)}
+
+    def lan_status(self) -> dict:
+        try:
+            from lila.core.desktop_lan import lan_status
+
+            return lan_status()
+        except Exception as exc:
+            return {"running": False, "reason": str(exc)}
+
+    def start_lan(self, port: Optional[int] = None, otp_ttl: Optional[int] = None) -> dict:
+        try:
+            from lila.core.desktop_lan import start_lan_gateway
+
+            return start_lan_gateway(port=port, otp_ttl=otp_ttl)
+        except Exception as exc:
+            return {"running": False, "reason": str(exc)}
+
+    def stop_lan(self) -> dict:
+        try:
+            from lila.core.desktop_lan import stop_lan_gateway
+
+            return stop_lan_gateway()
+        except Exception as exc:
+            return {"running": False, "reason": str(exc)}
+
+    def rotate_lan_otp(self, ttl: Optional[int] = None) -> dict:
+        try:
+            from lila.core.desktop_lan import rotate_lan_otp
+
+            return rotate_lan_otp(ttl=ttl)
+        except Exception as exc:
+            return {"running": False, "reason": str(exc)}
+
+    def revoke_lan_sessions(self) -> dict:
+        try:
+            from lila.core.desktop_lan import revoke_lan_sessions
+
+            return revoke_lan_sessions()
+        except Exception as exc:
+            return {"revoked": 0, "running": False, "reason": str(exc)}

@@ -329,6 +329,18 @@ STRIPE_API_KEY="sk_test_..."
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Run safe additive migrations automatically on <code class="code-inline">App</code> startup (enabled automatically in frozen desktop executables).</td>
                         </tr>
                         <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_MIGRATE_BACKUP</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">True</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Take a hot SQLite backup into <code class="code-inline">backups/pre_migrate/</code> before applying pending migrations.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">LILA_MIGRATE_BACKUP_KEEP</td>
+                            <td class="px-4 py-3 text-slate-500">int</td>
+                            <td class="px-4 py-3"><code class="code-inline">10</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Maximum number of pre-migration SQLite backups retained per database.</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
                             <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_REPORT_URL</td>
                             <td class="px-4 py-3 text-slate-500">str</td>
                             <td class="px-4 py-3"><code class="code-inline">""</code></td>
@@ -345,6 +357,24 @@ STRIPE_API_KEY="sk_test_..."
                             <td class="px-4 py-3 text-slate-500">int</td>
                             <td class="px-4 py-3"><code class="code-inline">3600</code></td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Seconds between periodic opt-in anonymous telemetry uploads from desktop apps (minimum <code class="code-inline">60</code>).</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_LAN</td>
+                            <td class="px-4 py-3 text-slate-500">bool</td>
+                            <td class="px-4 py-3"><code class="code-inline">False</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Opt-in LAN gateway with 6-digit OTP pairing (<code class="code-inline">/_lila/lan/pair</code>) for mobile or local co-op peers.</td>
+                        </tr>
+                        <tr class="bg-slate-50 dark:bg-[#0f1729]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_LAN_PORT / OTP_TTL</td>
+                            <td class="px-4 py-3 text-slate-500">int / int</td>
+                            <td class="px-4 py-3"><code class="code-inline">0 / 300</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400"><code class="code-inline">DESKTOP_LAN_PORT</code> (0 = auto) and <code class="code-inline">DESKTOP_LAN_OTP_TTL</code> pairing code lifetime in seconds.</td>
+                        </tr>
+                        <tr class="bg-white dark:bg-[#131b2e]">
+                            <td class="px-4 py-3 font-mono text-blue-600 dark:text-blue-400 font-medium">DESKTOP_LAN_ALLOW / DENY</td>
+                            <td class="px-4 py-3 text-slate-500">str</td>
+                            <td class="px-4 py-3"><code class="code-inline">""</code></td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Optional comma-separated path patterns restricting which routes LAN-paired devices can access.</td>
                         </tr>
                     </tbody>
                 </table>
