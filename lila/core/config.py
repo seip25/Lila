@@ -45,6 +45,8 @@ FRAMEWORK_SCHEMA = [
     ("STATIC_CACHE_MAX_AGE", "int",  86400),
     # Logging
     ("LILA_LOG_DIR",         "str",  ""),
+    ("LILA_ACCESS_LOG",      "bool", False),
+    ("LILA_LOG_LEVEL",       "str",  ""),
     # AI Providers
     ("OPENAI_API_KEY",       "str",  ""),
     ("OPENAI_MODEL",         "str",  "gpt-4o-mini"),
@@ -98,6 +100,7 @@ _CHOICES = {
     "DB_TYPE": ("sqlite", "sqlite3", "mysql", "postgresql", "postgres"),
     "TAILWIND_MODE": ("auto", "build", "play"),
     "LILA_SERVER": ("uvicorn", "granian"),
+    "LILA_LOG_LEVEL": ("debug", "info", "warning", "error", "critical"),
     "APP_ENV": ("development", "production", "testing", "staging"),
 }
 
@@ -366,6 +369,28 @@ def is_debug() -> bool:
     if ConfigLoader._loaded and "DEBUG" in ConfigLoader._data:
         return bool(ConfigLoader._data["DEBUG"])
     return ENV_CONFIG.get_bool("DEBUG", False)
+
+
+def server_logging_options(
+    debug: Optional[bool] = None,
+    access_log: Optional[bool] = None,
+    log_level: Optional[str] = None,
+) -> tuple[bool, str]:
+    """Resolve ``(access_log, log_level)`` for ASGI servers (Uvicorn / Granian).
+
+    When ``DEBUG=False`` (production), HTTP access logs are disabled and the
+    server log level defaults to ``"warning"`` unless overridden via
+    ``LILA_ACCESS_LOG`` / ``LILA_LOG_LEVEL`` or explicit CLI flags.
+    """
+    dbg = is_debug() if debug is None else bool(debug)
+    if access_log is None:
+        use_access_log = True if dbg else ENV_CONFIG.get_bool("LILA_ACCESS_LOG", False)
+    else:
+        use_access_log = bool(access_log)
+    raw_level = (log_level or str(ENV_CONFIG.get("LILA_LOG_LEVEL", "") or "")).strip().lower()
+    if raw_level not in _CHOICES["LILA_LOG_LEVEL"]:
+        raw_level = "info" if dbg else "warning"
+    return use_access_log, raw_level
 
 
 class ConfigLoader:

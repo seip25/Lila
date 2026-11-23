@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Optional
 import typer
 
 # Ensure UTF-8 output on Windows consoles and redirected streams.
@@ -62,9 +63,11 @@ def run(
     forwarded_allow_ips: str = typer.Option("127.0.0.1", "--forwarded-allow-ips", help="Allowed IPs for proxy headers (comma-separated or '*')"),
     server: str = typer.Option("", "--server", help="uvicorn (default) or granian (pip install granian). Also LILA_SERVER in .env."),
     max_rss: int = typer.Option(0, "--max-rss", help="granian only: restart a worker above this RSS in MB (0 = off)."),
+    access_log: Optional[bool] = typer.Option(None, "--access-log/--no-access-log", help="Print HTTP access logs (default: off when DEBUG=False)."),
+    log_level: str = typer.Option("", "--log-level", help="Server log level: debug|info|warning|error|critical (default: warning when DEBUG=False)."),
 ):
     """Run the production server (no reload)."""
-    from lila.core.config import ConfigLoader, ENV_CONFIG
+    from lila.core.config import ConfigLoader, ENV_CONFIG, server_logging_options
 
     if not os.path.exists("main.py"):
         typer.secho("❌ main.py not found. Run this command inside your project root.", fg=typer.colors.RED)
@@ -72,6 +75,16 @@ def run(
     ConfigLoader.load()
     bind_host = host or ENV_CONFIG.get("HOST", "127.0.0.1")
     bind_port = int(port or ENV_CONFIG.get("PORT", 8000) or 8000)
+    use_access_log, resolved_log_level = server_logging_options(
+        access_log=access_log,
+        log_level=log_level,
+    )
+    if access_log is not None:
+        os.environ["LILA_ACCESS_LOG"] = "1" if use_access_log else "0"
+        ConfigLoader._data["LILA_ACCESS_LOG"] = use_access_log
+    if log_level:
+        os.environ["LILA_LOG_LEVEL"] = resolved_log_level
+        ConfigLoader._data["LILA_LOG_LEVEL"] = resolved_log_level
     if workers > 1 and str(ENV_CONFIG.get("CACHE_DRIVER", "memory")) != "redis":
         typer.secho(
             "⚠️ Multiple workers with the memory cache: rate limits/sessions are per worker. "
@@ -89,7 +102,19 @@ def run(
         os.environ["LILA_PROXY_HEADERS"] = "1" if proxy_headers else "0"
         os.environ["LILA_FORWARDED_ALLOW_IPS"] = forwarded_allow_ips
         typer.secho(f"🚀 Lila on http://{bind_host}:{bind_port} (granian, {workers} worker(s))", fg=typer.colors.CYAN)
-        options = dict(address=bind_host, port=bind_port, interface=Interfaces.ASGI, workers=workers)
+        options = dict(
+            address=bind_host,
+            port=bind_port,
+            interface=Interfaces.ASGI,
+            workers=workers,
+            log_access=use_access_log,
+        )
+        try:
+            from granian.log import LogLevels
+
+            options["log_level"] = LogLevels(resolved_log_level)
+        except Exception:
+            pass
         if max_rss:
             options["workers_max_rss"] = max_rss
         Granian("lila.core.granian_entry:app", **options).serve()
@@ -106,6 +131,8 @@ def run(
         workers=workers,
         proxy_headers=proxy_headers,
         forwarded_allow_ips=forwarded_allow_ips,
+        access_log=use_access_log,
+        log_level=resolved_log_level,
     )
 
 

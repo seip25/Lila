@@ -13,6 +13,7 @@ import sys
 import uuid
 import hashlib
 import asyncio
+import logging as py_logging
 from contextlib import asynccontextmanager
 from typing import Optional, List, Dict, Any, Union, Callable
 
@@ -23,7 +24,14 @@ from lila.core.static import LilaStaticFiles, bundled_js_response
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
-from lila.core.config import ENV_CONFIG, ConfigLoader, get_base_path, get_data_path, is_debug
+from lila.core.config import (
+    ENV_CONFIG,
+    ConfigLoader,
+    get_base_path,
+    get_data_path,
+    is_debug,
+    server_logging_options,
+)
 from lila.core.routing import Router
 from lila.core.responses import JSONResponse, HTMLResponse, StreamingResponse, FileResponse, Response
 from lila.core.middleware import (
@@ -112,6 +120,28 @@ def _openapi_path(path: str) -> str:
     return openapi_path or "/"
 
 
+def _configure_server_logging(debug: bool) -> None:
+    """Silence Uvicorn's terminal INFO/access logs when ``DEBUG=False``.
+
+    This guarantees quiet production output even when an existing project runs
+    ``uvicorn.run("main:app", ...)`` or ``uvicorn main:app`` without passing
+    ``access_log=False`` / ``log_level="warning"`` explicitly.
+    """
+    if debug:
+        return
+    use_access_log, level_name = server_logging_options(debug=False)
+    level = getattr(py_logging, level_name.upper(), py_logging.WARNING)
+    for name in ("uvicorn", "uvicorn.error", "uvicorn.asgi"):
+        py_logging.getLogger(name).setLevel(level)
+    access_logger = py_logging.getLogger("uvicorn.access")
+    if not use_access_log:
+        access_logger.handlers.clear()
+        access_logger.propagate = False
+        access_logger.setLevel(level)
+    else:
+        access_logger.setLevel(level)
+
+
 class App(Starlette):
     def __init__(
         self,
@@ -139,6 +169,7 @@ class App(Starlette):
         # Ensure .env is loaded even when users import App directly (not app.config).
         ConfigLoader.load()
         self._is_debug = debug if debug is not None else is_debug()
+        _configure_server_logging(self._is_debug)
         self._routers: List[Router] = []
         self._raw_routes: List[BaseRoute] = []
         self._openapi_extra: List[dict] = []

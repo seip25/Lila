@@ -36,9 +36,20 @@ def main():
             reload=True,
         )
     else:
+        from lila.core.config import server_logging_options
+
         workers = min((os.cpu_count() or 1) * 2 + 1, 8) if (str(WORKERS).lower() == "max" or WORKERS == 0) else int(WORKERS)
+        access_log, log_level = server_logging_options(debug=False)
         print(f"🚀 Running Lila on {HOST}:{PORT} with {workers} workers")
-        uvicorn.run("main:app", host=HOST, port=PORT, reload=False, workers=workers)
+        uvicorn.run(
+            "main:app",
+            host=HOST,
+            port=PORT,
+            reload=False,
+            workers=workers,
+            access_log=access_log,
+            log_level=log_level,
+        )
 
 
 if __name__ == "__main__":

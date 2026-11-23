@@ -5,6 +5,16 @@ All notable changes to Lila Framework. The format follows
 
 ## [Unreleased]
 
+## [2.2.1] — 2026-11-23
+
+### Fixed
+
+- Silence Uvicorn/Granian `INFO` and HTTP access logs in the terminal when
+  `DEBUG=False` (`App(debug=False)`, `python main.py`, `lila run`, and direct
+  `uvicorn main:app` launches). Added opt-in `LILA_ACCESS_LOG` /
+  `LILA_LOG_LEVEL` settings and `--access-log` / `--log-level` options on
+  `lila run`.
+
 ## [2.2.0] — 2026-11-21
 
 ### Security, CRUD/admin in React, real-time, desktop releases and infrastructure
