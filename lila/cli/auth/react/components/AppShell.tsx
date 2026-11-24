@@ -24,7 +24,7 @@ export default function AppShell({ user, children }: { user: SessionUser; childr
       <ProgressBar />
       <header className="sticky top-0 z-40 border-b border-border bg-surface py-3 shadow-sm dark:bg-surface-dark">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4">
-          <Link href="/dashboard" className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-black text-transparent">
+          <Link href="/dashboard" className="bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-2xl font-black text-transparent">
             Lila
           </Link>
           <div className="flex items-center gap-2">

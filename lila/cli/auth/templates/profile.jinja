@@ -6,10 +6,10 @@
     <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
       <h3>
         <a href="/dashboard"
-          class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lila</a>
+          class="text-2xl font-black bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-transparent">Lila</a>
       </h3>
       <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full">{{ user.name }}</span>
+        <span class="text-sm font-semibold px-3 py-1 bg-lila-100/80 dark:bg-lila-300/15 text-lila-700 dark:text-lila-300 rounded-full">{{ user.name }}</span>
       </div>
     </div>
   </header>
@@ -22,11 +22,11 @@
         <h4 class="text-xs font-black uppercase text-slate-400 px-3 mb-2 tracking-wider">{{ translate['menu'] | default('Menu') }}</h4>
 
         <a href="/dashboard"
-          class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
+          class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-lila-700 dark:hover:text-lila-300 transition-all">
           <span>🏠</span> {{ translate['home'] | default('Home') }}
         </a>
         <a href="/profile"
-          class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-sm transition-all">
+          class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-lila-700 text-white dark:bg-lila-300 dark:text-[#140a24] shadow-sm transition-all">
           <span>👤</span> {{ user.name }}
         </a>
         <a href="?lang=es"

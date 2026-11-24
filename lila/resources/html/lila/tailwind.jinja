@@ -1,6 +1,7 @@
 <!-- CSRF token for fetch/Http() on every page (kept in sync by render()). -->
 <meta name="csrf-token" content="{{ csrf_token | default('') }}">
-{% if debug %}<meta name="lila-debug" content="1">{% endif %}
+{% if debug %}
+<meta name="lila-debug" content="1">{% endif %}
 
 {% set _compiled_css = tailwind_css() %}
 {% if _compiled_css %}
@@ -9,7 +10,7 @@
 {% else %}
 <!-- Tailwind CSS browser runtime (zero build step, used in development).
      Run `lila css build` before deploying to serve a small compiled CSS. -->
-<script src="{{ public('js/tailwind.js') }}"{{ nonce_attr | default('') }}></script>
+<script src="{{ public('js/tailwind.js') }}" {{ nonce_attr | default('') }}></script>
 
 <style type="text/tailwindcss">
   @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
@@ -18,67 +19,95 @@
     --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
     --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
 
-    --color-primary: var(--primary, #1a73e8);
-    --color-primary-dark: var(--primary-dark, #1557b0);
-    --color-secondary: var(--secondary, #8b5cf6);
-    --color-secondary-dark: var(--secondary-dark, #7c3aed);
-    --color-accent: var(--accent, #06b6d4);
-    --color-surface: var(--surface, #ffffff);
-    --color-surface-dark: var(--surface-dark, #1e293b);
-    --color-bg-body: var(--bg-body, #f8fafc);
-    --color-bg-body-dark: var(--bg-body-dark, #0f172a);
+    --color-lila-50: #faf5ff;
+    --color-lila-100: #f3e8ff;
+    --color-lila-200: #e9d5ff;
+    --color-lila-300: #d29bfd;
+    --color-lila-400: #d38aff;
+    --color-lila-500: #be79e1;
+    --color-lila-600: #8b5cf6;
+    --color-lila-700: #7c3aed;
+    --color-lila-800: #6d28d9;
+    --color-lila-900: #4c1d95;
+    --color-lila-950: #241242;
 
-    --color-lila-bg: var(--lila-bg, #f8fafc);
+    --color-primary: var(--primary, #7c3aed);
+    --color-primary-dark: var(--primary-dark, #6d28d9);
+    --color-secondary: var(--secondary, #be79e1);
+    --color-secondary-dark: var(--secondary-dark, #9333ea);
+    --color-accent: var(--accent, #d29bfd);
+    --color-surface: var(--surface, #ffffff);
+    --color-surface-dark: var(--surface-dark, #141124);
+    --color-bg-body: var(--bg-body, #faf8ff);
+    --color-bg-body-dark: var(--bg-body-dark, #0b0914);
+
+    --color-lila-bg: var(--lila-bg, #faf8ff);
     --color-lila-surface: var(--lila-surface, #ffffff);
-    --color-lila-primary: var(--lila-primary, #1a73e8);
-    --color-lila-primary-hover: var(--lila-primary-hover, #1557b0);
-    --color-lila-sidebar: var(--lila-sidebar, #f1f5f9);
+    --color-lila-primary: var(--lila-primary, #7c3aed);
+    --color-lila-primary-hover: var(--lila-primary-hover, #6d28d9);
+    --color-lila-sidebar: var(--lila-sidebar, #f4effc);
   }
 
   :root {
-    --primary: #1a73e8;
-    --primary-dark: #1557b0;
-    --secondary: #8b5cf6;
-    --secondary-dark: #7c3aed;
-    --accent: #06b6d4;
+    color-scheme: light;
+    --primary: #7c3aed;
+    --primary-dark: #6d28d9;
+    --secondary: #be79e1;
+    --secondary-dark: #9333ea;
+    --accent: #8b5cf6;
     --surface: #ffffff;
-    --surface-dark: #1e293b;
-    --bg-body: #f8fafc;
-    --bg-body-dark: #0f172a;
+    --surface-dark: #141124;
+    --bg-body: #faf8ff;
+    --bg-body-dark: #0b0914;
 
-    --lila-bg: #f8fafc;
+    --lila-bg: #faf8ff;
     --lila-surface: #ffffff;
-    --lila-primary: #1a73e8;
-    --lila-primary-hover: #1557b0;
-    --lila-sidebar: #f1f5f9;
+    --lila-primary: #7c3aed;
+    --lila-primary-hover: #6d28d9;
+    --lila-sidebar: #f4effc;
 
     --shadow-lila-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-    --shadow-lila-card-hover: 0 10px 25px -4px rgba(26, 115, 232, 0.12);
+    --shadow-lila-card-hover: 0 10px 25px -4px rgba(124, 58, 237, 0.16);
     --shadow-lila-input: 0 2px 6px 0 rgba(0, 0, 0, 0.03);
-    --shadow-lila-input-focus: 0 0 0 3px rgba(26, 115, 232, 0.2);
+    --shadow-lila-input-focus: 0 0 0 3px rgba(124, 58, 237, 0.22);
   }
 
   :root[data-theme="dark"] {
-    --primary: #60a5fa;
-    --primary-dark: #3b82f6;
-    --secondary: #a78bfa;
+    color-scheme: dark;
+    --primary: #d29bfd;
+    --primary-dark: #be79e1;
+    --secondary: #d38aff;
     --secondary-dark: #8b5cf6;
-    --accent: #22d3ee;
-    --surface: #1e293b;
-    --surface-dark: #0f172a;
-    --bg-body: #0b1120;
-    --bg-body-dark: #0b1120;
+    --accent: #a78bfa;
+    --surface: #141124;
+    --surface-dark: #0b0914;
+    --bg-body: #0b0914;
+    --bg-body-dark: #0b0914;
 
-    --lila-bg: #0b1120;
-    --lila-surface: #1e293b;
-    --lila-primary: #60a5fa;
-    --lila-primary-hover: #93c5fd;
-    --lila-sidebar: #131b2e;
+    --lila-bg: #0b0914;
+    --lila-surface: #141124;
+    --lila-primary: #d29bfd;
+    --lila-primary-hover: #e5c2ff;
+    --lila-sidebar: #100d1c;
 
-    --shadow-lila-card: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
-    --shadow-lila-card-hover: 0 10px 25px -4px rgba(96, 165, 250, 0.2);
+    --shadow-lila-card: 0 4px 20px -2px rgba(7, 4, 16, 0.5);
+    --shadow-lila-card-hover: 0 10px 25px -4px rgba(210, 155, 253, 0.22);
     --shadow-lila-input: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
-    --shadow-lila-input-focus: 0 0 0 3px rgba(96, 165, 250, 0.3);
+    --shadow-lila-input-focus: 0 0 0 3px rgba(210, 155, 253, 0.3);
+  }
+
+  html {
+    accent-color: var(--lila-primary);
+  }
+
+  ::selection {
+    background-color: rgba(190, 121, 225, 0.24);
+    color: #1e1033;
+  }
+
+  :root[data-theme="dark"] ::selection {
+    background-color: rgba(210, 155, 253, 0.28);
+    color: #faf5ff;
   }
 
   dialog {
@@ -125,7 +154,7 @@
     position: fixed;
     inset: 0;
     z-index: 9998;
-    background-color: rgba(15, 23, 42, 0.5);
+    background-color: rgba(11, 9, 20, 0.55);
     backdrop-filter: blur(4px);
     opacity: 0;
     /* A closed (transparent) backdrop must never block clicks on the page. */
@@ -180,12 +209,12 @@
       border-radius: 20px;
       box-shadow: var(--shadow-lila-card);
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(226, 232, 240, 0.8);
+      border: 1px solid rgba(231, 222, 247, 0.9);
     }
 
     :root[data-theme="dark"] .lila-card,
     :root[data-theme="dark"] .card {
-      border: 1px solid rgba(51, 65, 85, 0.6);
+      border: 1px solid rgba(38, 31, 61, 0.9);
       box-shadow: var(--shadow-lila-card);
     }
 
@@ -249,7 +278,7 @@
       border: 1px solid transparent;
       background-color: var(--lila-primary);
       color: #ffffff;
-      box-shadow: 0 2px 8px -1px rgba(26, 115, 232, 0.3);
+      box-shadow: 0 2px 8px -1px rgba(124, 58, 237, 0.32);
       text-decoration: none;
       position: relative;
       overflow: hidden;
@@ -259,13 +288,13 @@
     .btn-primary:hover {
       background-color: var(--lila-primary-hover);
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px -1px rgba(26, 115, 232, 0.4);
+      box-shadow: 0 4px 14px -1px rgba(124, 58, 237, 0.42);
     }
 
     :root[data-theme="dark"] .lila-btn-primary,
     :root[data-theme="dark"] .btn-primary {
       background-color: var(--lila-primary);
-      color: #0f172a;
+      color: #140a24;
     }
 
     :root[data-theme="dark"] .lila-btn-primary:hover,
@@ -307,7 +336,7 @@
     :root[data-theme="dark"] .lila-btn-secondary:hover,
     :root[data-theme="dark"] .btn-secondary:hover {
       background-color: var(--lila-primary);
-      color: #0f172a;
+      color: #140a24;
     }
 
     .lila-btn-outline,
@@ -330,9 +359,14 @@
 
     .lila-btn-outline:hover,
     .btn-outline:hover {
-      background-color: rgba(26, 115, 232, 0.04);
+      background-color: rgba(124, 58, 237, 0.06);
       border-color: var(--lila-primary);
       transform: translateY(-1px);
+    }
+
+    :root[data-theme="dark"] .lila-btn-outline:hover,
+    :root[data-theme="dark"] .btn-outline:hover {
+      background-color: rgba(210, 155, 253, 0.08);
     }
 
     .btn-danger,
@@ -463,19 +497,19 @@
       gap: 0.5rem;
       outline: none;
       background-color: #ffffff;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #e7def7;
       color: #1e293b;
       text-decoration: none;
     }
 
     .btn-light:hover {
-      background-color: #f1f5f9;
+      background-color: #f4effc;
       transform: translateY(-1px);
     }
 
     :root[data-theme="dark"] .btn-light {
-      background-color: #1e1f20;
-      border-color: rgba(255, 255, 255, 0.08);
+      background-color: #1b1630;
+      border-color: rgba(190, 121, 225, 0.2);
       color: #e2e8f0;
     }
 
@@ -492,19 +526,19 @@
       gap: 0.5rem;
       outline: none;
       border: none;
-      background-color: #0f172a;
+      background-color: #0b0914;
       color: #ffffff;
       text-decoration: none;
     }
 
     .btn-dark:hover {
-      background-color: #1e293b;
+      background-color: #1e1833;
       transform: translateY(-1px);
     }
 
     :root[data-theme="dark"] .btn-dark {
       background-color: #ffffff;
-      color: #0f172a;
+      color: #0b0914;
     }
 
     .form-control,
@@ -522,9 +556,9 @@
 
     :root[data-theme="dark"] .form-control,
     :root[data-theme="dark"] .input-lila {
-      border-color: rgba(255, 255, 255, 0.08);
+      border-color: rgba(190, 121, 225, 0.2);
       box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.25);
-      background-color: #131314;
+      background-color: #100d1c;
     }
 
     .form-control:focus,

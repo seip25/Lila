@@ -754,7 +754,7 @@ function lila(component, options) {
       },
       info: {
         classes: "bg-white/95 dark:bg-slate-900/95 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100",
-        icon: '<span class="text-blue-500 font-bold">ℹ</span>',
+        icon: '<span class="text-lila-700 dark:text-lila-300 font-bold">ℹ</span>',
       },
     };
     const theme = typeThemes[type] || typeThemes["info"];
@@ -819,7 +819,7 @@ function lila(component, options) {
 
     tabsContainer.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active", "block"));
     tabsContainer.querySelectorAll(".tab-content").forEach((c) => c.classList.add("hidden"));
-    tabsContainer.querySelectorAll(".tab-trigger").forEach((t) => t.classList.remove("active", "border-blue-600", "text-blue-600"));
+    tabsContainer.querySelectorAll(".tab-trigger").forEach((t) => t.classList.remove("active", "border-lila-700", "text-lila-700", "dark:border-lila-300", "dark:text-lila-300"));
 
     targetContent.classList.remove("hidden");
     targetContent.classList.add("active", "block");
@@ -828,7 +828,7 @@ function lila(component, options) {
       (t) => t.getAttribute("data-tab-target") === targetId || t.getAttribute("href") === `#${targetId}`
     );
     if (matching) {
-      matching.classList.add("active", "border-blue-600", "text-blue-600");
+      matching.classList.add("active", "border-lila-700", "text-lila-700", "dark:border-lila-300", "dark:text-lila-300");
     }
   }
 
@@ -1413,7 +1413,8 @@ function initSingleCarousel(carousel, opts = {}) {
   function paint() {
     dots.forEach((dot, i) => {
       const active = i === current;
-      dot.classList.toggle("bg-blue-600", active);
+      dot.classList.toggle("bg-lila-700", active);
+      dot.classList.toggle("dark:bg-lila-300", active);
       dot.classList.toggle("w-6", active);
       dot.classList.toggle("bg-slate-300", !active);
       dot.setAttribute("aria-current", active ? "true" : "false");
@@ -1712,7 +1713,7 @@ const LILA_SPINNER =
 const LILA_MESSAGE_STYLES = {
   success: "rounded-xl border px-4 py-3 text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200",
   error: "rounded-xl border px-4 py-3 text-sm font-medium bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-800 dark:text-red-200",
-  info: "rounded-xl border px-4 py-3 text-sm font-medium bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-200",
+  info: "rounded-xl border px-4 py-3 text-sm font-medium bg-lila-50 dark:bg-lila-950/50 border-lila-200 dark:border-lila-300/25 text-lila-800 dark:text-lila-200",
 };
 
 function lilaAttr(el, name, fallback = null) {
@@ -2228,7 +2229,7 @@ class ResponsiveDataTable {
         ${
           this.options.search
             ? `<div class="flex items-center justify-between">
-                <input type="search" class="datatable-search-input w-full sm:w-72 px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-100 transition-all" placeholder="Search records..." aria-label="Search" />
+                <input type="search" class="datatable-search-input w-full sm:w-72 px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-lila-700/20 dark:focus:ring-lila-300/25 focus:border-lila-700 dark:focus:border-lila-300 text-slate-800 dark:text-slate-100 transition-all" placeholder="Search records..." aria-label="Search" />
               </div>`
             : ""
         }
@@ -2365,7 +2366,7 @@ class ResponsiveDataTable {
     }
 
     const baseClass = "px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer";
-    const activeClass = "px-3.5 py-2 text-xs font-bold rounded-xl bg-blue-600 text-white shadow-sm cursor-pointer";
+    const activeClass = "px-3.5 py-2 text-xs font-bold rounded-xl bg-lila-700 text-white dark:bg-lila-300 dark:text-[#140a24] shadow-sm cursor-pointer";
 
     let html = `<button class="${baseClass}" ${this.currentPage === 1 ? "disabled" : ""} data-page="${this.currentPage - 1}">«</button>`;
     for (let i = 1; i <= pageCount; i++) {

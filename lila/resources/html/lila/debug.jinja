@@ -15,7 +15,7 @@
       <div>
         <div class="flex items-center gap-3 mb-1">
           <img src="{{ public('img/lila-128.webp') }}" alt="Lila" width="32" height="32" class="bg-white p-0.5 rounded-full shadow-sm">
-          <h3 class="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Lila Debug Console</h3>
+          <h3 class="text-2xl font-black bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-transparent">Lila Debug Console</h3>
         </div>
         <p class="text-xs font-semibold text-slate-400">Last 100 requests in memory. Zero disk I/O.</p>
       </div>
@@ -50,7 +50,7 @@
           <!-- Status Filter -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Status:</span>
-            <select id="filter-status" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <select id="filter-status" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-lila-700/20 dark:focus:ring-lila-300/25 focus:border-lila-700 dark:focus:border-lila-300">
               <option value="all">All</option>
               <option value="2xx">2xx Success</option>
               <option value="3xx">3xx Redirect</option>
@@ -62,7 +62,7 @@
           <!-- Method Filter -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Method:</span>
-            <select id="filter-method" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <select id="filter-method" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-lila-700/20 dark:focus:ring-lila-300/25 focus:border-lila-700 dark:focus:border-lila-300">
               <option value="all">All</option>
               <option value="GET">GET</option>
               <option value="POST">POST</option>
@@ -75,7 +75,7 @@
           <!-- Sort Filter -->
           <div class="flex items-center gap-1.5 text-xs">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Sort:</span>
-            <select id="sort-by" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <select id="sort-by" data-onchange="applyFiltersAndSort" class="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-lila-700/20 dark:focus:ring-lila-300/25 focus:border-lila-700 dark:focus:border-lila-300">
               <option value="newest">Newest First</option>
               <option value="slowest">Slowest (duration_ms DESC)</option>
               <option value="ram">Highest RAM (ram_mb DESC)</option>

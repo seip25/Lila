@@ -14,7 +14,7 @@ export default function AppLayout() {
       <ProgressBar active={navigation.state !== "idle"} />
       <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur dark:bg-surface-dark/80">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3">
-          <span className="mr-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-xl font-black text-transparent">Lila</span>
+          <span className="mr-4 bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-xl font-black text-transparent">Lila</span>
           <nav className="flex flex-1 flex-wrap gap-1">
             <NavLink to="/" end className={link}>Components</NavLink>
             <NavLink to="/users" className={link}>Users</NavLink>

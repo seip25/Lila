@@ -28,7 +28,7 @@ export function AuthCard({ title, subtitle, children }: { title: string; subtitl
       <div className="card w-full max-w-md p-8">
         <div className="mb-6 flex flex-col items-center">
           <img src="/img/lila-128.webp" alt="Lila" width={48} height={48} className="mb-2 rounded-2xl bg-white p-1 shadow-sm" />
-          <h1 className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-black text-transparent">{title}</h1>
+          <h1 className="bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-2xl font-black text-transparent">{title}</h1>
           {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {children}

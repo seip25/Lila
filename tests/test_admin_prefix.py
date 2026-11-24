@@ -21,7 +21,7 @@ class AdminPrefixTests(unittest.TestCase):
 class AdminMenuActiveTests(unittest.TestCase):
     def _active(self, html):
         import re
-        return re.findall(r'<a href="([^"]+)" class="[^"]*bg-blue-600[^"]*" aria-current="page">', html)
+        return re.findall(r'<a href="([^"]+)" class="[^"]*bg-lila-700[^"]*" aria-current="page">', html)
 
     def test_model_page_marks_only_its_link(self):
         class User:  # noqa: D401 - minimal stand-in

@@ -125,7 +125,7 @@ class UI:
             f'<label class="inline-flex items-center gap-2 text-sm cursor-pointer">'
             f'<input type="checkbox" id="f-{esc(name)}" name="{esc(name)}"'
             + _attrs({"value": value, "checked": checked, "data-unchecked": unchecked,
-                      "class": "w-4 h-4 accent-blue-600", **attrs})
+                      "class": "w-4 h-4 accent-lila-700 dark:accent-lila-300", **attrs})
             + f'> <span>{esc(_translate(label, self.trans) or "")}</span></label>'
         )
         return self._field(name, None, control, help, error)
@@ -135,14 +135,14 @@ class UI:
         return Markup(f"<button{_attrs({'type': type, 'class': css, **attrs})}>{esc(_translate(text, self.trans))}</button>")
 
     def link(self, text: str, href: str, variant: Optional[str] = None, **attrs) -> Markup:
-        css = attrs.pop("class_", None) or (f"btn btn-{variant}" if variant else "text-blue-600 dark:text-blue-400 hover:underline")
+        css = attrs.pop("class_", None) or (f"btn btn-{variant}" if variant else "text-lila-700 dark:text-lila-300 hover:underline")
         return Markup(f"<a{_attrs({'href': href, 'class': css, **attrs})}>{esc(_translate(text, self.trans))}</a>")
 
     _ALERT = {
         "success": "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200",
         "error": "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-800 dark:text-red-200",
         "warning": "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-200",
-        "info": "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-200",
+        "info": "bg-lila-50 dark:bg-lila-950/50 border-lila-200 dark:border-lila-300/25 text-lila-800 dark:text-lila-200",
     }
 
     def alert(self, text: str, type: str = "info", dismissible: bool = False, **attrs) -> Markup:
@@ -156,6 +156,8 @@ class UI:
 
     _BADGE = {
         "gray": "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+        "lila": "bg-lila-100/80 text-lila-700 dark:bg-lila-300/15 dark:text-lila-300",
+        "primary": "bg-lila-100/80 text-lila-700 dark:bg-lila-300/15 dark:text-lila-300",
         "blue": "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300",
         "green": "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
         "red": "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300",
@@ -359,7 +361,7 @@ def render_pagination(page: Dict[str, Any], request: Any = None, param: str = "p
 
     base = "min-w-9 h-9 px-3 inline-flex items-center justify-center rounded-lg text-sm font-semibold border transition"
     normal = f"{base} border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-    active = f"{base} bg-blue-600 border-blue-600 text-white"
+    active = f"{base} bg-lila-700 border-lila-700 text-white dark:bg-lila-300 dark:border-lila-300 dark:text-[#140a24]"
     disabled = f"{base} border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 pointer-events-none"
 
     items = []

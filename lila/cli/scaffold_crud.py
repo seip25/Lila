@@ -409,7 +409,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
         form_fields.append(
             f'      <div>\n'
             f'        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">{col.capitalize()}</label>\n'
-            f'        <input name="{col}" id="field_{col}" type="{field_type}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />\n'
+            f'        <input name="{col}" id="field_{col}" type="{field_type}" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-lila-700/20 dark:focus:ring-lila-300/25 focus:border-lila-700 dark:focus:border-lila-300" />\n'
             f'      </div>'
         )
     form_fields_html = "\n".join(form_fields)
@@ -418,7 +418,7 @@ def generate_html_template(model_name: str, route_name: str, columns: list) -> s
 <div class="max-w-6xl w-full mx-auto px-4 py-8 flex-1 space-y-6">
     <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface dark:bg-surface-dark border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
       <div>
-        <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h2 class="text-2xl font-black bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-transparent">
           {model_name} Management
         </h2>
         <p class="text-xs text-slate-400 mt-1 font-semibold">Active CRUD Table with View Transitions</p>

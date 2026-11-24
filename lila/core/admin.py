@@ -116,7 +116,7 @@ def render_admin_menu(
         active = current_path == path or (path != base and current_path.startswith(path + "/"))
         cls_name = (
             "flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all "
-            + ("bg-blue-600 text-white shadow-sm" if active
+            + ("bg-lila-700 text-white dark:bg-lila-300 dark:text-[#140a24] shadow-sm" if active
                else "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100")
         )
         current = ' aria-current="page"' if active else ""

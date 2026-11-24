@@ -27,7 +27,7 @@ async def react_home(request: Request):
         description="Lila pages rendered with React and Vite.",
         canonical=True,
         jsonld={"@context": "https://schema.org", "@type": "WebSite", "name": "Lila React"},
-        meta={"theme-color": "#1a73e8"},
+        meta={"theme-color": "#7c3aed"},
     )
 
 

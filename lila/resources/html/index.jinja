@@ -4,24 +4,24 @@
     <a href="/" class="flex items-center gap-3 group">
       <img src="{{ public('img/lila-128.webp') }}" alt="Lila" width="36" height="36" class="rounded-xl shadow-sm transform group-hover:scale-105 transition-transform" />
       <div class="flex items-center gap-2">
-        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lila</span>
-        <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">v{{ lila_version }}</span>
+        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-transparent">Lila</span>
+        <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-lila-100/80 dark:bg-lila-300/15 text-lila-700 dark:text-lila-300 border border-lila-200 dark:border-lila-300/25">v{{ lila_version }}</span>
       </div>
     </a>
 
     <div class="flex items-center gap-3">
       {% if has_docs %}
-      <a href="/docs" data-no-router class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
+      <a href="/docs" data-no-router class="text-sm font-semibold text-slate-600 hover:text-lila-700 dark:text-slate-300 dark:hover:text-lila-300 transition-colors px-3 py-1.5 rounded-lg">
         Docs
       </a>
       {% endif %}
       {% if has_admin %}
-      <a href="/admin" data-no-router class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
+      <a href="/admin" data-no-router class="text-sm font-semibold text-slate-600 hover:text-lila-700 dark:text-slate-300 dark:hover:text-lila-300 transition-colors px-3 py-1.5 rounded-lg">
         Admin
       </a>
       {% endif %}
       {% if has_auth %}
-      <a href="/login" class="text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg">
+      <a href="/login" class="text-sm font-semibold text-slate-600 hover:text-lila-700 dark:text-slate-300 dark:hover:text-lila-300 transition-colors px-3 py-1.5 rounded-lg">
         {{ translate['login'] | default('Login') }}
       </a>
       {% endif %}
@@ -39,16 +39,16 @@
 
 <!-- Hero Section -->
 <main class="max-w-6xl mx-auto px-4 py-16 flex-1 flex flex-col items-center justify-center text-center">
-  <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-6">
+  <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lila-100/80 dark:bg-lila-300/15 border border-lila-200 dark:border-lila-300/25 text-lila-700 dark:text-lila-300 text-xs font-semibold mb-6">
     <span class="animate-pulse">✨</span> Rebuilt from zero &bull; Ultra-Lightweight &bull; Pure ASGI
   </div>
 
   <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 dark:text-white max-w-4xl leading-tight mb-6">
-    Full-Stack Python <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">SPA Experience</span> with Zero Infrastructure
+    Full-Stack Python <span class="bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-transparent">SPA Experience</span> with Zero Infrastructure
   </h1>
 
   <p class="max-w-2xl text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-    Ultra-fast (~19MB import, ~42MB app), SQLite WAL Mode by default, View Transitions routing with <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs text-blue-600">lila-client.js</code>, unified AI helper with PII masking, OAuth 2.0, and 1-command desktop builds.
+    Ultra-fast (~19MB import, ~42MB app), SQLite WAL Mode by default, View Transitions routing with <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs text-lila-700 dark:text-lila-300">lila-client.js</code>, unified AI helper with PII masking, OAuth 2.0, and 1-command desktop builds.
   </p>
 
   <!-- CTA Buttons -->
@@ -70,7 +70,7 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
     <!-- Feature 1 -->
     <div class="card p-6 flex flex-col gap-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/40 flex items-center justify-center text-xl">
+      <div class="w-10 h-10 rounded-xl bg-lila-100/80 dark:bg-lila-300/15 border border-lila-200 dark:border-lila-300/25 flex items-center justify-center text-xl">
         ⚡
       </div>
       <h3 class="text-base font-bold text-slate-900 dark:text-white">SPA View Transitions</h3>
