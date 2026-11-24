@@ -41,17 +41,34 @@
       theme: {
         extend: {
           colors: {
+            lila: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d29bfd',
+              400: '#d38aff',
+              500: '#be79e1',
+              600: '#8b5cf6',
+              700: '#7c3aed',
+              800: '#6d28d9',
+              900: '#4c1d95',
+              950: '#241242',
+              darkBg: '#0b0914',
+              darkCard: '#141124',
+              darkSidebar: '#100d1c',
+              darkBorder: '#261f3d'
+            },
             gemini: {
-              blue: '#1a73e8',
-              blueBg: '#f0f4f9',
-              blueHover: '#e1ecf8',
-              indigo: '#4f46e5',
-              purple: '#8b5cf6',
-              accent: '#4285f4',
-              darkBg: '#090d16',
-              darkCard: '#131b2e',
-              darkBorder: '#1e293b',
-              darkHover: '#1e293b'
+              blue: '#7c3aed',
+              blueBg: '#f4effc',
+              blueHover: '#ede4ff',
+              indigo: '#6d28d9',
+              purple: '#be79e1',
+              accent: '#d29bfd',
+              darkBg: '#0b0914',
+              darkCard: '#141124',
+              darkBorder: '#261f3d',
+              darkHover: '#1d1730'
             }
           },
           fontFamily: {
@@ -64,20 +81,20 @@
   </script>
 </head>
 
-<body class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-200 min-h-screen flex flex-col font-sans ">
-  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/50 dark:border-slate-800/50 py-4 transition-colors duration-300">
+<body class="bg-[#faf8ff] text-slate-800 dark:bg-[#0b0914] dark:text-slate-200 min-h-screen flex flex-col font-sans ">
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#0b0914]/80 border-b border-slate-200/50 dark:border-[#261f3d] py-4 transition-colors duration-300">
     <nav class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg gemini-gradient-bg flex items-center justify-center text-white font-bold text-base shadow-sm">
           L
         </div>
-        <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
+        <h1 class="text-xl font-bold font-heading tracking-tight bg-gradient-to-r from-lila-800 via-lila-700 to-lila-500 dark:from-[#e5c2ff] dark:via-lila-300 dark:to-indigo-400 bg-clip-text text-transparent"><a href="../index.html" class="hover:opacity-80 transition-opacity">Lila Framework</a></h1>
       </div>
       <div class="flex items-center gap-3">
         <a href="../index.html" class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
           Home
         </a>
-        <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100 transition-all duration-200 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+        <a href="https://github.com/seip25/Lila" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-full text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100 transition-all duration-200 dark:border-[#342a54] dark:text-slate-200 dark:hover:bg-[#1e1833]">
           GitHub
         </a>
       <button type="button" data-theme-toggle aria-label="Toggle color theme" aria-pressed="true"
@@ -92,7 +109,7 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-8 flex-1 flex flex-col lg:flex-row gap-8 w-full">
-    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-slate-50 dark:bg-[#111827] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-4 lg:p-6 transition-colors duration-300">
+    <aside class="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-120px)] overflow-y-auto bg-[#f4effc] dark:bg-[#100d1c] border border-slate-200/50 dark:border-[#261f3d] rounded-2xl p-4 lg:p-6 transition-colors duration-300">
   <h4>Menu</h4>
   <a href="install.html">Installation</a>
   <a href="configuration.html">Configuration</a>
@@ -125,7 +142,7 @@
   <a href="production.html">Production</a>
 </aside>
 
-    <article class="flex-1 min-w-0 bg-white dark:bg-[#131b2e] border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-colors duration-300">
+    <article class="flex-1 min-w-0 bg-white dark:bg-[#141124] border border-slate-200/50 dark:border-[#261f3d] rounded-2xl p-6 lg:p-10 shadow-sm shadow-slate-100/20 dark:shadow-none transition-colors duration-300">
       <h2 class="text-3xl font-black mb-4">Desktop Applications (<code class="font-mono text-xl">lila desktop</code>)</h2>
 
       <p class="text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
@@ -148,7 +165,7 @@ lila desktop dev
 # Custom options:
 lila desktop dev --title "My Desktop App" --width 1280 --height 850</code></pre>
 
-      <div class="p-4 rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 text-xs text-slate-600 dark:text-slate-300 my-6">
+      <div class="p-4 rounded-xl border border-lila-200 dark:border-lila-300/25 bg-lila-50/80 dark:bg-lila-950/40 text-xs text-slate-600 dark:text-slate-300 my-6">
         <strong>💡 Dual Window Engine:</strong>
         <ul class="list-disc ml-5 mt-2 space-y-1">
           <li><strong>Preferred (<code class="font-mono">pywebview</code>):</strong> Uses Microsoft WebView2 on Windows, WebKit on macOS, and WebKitGTK on Linux. Install with: <code class="font-mono">pip install "lila-framework[desktop]"</code></li>
@@ -312,7 +329,7 @@ app = App(
 )</code></pre>
 
       <div class="overflow-x-auto mb-6 mt-4">
-        <table class="w-full text-sm text-left border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <table class="w-full text-sm text-left border border-slate-200 dark:border-[#342a54] rounded-xl overflow-hidden">
           <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">
             <tr>
               <th class="px-4 py-3 font-semibold">Endpoint</th>
@@ -321,23 +338,23 @@ app = App(
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-            <tr class="bg-white dark:bg-[#131b2e]">
-              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">POST /api/desktop/bug</td>
+            <tr class="bg-white dark:bg-[#141124]">
+              <td class="px-4 py-3 font-mono text-xs text-lila-700 dark:text-lila-300">POST /api/desktop/bug</td>
               <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">Optional token</td>
               <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Stores manual bug report (note + recent logs). Returns <code>201 stored</code> or <code>200 duplicate</code>.</td>
             </tr>
-            <tr class="bg-slate-50 dark:bg-[#0f1729]">
-              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">POST /api/desktop/telemetry</td>
+            <tr class="bg-slate-50 dark:bg-[#100d1c]">
+              <td class="px-4 py-3 font-mono text-xs text-lila-700 dark:text-lila-300">POST /api/desktop/telemetry</td>
               <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">Optional token</td>
               <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Stores opt-in periodic anonymous diagnostics. Returns <code>201 stored</code> or <code>200 duplicate</code>.</td>
             </tr>
-            <tr class="bg-white dark:bg-[#131b2e]">
-              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">GET /api/desktop/reports</td>
+            <tr class="bg-white dark:bg-[#141124]">
+              <td class="px-4 py-3 font-mono text-xs text-lila-700 dark:text-lila-300">GET /api/desktop/reports</td>
               <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">Admin / token</td>
               <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Paginated list supporting <code>?kind=&amp;app_version=&amp;period_key=&amp;limit=&amp;offset=</code>.</td>
             </tr>
-            <tr class="bg-slate-50 dark:bg-[#0f1729]">
-              <td class="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">GET /api/desktop/reports/stats</td>
+            <tr class="bg-slate-50 dark:bg-[#100d1c]">
+              <td class="px-4 py-3 font-mono text-xs text-lila-700 dark:text-lila-300">GET /api/desktop/reports/stats</td>
               <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">Admin / token</td>
               <td class="px-4 py-3 text-slate-600 dark:text-slate-400">Summary totals grouped by <code>kind</code>, <code>app_version</code>, <code>platform</code>, and <code>period_key</code>.</td>
             </tr>
