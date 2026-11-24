@@ -8,7 +8,7 @@
   <script>
     (function () {
       var t = 'dark';
-      try { var s = localStorage.getItem('lila-theme'); if (s === 'light' || s === 'dark') t = s; } catch (e) {}
+      try { var s = localStorage.getItem('lila-theme'); if (s === 'light' || s === 'dark') t = s; } catch (e) { }
       var r = document.documentElement;
       r.classList.toggle('dark', t === 'dark');
       r.dataset.theme = t;
@@ -18,7 +18,7 @@
   </script>
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <link rel="canonical" href="https://seip25.github.io/Lila/" />
-  <title>Lila Framework v2.2.4 - Full-Stack Python SPA, React & Desktop</title>
+  <title>Lila Framework v2.2.5 - Full-Stack Python SPA, React & Desktop</title>
   <meta name="google-site-verification" content="X_F63szaGUDmU8TZv_IJ0GvT79Cfncj5YqBJHTKp1t0" />
   <meta name="description"
     content="Lila v2.2 is a lightweight (~19MB import, ~42MB app) full-stack Python web framework with SPA View Transitions, React/Vite support, AI Helper with PII Masking, SQLite WAL mode, and 1-command desktop builds." />
@@ -26,7 +26,7 @@
     content="Python, Web Framework, SPA, View Transitions, React, Vite, AI, Gemini, OpenAI, DeepSeek, SQLite, Desktop, Starlette, Pydantic" />
   <meta name="author" content="Lila Framework Team" />
 
-  <meta property="og:title" content="Lila Framework v2.2.4 - Full-Stack Python SPA, React & Desktop" />
+  <meta property="og:title" content="Lila Framework v2.2.5 - Full-Stack Python SPA, React & Desktop" />
   <meta property="og:description"
     content="Lightweight (~19MB import, ~42MB app) full-stack Python framework with SPA View Transitions, React/Vite, AI Helper, SQLite WAL, and Desktop mode." />
   <meta property="og:image" content="https://seip25.github.io/Lila/img/lila.png" />
@@ -34,7 +34,7 @@
   <meta property="og:type" content="website" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Lila Framework v2.2.4" />
+  <meta name="twitter:title" content="Lila Framework v2.2.5" />
   <meta name="twitter:description"
     content="Full-Stack Python with SPA View Transitions, AI Helper with PII Masking, and Desktop mode." />
   <meta name="twitter:image" content="https://seip25.github.io/Lila/img/lila.png" />
@@ -99,8 +99,7 @@
   </script>
 </head>
 
-<body
-  class="bg-[#faf8ff] text-slate-800 dark:bg-[#0b0914] dark:text-slate-200 min-h-screen flex flex-col font-sans">
+<body class="bg-[#faf8ff] text-slate-800 dark:bg-[#0b0914] dark:text-slate-200 min-h-screen flex flex-col font-sans">
   <header
     class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-[#0b0914]/80 border-b border-slate-200/50 dark:border-[#261f3d] py-4 transition-colors duration-300">
     <nav class="max-w-6xl mx-auto px-6 flex items-center justify-between">
@@ -125,9 +124,17 @@
         </a>
         <button type="button" data-theme-toggle aria-label="Toggle color theme" aria-pressed="true"
           class="inline-flex items-center justify-center">
-          <svg class="theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg class="theme-icon-light" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
           <span class="theme-icon-light sr-only">Switch to light theme</span>
-          <svg class="theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="theme-icon-dark" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
           <span class="theme-icon-dark sr-only">Switch to dark theme</span>
         </button>
       </div>
@@ -140,7 +147,7 @@
       <div
         class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lila-100/80 dark:bg-lila-300/15 border border-lila-200 dark:border-lila-300/25 text-lila-700 dark:text-lila-300 text-xs font-semibold tracking-wide">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        ✨ Lila Framework v2.2.4 is Live • Full-Stack Web, React &amp; Desktop
+        ✨ Lila Framework v2.2.5 is Live • Full-Stack Web, React &amp; Desktop
       </div>
 
       <h1
@@ -149,8 +156,9 @@
       </h1>
 
       <p class="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl font-medium leading-relaxed">
-        lightweight (~19MB import, ~42MB app), Zero-Infrastructure with async SQLite WAL mode, native View Transitions routing
-          (<code
+        lightweight (~19MB import, ~42MB app), Zero-Infrastructure with async SQLite WAL mode, native View Transitions
+        routing
+        (<code
           class="font-mono text-sm px-1.5 py-0.5 bg-lila-100/80 dark:bg-lila-300/15 rounded text-lila-700 dark:text-lila-300">
           lila-client.js</code>), unified AI helper with PII masking, and 1-command desktop builds.
       </p>
@@ -171,7 +179,8 @@
     <section
       class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#141124] rounded-3xl p-8 lg:p-12 border border-slate-200/50 dark:border-[#261f3d] shadow-xl shadow-slate-100/50 dark:shadow-none">
       <div class="lg:col-span-6 flex flex-col gap-6">
-        <h2 class="text-3xl font-bold font-heading text-slate-800 dark:text-white tracking-tight">Zero-Infrastructure &amp;
+        <h2 class="text-3xl font-bold font-heading text-slate-800 dark:text-white tracking-tight">Zero-Infrastructure
+          &amp;
           AI-First Architecture</h2>
         <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
           <strong>Lila v2.0</strong> is engineered for the 95% of real-world projects that want high performance without
@@ -184,7 +193,9 @@
           <div>
             <h4 class="font-semibold text-lila-700 dark:text-lila-300">SPA View Transitions Runtime</h4>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              Zero build-step client (<code class="font-mono text-xs px-1 py-0.5 rounded bg-lila-100 dark:bg-lila-300/15 text-lila-800 dark:text-lila-300">lila-client.js</code>) intercepts links,
+              Zero build-step client (<code
+                class="font-mono text-xs px-1 py-0.5 rounded bg-lila-100 dark:bg-lila-300/15 text-lila-800 dark:text-lila-300">lila-client.js</code>)
+              intercepts links,
               prefetches on hover, and transitions views smoothly with native browser APIs.
             </p>
           </div>
@@ -236,7 +247,7 @@
             </div>
 
             <div class="flex items-center justify-between pt-4 border-t border-[#261f3d] text-xs text-slate-400">
-              <span>⚡ Lila v2.2.4 Active (Pure ASGI)</span>
+              <span>⚡ Lila v2.2.5 Active (Pure ASGI)</span>
               <span class="w-2.5 h-4 bg-lila-300 animate-pulse"></span>
             </div>
           </div>
@@ -256,12 +267,14 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <article class="material-card rounded-2xl p-6 flex flex-col gap-3">
-          <div class="w-12 h-12 rounded-xl bg-lila-100/80 dark:bg-lila-300/15 flex items-center justify-center text-2xl">
+          <div
+            class="w-12 h-12 rounded-xl bg-lila-100/80 dark:bg-lila-300/15 flex items-center justify-center text-2xl">
             ⚡
           </div>
           <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">SPA View Transitions</h3>
           <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Native browser View Transitions API integration via <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">lila-client.js</code>.
+            Native browser View Transitions API integration via <code
+              class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">lila-client.js</code>.
             No Node.js build step, instant prefetch, and reactive Tailwind UI components.
           </p>
         </article>
@@ -271,10 +284,12 @@
             class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-2xl">
             🤖
           </div>
-          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">AI Helper &amp; PII Masking</h3>
+          <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">AI Helper &amp; PII Masking
+          </h3>
           <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Unified client for OpenAI, DeepSeek, and Gemini with reversible sensitive data masking (<code
-              class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">[email_01]</code>), prompt cache hits, and rate limiting.
+              class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">[email_01]</code>),
+            prompt cache hits, and rate limiting.
           </p>
         </article>
 
@@ -285,8 +300,12 @@
           </div>
           <h3 class="text-xl font-bold font-heading text-slate-800 dark:text-white mt-2">Desktop in 1 Command</h3>
           <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Run inside a native desktop window (<code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">lila desktop dev</code>) and build
-            installers (<code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">lila desktop build</code>) with native menus, startup
+            Run inside a native desktop window (<code
+              class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">lila desktop dev</code>)
+            and build
+            installers (<code
+              class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-lila-700 dark:text-lila-300">lila desktop build</code>)
+            with native menus, startup
             auto-migrations, and opt-in bug reports &amp; telemetry.
           </p>
         </article>
@@ -375,4 +394,3 @@
 </body>
 
 </html>
-

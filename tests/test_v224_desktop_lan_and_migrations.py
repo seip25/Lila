@@ -75,7 +75,7 @@ class V224MigrationsAndBackupTests(unittest.TestCase):
             "SECRET_KEY": "a" * 48,
             "LILA_MIGRATE_BACKUP": True,
             "LILA_MIGRATE_BACKUP_KEEP": 2,
-            "VERSION_PROJECT": "2.2.4",
+            "VERSION_PROJECT": "2.2.5",
             "DB_TYPE": "sqlite",
             "DB_NAME": "migtest",
         }

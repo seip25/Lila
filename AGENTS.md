@@ -1,4 +1,4 @@
-# Lila Framework v2.2.4 — Agent & Developer Reference
+# Lila Framework v2.2.5 — Agent & Developer Reference
 
 Lila is a lightweight full-stack Python web framework built on **Starlette**,
 **Pydantic v2**, **SQLAlchemy 2.0 Async** and **Jinja2**. It targets 1–2 worker

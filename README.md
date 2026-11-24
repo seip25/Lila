@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/seip25/Lila/main/lila/public/img/lila-256.webp" width="120" height="120" alt="Lila Framework">
 </p>
 
-<h1 align="center">Lila Framework v2.2.4</h1>
+<h1 align="center">Lila Framework v2.2.5</h1>
 
 <p align="center">
   <b>Lightweight full-stack Python web & desktop framework</b><br>
